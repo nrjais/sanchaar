@@ -3,7 +3,9 @@ import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [vue()],
+  plugins: [
+    vue()
+  ],
 
   // 1. prevent vite from obscuring rust errors
   clearScreen: false,

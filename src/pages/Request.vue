@@ -1,10 +1,9 @@
 <template>
-  <div>
-    <h1>Request</h1>
-  </div>
+  <NInput placeholder="Url"></NInput>
 </template>
 
 <script setup lang="ts">
+import { NInput } from 'naive-ui';
 
 </script>
 
