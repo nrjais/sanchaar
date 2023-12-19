@@ -1,17 +1,18 @@
 <script setup lang="ts">
+import Box from './components/Box.vue';
 import Request from './pages/Request.vue';
-import { darkTheme } from 'naive-ui'
+import { darkTheme, NConfigProvider } from 'naive-ui'
 
 </script>
 
 <template>
-  <div class="h-full">
-    <NConfigProvider :theme="darkTheme">
-      <div class="p-4">
+  <Box class="bg-white dark:bg-neutral-900">
+    <NConfigProvider :theme="darkTheme" class="h-full">
+      <Box class="p-4">
         <Request />
-      </div>
+      </Box>
     </NConfigProvider>
-  </div>
+  </Box>
 </template>
 
 <style scoped>
