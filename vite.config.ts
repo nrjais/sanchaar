@@ -1,6 +1,7 @@
 import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
 import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -20,6 +21,15 @@ export default defineConfig(async () => ({
       ],
     }),
   ],
+
+  resolve: {
+    alias: [
+      {
+        find: "@",
+        replacement: fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    ],
+  },
 
   // 1. prevent vite from obscuring rust errors
   clearScreen: false,

@@ -1,6 +1,6 @@
 <template>
   <Box class="flex">
-    <NTabs size="small" animated pane-wrapper-class="flex-grow">
+    <NTabs size="small" animated pane-wrapper-class="flex-grow h-full">
       <NTabPane name="body" tab="Body" class="h-full" display-directive="show:lazy">
         <BodyViewer :code="body" />
       </NTabPane>
@@ -26,7 +26,6 @@
         <NText class="mx-2 font-semibold">{{ prettyBytes(sizeBytes) }}</NText>
       </template>
     </NTabs>
-
   </Box>
 </template>
 

@@ -16,13 +16,14 @@
     "axios": "^1.6.2",
     "axios-tauri-adapter": "^0.3.0",
     "dayjs": "^1.11.10",
-    "monaco-editor": "^0.45.0",
+    "monaco-editor": "^0.43.0",
     "naive-ui": "^2.36.0",
     "pinia": "^2.1.7",
     "pretty-bytes": "^6.1.1",
     "vue": "^3.3.4"
   },
   "devDependencies": {
+    "@types/node": "^20.10.5",
     "@tauri-apps/cli": "^1.5.7",
     "@vitejs/plugin-vue": "^4.2.3",
     "autoprefixer": "^10.4.16",
