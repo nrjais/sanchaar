@@ -2,7 +2,7 @@
   <Box>
     <NInputGroup class="flex">
       <Box width="w-32">
-        <NSelect :options="methods" v-model:value="method" />
+        <NSelect :options="methods" v-model:value="method" filterable tag :consistent-menu-width="false" />
       </Box>
       <NInput class="flex-grow" placeholder="Address"></NInput>
       <NButton type="success">
@@ -17,14 +17,14 @@
       </NButton>
     </NInputGroup>
     <Box>
-      <NSplit direction="horizontal" :max="0.75" :min="0.25">
+      <NSplit direction="horizontal" :max="0.75" :min="0.25" class="py-2">
         <template #1>
-          <Box>
-            Pane 1
+          <Box class="pr-2">
+            <RequestConfig />
           </Box>
         </template>
         <template #2>
-          <Box>
+          <Box class="pl-2">
             Pane 2
           </Box>
         </template>
@@ -34,11 +34,11 @@
 </template>
 
 <script setup lang="ts">
-import { IconDeviceFloppy } from '@tabler/icons-vue';
-import { IconSend2 } from '@tabler/icons-vue';
-import { NButton, NIcon, NInput, NInputGroup, NSelect, NSpace, NSplit } from 'naive-ui';
+import { IconDeviceFloppy, IconSend2 } from '@tabler/icons-vue';
+import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
 import { ref } from 'vue';
 import Box from '../components/Box.vue';
+import RequestConfig from '../components/RequestConfig/RequestConfig.vue';
 
 const methods = [
   { label: 'GET', value: 'GET' },

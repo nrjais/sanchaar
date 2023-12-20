@@ -1,25 +1,23 @@
 <template>
-  <div :class="classes">
+  <n-el :class="classes" as="div">
     <slot></slot>
-  </div>
+  </n-el>
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps } from 'vue';
+import { computed } from 'vue';
+import { NEl } from 'naive-ui';
 
-const props = defineProps({
-  class: {
-    type: String,
-    default: ''
-  },
-  width: {
-    type: String,
-    default: 'w-full'
-  },
-  height: {
-    type: String,
-    default: 'h-full'
-  }
+export interface Props {
+  class: string
+  width: string
+  height: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  class: '',
+  width: 'w-full',
+  height: 'h-full'
 })
 
 const classes = computed(() => `${props.class} ${props.width} ${props.height}`);
