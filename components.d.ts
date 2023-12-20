@@ -13,6 +13,9 @@ declare module 'vue' {
     NConfigProvider: typeof import('naive-ui')['NConfigProvider']
     NEl: typeof import('naive-ui')['NEl']
     NIcon: typeof import('naive-ui')['NIcon']
+    NTabPane: typeof import('naive-ui')['NTabPane']
+    NTabs: typeof import('naive-ui')['NTabs']
     RequestConfig: typeof import('./src/components/RequestConfig/RequestConfig.vue')['default']
+    ResponseDetails: typeof import('./src/components/ResponseDetails/ResponseDetails.vue')['default']
   }
 }

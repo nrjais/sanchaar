@@ -10,10 +10,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@guolao/vue-monaco-editor": "^1.4.1",
     "@tabler/icons-vue": "^2.44.0",
     "@tauri-apps/api": "^1.5.2",
     "axios": "^1.6.2",
     "axios-tauri-adapter": "^0.3.0",
+    "monaco-editor": "^0.45.0",
     "naive-ui": "^2.36.0",
     "pinia": "^2.1.7",
     "vue": "^3.3.4"
