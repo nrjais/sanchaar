@@ -12,7 +12,7 @@
       </NButton>
     </NInputGroup>
     <Box>
-      <NSplit direction="horizontal" :max="0.75" :min="0.25" class="py-2">
+      <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="py-2">
         <template #1>
           <Box class="pr-2">
             <RequestConfig />

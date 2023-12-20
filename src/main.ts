@@ -2,7 +2,10 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./styles.css";
 import * as monaco from "monaco-editor";
-import { loader } from "@guolao/vue-monaco-editor";
+import {
+  loader,
+  install as VueMonacoEditorPlugin,
+} from "@guolao/vue-monaco-editor";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
@@ -23,4 +26,6 @@ meta.name = "naive-ui-style";
 document.head.appendChild(meta);
 document.documentElement.classList.add("dark");
 
-createApp(App).mount("#app");
+const app = createApp(App);
+app.use(VueMonacoEditorPlugin);
+app.mount("#app");

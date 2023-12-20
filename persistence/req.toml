@@ -1,0 +1,30 @@
+name = "Get Todos"
+version = "chuglee-1"
+description = "Get Todos"
+
+[request]
+method = "GET"
+scheme = "https"
+domain = "jsonplaceholder.typicode.com"
+path = "/todos/{{id}}"
+
+[request.params]
+id = { value = "1", description = "Todo ID" }
+
+[request.query]
+userId = { value = "1", description = "User ID" }
+
+[request.headers]
+Accept = { value = "application/json", description = "Accept header" }
+Content-Type = { value = "application/json", description = "Content-Type header" }
+
+[request.body]
+type = "json" # json, form, urlencoded, text, file, xml
+# store form as key val pairs json
+content = """
+{
+  "title": "foo",
+  "body": "bar",
+  "userId": 1
+}
+"""
