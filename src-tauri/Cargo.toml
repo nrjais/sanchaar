@@ -1,9 +1,9 @@
 [package]
-name = "chuglee"
+name = "sanchar"
 version = "0.0.0"
-description = "Chuglee"
+description = "Sanchar"
 authors = ["Neeraj Jaiswal"]
-license = "GPL"
+license = "GPL-3.0-or-later"
 repository = ""
 edition = "2021"
 
