@@ -1,6 +1,6 @@
 <template>
   <Box height="h-fit">
-    <NTable size="small" striped>
+    <NTable size="small" bordered>
       <thead>
         <tr>
           <th></th>

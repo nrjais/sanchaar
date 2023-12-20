@@ -1,6 +1,8 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import "./styles.css";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import * as monaco from "monaco-editor";
 import {
   loader,
@@ -18,6 +20,8 @@ self.MonacoEnvironment = {
     return new editorWorker();
   },
 };
+
+dayjs.extend(duration);
 
 loader.config({ monaco });
 

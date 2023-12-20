@@ -3,7 +3,7 @@
     <NTabs class="flex-grow" animated size="small">
       <NTabPane name="Params" class="flex-grow">
         <Box>
-          <NText strong depth="3" tag="div" class="mb-2">Query Params</NText>
+          <NText strong depth="3" tag="div" class="mb-2 mt-2">Query Params</NText>
           <KeyVal />
         </Box>
         <Box v-if="props.pathParams?.length">
