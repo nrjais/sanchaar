@@ -1,6 +1,6 @@
 <template>
   <Box height="h-fit">
-    <NTable size="small" bordered>
+    <NTable size="small" bordered :single-line="false">
       <thead>
         <tr>
           <th></th>
@@ -19,19 +19,19 @@
       <tbody>
         <tr v-for="row in rows">
           <td>
-            <NCheckbox class="px-2" v-model:checked="row.enabled" />
+            <NCheckbox class="px-2" size="small" v-model:checked="row.enabled" />
           </td>
           <td>
-            <NInput placeholder="Key" v-model:value="row.key" />
+            <NInput placeholder="Key" size="small" v-model:value="row.key" :theme-overrides="themOverides"/>
           </td>
           <td>
-            <NInput placeholder="Value" v-model:value="row.value" />
+            <NInput placeholder="Value" size="small" v-model:value="row.value" :theme-overrides="themOverides"/>
           </td>
           <td>
-            <NInput placeholder="Description" v-model:value="row.description" />
+            <NInput placeholder="Description" size="small" v-model:value="row.description" :theme-overrides="themOverides"/>
           </td>
           <td>
-            <NButton type="tertiary" class="px-2" size="small" v-on:click="removeRow(row)" :disabled="lastRowLeft">
+            <NButton type="error" class="px-2" size="small" v-on:click="removeRow(row)" :disabled="lastRowLeft">
               <NIcon>
                 <IconTrash />
               </NIcon>
@@ -45,9 +45,13 @@
 
 <script setup lang="ts">
 import { IconPlus, IconTrash } from '@tabler/icons-vue';
-import { NButton, NCheckbox, NIcon, NInput, NTable } from 'naive-ui';
+import { InputProps, NButton, NCheckbox, NIcon, NInput, NTable } from 'naive-ui';
 import { computed, reactive } from 'vue';
 import Box from './Box.vue';
+
+const themOverides: NonNullable<InputProps['themeOverrides']> = {
+  color: "#18181c"
+}
 
 type KeyVal = {
   enabled: boolean;
@@ -77,5 +81,4 @@ const addRow = () => {
   });
 };
 addRow();
-
 </script>

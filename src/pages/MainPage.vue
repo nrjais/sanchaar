@@ -1,8 +1,11 @@
 <template>
   <Box class="p-4">
-    <NTabs type="card" v-model:value="activeTab" addable closable @close="closeTab" @add="openTab" size="small">
-      <NTabPane v-for="panel in panels" :key="panel.name" :tab="panel.title" :name="panel.name">
+    <NTabs type="card" v-model:value="activeTab" addable closable @close="closeTab" @add="openTab" size="small" class="h-full">
+      <NTabPane v-for="panel in panels" :key="panel.name" :tab="panel.title" :name="panel.name" display-directive="show:lazy" class="h-full">
         <RequestPane />
+        <template #tab>
+          <span>{{ panel.title }} &#8226;</span>
+        </template>
       </NTabPane>
     </NTabs>
   </Box>

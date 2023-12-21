@@ -1,8 +1,12 @@
 <template>
   <Box class="flex">
-    <NTabs size="small" animated pane-wrapper-class="flex-grow h-full">
+    <NTabs size="small" animated>
       <NTabPane name="body" tab="Body" class="h-full" display-directive="show:lazy">
-        <BodyViewer :code="body" />
+        <Box class="flex flex-col">
+          <Box class="flex-grow">
+            <BodyViewer :code="body" />
+          </Box>
+        </Box>
       </NTabPane>
       <NTabPane name="headers" tab="Headers">
         <NTable size="small" bordered :single-line="false">
