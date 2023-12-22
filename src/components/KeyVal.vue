@@ -8,7 +8,7 @@
           <th>Value</th>
           <th>Description</th>
           <th>
-            <NButton type="tertiary" size="small" class="px-2 justify-between" :on-click="addRow">
+            <NButton quaternary size="small" class="px-2 justify-between" :on-click="addRow">
               <NIcon>
                 <IconPlus />
               </NIcon>
@@ -31,7 +31,7 @@
             <NInput placeholder="Description" size="small" v-model:value="row.description" :theme-overrides="themOverides"/>
           </td>
           <td>
-            <NButton type="error" class="px-2" size="small" v-on:click="removeRow(row)" :disabled="lastRowLeft">
+            <NButton type="error" quaternary class="px-2" size="small" v-on:click="removeRow(row)" :disabled="lastRowLeft">
               <NIcon>
                 <IconTrash />
               </NIcon>

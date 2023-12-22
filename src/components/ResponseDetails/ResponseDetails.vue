@@ -25,9 +25,11 @@
         </NTable>
       </NTabPane>
       <template #suffix>
-        <NText :type="statusCodeColor(statusCode)" class="mx-2 font-semibold">{{ statusCode }} {{ statusText }}</NText>
-        <NText class="mx-2 font-semibold">{{ latency }}ms</NText>
-        <NText class="mx-2 font-semibold">{{ prettyBytes(sizeBytes) }}</NText>
+        <Box class="flex gap-3 text-xs items-center">
+          <NText :type="statusCodeColor(statusCode)">{{ statusCode }}&#8226;{{ statusText }}</NText>
+          <NText depth="2">Time: {{ latency }}ms</NText>
+          <NText depth="2">Size: {{ prettyBytes(sizeBytes) }}</NText>
+        </Box>
       </template>
     </NTabs>
   </Box>
@@ -55,7 +57,7 @@ const statusCodeColor = (code: number) => {
   return 'default'
 }
 
-const body = `{
+const body = JSON.stringify({
   "name": "John",
   "age": 30,
   "cars": [
@@ -72,7 +74,7 @@ const body = `{
       "models": ["500", "Panda"]
     }
   ]
-}`
+});
 
 const headers = {
   'content-type': 'application/json',

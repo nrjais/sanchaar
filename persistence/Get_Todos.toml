@@ -1,6 +1,7 @@
 name = "Get Todos"
 version = "chuglee-1"
 description = "Get Todos"
+documentation = "docs/Get_Todos.md"
 
 [request]
 method = "GET"

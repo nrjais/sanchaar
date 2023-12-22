@@ -12,6 +12,7 @@
         </Box>
       </NTabPane>
       <NTabPane name="Headers" class="flex-grow">
+        <NText strong depth="3" tag="div" class="mb-2 mt-2">Headers</NText>
         <KeyVal />
       </NTabPane>
       <NTabPane name="Body" class="flex-grow">
