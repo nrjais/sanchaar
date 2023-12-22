@@ -1,29 +1,19 @@
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import { createApp } from "vue";
 import App from "./App.vue";
 import "./styles.css";
-import dayjs from "dayjs";
-import duration from "dayjs/plugin/duration";
-import * as monaco from "monaco-editor";
-import {
-  loader,
-  install as VueMonacoEditorPlugin,
-} from "@guolao/vue-monaco-editor";
-import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
-self.MonacoEnvironment = {
-  getWorker(_, label) {
-    if (label === "json") {
-      return new jsonWorker();
-    }
-    // Add more workers here - css, html, ts, js
-    return new editorWorker();
-  },
-};
+import { createPinia } from "pinia";
+// @ts-ignore
+import { InstallCodemirro } from "codemirror-editor-vue3";
+import "codemirror/addon/display/placeholder.js";
+import "codemirror/mode/javascript/javascript.js";
+import "codemirror/addon/display/placeholder.js";
+import "codemirror/addon/fold/foldcode.js";
+import "codemirror/theme/dracula.css";
 
 dayjs.extend(duration);
-
-loader.config({ monaco });
 
 const meta = document.createElement("meta");
 meta.name = "naive-ui-style";
@@ -31,5 +21,7 @@ document.head.appendChild(meta);
 document.documentElement.classList.add("dark");
 
 const app = createApp(App);
-app.use(VueMonacoEditorPlugin);
+const pinia = createPinia();
+app.use(pinia);
+app.use(InstallCodemirro);
 app.mount("#app");

@@ -25,10 +25,16 @@
         </NTable>
       </NTabPane>
       <template #suffix>
-        <Box class="flex gap-3 text-xs items-center">
-          <NText :type="statusCodeColor(statusCode)">{{ statusCode }}&#8226;{{ statusText }}</NText>
-          <NText depth="2">Time: {{ latency }}ms</NText>
-          <NText depth="2">Size: {{ prettyBytes(sizeBytes) }}</NText>
+        <Box class="flex gap-4 text-xs items-center font-semibold">
+          <NText :type="statusCodeColor(statusCode)">
+            {{ statusCode }}&#8226;{{ statusText }}
+          </NText>
+          <NText depth="2">
+            Time: <NText type="info">{{ latency }}ms</NText>
+          </NText>
+          <NText depth="2">
+            Size: <NText type="info">{{ prettyBytes(sizeBytes) }}</NText>
+          </NText>
         </Box>
       </template>
     </NTabs>
@@ -64,6 +70,46 @@ const body = JSON.stringify({
     {
       "name": "Ford",
       "models": ["Fiesta", "Focus", "Mustang"]
+    },
+    {
+      "name": "BMW",
+      "models": ["320", "X3", "X5"]
+    },
+    {
+      "name": "Fiat",
+      "models": ["500", "Panda"]
+    },
+    {
+      "name": "BMW",
+      "models": ["320", "X3", "X5"]
+    },
+    {
+      "name": "Fiat",
+      "models": ["500", "Panda"]
+    },
+    {
+      "name": "BMW",
+      "models": ["320", "X3", "X5"]
+    },
+    {
+      "name": "Fiat",
+      "models": ["500", "Panda"]
+    },
+    {
+      "name": "BMW",
+      "models": ["320", "X3", "X5"]
+    },
+    {
+      "name": "Fiat",
+      "models": ["500", "Panda"]
+    },
+    {
+      "name": "BMW",
+      "models": ["320", "X3", "X5"]
+    },
+    {
+      "name": "Fiat",
+      "models": ["500", "Panda"]
     },
     {
       "name": "BMW",

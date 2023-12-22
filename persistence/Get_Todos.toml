@@ -5,8 +5,7 @@ documentation = "docs/Get_Todos.md"
 
 [request]
 method = "GET"
-scheme = "https"
-domain = "jsonplaceholder.typicode.com"
+domain = "https://jsonplaceholder.typicode.com"
 path = "/todos/{{id}}"
 
 [request.params]

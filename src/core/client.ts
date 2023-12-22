@@ -1,3 +1,5 @@
+import { ContentType, Request } from "@/core/request";
+import { ResponseDetails } from "@/core/response";
 import axios from "axios";
 // @ts-ignore
 import axiosTauriAdapter from "axios-tauri-adapter";
@@ -37,55 +39,30 @@ axios.interceptors.response.use(
   (error) => Promise.reject(error)
 );
 
-export type RequestConfig = {
-  url: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  data?: any;
-  params?: any;
-  headers?: any;
-};
-
-export enum ContentType {
-  JSON = "application/json",
-  FORM = "application/x-www-form-urlencoded",
-  MULTIPART = "multipart/form-data",
-  UNKNOWN = "unknown",
-}
-
 export const getContentType = (headers: Map<string, string>): ContentType => {
   if (headers.has("content-type")) {
     const contentType = headers.get("content-type")?.toLowerCase();
     if (contentType?.includes("json")) {
       return ContentType.JSON;
-    } else if (contentType?.includes("form")) {
-      return ContentType.FORM;
-    } else if (contentType?.includes("multipart")) {
-      return ContentType.MULTIPART;
+    } else if (contentType?.includes("urlencoded")) {
+      return ContentType.URL_ENCODED;
+    } else if (contentType?.includes("xml")) {
+      return ContentType.XML;
     }
   }
 
-  return ContentType.UNKNOWN;
+  return ContentType.BYTES;
 };
 
-export type Response = {
-  data: any;
-  contentLength: number;
-  headers: Map<string, string>;
-  status: number;
-  statusText: string;
-  contentType: ContentType;
-  latency: number;
-};
-
-export const execute = async (reqConfig: RequestConfig): Promise<Response> => {
-  const { url, method, data, params, headers } = reqConfig;
+export const execute = async (reqConfig: Request): Promise<ResponseDetails> => {
+  const { domain, path, method, body, headers, query } = reqConfig;
 
   const response = await client.request({
-    url,
+    url: `${domain}${path}`,
     method,
-    data,
-    params,
-    headers,
+    data: body,
+    params: query,
+    headers: Object.fromEntries(headers),
   });
 
   const headersMap = new Map<string, string>();
