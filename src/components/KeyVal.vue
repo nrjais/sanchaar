@@ -2,27 +2,13 @@
   <Box height="h-fit">
     <Box class="flex justify-between">
       <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
-      <NButtonGroup size="small">
-        <NTooltip trigger="hover">
-          <template #trigger>
-            <NButton class="px-2" quaternary type="primary" @click="addRow">
-              <NIcon>
-                <IconEdit />
-              </NIcon>
-            </NButton>
-          </template>
+      <NButtonGroup size="tiny">
+        <NButton class="px-2" quaternary type="primary" @click="addRow">
           Bulk Edit
-        </NTooltip>
-        <NTooltip trigger="hover">
-          <template #trigger>
-            <NButton class="px-2" quaternary type="primary" @click="addRow">
-              <NIcon>
-                <IconPlus />
-              </NIcon>
-            </NButton>
-          </template>
-          Add Param
-        </NTooltip>
+        </NButton>
+        <NButton class="px-2" quaternary type="primary" @click="addRow">
+          Add New
+        </NButton>
       </NButtonGroup>
     </Box>
     <NTable size="small" bordered :single-line="false">
@@ -64,11 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import { IconPlus, IconTrash } from '@tabler/icons-vue';
-import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText, NTooltip } from 'naive-ui';
+import { IconTrash } from '@tabler/icons-vue';
+import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
 import { computed, reactive } from 'vue';
 import Box from './Box.vue';
-import { IconEdit } from '@tabler/icons-vue';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c"
