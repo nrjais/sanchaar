@@ -8,7 +8,7 @@
           </Box>
         </Box>
       </NTabPane>
-      <NTabPane name="headers" tab="Headers">
+      <NTabPane name="headers" tab="Headers" display-directive="show:lazy">
         <NTable size="small" bordered :single-line="false">
           <thead>
             <tr>
