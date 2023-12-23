@@ -39,4 +39,3 @@ const methods = Object.values(Methods).map((method) => ({ label: method, value: 
 const method = ref(Methods.GET);
 
 </script>
-@/core/methods

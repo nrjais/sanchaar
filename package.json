@@ -15,12 +15,12 @@
     "@tauri-apps/api": "^1.5.2",
     "axios": "^1.6.2",
     "axios-tauri-adapter": "^0.3.0",
-    "cm6-theme-basic-dark": "^0.2.0",
     "codemirror": "^6.0.1",
     "dayjs": "^1.11.10",
     "naive-ui": "^2.36.0",
     "pinia": "^2.1.7",
     "pretty-bytes": "^6.1.1",
+    "thememirror": "^2.0.1",
     "vue": "^3.3.4"
   },
   "devDependencies": {

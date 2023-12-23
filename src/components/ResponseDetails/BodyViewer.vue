@@ -8,8 +8,8 @@
       </NIcon>
     </NButton>
   </NButtonGroup>
-  <Box class="my-2 flex flex-col">
-    <div ref="editorRef" class="h-full overflow-scroll flex-grow"></div>
+  <Box class="my-2">
+    <div ref="editorRef" class="h-full overflow-scroll"></div>
   </Box>
 </template>
 
@@ -29,7 +29,7 @@ import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
 import { Compartment, EditorState, Extension } from "@codemirror/state";
 import { EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers, rectangularSelection } from "@codemirror/view";
 import { IconTextWrap } from "@tabler/icons-vue";
-import { basicDark } from 'cm6-theme-basic-dark';
+import { barf } from 'thememirror';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
 import { computed, onMounted, ref, watch } from 'vue';
 import Box from "../Box.vue";
@@ -84,7 +84,7 @@ onMounted(() => {
     doc: code.value,
     extensions: [
       basicSetup,
-      basicDark
+      barf
     ],
     parent: editorRef.value!,
   })

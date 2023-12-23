@@ -34,6 +34,10 @@ const openTab = () => {
   });
 };
 
+if (tabStore.openTabs.length === 0) {
+  openTab();
+}
+
 const closeTab = (id: string) => tabStore.removeTab(id);
 
 const tabTitle = (id: string): { name: string, prefix?: string } => {
