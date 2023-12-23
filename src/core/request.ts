@@ -26,6 +26,6 @@ export interface Request {
 
 export interface RequestDetails {
   name: string;
-  description: string;
-  request: Request;
+  description?: string;
+  config: Request;
 }

@@ -2,7 +2,8 @@
   <Box>
     <NInputGroup class="flex">
       <Box width="w-32">
-        <NSelect size="large" :options="methods" v-model:value="method" filterable tag :consistent-menu-width="false" />
+        <NSelect size="large" :options="methods" v-model:value="method" :on-update-value="updateMethod" filterable tag
+          :consistent-menu-width="false" />
       </Box>
       <NInput size="large" class="flex-grow" placeholder="Address"></NInput>
       <NButton type="success" size="large">
@@ -27,15 +28,24 @@
 </template>
 
 <script setup lang="ts">
-import { IconSend2 } from '@tabler/icons-vue';
-import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
-import { ref } from 'vue';
 import Box from '@/components/Box.vue';
 import RequestConfig from '@/components/RequestConfig/RequestConfig.vue';
-import { Methods } from '@/core/methods';
 import ResponseDetails from '@/components/ResponseDetails/ResponseDetails.vue';
+import { Methods } from '@/core/methods';
+import { RequestDetails } from '@/core/request';
+import useTabStore from '@/stores/tabs';
+import { IconSend2 } from '@tabler/icons-vue';
+import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
+import { computed } from 'vue';
+
+const tabStore = useTabStore();
 
 const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
-const method = ref(Methods.GET);
+const method = computed(() => tabStore.activeTabContent?.value.config.method);
 
+const updateMethod = (method: string) => {
+  tabStore.updateRequest((req: RequestDetails) => {
+    req.config.method = method;
+  });
+};
 </script>
