@@ -2,29 +2,93 @@
   <NButtonGroup class="my-1" size="small">
     <NButton secondary @click="viewMode = 'pretty'" :type="buttonType(viewMode, 'pretty')">Pretty</NButton>
     <NButton secondary @click="viewMode = 'raw'" :type="buttonType(viewMode, 'raw')">Raw</NButton>
-    <NButton secondary :on-click="toggleWrapping" :type="buttonType(options.lineWrapping)">
+    <NButton secondary :on-click="toggleWrapping" :type="buttonType(lineWrap)">
       <NIcon>
         <IconTextWrap />
       </NIcon>
     </NButton>
   </NButtonGroup>
-  <Box class="my-2">
-    <Codemirror :value="code" :options="options" placeholder="test placeholder" />
+  <Box class="my-2 flex flex-col">
+    <div ref="editorRef" class="h-full overflow-scroll flex-grow"></div>
   </Box>
 </template>
 
 <script setup lang="ts">
+import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { json } from '@codemirror/lang-json';
+import {
+  bracketMatching,
+  defaultHighlightStyle,
+  foldGutter, foldKeymap,
+  indentOnInput,
+  syntaxHighlighting
+} from "@codemirror/language";
+import { lintKeymap } from "@codemirror/lint";
+import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
+import { Compartment, EditorState, Extension } from "@codemirror/state";
+import { EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers, rectangularSelection } from "@codemirror/view";
 import { IconTextWrap } from "@tabler/icons-vue";
+import { basicDark } from 'cm6-theme-basic-dark';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
-import { Ref, computed, ref } from 'vue';
-// @ts-ignore
-import Codemirror from "codemirror-editor-vue3";
-import { EditorConfiguration } from "codemirror"
+import { computed, onMounted, ref, watch } from 'vue';
 import Box from "../Box.vue";
 
 type ViewMode = "pretty" | "raw"
 
 const viewMode = ref<ViewMode>('pretty')
+const lineWrap = ref(true);
+const editorRef = ref(null)
+const editor = ref<EditorView | null>(null)
+
+const lineWrappingComp = new Compartment()
+const config = [
+  EditorState.readOnly.of(true),
+  EditorState.tabSize.of(2),
+  EditorState.allowMultipleSelections.of(true),
+  lineWrappingComp.of(EditorView.lineWrapping),
+]
+
+const basicSetup: Extension = [
+  lineNumbers(),
+  highlightActiveLineGutter(),
+  highlightSpecialChars(),
+  history(),
+  foldGutter(),
+  drawSelection(),
+  dropCursor(),
+  indentOnInput(),
+  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+  bracketMatching(),
+  closeBrackets(),
+  autocompletion(),
+  rectangularSelection(),
+  crosshairCursor(),
+  highlightActiveLine(),
+  highlightSelectionMatches(),
+  json(),
+  ...config,
+  keymap.of([
+    ...closeBracketsKeymap,
+    ...defaultKeymap,
+    ...searchKeymap,
+    ...historyKeymap,
+    ...foldKeymap,
+    ...completionKeymap,
+    ...lintKeymap
+  ]),
+]
+
+onMounted(() => {
+  editor.value = new EditorView({
+    doc: code.value,
+    extensions: [
+      basicSetup,
+      basicDark
+    ],
+    parent: editorRef.value!,
+  })
+})
 
 type Props = {
   code: string;
@@ -32,20 +96,6 @@ type Props = {
 const props = withDefaults(defineProps<Props>(), {
   code: "",
 });
-
-const options: Ref<EditorConfiguration> = ref({
-  mode: 'application/ld+json',
-  theme: "dracula",
-  tabSize: 2,
-  lineNumbers: true,
-  lineWrapping: false,
-  readOnly: true,
-  autoCloseBrackets: true,
-  matchBrackets: true,
-  showCursorWhenSelecting: true,
-  foldGutter: true,
-  gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-})
 
 const prettyCode = computed(() => {
   return JSON.stringify(JSON.parse(props.code), null, 2)
@@ -60,6 +110,19 @@ const buttonType = <T>(val: T, expected?: T) => {
 }
 
 const toggleWrapping = () => {
-  options.value.lineWrapping = !options.value.lineWrapping
+  lineWrap.value = !lineWrap.value;
+  editor.value?.dispatch({
+    effects: lineWrappingComp.reconfigure(lineWrap.value ? EditorView.lineWrapping : [])
+  });
 }
+
+watch(() => code.value, (doc) => {
+  editor.value?.dispatch({
+    changes: {
+      from: 0,
+      to: editor.value.state.doc.length,
+      insert: doc
+    }
+  })
+})
 </script>

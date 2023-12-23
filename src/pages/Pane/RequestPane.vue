@@ -11,20 +11,18 @@
         </NIcon>
       </NButton>
     </NInputGroup>
-    <Box>
-      <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="py-2">
-        <template #1>
-          <Box class="pr-4">
-            <RequestConfig />
-          </Box>
-        </template>
-        <template #2>
-          <Box class="pl-4">
-            <ResponseDetails />
-          </Box>
-        </template>
-      </NSplit>
-    </Box>
+    <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="py-2">
+      <template #1>
+        <Box class="pr-4">
+          <RequestConfig />
+        </Box>
+      </template>
+      <template #2>
+        <Box class="pl-4">
+          <ResponseDetails />
+        </Box>
+      </template>
+    </NSplit>
   </Box>
 </template>
 
