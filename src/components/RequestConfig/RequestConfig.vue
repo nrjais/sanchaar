@@ -3,12 +3,12 @@
     <NTabs class="flex-grow" animated size="small">
       <NTabPane name="Params" class="flex-grow">
         <Box class="flex flex-col gap-4 mt-2">
-          <KeyVal header="Query Params" />
-          <KeyVal v-if="props.pathParams.length > 0" header="Path Variables" />
+          <KeyVal header="Query Params" :value="[]" />
+          <KeyVal v-if="props.pathParams.length > 0" :value="[]" header="Path Variables" />
         </Box>
       </NTabPane>
       <NTabPane name="Headers" class="flex-grow">
-        <KeyVal header="Headers" class="mt-2"/>
+        <KeyVal :value="[]" header="Headers" class="mt-2" />
       </NTabPane>
       <NTabPane name="Body" class="flex-grow">
         Body
@@ -29,5 +29,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   pathParams: () => ["Test"],
 });
+
+// const conf = ref(tabStore.getRequestConfig())
+
 
 </script>

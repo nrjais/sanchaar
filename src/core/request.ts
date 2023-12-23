@@ -12,14 +12,21 @@ export interface RequestBody {
   body: string;
 }
 
+export interface KeyValue {
+  enabled: boolean;
+  key: string;
+  value: string;
+  description?: string;
+}
+
 export interface Request {
   name: string;
   method: string;
   domain: string;
   path: string;
-  headers: Map<string, string>;
-  params: Map<string, string>;
-  query: Map<string, string>;
+  headers: KeyValue[];
+  params: KeyValue[];
+  query: KeyValue[];
   body?: string;
   contentType: string;
 }

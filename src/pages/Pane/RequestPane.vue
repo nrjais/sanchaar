@@ -41,7 +41,7 @@ import { computed } from 'vue';
 const tabStore = useTabStore();
 
 const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
-const method = computed(() => tabStore.activeTabContent?.value.config.method);
+const method = computed(() => tabStore.activeTabContent?.value?.value.config.method);
 
 const updateMethod = (method: string) => {
   tabStore.updateRequest((req: RequestDetails) => {

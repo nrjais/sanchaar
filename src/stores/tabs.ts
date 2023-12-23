@@ -1,6 +1,6 @@
-import { defineStore } from "pinia";
-import { Ref, ref, watch } from "vue";
-import { RequestDetails } from "../core/request";
+import { Ref, reactive, ref, watch } from "vue";
+import { Request, RequestDetails } from "../core/request";
+import { Methods } from "@/core/methods";
 
 const nextTabId = ((start: number) => {
   return () => `tab-${start++}`;
@@ -16,39 +16,51 @@ export interface Tab {
   content: TabContent;
 }
 
-const useTabStore = defineStore("tabs", () => {
-  const openTabs: Ref<Tab[]> = ref([]);
+const useTabStore = () => {
+  const openTabs: Tab[] = reactive([]);
   const activeTab = ref<string>();
   const activeTabContent = ref<TabContent>();
 
   watch(activeTab, (id) => {
-    const tab = openTabs.value.find((tab) => tab.id === id);
+    const tab = openTabs.find((tab) => tab.id === id);
     if (tab) {
       activeTabContent.value = tab.content;
     }
   });
 
-  const openRequestTab = (req: RequestDetails) => {
+  const openRequestTab = (name: string) => {
     const id = nextTabId();
     activeTab.value = id;
 
-    openTabs.value.push({
+    openTabs.push({
       id: id,
       content: {
         type: "request",
-        value: req,
+        value: {
+          name: name,
+          config: {
+            name: name,
+            method: Methods.GET,
+            domain: "",
+            path: "",
+            headers: [],
+            params: [],
+            query: [],
+            contentType: "none",
+          },
+        },
       },
     });
   };
 
   const removeTab = (id: string) => {
-    const index = openTabs.value.findIndex((tab) => tab.id === id);
+    const index = openTabs.findIndex((tab) => tab.id === id);
     if (index === -1) {
       return;
     }
-    openTabs.value.splice(index, 1);
+    openTabs.splice(index, 1);
     if (activeTab.value === id) {
-      activeTab.value = openTabs.value[Math.max(0, index - 1)]?.id;
+      activeTab.value = openTabs[Math.max(0, index - 1)]?.id;
     }
   };
 
@@ -57,7 +69,7 @@ const useTabStore = defineStore("tabs", () => {
   };
 
   const tabTitle = (id: string): { name: string; prefix?: string } => {
-    const tab = openTabs.value.find((tab) => tab.id === id);
+    const tab = openTabs.find((tab) => tab.id === id);
     if (tab) {
       switch (tab.content.type) {
         case "request":
@@ -77,6 +89,13 @@ const useTabStore = defineStore("tabs", () => {
     }
   };
 
+  const getRequestConfig = (): Request | undefined => {
+    const tabContent = activeTabContent.value;
+    if (tabContent?.type === "request") {
+      return tabContent.value.config;
+    }
+  };
+
   return {
     activeTab,
     openTabs,
@@ -86,7 +105,8 @@ const useTabStore = defineStore("tabs", () => {
     getTabs,
     tabTitle,
     updateRequest,
+    getRequestConfig,
   };
-});
+};
 
 export default useTabStore;

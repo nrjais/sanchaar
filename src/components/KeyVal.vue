@@ -3,10 +3,10 @@
     <Box class="flex justify-between">
       <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
       <NButtonGroup size="tiny">
-        <NButton class="px-2" quaternary type="primary" @click="addRow">
+        <!-- <NButton class="px-2" tertiary type="primary" @click="addRow">
           Bulk Edit
-        </NButton>
-        <NButton class="px-2" quaternary type="primary" @click="addRow">
+        </NButton> -->
+        <NButton class="px-2" tertiary type="primary" @click="addRow">
           Add New
         </NButton>
       </NButtonGroup>
@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in rows">
+        <tr v-for="row, i in rows">
           <td>
             <NCheckbox class="px-2" size="small" v-model:checked="row.enabled" />
           </td>
@@ -37,7 +37,7 @@
               :theme-overrides="themOverides" />
           </td>
           <td>
-            <NButton type="error" quaternary class="px-2" size="tiny" v-on:click="removeRow(row)" :disabled="lastRowLeft">
+            <NButton type="error" quaternary class="px-2" size="tiny" v-on:click="removeRow(i)" :disabled="lastRowLeft">
               <NIcon>
                 <IconTrash />
               </NIcon>
@@ -52,36 +52,22 @@
 <script setup lang="ts">
 import { IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import Box from './Box.vue';
+import { KeyValue } from '@/core/request';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c"
 }
 
-const props = defineProps({
-  header: {
-    type: String,
-    default: 'Query Params',
-  },
-});
-
-type KeyVal = {
-  enabled: boolean;
-  key: string;
-  value: string;
-  description: string;
+type Props = {
+  header: string;
+  value: KeyValue[];
 };
 
-const rows = reactive([] as KeyVal[]);
+const props = defineProps<Props>();
 
-const removeRow = (row: KeyVal) => {
-  if (rows.length === 1) {
-    return;
-  }
-  const index = rows.indexOf(row);
-  rows.splice(index, 1);
-};
+const rows = reactive<KeyValue[]>(props.value);
 
 const lastRowLeft = computed(() => rows.length == 1)
 
@@ -90,8 +76,21 @@ const addRow = () => {
     enabled: true,
     key: '',
     value: '',
-    description: '',
   });
 };
-addRow();
+
+const addIfEmpty = () => {
+  if (rows.length == 0) {
+    addRow();
+  }
+};
+
+const removeRow = (index: number) => {
+  rows.splice(index, 1);
+  addIfEmpty();
+};
+
+onMounted(() => {
+  addIfEmpty();
+});
 </script>

@@ -18,18 +18,18 @@ import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } 
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { json } from '@codemirror/lang-json';
 import {
-  bracketMatching,
-  defaultHighlightStyle,
-  foldGutter, foldKeymap,
-  indentOnInput,
-  syntaxHighlighting
+bracketMatching,
+defaultHighlightStyle,
+foldGutter, foldKeymap,
+indentOnInput,
+syntaxHighlighting
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
 import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
 import { Compartment, EditorState, Extension } from "@codemirror/state";
 import { EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers, rectangularSelection } from "@codemirror/view";
 import { IconTextWrap } from "@tabler/icons-vue";
-import { barf } from 'thememirror';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
 import { computed, onMounted, ref, watch } from 'vue';
 import Box from "../Box.vue";
@@ -84,7 +84,7 @@ onMounted(() => {
     doc: code.value,
     extensions: [
       basicSetup,
-      barf
+      vscodeDark
     ],
     parent: editorRef.value!,
   })
