@@ -1,3 +1,5 @@
+import { Methods } from "./methods";
+
 export enum ContentType {
   JSON = "json",
   URL_ENCODED = "url_encoded",
@@ -21,14 +23,14 @@ export interface KeyValue {
 
 export interface Request {
   name: string;
-  method: string;
+  method: Methods;
   domain: string;
   path: string;
   headers: KeyValue[];
   params: KeyValue[];
   query: KeyValue[];
   body?: string;
-  contentType: string;
+  contentType: ContentType;
 }
 
 export interface RequestDetails {

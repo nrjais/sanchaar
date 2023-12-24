@@ -26,9 +26,3 @@ body,
   /* Naive UI missing styles in dark mode */
   --n-border-color: #2c2c32;
 }
-
-.h-full-flex {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}

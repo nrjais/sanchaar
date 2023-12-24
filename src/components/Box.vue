@@ -20,6 +20,5 @@ const props = withDefaults(defineProps<Props>(), {
   height: 'h-full'
 })
 
-const classes = computed(() => `${props.class} ${props.width} ${props.height}`);
-
+const classes = computed(() => `${props.width} ${props.height} ${props.class}`);
 </script>

@@ -7,7 +7,7 @@
           Bulk Edit
         </NButton> -->
         <NButton class="px-2" tertiary type="primary" @click="addRow">
-          Add New
+          New
         </NButton>
       </NButtonGroup>
     </Box>
@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, watch } from 'vue';
 import Box from './Box.vue';
 import { KeyValue } from '@/core/request';
 
@@ -63,13 +63,19 @@ const themOverides: NonNullable<InputProps['themeOverrides']> = {
 type Props = {
   header: string;
   value: KeyValue[];
+  update: (value: KeyValue[]) => void;
 };
 
 const props = defineProps<Props>();
 
 const rows = reactive<KeyValue[]>(props.value);
-
 const lastRowLeft = computed(() => rows.length == 1)
+
+watch(
+  () => rows,
+  (value) => props.update(value),
+  { deep: true }
+);
 
 const addRow = () => {
   rows.push({
@@ -93,4 +99,5 @@ const removeRow = (index: number) => {
 onMounted(() => {
   addIfEmpty();
 });
+
 </script>

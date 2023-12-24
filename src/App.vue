@@ -8,7 +8,7 @@ const themeOverrides: GlobalThemeOverrides = {
 </script>
 
 <template>
-  <NConfigProvider :theme="darkTheme" class="h-full" :theme-overrides="themeOverrides">
+  <NConfigProvider :theme="darkTheme" class="h-full" inline-theme-disabled :theme-overrides="themeOverrides">
     <NGlobalStyle />
     <MainPage />
   </NConfigProvider>

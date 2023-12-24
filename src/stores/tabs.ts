@@ -1,112 +1,54 @@
-import { Ref, reactive, ref, watch } from "vue";
-import { Request, RequestDetails } from "../core/request";
-import { Methods } from "@/core/methods";
+import { reactive, ref } from "vue";
+import { addNewRequest } from "./requests";
 
 const nextTabId = ((start: number) => {
   return () => `tab-${start++}`;
 })(0);
 
-export type TabContent = {
-  type: "request";
-  value: RequestDetails;
-};
-
 export interface Tab {
   id: string;
-  content: TabContent;
+  position: number;
 }
 
-const useTabStore = () => {
-  const openTabs: Tab[] = reactive([]);
-  const activeTab = ref<string>();
-  const activeTabContent = ref<TabContent>();
+const openTabs = reactive(new Map<string, Tab>());
+export const activeTab = ref<string>();
 
-  watch(activeTab, (id) => {
-    const tab = openTabs.find((tab) => tab.id === id);
-    if (tab) {
-      activeTabContent.value = tab.content;
-    }
+export const openNewRequestTab = () => {
+  const id = nextTabId();
+  activeTab.value = id;
+  addNewRequest(id);
+  openTabs.set(id, {
+    id: id,
+    position: openTabs.size,
   });
-
-  const openRequestTab = (name: string) => {
-    const id = nextTabId();
-    activeTab.value = id;
-
-    openTabs.push({
-      id: id,
-      content: {
-        type: "request",
-        value: {
-          name: name,
-          config: {
-            name: name,
-            method: Methods.GET,
-            domain: "",
-            path: "",
-            headers: [],
-            params: [],
-            query: [],
-            contentType: "none",
-          },
-        },
-      },
-    });
-  };
-
-  const removeTab = (id: string) => {
-    const index = openTabs.findIndex((tab) => tab.id === id);
-    if (index === -1) {
-      return;
-    }
-    openTabs.splice(index, 1);
-    if (activeTab.value === id) {
-      activeTab.value = openTabs[Math.max(0, index - 1)]?.id;
-    }
-  };
-
-  const getTabs = () => {
-    return openTabs;
-  };
-
-  const tabTitle = (id: string): { name: string; prefix?: string } => {
-    const tab = openTabs.find((tab) => tab.id === id);
-    if (tab) {
-      switch (tab.content.type) {
-        case "request":
-          return {
-            prefix: tab.content.value.config.method,
-            name: tab.content.value.name,
-          };
-      }
-    }
-    return { name: "Untitled" };
-  };
-
-  const updateRequest = (fn: (r: RequestDetails) => void) => {
-    const tabContent = activeTabContent.value;
-    if (tabContent?.type === "request") {
-      fn(tabContent.value);
-    }
-  };
-
-  const getRequestConfig = (): Request | undefined => {
-    const tabContent = activeTabContent.value;
-    if (tabContent?.type === "request") {
-      return tabContent.value.config;
-    }
-  };
-
-  return {
-    activeTab,
-    openTabs,
-    activeTabContent,
-    openRequestTab,
-    removeTab,
-    getTabs,
-    tabTitle,
-    updateRequest,
-    getRequestConfig,
-  };
 };
 
-export default useTabStore;
+export const openTabsList = () => {
+  const tabs = [...openTabs.values()];
+  return tabs.sort((a, b) => a.position - b.position);
+};
+
+export const closeTab = (id: string) => {
+  if (openTabs.size <= 1) {
+    return;
+  }
+  const oldTab = openTabs.get(id);
+  if (!openTabs.delete(id) || !oldTab) {
+    return;
+  }
+
+  if (activeTab.value !== id) {
+    return;
+  }
+
+  let newActiveTab: Tab = openTabs.values().next()?.value;
+  for (const tab of openTabs.values()) {
+    if (
+      tab.position < oldTab.position &&
+      tab.position > newActiveTab.position
+    ) {
+      newActiveTab = tab;
+    }
+  }
+  activeTab.value = newActiveTab.id;
+};

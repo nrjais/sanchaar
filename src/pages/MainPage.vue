@@ -1,15 +1,14 @@
 <template>
   <Box class="p-4">
-    <NTabs type="card" :value="tabStore.activeTab.value" addable closable @close="closeTab" @add="openTab" size="small"
+    <NTabs type="card" :value="activeTab" addable closable @close="closeTab" @add="openNewRequestTab" size="small"
       class="h-full">
-      <NTabPane v-for="tab in tabStore.openTabs" :key="tab.id" :name="tab.id" display-directive="show:lazy"
-        class="h-full">
-        <RequestPane />
+      <NTabPane v-for="tab in openTabs" :key="tab.id" :name="tab.id" display-directive="show:lazy" class="h-full">
+        <RequestPane :tabId="tab.id" />
         <template #tab>
-          <NText class="mr-1 font-medium" :style="{ color: methodColor(tab.id) }">
-            {{ tabTitle(tab.id).prefix }}
+          <NText class="mr-2 font-medium" v-if="requestTitle(tab.id).method" :style="{ color: methodColor(tab.id) }">
+            {{ requestTitle(tab.id).method }}
           </NText>
-          <NText>{{ tabTitle(tab.id).name }}</NText>
+          <NText>{{ requestTitle(tab.id).name }}</NText>
         </template>
       </NTabPane>
     </NTabs>
@@ -19,27 +18,20 @@
 <script setup lang="ts">
 import Box from '@/components/Box.vue';
 import { Methods } from '@/core/methods';
-import useTabStore from '@/stores/tabs';
 import { NTabPane, NTabs, NText } from 'naive-ui';
 import RequestPane from './Pane/RequestPane.vue';
+import { openNewRequestTab, openTabsList, closeTab, activeTab } from '@/stores/tabs';
+import { computed } from 'vue';
+import { requestTitle } from '@/stores/requests';
 
-const tabStore = useTabStore();
-const openTab = () => {
-  tabStore.openRequestTab("Untitled");
-};
+const openTabs = computed(() => openTabsList());
 
-if (tabStore.openTabs.length === 0) {
-  openTab();
+if (openTabs.value.length === 0) {
+  openNewRequestTab();
 }
 
-const closeTab = (id: string) => tabStore.removeTab(id);
-
-const tabTitle = (id: string): { name: string, prefix?: string } => {
-  return tabStore.tabTitle(id);
-};
-
 const methodColor = (id: string) => {
-  const method = tabStore.tabTitle(id).prefix;
+  const method = requestTitle(id).method;
   switch (method) {
     case Methods.GET:
       return '#059669';
@@ -55,6 +47,8 @@ const methodColor = (id: string) => {
       return '#7C3AED';
     case Methods.OPTIONS:
       return '#14B8A6';
+    case Methods.TRACE:
+      return '#6B7280';
     default:
       return '#D1D5DB';
   }

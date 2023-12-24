@@ -6,7 +6,7 @@
           :consistent-menu-width="false" />
       </Box>
       <NInput size="large" class="flex-grow" placeholder="Address"></NInput>
-      <NButton type="success" size="large">
+      <NButton size="large" type="success">
         <NIcon>
           <IconSend2 />
         </NIcon>
@@ -15,7 +15,7 @@
     <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="py-2">
       <template #1>
         <Box class="pr-4">
-          <RequestConfig />
+          <RequestConfig :tabId="props.tabId" />
         </Box>
       </template>
       <template #2>
@@ -32,20 +32,23 @@ import Box from '@/components/Box.vue';
 import RequestConfig from '@/components/RequestConfig/RequestConfig.vue';
 import ResponseDetails from '@/components/ResponseDetails/ResponseDetails.vue';
 import { Methods } from '@/core/methods';
-import { RequestDetails } from '@/core/request';
-import useTabStore from '@/stores/tabs';
+import { getRequest, updateRequest } from '@/stores/requests';
 import { IconSend2 } from '@tabler/icons-vue';
 import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
-import { computed } from 'vue';
+import { ref } from 'vue';
 
-const tabStore = useTabStore();
+const props = defineProps<{ tabId: string }>();
 
-const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
-const method = computed(() => tabStore.activeTabContent?.value?.value.config.method);
+const activeReq = getRequest(props.tabId)!;
 
-const updateMethod = (method: string) => {
-  tabStore.updateRequest((req: RequestDetails) => {
-    req.config.method = method;
+const method = ref(activeReq.method);
+
+const updateMethod = (value: string) => {
+  updateRequest(props.tabId, (req) => {
+    req.method = value as Methods;
   });
 };
+
+const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
+
 </script>
