@@ -1,17 +1,14 @@
 <template>
-  <Box height="h-fit">
+  <Box height="h-fit" class="flex flex-col">
     <Box class="flex justify-between">
       <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
       <NButtonGroup size="tiny">
-        <!-- <NButton class="px-2" tertiary type="primary" @click="addRow">
-          Bulk Edit
-        </NButton> -->
         <NButton class="px-2" tertiary type="primary" @click="addRow">
           New
         </NButton>
       </NButtonGroup>
     </Box>
-    <NTable size="small" bordered :single-line="false">
+    <NTable size="small" bordered :single-line="false" class="flex-grow">
       <thead>
         <tr>
           <th></th>
@@ -50,11 +47,11 @@
 </template>
 
 <script setup lang="ts">
+import { KeyValue } from '@/core/request';
 import { IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
 import { computed, onMounted, reactive, watch } from 'vue';
 import Box from './Box.vue';
-import { KeyValue } from '@/core/request';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c"

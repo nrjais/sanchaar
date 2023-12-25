@@ -1,9 +1,9 @@
 <template>
-  <Box>
+  <Box class="flex flex-col">
     <NInputGroup class="flex">
       <Box width="w-32">
-        <NSelect size="large" :options="methods" v-model:value="method" :on-update-value="updateMethod" filterable tag
-          :consistent-menu-width="false" />
+        <NSelect size="large" :options="methods" v-model:value="method" :on-update-value="updateMethod"
+          :consistent-menu-width="false" filterable tag />
       </Box>
       <NInput size="large" class="flex-grow" placeholder="Address"></NInput>
       <NButton size="large" type="success">
@@ -12,11 +12,9 @@
         </NIcon>
       </NButton>
     </NInputGroup>
-    <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="py-2">
+    <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="pt-2 flex-grow">
       <template #1>
-        <Box class="pr-4">
-          <RequestConfig :tabId="props.tabId" />
-        </Box>
+        <RequestConfig :tabId="props.tabId" class="pr-2" />
       </template>
       <template #2>
         <Box class="pl-4">

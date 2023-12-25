@@ -1,15 +1,15 @@
 <template>
-  <NButtonGroup class="my-1" size="small">
-    <NButton secondary @click="viewMode = 'pretty'" :type="buttonType(viewMode, 'pretty')">Pretty</NButton>
-    <NButton secondary @click="viewMode = 'raw'" :type="buttonType(viewMode, 'raw')">Raw</NButton>
-    <NButton secondary :on-click="toggleWrapping" :type="buttonType(lineWrap)">
-      <NIcon>
-        <IconTextWrap />
-      </NIcon>
-    </NButton>
-  </NButtonGroup>
-  <Box class="my-2">
-    <div ref="editorRef" class="h-full overflow-scroll"></div>
+  <Box class="flex flex-col">
+    <NButtonGroup class="my-1" size="small">
+      <NButton secondary @click="viewMode = 'pretty'" :type="buttonType(viewMode, 'pretty')">Pretty</NButton>
+      <NButton secondary @click="viewMode = 'raw'" :type="buttonType(viewMode, 'raw')">Raw</NButton>
+      <NButton secondary :on-click="toggleWrapping" :type="buttonType(lineWrap)">
+        <NIcon>
+          <IconTextWrap />
+        </NIcon>
+      </NButton>
+    </NButtonGroup>
+    <div ref="editorRef" class="mt-2 overflow-scroll flex-grow"></div>
   </Box>
 </template>
 
@@ -18,11 +18,11 @@ import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } 
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { json } from '@codemirror/lang-json';
 import {
-bracketMatching,
-defaultHighlightStyle,
-foldGutter, foldKeymap,
-indentOnInput,
-syntaxHighlighting
+  bracketMatching,
+  defaultHighlightStyle,
+  foldGutter, foldKeymap,
+  indentOnInput,
+  syntaxHighlighting
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
 import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";

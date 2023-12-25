@@ -15,7 +15,7 @@ export interface RequestBody {
 }
 
 export interface KeyValue {
-  enabled: boolean;
+  enabled?: boolean;
   key: string;
   value: string;
   description?: string;

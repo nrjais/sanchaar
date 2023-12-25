@@ -1,31 +1,29 @@
 <template>
-  <Box class="flex">
-    <NTabs class="flex-grow" animated size="small">
-      <NTabPane name="Params" class="flex-grow">
-        <Box class="flex flex-col gap-4 mt-2">
-          <KeyVal header="Query Params" :value="activeReq.query" :update="updateQuery" />
-          <KeyVal v-if="activeReq.params.length > 0" :value="activeReq.params" :update="updateParams"
-            header="Path Variables" />
-        </Box>
-      </NTabPane>
-      <NTabPane name="Headers" class="flex-grow">
-        <KeyVal :value="[]" header="Headers" class="mt-2" :update="updateHeaders" />
-      </NTabPane>
-      <NTabPane name="Body" class="flex-grow">
-        Body
-      </NTabPane>
-    </NTabs>
-  </Box>
+  <NTabs type="line" animated size="small" :class="props.class" class="h-full"
+    pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col">
+    <NTabPane name="Params" display-directive="show:lazy" class="flex-grow h-0">
+      <ScrollBox class="flex flex-col gap-4 pt-2">
+        <KeyValEditor header="Query Params" :value="[]" :update="updateQuery" />
+        <KeyValEditor :value="activeReq.params" :update="updateParams" header="Path Variables" />
+      </ScrollBox>
+    </NTabPane>
+    <NTabPane name="Headers" display-directive="show:lazy" class="flex-grow h-0">
+      <KeyValEditor :value="[]" header="Headers" class="mt-2" :update="updateHeaders" />
+    </NTabPane>
+    <NTabPane name="Body" display-directive="show:lazy" class="flex-grow h-0">
+      Body
+    </NTabPane>
+  </NTabs>
 </template>
 
 <script setup lang="ts">
-import { NTabPane, NTabs } from 'naive-ui';
-import Box from '../Box.vue';
-import KeyVal from '../KeyVal.vue';
-import { getRequest, updateRequest } from '@/stores/requests';
 import { KeyValue } from '@/core/request';
+import { getRequest, updateRequest } from '@/stores/requests';
+import { NTabPane, NTabs } from 'naive-ui';
+import KeyValEditor from '../KeyValEditor.vue';
+import ScrollBox from '../ScrollBox.vue';
 
-const props = defineProps<{ tabId: string }>();
+const props = defineProps<{ tabId: string, class?: string }>();
 const activeReq = getRequest(props.tabId)!;
 
 const updateQuery = (value: KeyValue[]) => {

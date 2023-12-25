@@ -1,12 +1,11 @@
 <template>
-  <n-el :class="classes" as="div">
+  <div :class="classes" as="div">
     <slot></slot>
-  </n-el>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { NEl } from 'naive-ui';
 
 export interface Props {
   class: string

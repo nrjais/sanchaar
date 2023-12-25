@@ -3,12 +3,15 @@ import { GlobalThemeOverrides, NConfigProvider, NGlobalStyle, darkTheme } from '
 import MainPage from './pages/MainPage.vue';
 
 const themeOverrides: GlobalThemeOverrides = {
-  Tabs: { tabGapSmallBar: '16px' }
+  Tabs: {
+    tabGapSmallLine: '16px',
+    tabGapSmallBar: '16px'
+  }
 }
 </script>
 
 <template>
-  <NConfigProvider :theme="darkTheme" class="h-full" inline-theme-disabled :theme-overrides="themeOverrides">
+  <NConfigProvider :theme="darkTheme" class="h-full" :theme-overrides="themeOverrides">
     <NGlobalStyle />
     <MainPage />
   </NConfigProvider>

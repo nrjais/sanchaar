@@ -1,14 +1,10 @@
 <template>
-  <Box class="flex">
-    <NTabs size="small" animated>
-      <NTabPane name="body" tab="Body" class="h-full" display-directive="show:lazy">
-        <Box class="flex flex-col">
-          <Box class="flex-grow">
-            <BodyViewer :code="body" />
-          </Box>
-        </Box>
-      </NTabPane>
-      <NTabPane name="headers" tab="Headers" display-directive="show:lazy">
+  <NTabs size="small" animated class="h-full" type="line" pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col">
+    <NTabPane name="body" tab="Body" display-directive="show:lazy" class="flex-grow h-0">
+      <BodyViewer :code="body" />
+    </NTabPane>
+    <NTabPane name="headers" tab="Headers" display-directive="show:lazy" class="flex-grow h-0">
+      <ScrollBox>
         <NTable size="small" bordered :single-line="false">
           <thead>
             <tr>
@@ -17,28 +13,28 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="([key, value]) in headers">
+            <tr v-for="([key, value]) in Object.entries(headers)">
               <td>{{ key }}</td>
-              <td width="70%">{{ value }}</td>
+              <td width="65%">{{ value }}</td>
             </tr>
           </tbody>
         </NTable>
-      </NTabPane>
-      <template #suffix>
-        <Box class="flex gap-4 text-xs items-center font-semibold">
-          <NText :type="statusCodeColor(statusCode)">
-            {{ statusCode }}&#8226;{{ statusText }}
-          </NText>
-          <NText depth="2">
-            Time: <NText type="info">{{ latency }}ms</NText>
-          </NText>
-          <NText depth="2">
-            Size: <NText type="info">{{ prettyBytes(sizeBytes) }}</NText>
-          </NText>
-        </Box>
-      </template>
-    </NTabs>
-  </Box>
+      </ScrollBox>
+    </NTabPane>
+    <template #suffix>
+      <Box class="flex gap-4 text-xs items-center font-semibold">
+        <NText :type="statusCodeColor(statusCode)">
+          {{ statusCode }}&#8226;{{ statusText }}
+        </NText>
+        <NText depth="2">
+          Time: <NText type="info">{{ latency }}ms</NText>
+        </NText>
+        <NText depth="2">
+          Size: <NText type="info">{{ prettyBytes(sizeBytes) }}</NText>
+        </NText>
+      </Box>
+    </template>
+  </NTabs>
 </template>
 
 <script setup lang="ts">
@@ -46,6 +42,7 @@ import { NTabPane, NTable, NTabs, NText } from 'naive-ui';
 import prettyBytes from 'pretty-bytes';
 import BodyViewer from './BodyViewer.vue';
 import Box from '../Box.vue';
+import ScrollBox from '../ScrollBox.vue';
 
 const statusCodeColor = (code: number) => {
   if (code >= 200 && code < 300) {
