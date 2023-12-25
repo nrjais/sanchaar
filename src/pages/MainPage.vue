@@ -1,5 +1,5 @@
 <template>
-  <NTabs type="card" :value="tabStore.activeTab" addable closable @close="tabStore.closeTab"
+  <NTabs type="card" v-model:value="tabStore.activeTab" addable closable @close="tabStore.closeTab"
     @add="tabStore.openNewRequestTab" size="small" class="h-full p-2">
     <NTabPane v-for="tab in tabStore.openTabsList" :key="tab.id" :name="tab.id" display-directive="show:lazy"
       class="h-0 max-h-full flex-grow">

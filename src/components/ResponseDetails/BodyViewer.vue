@@ -40,7 +40,7 @@ import { EditorView, crosshairCursor, drawSelection, dropCursor, highlightActive
 import { IconTextWrap } from "@tabler/icons-vue";
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import Box from "../Box.vue";
 import { IconCopy } from "@tabler/icons-vue";
 
@@ -139,5 +139,9 @@ watch(() => code.value, (doc) => {
       insert: doc
     }
   })
+})
+
+onUnmounted(() => {
+  editor.value?.destroy()
 })
 </script>
