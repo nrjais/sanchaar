@@ -48,11 +48,11 @@
 </template>
 
 <script setup lang="ts">
-import { KeyValue } from '@/core/request';
 import { IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
 import { computed, onMounted, reactive, watch, watchEffect } from 'vue';
 import Box from './Box.vue';
+import { KeyValue } from '@/models/request';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c",
@@ -104,3 +104,4 @@ onMounted(() => {
 // Effects
 watchEffect(addIfEmpty);
 </script>
+@/models/request

@@ -1,5 +1,5 @@
-import { Methods } from "@/core/methods";
-import { ContentType, Request } from "@/core/request";
+import { Methods } from "@/models/methods";
+import { ContentType, Request } from "@/models/request";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 

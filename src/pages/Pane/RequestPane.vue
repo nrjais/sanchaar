@@ -29,7 +29,7 @@
 import Box from '@/components/Box.vue';
 import RequestConfig from '@/components/RequestConfig/RequestConfig.vue';
 import ResponseDetails from '@/components/ResponseDetails/ResponseDetails.vue';
-import { Methods } from '@/core/methods';
+import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
 import { IconSend2 } from '@tabler/icons-vue';
 import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
@@ -50,3 +50,4 @@ const updateMethod = (value: string) => {
 const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
 
 </script>
+@/models/methods

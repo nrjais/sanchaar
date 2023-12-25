@@ -1,8 +1,8 @@
-import { ContentType, Request } from "@/core/request";
-import { ResponseDetails } from "@/core/response";
+import { ContentType, Request } from "@/models/request";
+import { ResponseDetails } from "@/models/response";
 import axios from "axios";
-// @ts-ignore
-import axiosTauriAdapter from "axios-tauri-adapter";
+import { groupBy, mapValues } from "lodash";
+import { axiosOptions } from "./api";
 
 declare module "axios" {
   export interface AxiosRequestConfig {
@@ -18,7 +18,7 @@ declare module "axios" {
   }
 }
 
-const client = axios.create({ adapter: axiosTauriAdapter });
+const client = axios.create(axiosOptions);
 
 axios.interceptors.request.use(
   (config) => {
@@ -56,13 +56,21 @@ export const getContentType = (headers: Map<string, string>): ContentType => {
 
 export const execute = async (reqConfig: Request): Promise<ResponseDetails> => {
   const { domain, path, method, body, headers, query } = reqConfig;
+  const headerEntries = headers.map(
+    (header) => [header.key, header.value] as [string, string]
+  );
+
+  const queryParams = mapValues(
+    groupBy(query, (e) => e.key),
+    (values) => values.map((e) => e.value)
+  );
 
   const response = await client.request({
     url: `${domain}${path}`,
     method,
     data: body,
-    params: query,
-    headers: Object.fromEntries(headers),
+    params: queryParams,
+    headers: Object.fromEntries(headerEntries),
   });
 
   const headersMap = new Map<string, string>();

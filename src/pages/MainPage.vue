@@ -15,11 +15,11 @@
 </template>
 
 <script setup lang="ts">
-import { Methods } from '@/core/methods';
 import { useRequestStore } from '@/stores/requests';
 import { useTabStore } from '@/stores/tabs';
 import { NTabPane, NTabs, NText } from 'naive-ui';
 import RequestPane from './Pane/RequestPane.vue';
+import { Methods } from '@/models/methods';
 
 const tabStore = useTabStore();
 const requestStore = useRequestStore();
@@ -57,3 +57,4 @@ const methodColor = (id: string) => {
 };
 
 </script>
+@/models/methods
