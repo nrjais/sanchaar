@@ -18,17 +18,18 @@
 
 <script setup lang="ts">
 import { KeyValue } from '@/core/request';
-import { getRequest, updateRequest } from '@/stores/requests';
+import { useRequestStore } from '@/stores/requests';
 import { NTabPane, NTabs } from 'naive-ui';
 import KeyValEditor from '../KeyValEditor.vue';
 import ScrollBox from '../ScrollBox.vue';
+import { computed } from 'vue';
 
 const props = defineProps<{ tabId: string, class?: string }>();
-const activeReq = getRequest(props.tabId)!;
+const { getRequest, updateRequest } = useRequestStore();
+
+const activeReq = computed(() => getRequest(props.tabId)!);
 
 const updateQuery = (value: KeyValue[]) => {
-  console.log("query", value);
-
   updateRequest(props.tabId, (req) => {
     req.query = value;
   });

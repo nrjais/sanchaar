@@ -1,6 +1,6 @@
 <template>
   <NTabs size="small" animated class="h-full" type="line" pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col">
-    <NTabPane name="body" tab="Body" display-directive="show:lazy" class="flex-grow h-0">
+    <NTabPane name="body" tab="Body" display-directive="show" class="flex-grow h-0">
       <BodyViewer :code="body" />
     </NTabPane>
     <NTabPane name="headers" tab="Headers" display-directive="show:lazy" class="flex-grow h-0">

@@ -30,19 +30,19 @@ import Box from '@/components/Box.vue';
 import RequestConfig from '@/components/RequestConfig/RequestConfig.vue';
 import ResponseDetails from '@/components/ResponseDetails/ResponseDetails.vue';
 import { Methods } from '@/core/methods';
-import { getRequest, updateRequest } from '@/stores/requests';
+import { useRequestStore } from '@/stores/requests';
 import { IconSend2 } from '@tabler/icons-vue';
 import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
-import { ref } from 'vue';
+import { computed } from 'vue';
 
 const props = defineProps<{ tabId: string }>();
+const reqStore = useRequestStore();
 
-const activeReq = getRequest(props.tabId)!;
-
-const method = ref(activeReq.method);
+const activeReq = computed(() => reqStore.getRequest(props.tabId)!);
+const method = computed(() => activeReq.value.method);
 
 const updateMethod = (value: string) => {
-  updateRequest(props.tabId, (req) => {
+  reqStore.updateRequest(props.tabId, (req) => {
     req.method = value as Methods;
   });
 };

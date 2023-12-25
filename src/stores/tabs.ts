@@ -1,5 +1,6 @@
-import { reactive, ref } from "vue";
-import { addNewRequest } from "./requests";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
+import { useRequestStore } from "./requests";
 
 const nextTabId = ((start: number) => {
   return () => `tab-${start++}`;
@@ -10,45 +11,58 @@ export interface Tab {
   position: number;
 }
 
-const openTabs = reactive(new Map<string, Tab>());
-export const activeTab = ref<string>();
+export const useTabStore = defineStore("TabStore", () => {
+  const openTabs = ref(new Map<string, Tab>());
+  const activeTab = ref<string>();
 
-export const openNewRequestTab = () => {
-  const id = nextTabId();
-  activeTab.value = id;
-  addNewRequest(id);
-  openTabs.set(id, {
-    id: id,
-    position: openTabs.size,
+  const reqStore = useRequestStore();
+
+  const openTabsList = computed(() => {
+    const tabs = [...openTabs.value.values()];
+    return tabs.sort((a, b) => a.position - b.position);
   });
-};
 
-export const openTabsList = () => {
-  const tabs = [...openTabs.values()];
-  return tabs.sort((a, b) => a.position - b.position);
-};
+  const openNewRequestTab = () => {
+    const id = nextTabId();
+    reqStore.addNewRequest(id);
 
-export const closeTab = (id: string) => {
-  if (openTabs.size <= 1) {
-    return;
-  }
-  const oldTab = openTabs.get(id);
-  if (!openTabs.delete(id) || !oldTab) {
-    return;
-  }
+    activeTab.value = id;
+    openTabs.value.set(id, {
+      id: id,
+      position: openTabs.value.size,
+    });
+  };
 
-  if (activeTab.value !== id) {
-    return;
-  }
-
-  let newActiveTab: Tab = openTabs.values().next()?.value;
-  for (const tab of openTabs.values()) {
-    if (
-      tab.position < oldTab.position &&
-      tab.position > newActiveTab.position
-    ) {
-      newActiveTab = tab;
+  const closeTab = (id: string) => {
+    if (openTabs.value.size <= 1) {
+      return;
     }
-  }
-  activeTab.value = newActiveTab.id;
-};
+    const oldTab = openTabs.value.get(id);
+    if (!openTabs.value.delete(id) || !oldTab) {
+      return;
+    }
+
+    if (activeTab.value !== id) {
+      return;
+    }
+
+    let newActiveTab: Tab = openTabs.value.values().next()?.value;
+    for (const tab of openTabs.value.values()) {
+      if (
+        tab.position < oldTab.position &&
+        tab.position > newActiveTab.position
+      ) {
+        newActiveTab = tab;
+      }
+    }
+    activeTab.value = newActiveTab.id;
+  };
+
+  return {
+    openTabs,
+    activeTab,
+    openTabsList,
+    openNewRequestTab,
+    closeTab,
+  };
+});

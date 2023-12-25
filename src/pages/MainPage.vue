@@ -1,7 +1,7 @@
 <template>
-  <NTabs type="card" :value="activeTab" addable closable @close="closeTab" @add="openNewRequestTab" size="small"
-    class="h-full p-2">
-    <NTabPane v-for="tab in openTabs" :key="tab.id" :name="tab.id" display-directive="show:lazy"
+  <NTabs type="card" :value="tabStore.activeTab" addable closable @close="tabStore.closeTab"
+    @add="tabStore.openNewRequestTab" size="small" class="h-full p-2">
+    <NTabPane v-for="tab in tabStore.openTabsList" :key="tab.id" :name="tab.id" display-directive="show:lazy"
       class="h-0 max-h-full flex-grow">
       <RequestPane :tabId="tab.id" />
       <template #tab>
@@ -16,16 +16,20 @@
 
 <script setup lang="ts">
 import { Methods } from '@/core/methods';
-import { requestTitle } from '@/stores/requests';
-import { activeTab, closeTab, openNewRequestTab, openTabsList } from '@/stores/tabs';
+import { useRequestStore } from '@/stores/requests';
+import { useTabStore } from '@/stores/tabs';
 import { NTabPane, NTabs, NText } from 'naive-ui';
-import { computed } from 'vue';
 import RequestPane from './Pane/RequestPane.vue';
 
-const openTabs = computed(() => openTabsList());
+const tabStore = useTabStore();
+const requestStore = useRequestStore();
 
-if (openTabs.value.length === 0) {
-  openNewRequestTab();
+const requestTitle = (id: string) => {
+  return requestStore.getRequestTitle(id);
+};
+
+if (tabStore.openTabsList.length === 0) {
+  tabStore.openNewRequestTab();
 }
 
 const methodColor = (id: string) => {
