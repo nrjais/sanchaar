@@ -1,19 +1,23 @@
 <template>
   <Box class="flex flex-col">
-    <NButtonGroup class="my-1" size="small">
-      <NButton secondary @click="viewMode = 'pretty'" :type="buttonType(viewMode, 'pretty')">Pretty</NButton>
-      <NButton secondary @click="viewMode = 'raw'" :type="buttonType(viewMode, 'raw')">Raw</NButton>
-      <NButton secondary :on-click="toggleWrapping" :type="buttonType(lineWrap)">
-        <NIcon>
-          <IconTextWrap />
-        </NIcon>
-      </NButton>
-      <NButton secondary :on-click="copyToClipboard">
-        <NIcon>
-          <IconCopy />
-        </NIcon>
-      </NButton>
-    </NButtonGroup>
+    <Box class="flex" height="h-fit">
+      <NButtonGroup class="my-1" size="small">
+        <NButton secondary @click="viewMode = 'pretty'" :type="buttonType(viewMode, 'pretty')">Pretty</NButton>
+        <NButton secondary @click="viewMode = 'raw'" :type="buttonType(viewMode, 'raw')">Raw</NButton>
+      </NButtonGroup>
+      <NButtonGroup class="my-1 ml-2" size="small">
+        <NButton secondary :on-click="toggleWrapping" :type="buttonType(lineWrap)">
+          <NIcon>
+            <IconTextWrap />
+          </NIcon>
+        </NButton>
+        <NButton secondary :on-click="copyToClipboard">
+          <NIcon>
+            <IconCopy />
+          </NIcon>
+        </NButton>
+      </NButtonGroup>
+    </Box>
     <div ref="editorRef" class="mt-2 overflow-scroll flex-grow"></div>
   </Box>
 </template>
