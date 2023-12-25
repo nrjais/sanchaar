@@ -30,6 +30,7 @@ body,
   width: 100vw;
 
   background-color: #18181c;
+  overflow: hidden;
 
   /* Naive UI missing styles in dark mode */
   --n-border-color: #2c2c32;

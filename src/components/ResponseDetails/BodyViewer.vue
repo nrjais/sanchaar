@@ -8,6 +8,11 @@
           <IconTextWrap />
         </NIcon>
       </NButton>
+      <NButton secondary :on-click="copyToClipboard">
+        <NIcon>
+          <IconCopy />
+        </NIcon>
+      </NButton>
     </NButtonGroup>
     <div ref="editorRef" class="mt-2 overflow-scroll flex-grow"></div>
   </Box>
@@ -33,6 +38,7 @@ import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
 import { computed, onMounted, ref, watch } from 'vue';
 import Box from "../Box.vue";
+import { IconCopy } from "@tabler/icons-vue";
 
 type ViewMode = "pretty" | "raw"
 
@@ -114,6 +120,11 @@ const toggleWrapping = () => {
   editor.value?.dispatch({
     effects: lineWrappingComp.reconfigure(lineWrap.value ? EditorView.lineWrapping : [])
   });
+}
+
+const copyToClipboard = () => {
+  const codeToCopy = viewMode.value == 'pretty' ? prettyCode.value : props.code;
+  navigator.clipboard.writeText(codeToCopy)
 }
 
 watch(() => code.value, (doc) => {
