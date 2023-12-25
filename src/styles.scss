@@ -35,13 +35,13 @@ body,
     background-color: #18181c;
     @apply px-0.5;
     @apply pt-0.5;
+    @apply text-gray-300;
 
     .cm-search {
       .cm-button {
         background-color: var(--nc-bg-color);
         @apply bg-none;
         @apply rounded-sm;
-        @apply text-gray-400;
         @apply border-none;
         @apply text-xs;
         @apply capitalize;

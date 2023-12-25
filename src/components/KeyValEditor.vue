@@ -4,7 +4,7 @@
       <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
       <NButtonGroup size="tiny" v-if="!$props.fixed">
         <NButton class="px-2" tertiary type="primary" @click="addRow">
-          Add Row
+          Add New
         </NButton>
       </NButtonGroup>
     </Box>
