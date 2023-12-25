@@ -18,7 +18,7 @@
         </NButton>
       </NButtonGroup>
     </Box>
-    <div ref="editorRef" class="mt-2 overflow-scroll flex-grow"></div>
+    <div ref="editorRef" class="mt-2 overflow-scroll flex-grow codemirror"></div>
   </Box>
 </template>
 

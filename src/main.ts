@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { createApp } from "vue";
 import App from "./App.vue";
-import "./styles.css";
+import "./styles.scss";
 import { createPinia } from "pinia";
 
 dayjs.extend(duration);
