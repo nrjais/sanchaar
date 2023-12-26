@@ -74,7 +74,10 @@ const lastRowLeft = computed(() => rows.length == 1)
 
 watch(
   () => rows,
-  (value) => props.update(value),
+  (value) => {
+    props.update(value)
+    addIfEmpty();
+  },
   { deep: true }
 );
 
@@ -87,14 +90,17 @@ const addRow = () => {
 };
 
 const addIfEmpty = () => {
-  if (rows.length == 0 && !props.fixed) {
+  if (props.fixed) {
+    return;
+  }
+  const allFilled = rows.every((row) => row.key);
+  if (allFilled) {
     addRow();
   }
 }
 
 const removeRow = (index: number) => {
   rows.splice(index, 1);
-  addIfEmpty();
 };
 
 onMounted(() => {
@@ -104,4 +110,3 @@ onMounted(() => {
 // Effects
 watchEffect(addIfEmpty);
 </script>
-@/models/request
