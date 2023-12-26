@@ -5,8 +5,9 @@
         <NSelect size="large" :options="methods" v-model:value="method" :on-update-value="updateMethod"
           :consistent-menu-width="false" filterable tag />
       </Box>
-      <NInput size="large" class="flex-grow" placeholder="Address"></NInput>
-      <NButton size="large" type="success">
+      <NInput :value="address" @update:value="updateAddress" size="large" class="flex-grow" placeholder="Address">
+      </NInput>
+      <NButton size="large" type="success" @click="sendRequest">
         <NIcon>
           <IconSend2 />
         </NIcon>
@@ -17,7 +18,7 @@
         <RequestConfig :tabId="props.tabId" class="pr-2" />
       </template>
       <template #2>
-        <Box class="pl-4">
+        <Box class="pl-2">
           <ResponseDetails />
         </Box>
       </template>
@@ -40,6 +41,7 @@ const reqStore = useRequestStore();
 
 const activeReq = computed(() => reqStore.getRequest(props.tabId)!);
 const method = computed(() => activeReq.value.method);
+const address = computed(() => reqStore.getRequestAddress(props.tabId));
 
 const updateMethod = (value: string) => {
   reqStore.updateRequest(props.tabId, (req) => {
@@ -47,7 +49,15 @@ const updateMethod = (value: string) => {
   });
 };
 
+
+const updateAddress = (value: string) => {
+  reqStore.updateRequest(props.tabId, (req) => {
+    req.address = value as Methods;
+  });
+};
+
 const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
 
+const sendRequest = () => reqStore.executeRequest(props.tabId);
+
 </script>
-@/models/methods

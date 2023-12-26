@@ -24,8 +24,7 @@ export interface KeyValue {
 export interface Request {
   name: string;
   method: Methods;
-  domain: string;
-  path: string;
+  address: string;
   headers: KeyValue[];
   params: KeyValue[];
   query: KeyValue[];

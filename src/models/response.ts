@@ -1,9 +1,9 @@
-import { ContentType } from "./request";
+import { ContentType, KeyValue } from "./request";
 
 export interface ResponseDetails {
-  data: string;
+  // data: string;
   contentType: ContentType;
-  headers: Map<string, string>;
+  headers: KeyValue[];
   status: number;
   contentLength: number;
   statusText: string;
