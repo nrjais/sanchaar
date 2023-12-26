@@ -29,6 +29,9 @@ dependencies:
   dayjs:
     specifier: ^1.11.10
     version: 1.11.10
+  http-status-codes:
+    specifier: ^2.3.0
+    version: 2.3.0
   i:
     specifier: ^0.3.7
     version: 0.3.7

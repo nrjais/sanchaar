@@ -1,5 +1,6 @@
 import { ContentType, KeyValue, Request } from "@/models/request";
 import { ResponseBody, ResponseDetails } from "@/models/response";
+import { getReasonPhrase } from "http-status-codes";
 
 export const getContent = async (response: Response): Promise<ResponseBody> => {
   const headers = response.headers;
@@ -71,7 +72,7 @@ export const execute = async (
     contentLength: Number(response.headers.get("content-length") || 0),
     headers: responseHeaders,
     status: response.status,
-    statusText: response.statusText,
+    statusText: getReasonPhrase(response.status),
     content: await getContent(response),
     latency: latency,
   };

@@ -27,7 +27,7 @@
           {{ status.text }}
         </NText>
         <NText depth="2">
-          Time: <NText type="info">{{ status.latency }}ms</NText>
+          Time: <NText type="info">{{ prettyMillis(status.latency) }}</NText>
         </NText>
         <NText depth="2">
           Size: <NText type="info">{{ prettyBytes(status.length) }}</NText>
@@ -45,6 +45,8 @@ import Box from '../Box.vue';
 import ScrollBox from '../ScrollBox.vue';
 import { useRequestStore } from '@/stores/requests';
 import { computed } from 'vue';
+import { defineProps } from 'vue';
+import { prettyMillis } from '@/utils/prettyMs';
 
 const props = defineProps<{ tabId: string }>();
 
