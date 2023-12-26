@@ -13,7 +13,7 @@ export type ReqTitle = {
 
 export type ExecutionState =
   | { state: "idle" }
-  | { state: "running"; abort: AbortController }
+  | { state: "running"; abort: () => void }
   | { state: "cancelled" }
   | { state: "completed"; response: ResponseDetails };
 
@@ -71,7 +71,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
     }
 
     const abort = new AbortController();
-    executions.value.set(tabId, { state: "running", abort });
+    executions.value.set(tabId, { state: "running", abort: abort.abort });
     try {
       const response = await execute(request, { signal: abort.signal });
       executions.value.set(tabId, { state: "completed", response });

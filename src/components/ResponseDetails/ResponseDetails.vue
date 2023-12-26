@@ -22,15 +22,15 @@
       </ScrollBox>
     </NTabPane>
     <template #suffix>
-      <Box class="flex gap-4 text-xs items-center font-semibold">
-        <NText :type="statusCodeColor(statusCode)">
-          {{ statusCode }}&#8226;{{ statusText }}
+      <Box v-if="status" class="flex gap-4 text-xs items-center font-semibold">
+        <NText :type="statusCodeColor(status.code)">
+          {{ status.text }}
         </NText>
         <NText depth="2">
-          Time: <NText type="info">{{ latency }}ms</NText>
+          Time: <NText type="info">{{ status.latency }}ms</NText>
         </NText>
         <NText depth="2">
-          Size: <NText type="info">{{ prettyBytes(sizeBytes) }}</NText>
+          Size: <NText type="info">{{ prettyBytes(status.length) }}</NText>
         </NText>
       </Box>
     </template>
@@ -43,6 +43,37 @@ import prettyBytes from 'pretty-bytes';
 import BodyViewer from './BodyViewer.vue';
 import Box from '../Box.vue';
 import ScrollBox from '../ScrollBox.vue';
+import { useRequestStore } from '@/stores/requests';
+import { computed } from 'vue';
+
+const props = defineProps<{ tabId: string }>();
+
+const requestStore = useRequestStore();
+
+const response = computed(() => requestStore.getExecutionResult(props.tabId));
+const status = computed(() => {
+  const result = response?.value;
+  switch (result.state) {
+    case 'cancelled':
+      return {
+        code: 0,
+        text: 'Cancelled',
+        length: 0,
+        latency: 0,
+      };
+    case 'completed':
+      const response = result.response;
+      const statusText = response.statusText ? ` • ${response.statusText}` : "";
+      return {
+        code: result.response.status,
+        text: `${response.status}${statusText}`,
+        length: response.contentLength,
+        latency: response.latency,
+      };
+    default:
+      return null;
+  }
+});
 
 const statusCodeColor = (code: number) => {
   if (code >= 200 && code < 300) {
@@ -127,9 +158,4 @@ const headers = {
   date: 'Thu, 01 Jul 2021 15:01:01 GMT',
   connection: 'close'
 }
-
-const statusCode = 200;
-const statusText = 'OK';
-const latency = 112;
-const sizeBytes = 123500;
 </script>

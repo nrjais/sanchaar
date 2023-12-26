@@ -1,23 +1,32 @@
 import { ContentType, KeyValue, Request } from "@/models/request";
-import { ResponseDetails } from "@/models/response";
+import { ResponseBody, ResponseDetails } from "@/models/response";
 
-export const getContentType = (headers: Headers): ContentType => {
+export const getContent = async (response: Response): Promise<ResponseBody> => {
+  const headers = response.headers;
   if (headers.has("content-type")) {
     const contentType = headers.get("content-type")?.toLowerCase();
     const headerValueType = typeof contentType;
     if (!contentType || headerValueType !== "string") {
-      return ContentType.BYTES;
+      return {
+        type: ContentType.BYTES,
+        data: await response.arrayBuffer(),
+      };
     }
+    const data = await response.text();
     if (contentType?.includes("json")) {
-      return ContentType.JSON;
+      return { type: ContentType.JSON, data };
     } else if (contentType?.includes("urlencoded")) {
-      return ContentType.URL_ENCODED;
+      return { type: ContentType.URL_ENCODED, data };
     } else if (contentType?.includes("xml")) {
-      return ContentType.XML;
+      return { type: ContentType.XML, data };
+    } else if (contentType?.includes("text")) {
+      return { type: ContentType.TEXT, data };
     }
   }
-
-  return ContentType.BYTES;
+  return {
+    type: ContentType.BYTES,
+    data: await response.arrayBuffer(),
+  };
 };
 
 export const execute = async (
@@ -42,12 +51,14 @@ export const execute = async (
     url.searchParams.append(query[0], query[1]);
   }
 
+  const startTime = Date.now();
   const response = await fetch(url, {
     method: method.toString(),
     cache: "no-cache",
     headers: headers,
     signal: options.signal,
   });
+  const latency = Date.now() - startTime;
 
   const responseHeaders = [] as KeyValue[];
   Object.entries(response.headers).forEach(([key, values]) => {
@@ -56,14 +67,12 @@ export const execute = async (
     });
   });
 
-  const latency = 5;
-
   return {
     contentLength: Number(response.headers.get("content-length") || 0),
     headers: responseHeaders,
     status: response.status,
     statusText: response.statusText,
-    contentType: getContentType(response.headers),
+    content: await getContent(response),
     latency: latency,
   };
 };

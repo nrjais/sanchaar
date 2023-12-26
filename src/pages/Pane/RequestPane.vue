@@ -19,7 +19,7 @@
       </template>
       <template #2>
         <Box class="pl-2">
-          <ResponseDetails />
+          <ResponseDetails :tabId="tabId" />
         </Box>
       </template>
     </NSplit>

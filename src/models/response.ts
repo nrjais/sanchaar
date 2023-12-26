@@ -1,8 +1,32 @@
 import { ContentType, KeyValue } from "./request";
 
+export type ResponseBody =
+  | {
+      type: ContentType.JSON;
+      data: string;
+    }
+  | {
+      type: ContentType.XML;
+      data: string;
+    }
+  | {
+      type: ContentType.TEXT;
+      data: string;
+    }
+  | {
+      type: ContentType.URL_ENCODED;
+      data: string;
+    }
+  | {
+      type: ContentType.BYTES;
+      data: ArrayBuffer;
+    }
+  | {
+      type: ContentType.NONE;
+    };
+
 export interface ResponseDetails {
-  // data: string;
-  contentType: ContentType;
+  content: ResponseBody;
   headers: KeyValue[];
   status: number;
   contentLength: number;
