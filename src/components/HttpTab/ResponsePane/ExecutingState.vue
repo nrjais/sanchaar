@@ -5,7 +5,7 @@
         <NSpin :size="96" />
       </template>
       <template #extra>
-        <NButton v-if="sending" size="large" tertiary type="warning" @click="cancel">
+        <NButton v-if="sending" size="large" tertiary type="error" @click="cancel">
           Cancel
         </NButton>
       </template>
