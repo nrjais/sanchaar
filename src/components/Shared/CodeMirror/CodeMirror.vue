@@ -10,11 +10,11 @@ import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } 
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { json } from '@codemirror/lang-json';
 import {
-bracketMatching,
-defaultHighlightStyle,
-foldGutter, foldKeymap,
-indentOnInput,
-syntaxHighlighting
+  bracketMatching,
+  defaultHighlightStyle,
+  foldGutter, foldKeymap,
+  indentOnInput,
+  syntaxHighlighting
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
 import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
@@ -29,11 +29,13 @@ const editorRef = ref(null)
 const editor = ref<EditorView | null>(null)
 
 const lineWrappingComp = new Compartment()
+const editableComp = new Compartment();
 const config = [
-  EditorState.readOnly.of(props.readOnly),
   EditorState.tabSize.of(2),
   EditorState.allowMultipleSelections.of(true),
   lineWrappingComp.of(EditorView.lineWrapping),
+  EditorState.readOnly.of(props.readOnly),
+  editableComp.of(EditorView.editable.of(props.readOnly)),
 ]
 
 const basicSetup: Extension = [
@@ -90,6 +92,12 @@ watch(() => props.code, (doc) => {
 watch(() => props.lineWrap, (lineWrap) => {
   editor.value?.dispatch({
     effects: lineWrappingComp.reconfigure(lineWrap ? EditorView.lineWrapping : [])
+  });
+})
+
+watch(() => props.readOnly, (readOnly) => {
+  editor.value?.dispatch({
+    effects: editableComp.reconfigure(EditorView.editable.of(readOnly))
   });
 })
 
