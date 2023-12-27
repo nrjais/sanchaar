@@ -55,7 +55,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
     const req = <Request>{
       name: "Untitled",
       method: Methods.GET,
-      address: "https://jsonplaceholder.typicode.com/todos",
+      address: "https://echo.hoppscotch.io",
       headers: [],
       params: [],
       query: [],
