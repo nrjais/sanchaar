@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { GlobalThemeOverrides, NConfigProvider, NGlobalStyle, darkTheme } from 'naive-ui';
-import MainPage from './pages/MainPage.vue';
+import MainPage from './components/MainPage/MainPage.vue';
 
 const themeOverrides: GlobalThemeOverrides = {
   Tabs: {

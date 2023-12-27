@@ -41,7 +41,7 @@ import { IconTextWrap } from "@tabler/icons-vue";
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import Box from "../Box.vue";
+import Box from '@/components/Shared/Box.vue';
 import { IconCopy } from "@tabler/icons-vue";
 
 type ViewMode = "pretty" | "raw"

@@ -3,7 +3,7 @@
     @add="tabStore.openNewRequestTab" size="small" class="h-full p-2">
     <NTabPane v-for="tab in tabStore.openTabsList" :key="tab.id" :name="tab.id" display-directive="show:lazy"
       class="h-0 max-h-full flex-grow">
-      <RequestPane :tabId="tab.id" />
+      <HttpTab :tabId="tab.id" />
       <template #tab>
         <NText class="pr-2 font-medium" v-if="requestTitle(tab.id).method" :style="{ color: methodColor(tab.id) }">
           {{ requestTitle(tab.id).method }}
@@ -18,8 +18,8 @@
 import { useRequestStore } from '@/stores/requests';
 import { useTabStore } from '@/stores/tabs';
 import { NTabPane, NTabs, NText } from 'naive-ui';
-import RequestPane from './Pane/RequestPane.vue';
 import { Methods } from '@/models/methods';
+import HttpTab from '../HttpTab/HttpTab.vue';
 
 const tabStore = useTabStore();
 const requestStore = useRequestStore();

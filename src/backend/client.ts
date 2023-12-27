@@ -62,11 +62,9 @@ export const execute = async (
   const latency = Date.now() - startTime;
 
   const responseHeaders = [] as KeyValue[];
-  Object.entries(response.headers).forEach(([key, values]) => {
-    values.forEach((value: string) => {
-      responseHeaders.push({ key, value });
-    });
-  });
+  for (const [key, value] of [...response.headers]) {
+    responseHeaders.push({ key, value });
+  }
 
   return {
     contentLength: Number(response.headers.get("content-length") || 0),

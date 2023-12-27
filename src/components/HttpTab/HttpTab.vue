@@ -15,11 +15,11 @@
     </NInputGroup>
     <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="pt-2 flex-grow">
       <template #1>
-        <RequestConfig :tabId="props.tabId" class="pr-2" />
+        <RequestPane :tabId="props.tabId" class="pr-2" />
       </template>
       <template #2>
         <Box class="pl-2">
-          <ResponseDetails :tabId="tabId" />
+          <ResponsePane :tabId="tabId" />
         </Box>
       </template>
     </NSplit>
@@ -27,14 +27,14 @@
 </template>
 
 <script setup lang="ts">
-import Box from '@/components/Box.vue';
-import RequestConfig from '@/components/RequestConfig/RequestConfig.vue';
-import ResponseDetails from '@/components/ResponseDetails/ResponseDetails.vue';
 import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
 import { IconSend2 } from '@tabler/icons-vue';
 import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
 import { computed } from 'vue';
+import Box from '../Shared/Box.vue';
+import RequestPane from './RequestPane/RequestPane.vue';
+import ResponsePane from './ResponsePane/ResponsePane.vue';
 
 const props = defineProps<{ tabId: string }>();
 const reqStore = useRequestStore();

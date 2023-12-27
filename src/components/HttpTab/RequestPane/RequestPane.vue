@@ -20,10 +20,10 @@
 <script setup lang="ts">
 import { useRequestStore } from '@/stores/requests';
 import { NTabPane, NTabs } from 'naive-ui';
-import KeyValEditor from '../KeyValEditor.vue';
-import ScrollBox from '../ScrollBox.vue';
+import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
 import { computed } from 'vue';
 import { KeyValue } from '@/models/request';
+import ScrollBox from '@/components/Shared/ScrollBox.vue';
 
 const props = defineProps<{ tabId: string, class?: string }>();
 const { getRequest, updateRequest } = useRequestStore();
