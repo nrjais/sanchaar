@@ -4,7 +4,6 @@ import { ContentType, Request } from "@/models/request";
 import { ResponseDetails } from "@/models/response";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { isCancel } from "axios";
 
 export type ReqTitle = {
   method?: Methods;
@@ -15,6 +14,7 @@ export type ExecutionState =
   | { state: "idle" }
   | { state: "running"; abort: () => void }
   | { state: "cancelled" }
+  | { state: "error"; error: Error }
   | { state: "completed"; response: ResponseDetails };
 
 export const useRequestStore = defineStore("RequestStore", () => {
@@ -71,13 +71,18 @@ export const useRequestStore = defineStore("RequestStore", () => {
     }
 
     const abort = new AbortController();
-    executions.value.set(tabId, { state: "running", abort: abort.abort });
+    executions.value.set(tabId, {
+      state: "running",
+      abort: () => abort.abort(),
+    });
     try {
       const response = await execute(request, { signal: abort.signal });
       executions.value.set(tabId, { state: "completed", response });
-    } catch (e) {
-      if (isCancel(e)) {
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
         executions.value.set(tabId, { state: "cancelled" });
+      } else {
+        executions.value.set(tabId, { state: "error", error });
       }
     }
   };

@@ -23,26 +23,27 @@
 </template>
 
 <script setup lang="ts">
+import Box from '@/components/Shared/Box.vue';
+import { ContentType } from "@/models/request";
+import { ResponseBody } from "@/models/response";
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { json } from '@codemirror/lang-json';
 import {
-  bracketMatching,
-  defaultHighlightStyle,
-  foldGutter, foldKeymap,
-  indentOnInput,
-  syntaxHighlighting
+bracketMatching,
+defaultHighlightStyle,
+foldGutter, foldKeymap,
+indentOnInput,
+syntaxHighlighting
 } from "@codemirror/language";
 import { lintKeymap } from "@codemirror/lint";
 import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
 import { Compartment, EditorState, Extension } from "@codemirror/state";
 import { EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers, rectangularSelection } from "@codemirror/view";
-import { IconTextWrap } from "@tabler/icons-vue";
+import { IconCopy, IconTextWrap } from "@tabler/icons-vue";
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import Box from '@/components/Shared/Box.vue';
-import { IconCopy } from "@tabler/icons-vue";
 
 type ViewMode = "pretty" | "raw"
 
@@ -100,19 +101,21 @@ onMounted(() => {
   })
 })
 
-type Props = {
-  code: string;
-}
-const props = withDefaults(defineProps<Props>(), {
-  code: "",
-});
+const props = defineProps<{ body: ResponseBody }>();
+
+const codeIn = computed(() => {
+  if (props.body.type == ContentType.JSON) {
+    return props.body.data
+  }
+  return ""
+})
 
 const prettyCode = computed(() => {
-  return JSON.stringify(JSON.parse(props.code), null, 2)
+  return JSON.stringify(JSON.parse(codeIn.value), null, 2)
 })
 
 const code = computed(() => {
-  return viewMode.value == 'pretty' ? prettyCode.value : props.code
+  return viewMode.value == 'pretty' ? prettyCode.value : codeIn.value
 })
 
 const buttonType = <T>(val: T, expected?: T) => {
@@ -127,7 +130,7 @@ const toggleWrapping = () => {
 }
 
 const copyToClipboard = () => {
-  const codeToCopy = viewMode.value == 'pretty' ? prettyCode.value : props.code;
+  const codeToCopy = viewMode.value == 'pretty' ? prettyCode.value : codeIn.value;
   navigator.clipboard.writeText(codeToCopy)
 }
 
