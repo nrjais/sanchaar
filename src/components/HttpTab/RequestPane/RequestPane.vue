@@ -1,18 +1,18 @@
 <template>
   <NTabs type="line" animated size="small" :class="props.class" class="h-full"
-    pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col">
+    pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col mt-2">
     <NTabPane name="Params" display-directive="show:lazy" class="flex-grow h-0">
-      <ScrollBox class="flex flex-col gap-4 pt-2">
+      <ScrollBox class="flex flex-col gap-4">
         <KeyValEditor header="Query Params" :value="activeReq.query" :update="updateQuery" />
         <KeyValEditor v-if="hasPathParams" :value="activeReq.params" :update="updateParams" fixed
           header="Path Variables" />
       </ScrollBox>
     </NTabPane>
     <NTabPane name="Headers" display-directive="show:lazy" class="flex-grow h-0">
-      <KeyValEditor :value="activeReq.headers" header="Headers" class="mt-2" :update="updateHeaders" />
+      <KeyValEditor :value="activeReq.headers" header="Headers" class="" :update="updateHeaders" />
     </NTabPane>
     <NTabPane name="Body" display-directive="show:lazy" class="flex-grow h-0">
-      Body
+      <BodyEditor :value="activeReq.body" :update="updateBody" />
     </NTabPane>
   </NTabs>
 </template>
@@ -24,6 +24,7 @@ import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
 import { computed } from 'vue';
 import { KeyValue } from '@/models/request';
 import ScrollBox from '@/components/Shared/ScrollBox.vue';
+import BodyEditor from './BodyEditor.vue';
 
 const props = defineProps<{ tabId: string, class?: string }>();
 const { getRequest, updateRequest } = useRequestStore();
@@ -47,6 +48,12 @@ const updateHeaders = (value: KeyValue[]) => {
 const updateParams = (value: KeyValue[]) => {
   updateRequest(props.tabId, (req) => {
     req.params = value;
+  });
+};
+
+const updateBody = (value: string) => {
+  updateRequest(props.tabId, (req) => {
+    req.body = value;
   });
 };
 

@@ -9,6 +9,11 @@ import ScrollBox from "@/components/Shared/ScrollBox.vue";
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { json } from '@codemirror/lang-json';
+import { lintKeymap } from "@codemirror/lint";
+import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
+import { Compartment, EditorState, Extension } from "@codemirror/state";
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import {
   bracketMatching,
   defaultHighlightStyle,
@@ -16,26 +21,36 @@ import {
   indentOnInput,
   syntaxHighlighting
 } from "@codemirror/language";
-import { lintKeymap } from "@codemirror/lint";
-import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
-import { Compartment, EditorState, Extension } from "@codemirror/state";
-import { EditorView, crosshairCursor, drawSelection, dropCursor, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers, rectangularSelection } from "@codemirror/view";
-import { vscodeDark } from '@uiw/codemirror-theme-vscode';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import {
+  EditorView, crosshairCursor, drawSelection,
+  dropCursor, highlightActiveLine, highlightActiveLineGutter,
+  highlightSpecialChars, keymap, lineNumbers, rectangularSelection, ViewUpdate
+} from "@codemirror/view";
 
-const props = defineProps<{ code: string, lineWrap: boolean, readOnly: boolean }>();
+const props = defineProps<{
+  code: string,
+  lineWrap: boolean,
+  readOnly: boolean,
+  update?: (value: string) => void
+}>();
 
 const editorRef = ref(null)
 const editor = ref<EditorView | null>(null)
 
 const lineWrappingComp = new Compartment()
 const editableComp = new Compartment();
+
+const update = (update: ViewUpdate) => {
+  props.update?.(update.state.doc.toString())
+}
+
 const config = [
   EditorState.tabSize.of(2),
   EditorState.allowMultipleSelections.of(true),
   lineWrappingComp.of(EditorView.lineWrapping),
   EditorState.readOnly.of(props.readOnly),
-  editableComp.of(EditorView.editable.of(props.readOnly)),
+  editableComp.of(EditorView.editable.of(!props.readOnly)),
+  EditorView.updateListener.of(update),
 ]
 
 const basicSetup: Extension = [
@@ -97,11 +112,9 @@ watch(() => props.lineWrap, (lineWrap) => {
 
 watch(() => props.readOnly, (readOnly) => {
   editor.value?.dispatch({
-    effects: editableComp.reconfigure(EditorView.editable.of(readOnly))
+    effects: editableComp.reconfigure(EditorView.editable.of(!readOnly))
   });
 })
 
-onUnmounted(() => {
-  editor.value?.destroy()
-})
+onUnmounted(() => editor.value?.destroy())
 </script>
