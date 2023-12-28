@@ -12,7 +12,7 @@
       <KeyValEditor :value="activeReq.headers" header="Headers" class="" :update="updateHeaders" />
     </NTabPane>
     <NTabPane name="Body" display-directive="show:lazy" class="flex-grow h-0">
-      <BodyEditor :value="activeReq.body" :update="updateBody" :body="activeReq.body" />
+      <BodyEditor :value="activeReq.body" :changeType="changeBodyType" :update="updateBody" :body="activeReq.body" />
     </NTabPane>
   </NTabs>
 </template>
@@ -57,6 +57,12 @@ const updateBody = (value: string) => {
       type: ContentType.JSON,
       data: value
     };
+  });
+};
+
+const changeBodyType = (type: ContentType) => {
+  updateRequest(props.tabId, (req) => {
+    req.body.type = type;
   });
 };
 </script>
