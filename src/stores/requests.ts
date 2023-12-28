@@ -60,7 +60,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
       headers: [],
       params: [],
       query: [],
-      body: { type: ContentType.NONE },
+      body: { type: ContentType.JSON, data: "" },
     };
     requests.value.set(tabId, req);
   };

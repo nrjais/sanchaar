@@ -12,7 +12,7 @@
       <KeyValEditor :value="activeReq.headers" header="Headers" class="" :update="updateHeaders" />
     </NTabPane>
     <NTabPane name="Body" display-directive="show:lazy" class="flex-grow h-0">
-      <BodyEditor :value="activeReq.body" :update="updateBody" />
+      <BodyEditor :value="activeReq.body" :update="updateBody" :body="activeReq.body" />
     </NTabPane>
   </NTabs>
 </template>

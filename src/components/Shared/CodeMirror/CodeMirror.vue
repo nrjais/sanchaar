@@ -9,11 +9,6 @@ import ScrollBox from "@/components/Shared/ScrollBox.vue";
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { json } from '@codemirror/lang-json';
-import { lintKeymap } from "@codemirror/lint";
-import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
-import { Compartment, EditorState, Extension } from "@codemirror/state";
-import { vscodeDark } from '@uiw/codemirror-theme-vscode';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
 import {
   bracketMatching,
   defaultHighlightStyle,
@@ -21,27 +16,41 @@ import {
   indentOnInput,
   syntaxHighlighting
 } from "@codemirror/language";
+import { lintKeymap } from "@codemirror/lint";
+import { highlightSelectionMatches, searchKeymap } from "@codemirror/search";
+import { Compartment, EditorState, Extension } from "@codemirror/state";
 import {
-  EditorView, crosshairCursor, drawSelection,
+  EditorView,
+  ViewUpdate,
+  crosshairCursor, drawSelection,
   dropCursor, highlightActiveLine, highlightActiveLineGutter,
-  highlightSpecialChars, keymap, lineNumbers, rectangularSelection, ViewUpdate
+  highlightSpecialChars, keymap, lineNumbers, rectangularSelection
 } from "@codemirror/view";
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const props = defineProps<{
   code: string,
-  lineWrap: boolean,
-  readOnly: boolean,
+  lineWrap?: boolean,
+  readOnly?: boolean,
   update?: (value: string) => void
 }>();
 
 const editorRef = ref(null)
 const editor = ref<EditorView | null>(null)
+const lastUpdated = ref(props.code)
 
 const lineWrappingComp = new Compartment()
 const editableComp = new Compartment();
 
 const update = (update: ViewUpdate) => {
-  props.update?.(update.state.doc.toString())
+  if (!update.docChanged) {
+    return
+  }
+  const doc = update.state.doc.toString()
+  if (doc === lastUpdated.value) return
+  lastUpdated.value = doc
+  props.update?.(doc)
 }
 
 const config = [
@@ -94,6 +103,7 @@ onMounted(() => {
 })
 
 watch(() => props.code, (doc) => {
+  if (doc === lastUpdated.value) return
   editor.value?.dispatch({
     changes: {
       from: 0,
