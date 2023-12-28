@@ -1,6 +1,6 @@
 <template>
-  <ScrollBox>
-    <div ref="editorRef" class=" overflow-scroll flex-grow codemirror"></div>
+  <ScrollBox class="h-full">
+    <div ref="editorRef" class="overflow-scroll h-full flex-grow codemirror"></div>
   </ScrollBox>
 </template>
 
@@ -49,7 +49,6 @@ const config = [
   EditorState.allowMultipleSelections.of(true),
   lineWrappingComp.of(EditorView.lineWrapping),
   EditorState.readOnly.of(props.readOnly),
-  editableComp.of(EditorView.editable.of(!props.readOnly)),
   EditorView.updateListener.of(update),
 ]
 
@@ -118,3 +117,49 @@ watch(() => props.readOnly, (readOnly) => {
 
 onUnmounted(() => editor.value?.destroy())
 </script>
+
+<style scoped lang="scss">
+:deep(.codemirror) {
+  .cm-editor {
+    height: 100%;
+    width: 100%;
+
+    .cm-panels {
+      background-color: #18181c;
+      @apply px-0.5;
+      @apply pt-0.5;
+      @apply text-gray-300;
+
+      .cm-search {
+        .cm-button {
+          background-color: var(--nc-bg-color);
+          @apply bg-none;
+          @apply rounded-sm;
+          @apply border-none;
+          @apply text-xs;
+          @apply capitalize;
+
+          &:hover {
+            color: var(--nc-primary-color);
+          }
+        }
+
+        label {
+          @apply capitalize;
+          @apply mx-1;
+        }
+
+        button[name="close"] {
+          @apply px-2;
+          @apply text-center;
+          @apply text-lg;
+
+          &:hover {
+            color: var(--nc-primary-color);
+          }
+        }
+      }
+    }
+  }
+}
+</style>
