@@ -18,14 +18,14 @@
         </NButton>
       </NButtonGroup>
     </Box>
-    <CodeMirror :code="code" :lineWrap="lineWrap" :readOnly="true"/>
+    <CodeMirror :code="code" :lineWrap="lineWrap" :readOnly="true" />
   </Box>
 </template>
 
 <script setup lang="ts">
 import Box from '@/components/Shared/Box.vue';
 import CodeMirror from '@/components/Shared/CodeMirror/CodeMirror.vue';
-import { ContentType } from "@/models/request";
+import { ContentType } from "@/models/common";
 import { ResponseBody } from "@/models/response";
 import { IconCopy, IconTextWrap } from "@tabler/icons-vue";
 import { NButton, NButtonGroup, NIcon } from 'naive-ui';

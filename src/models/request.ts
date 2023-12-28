@@ -1,39 +1,47 @@
+import { ContentType, KeyValue } from "./common";
 import { Methods } from "./methods";
 
-export enum ContentType {
-  JSON = "json",
-  URL_ENCODED = "url_encoded",
-  TEXT = "text",
-  XML = "xml",
-  BYTES = "bytes",
-  NONE = "none",
-}
+export type RequestBody =
+  | {
+      type: ContentType.JSON;
+      data: string;
+    }
+  | {
+      type: ContentType.XML;
+      data: string;
+    }
+  | {
+      type: ContentType.TEXT;
+      data: string;
+    }
+  | {
+      type: ContentType.URL_ENCODED;
+      data: KeyValue[];
+    }
+  | {
+      type: ContentType.MUTLIPART_FORM;
+      data: KeyValue[];
+    }
+  | {
+      type: ContentType.BLOB;
+      data: ArrayBuffer;
+    }
+  | {
+      type: ContentType.NONE;
+    };
 
-export interface RequestBody {
-  type: ContentType;
-  body: string;
-}
-
-export interface KeyValue {
-  enabled?: boolean;
-  key: string;
-  value: string;
-  description?: string;
-}
-
-export interface Request {
+export interface RequestConfig {
   name: string;
   method: Methods;
   address: string;
   headers: KeyValue[];
   params: KeyValue[];
   query: KeyValue[];
-  body?: string;
-  contentType: ContentType;
+  body: RequestBody;
 }
 
 export interface RequestDetails {
   name: string;
   description?: string;
-  config: Request;
+  config: RequestConfig;
 }

@@ -1,6 +1,7 @@
 import { execute } from "@/backend/client";
+import { ContentType } from "@/models/common";
 import { Methods } from "@/models/methods";
-import { ContentType, Request } from "@/models/request";
+import { RequestConfig } from "@/models/request";
 import { ResponseDetails } from "@/models/response";
 import { defineStore } from "pinia";
 import { ref } from "vue";
@@ -18,7 +19,7 @@ export type ExecutionState =
   | { state: "completed"; response: ResponseDetails };
 
 export const useRequestStore = defineStore("RequestStore", () => {
-  const requests = ref(new Map<string, Request>());
+  const requests = ref(new Map<string, RequestConfig>());
   const executions = ref(new Map<string, ExecutionState>());
 
   const getRequestTitle = (tabId: string): ReqTitle => {
@@ -35,14 +36,14 @@ export const useRequestStore = defineStore("RequestStore", () => {
     };
   };
 
-  const updateRequest = (tabId: string, fn: (r: Request) => void) => {
+  const updateRequest = (tabId: string, fn: (r: RequestConfig) => void) => {
     const request = requests.value.get(tabId);
     if (request) {
       fn(request);
     }
   };
 
-  const getRequest = (tabId: string): Request | undefined => {
+  const getRequest = (tabId: string): RequestConfig | undefined => {
     return requests.value.get(tabId);
   };
 
@@ -52,14 +53,14 @@ export const useRequestStore = defineStore("RequestStore", () => {
   };
 
   const addNewRequest = (tabId: string) => {
-    const req = <Request>{
+    const req = <RequestConfig>{
       name: "Untitled",
-      method: Methods.GET,
+      method: Methods.POST,
       address: "https://echo.hoppscotch.io",
       headers: [],
       params: [],
       query: [],
-      contentType: ContentType.NONE,
+      body: { type: ContentType.NONE },
     };
     requests.value.set(tabId, req);
   };

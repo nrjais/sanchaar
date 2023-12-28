@@ -45,7 +45,7 @@ import { ResponseDetails } from '@/models/response';
 import { prettyMillis } from '@/utils/prettyMs';
 import { NTabPane, NTable, NTabs, NText } from 'naive-ui';
 import prettyBytes from 'pretty-bytes';
-import { computed, defineProps } from 'vue';
+import { computed } from 'vue';
 import BodyViewer from './BodyViewer.vue';
 
 const props = defineProps<{ response: ResponseDetails }>();

@@ -1,4 +1,4 @@
-import { ContentType, KeyValue } from "./request";
+import { ContentType, KeyValue } from "./common";
 
 export type ResponseBody =
   | {
@@ -18,8 +18,8 @@ export type ResponseBody =
       data: string;
     }
   | {
-      type: ContentType.BYTES;
-      data: ArrayBuffer;
+      type: ContentType.BLOB;
+      data: Blob;
     }
   | {
       type: ContentType.NONE;

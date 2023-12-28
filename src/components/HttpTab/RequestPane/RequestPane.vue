@@ -22,7 +22,7 @@ import { useRequestStore } from '@/stores/requests';
 import { NTabPane, NTabs } from 'naive-ui';
 import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
 import { computed } from 'vue';
-import { KeyValue } from '@/models/request';
+import { ContentType, KeyValue } from '@/models/common';
 import ScrollBox from '@/components/Shared/ScrollBox.vue';
 import BodyEditor from './BodyEditor.vue';
 
@@ -53,8 +53,10 @@ const updateParams = (value: KeyValue[]) => {
 
 const updateBody = (value: string) => {
   updateRequest(props.tabId, (req) => {
-    req.body = value;
+    req.body = {
+      type: ContentType.JSON,
+      data: value
+    };
   });
 };
-
 </script>

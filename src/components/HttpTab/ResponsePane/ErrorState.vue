@@ -13,7 +13,6 @@
 import Box from '@/components/Shared/Box.vue';
 import { IconLocationBroken } from '@tabler/icons-vue';
 import { EmptyProps, NEmpty, NIcon } from 'naive-ui';
-import { defineProps } from 'vue';
 
 const themOverides: NonNullable<EmptyProps['themeOverrides']> = {
   iconSizeHuge: 'fit-content',
