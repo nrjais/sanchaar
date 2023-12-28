@@ -1,11 +1,11 @@
 <template>
   <Box class="flex flex-col gap-2">
-    <Box class="flex" height="h-fit">
-      <NButtonGroup class="my-1" size="small">
+    <Box class="flex" height="h-fit gap-2">
+      <NButtonGroup class="pb-1" size="small">
         <NButton secondary @click="viewMode = 'pretty'" :type="buttonType(viewMode, 'pretty')">Pretty</NButton>
         <NButton secondary @click="viewMode = 'raw'" :type="buttonType(viewMode, 'raw')">Raw</NButton>
       </NButtonGroup>
-      <NButtonGroup class="my-1 ml-2" size="small">
+      <NButtonGroup class="pb-1" size="small">
         <NButton secondary @click="toggleWrapping" :type="buttonType(lineWrap)">
           <NIcon>
             <IconTextWrap />

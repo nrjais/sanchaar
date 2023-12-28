@@ -1,22 +1,22 @@
 <template>
   <Box class="flex">
-    <NEmpty description="Send request to see response" size="huge" class="m-auto" :theme-overrides="themOverides">
+    <NEmpty :description="props.error.message" size="huge" class="m-auto" :themeOverrides="themOverides">
       <template #icon>
         <NIcon color="grey" size="8rem">
-          <IconSend />
+          <IconLocationBroken />
         </NIcon>
       </template>
     </NEmpty>
   </Box>
 </template>
-
 <script setup lang="ts">
 import Box from '@/components/Shared/Box.vue';
-import { IconSend } from '@tabler/icons-vue';
+import { IconLocationBroken } from '@tabler/icons-vue';
 import { EmptyProps, NEmpty, NIcon } from 'naive-ui';
 
 const themOverides: NonNullable<EmptyProps['themeOverrides']> = {
   iconSizeHuge: 'fit-content',
-  fontSizeHuge: '1.5rem',
+  fontSizeHuge: '1.2rem',
 }
+const props = defineProps<{ error: Error }>();
 </script>

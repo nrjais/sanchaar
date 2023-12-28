@@ -9,11 +9,11 @@
 <script setup lang="ts">
 import { useRequestStore } from '@/stores/requests';
 import { computed } from 'vue';
-import CancelledState from './CancelledState.vue';
-import CompletedState from './CompletedState.vue';
-import ExecutingState from './ExecutingState.vue';
-import IdleState from './IdleState.vue';
-import ErrorState from './ErrorState.vue';
+import CancelledState from './States/CancelledState.vue';
+import CompletedState from './States/CompletedState.vue';
+import ExecutingState from './States/ExecutingState.vue';
+import IdleState from './States/IdleState.vue';
+import ErrorState from './States/ErrorState.vue';
 
 const props = defineProps<{ tabId: string }>();
 

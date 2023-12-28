@@ -1,26 +1,10 @@
 <template>
-  <NTabs size="small" animated class="h-full" type="line" pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col">
-    <NTabPane name="body" tab="Body" display-directive="show"
-      class="flex-grow h-0">
+  <NTabs size="small" animated class="h-full" type="line" pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col pt-1">
+    <NTabPane name="body" tab="Body" display-directive="show" class="flex-grow h-0">
       <BodyViewer :body="result.body" />
     </NTabPane>
     <NTabPane name="headers" tab="Headers" display-directive="show:lazy" class="flex-grow h-0">
-      <ScrollBox>
-        <NTable size="small" bordered :single-line="false">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="header in result.headers">
-              <td>{{ header.key }}</td>
-              <td width="65%">{{ header.value }}</td>
-            </tr>
-          </tbody>
-        </NTable>
-      </ScrollBox>
+      <KeyValueViewer :values="result.headers" />
     </NTabPane>
     <template #suffix>
       <Box class="flex gap-4 text-xs items-center font-semibold">
@@ -40,13 +24,13 @@
 
 <script lang="ts" setup>
 import Box from '@/components/Shared/Box.vue';
-import ScrollBox from '@/components/Shared/ScrollBox.vue';
+import KeyValueViewer from '@/components/Shared/KeyValueViewer.vue';
 import { ResponseDetails } from '@/models/response';
 import { prettyMillis } from '@/utils/prettyMs';
-import { NTabPane, NTable, NTabs, NText } from 'naive-ui';
+import { NTabPane, NTabs, NText } from 'naive-ui';
 import prettyBytes from 'pretty-bytes';
 import { computed } from 'vue';
-import BodyViewer from './BodyViewer.vue';
+import BodyViewer from '../BodyViewer/BodyViewer.vue';
 
 const props = defineProps<{ response: ResponseDetails }>();
 

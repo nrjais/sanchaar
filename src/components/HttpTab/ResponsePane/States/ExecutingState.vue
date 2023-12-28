@@ -20,7 +20,7 @@ import { computed, ref } from 'vue';
 
 const themOverides: NonNullable<EmptyProps['themeOverrides']> = {
   iconSizeHuge: 'fit-content',
-  fontSizeHuge: '1.5rem',
+  fontSizeHuge: '1.2rem',
 }
 
 const props = defineProps<{ cancel: () => void }>();
