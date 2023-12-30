@@ -1,19 +1,22 @@
 <template>
   <Box class="flex gap-2 flex-col">
     <Box class="flex justify-between" height="h-fit">
-      <NText strong depth="3" tag="div">Body</NText>
+      <NText strong depth="3" tag="div" class="text-base">Body</NText>
       <Box width="w-36">
         <NSelect :value="props.body.type" @update:value="changeContentType" size="small" placeholder="Content Type"
           :options="contentTypes" />
       </Box>
     </Box>
     <CodeMirror v-if="editorBody.editor == 'code'" :code="editorBody.data" :lineWrap="true" :update="updateBody" />
+    <KeyValEditor v-if="editorBody.editor == 'keyval'" header="Form Params" :value="editorBody.data"
+      :update="updateKeyValBody" />
   </Box>
 </template>
 
 <script setup lang="ts">
 import Box from '@/components/Shared/Box.vue';
 import CodeMirror from '@/components/Shared/CodeMirror/CodeMirror.vue';
+import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
 import { ContentType, KeyValue } from '@/models/common';
 import { RequestBody } from '@/models/request';
 import { NSelect, NText } from 'naive-ui';
@@ -65,9 +68,16 @@ const updateBody = (value: string) => {
     case ContentType.TEXT:
       props.update({ type: props.body.type, data: value });
       break;
+    default:
+      break;
+  }
+}
+
+const updateKeyValBody = (value: KeyValue[]) => {
+  switch (props.body.type) {
     case ContentType.URL_ENCODED:
     case ContentType.MUTLIPART_FORM:
-      props.update({ type: props.body.type, data: [] as KeyValue[] });
+      props.update({ type: props.body.type, data: value });
       break;
     default:
       break;

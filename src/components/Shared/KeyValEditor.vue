@@ -52,7 +52,7 @@ import { IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
 import { computed, onMounted, reactive, watch, watchEffect } from 'vue';
 import Box from './Box.vue';
-import { KeyValue } from '@/models/request';
+import { KeyValue } from '@/models/common';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c",
@@ -63,7 +63,7 @@ const themOverides: NonNullable<InputProps['themeOverrides']> = {
 type Props = {
   header: string;
   value: KeyValue[];
-  fixed: boolean;
+  fixed?: boolean;
   update: (value: KeyValue[]) => void;
 };
 
