@@ -8,9 +8,6 @@ dependencies:
   '@codemirror/lang-json':
     specifier: ^6.0.1
     version: 6.0.1
-  '@codemirror/lang-xml':
-    specifier: ^6.0.2
-    version: 6.0.2(@codemirror/view@6.22.3)
   '@tabler/icons-vue':
     specifier: ^2.44.0
     version: 2.44.0(vue@3.4.3)
@@ -22,7 +19,7 @@ dependencies:
     version: 4.21.21(@codemirror/language@6.9.3)(@codemirror/state@6.3.3)(@codemirror/view@6.22.3)
   codemirror:
     specifier: ^6.0.1
-    version: 6.0.1(@lezer/common@1.1.2)
+    version: 6.0.1(@lezer/common@1.2.0)
   dayjs:
     specifier: ^1.11.10
     version: 1.11.10
@@ -124,7 +121,7 @@ packages:
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
 
-  /@codemirror/autocomplete@6.11.1(@codemirror/language@6.9.3)(@codemirror/state@6.3.3)(@codemirror/view@6.22.3)(@lezer/common@1.1.2):
+  /@codemirror/autocomplete@6.11.1(@codemirror/language@6.9.3)(@codemirror/state@6.3.3)(@codemirror/view@6.22.3)(@lezer/common@1.2.0):
     resolution: {integrity: sha512-L5UInv8Ffd6BPw0P3EF7JLYAMeEbclY7+6Q11REt8vhih8RuLreKtPy/xk8wPxs4EQgYqzI7cdgpiYwWlbS/ow==}
     peerDependencies:
       '@codemirror/language': ^6.0.0
@@ -135,7 +132,7 @@ packages:
       '@codemirror/language': 6.9.3
       '@codemirror/state': 6.3.3
       '@codemirror/view': 6.22.3
-      '@lezer/common': 1.1.2
+      '@lezer/common': 1.2.0
     dev: false
 
   /@codemirror/commands@6.3.2:
@@ -152,18 +149,6 @@ packages:
     dependencies:
       '@codemirror/language': 6.9.3
       '@lezer/json': 1.0.1
-    dev: false
-
-  /@codemirror/lang-xml@6.0.2(@codemirror/view@6.22.3):
-    resolution: {integrity: sha512-JQYZjHL2LAfpiZI2/qZ/qzDuSqmGKMwyApYmEUUCTxLM4MWS7sATUEfIguZQr9Zjx/7gcdnewb039smF6nC2zw==}
-    dependencies:
-      '@codemirror/autocomplete': 6.11.1(@codemirror/language@6.9.3)(@codemirror/state@6.3.3)(@codemirror/view@6.22.3)(@lezer/common@1.1.2)
-      '@codemirror/language': 6.9.3
-      '@codemirror/state': 6.3.3
-      '@lezer/common': 1.1.2
-      '@lezer/xml': 1.0.4
-    transitivePeerDependencies:
-      - '@codemirror/view'
     dev: false
 
   /@codemirror/language@6.9.3:
@@ -490,14 +475,6 @@ packages:
     resolution: {integrity: sha512-z5mY4LStlA3yL7aHT/rqgG614cfcvklS+8oFRFBYrs4YaWLJyKKM4+nN6KopToX0o9Hj6zmH6M5kinOYuy06ug==}
     dependencies:
       '@lezer/common': 1.1.2
-    dev: false
-
-  /@lezer/xml@1.0.4:
-    resolution: {integrity: sha512-WmXKb5eX8+rRfZYSNRR5TPee/ZoDgBdVS/rj1VCJGDKa5gNldIctQYibCoFVyNhvZsyL/8nHbZJZPM4gnXN2Vw==}
-    dependencies:
-      '@lezer/common': 1.2.0
-      '@lezer/highlight': 1.2.0
-      '@lezer/lr': 1.3.14
     dev: false
 
   /@nodelib/fs.scandir@2.1.5:
@@ -1054,10 +1031,10 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /codemirror@6.0.1(@lezer/common@1.1.2):
+  /codemirror@6.0.1(@lezer/common@1.2.0):
     resolution: {integrity: sha512-J8j+nZ+CdWmIeFIGXEFbFPtpiYacFMDR8GlHK3IyHQJMCaVRfGx9NT+Hxivv1ckLWPvNdZqndbr/7lVhrf/Svg==}
     dependencies:
-      '@codemirror/autocomplete': 6.11.1(@codemirror/language@6.9.3)(@codemirror/state@6.3.3)(@codemirror/view@6.22.3)(@lezer/common@1.1.2)
+      '@codemirror/autocomplete': 6.11.1(@codemirror/language@6.9.3)(@codemirror/state@6.3.3)(@codemirror/view@6.22.3)(@lezer/common@1.2.0)
       '@codemirror/commands': 6.3.2
       '@codemirror/language': 6.9.3
       '@codemirror/lint': 6.4.2

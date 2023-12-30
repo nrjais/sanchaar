@@ -7,7 +7,8 @@
           :options="contentTypes" />
       </Box>
     </Box>
-    <CodeMirror v-if="editorBody.editor == 'code'" :code="editorBody.data" :lineWrap="true" :update="updateBody" />
+    <CodeMirror v-if="editorBody.editor == 'code'" :code="editorBody.data" :type="props.body.type" :lineWrap="true"
+      :update="updateBody" />
     <KeyValEditor v-if="editorBody.editor == 'keyval'" header="Form Params" :value="editorBody.data"
       :update="updateKeyValBody" />
   </Box>

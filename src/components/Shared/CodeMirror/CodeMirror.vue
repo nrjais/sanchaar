@@ -6,9 +6,9 @@
 
 <script setup lang="ts">
 import ScrollBox from "@/components/Shared/ScrollBox.vue";
+import { ContentType } from "@/models/common";
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { json } from '@codemirror/lang-json';
 import {
   bracketMatching,
   defaultHighlightStyle,
@@ -28,12 +28,13 @@ import {
 } from "@codemirror/view";
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { jsonExtensions } from "./json";
 
 const props = defineProps<{
   code: string,
   lineWrap?: boolean,
   readOnly?: boolean,
-  // type: ContentType,
+  type: ContentType,
   update?: (value: string) => void
 }>();
 
@@ -52,6 +53,15 @@ const update = (update: ViewUpdate) => {
   if (doc === lastUpdated.value) return
   lastUpdated.value = doc
   props.update?.(doc)
+}
+
+const contentTypeExtension = (type: ContentType): Extension[] => {
+  switch (type) {
+    case ContentType.JSON:
+      return jsonExtensions;
+    default:
+      return []
+  }
 }
 
 const config = [
@@ -79,7 +89,7 @@ const basicSetup: Extension = [
   crosshairCursor(),
   highlightActiveLine(),
   highlightSelectionMatches(),
-  json(),
+  ...contentTypeExtension(props.type),
   ...config,
   keymap.of([
     ...closeBracketsKeymap,
