@@ -12,18 +12,19 @@
       <KeyValEditor :value="activeReq.headers" header="Headers" class="" :update="updateHeaders" />
     </NTabPane>
     <NTabPane name="Body" display-directive="show:lazy" class="flex-grow h-0">
-      <BodyEditor :value="activeReq.body" :changeType="changeBodyType" :update="updateBody" :body="activeReq.body" />
+      <BodyEditor :value="activeReq.body" :update="updateBody" :body="activeReq.body" />
     </NTabPane>
   </NTabs>
 </template>
 
 <script setup lang="ts">
+import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
+import ScrollBox from '@/components/Shared/ScrollBox.vue';
+import { KeyValue } from '@/models/common';
+import { RequestBody } from '@/models/request';
 import { useRequestStore } from '@/stores/requests';
 import { NTabPane, NTabs } from 'naive-ui';
-import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
 import { computed } from 'vue';
-import { ContentType, KeyValue } from '@/models/common';
-import ScrollBox from '@/components/Shared/ScrollBox.vue';
 import BodyEditor from './BodyEditor.vue';
 
 const props = defineProps<{ tabId: string, class?: string }>();
@@ -51,18 +52,9 @@ const updateParams = (value: KeyValue[]) => {
   });
 };
 
-const updateBody = (value: string) => {
+const updateBody = (body: RequestBody) => {
   updateRequest(props.tabId, (req) => {
-    req.body = {
-      type: ContentType.JSON,
-      data: value
-    };
-  });
-};
-
-const changeBodyType = (type: ContentType) => {
-  updateRequest(props.tabId, (req) => {
-    req.body.type = type;
+    req.body = body;
   });
 };
 </script>

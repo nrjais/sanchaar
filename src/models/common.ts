@@ -29,7 +29,7 @@ export const getContentTypeHeader = (
   }
 };
 
-export type KeyValueRaw<T> = {
+type KeyValueRaw<T> = {
   enabled?: boolean;
   key: string;
   value: T;

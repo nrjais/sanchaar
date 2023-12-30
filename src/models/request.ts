@@ -24,7 +24,7 @@ export type RequestBody =
     }
   | {
       type: ContentType.BLOB;
-      data: ArrayBuffer;
+      data: Blob;
     }
   | {
       type: ContentType.NONE;

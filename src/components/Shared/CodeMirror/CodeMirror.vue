@@ -27,12 +27,13 @@ import {
   highlightSpecialChars, keymap, lineNumbers, rectangularSelection
 } from "@codemirror/view";
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
   code: string,
   lineWrap?: boolean,
   readOnly?: boolean,
+  // type: ContentType,
   update?: (value: string) => void
 }>();
 
@@ -125,7 +126,7 @@ watch(() => props.readOnly, (readOnly) => {
   });
 })
 
-onUnmounted(() => editor.value?.destroy())
+onBeforeUnmount(() => editor.value?.destroy())
 </script>
 
 <style scoped lang="scss">
