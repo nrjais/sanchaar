@@ -6,5 +6,4 @@ export enum Methods {
   PATCH = "PATCH",
   OPTIONS = "OPTIONS",
   HEAD = "HEAD",
-  TRACE = "TRACE",
 }

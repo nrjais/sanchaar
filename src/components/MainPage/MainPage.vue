@@ -15,10 +15,10 @@
 </template>
 
 <script setup lang="ts">
+import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
 import { useTabStore } from '@/stores/tabs';
 import { NTabPane, NTabs, NText } from 'naive-ui';
-import { Methods } from '@/models/methods';
 import HttpTab from '../HttpTab/HttpTab.vue';
 
 const tabStore = useTabStore();
@@ -49,10 +49,8 @@ const methodColor = (id: string) => {
       return '#7C3AED';
     case Methods.OPTIONS:
       return '#14B8A6';
-    case Methods.TRACE:
-      return '#6B7280';
     default:
-      return '#D1D5DB';
+      return '#6B7280';
   }
 };
 

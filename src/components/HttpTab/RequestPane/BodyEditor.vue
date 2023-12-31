@@ -11,6 +11,9 @@
       :update="updateBody" />
     <KeyValEditor v-if="editorBody.editor == 'keyval'" header="Form Params" :value="editorBody.data"
       :update="updateKeyValBody" />
+    <Box class="flex">
+      <NEmpty v-if="editorBody.editor == 'none'" description="No request body" size="large" class="m-auto"></NEmpty>
+    </Box>
   </Box>
 </template>
 
@@ -20,7 +23,7 @@ import CodeMirror from '@/components/Shared/CodeMirror/CodeMirror.vue';
 import KeyValEditor from '@/components/Shared/KeyValEditor.vue';
 import { ContentType, KeyValue } from '@/models/common';
 import { RequestBody } from '@/models/request';
-import { NSelect, NText } from 'naive-ui';
+import { NEmpty, NSelect, NText } from 'naive-ui';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{ body: RequestBody, update: (type: RequestBody) => void }>();
