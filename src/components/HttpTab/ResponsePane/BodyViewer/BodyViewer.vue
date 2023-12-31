@@ -18,7 +18,7 @@
         </NButton>
       </NButtonGroup>
     </Box>
-    <CodeMirror :code="code" :lineWrap="lineWrap" :readOnly="true" />
+    <CodeMirror :code="code" :lineWrap="lineWrap" :readOnly="true" :type="props.body.type" />
   </Box>
 </template>
 

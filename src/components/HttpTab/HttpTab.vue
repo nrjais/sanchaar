@@ -18,9 +18,7 @@
         <RequestPane :tabId="props.tabId" class="pr-2" />
       </template>
       <template #2>
-        <Box class="pl-2">
-          <ResponsePane :tabId="tabId" />
-        </Box>
+        <ResponsePane :tabId="tabId" class="pl-2" />
       </template>
     </NSplit>
   </Box>
