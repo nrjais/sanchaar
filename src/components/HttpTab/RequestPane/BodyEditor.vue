@@ -11,8 +11,8 @@
       :update="updateBody" />
     <KeyValEditor v-if="editorBody.editor == 'keyval'" header="Form Params" :value="editorBody.data"
       :update="updateKeyValBody" />
-    <Box class="flex">
-      <NEmpty v-if="editorBody.editor == 'none'" description="No request body" size="large" class="m-auto"></NEmpty>
+    <Box class="flex" v-if="editorBody.editor == 'none'">
+      <NEmpty description="No request body" size="large" class="m-auto"></NEmpty>
     </Box>
   </Box>
 </template>
