@@ -65,6 +65,11 @@ export const useRequestStore = defineStore("RequestStore", () => {
     requests.value.set(tabId, req);
   };
 
+  const removeRequest = (tabId: string) => {
+    requests.value.delete(tabId);
+    executions.value.delete(tabId);
+  };
+
   const executeRequest = async (tabId: string) => {
     const request = requests.value.get(tabId);
     if (!request) {
@@ -97,6 +102,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
     executions,
     getRequestTitle,
     addNewRequest,
+    removeRequest,
     updateRequest,
     getRequest,
     executeRequest,

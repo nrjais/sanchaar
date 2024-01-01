@@ -56,6 +56,7 @@ export const useTabStore = defineStore("TabStore", () => {
       }
     }
     activeTab.value = newActiveTab.id;
+    reqStore.removeRequest(id);
   };
 
   return {
