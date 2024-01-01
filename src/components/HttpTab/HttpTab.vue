@@ -1,16 +1,13 @@
 <template>
   <Box class="flex flex-col">
     <NInputGroup class="flex">
-      <Box width="w-32">
-        <NSelect size="large" :options="methods" v-model:value="method" :on-update-value="updateMethod"
-          :consistent-menu-width="false" filterable tag />
+      <Box class="w-28">
+        <NSelect :options="methods" v-model:value="method" :on-update-value="updateMethod" :consistent-menu-width="false"
+          filterable tag />
       </Box>
-      <NInput :value="address" @update:value="updateAddress" size="large" class="flex-grow" placeholder="Address">
-      </NInput>
-      <NButton size="large" type="success" @click="sendRequest">
-        <NIcon>
-          <IconSend2 />
-        </NIcon>
+      <SingleLineEditor :value="address" :update="updateAddress"></SingleLineEditor>
+      <NButton type="success" @click="sendRequest">
+        Send
       </NButton>
     </NInputGroup>
     <NSplit direction="horizontal" :max="0.75" :min="0.25" :default-size="0.40" class="pt-2 flex-grow">
@@ -27,10 +24,10 @@
 <script setup lang="ts">
 import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
-import { IconSend2 } from '@tabler/icons-vue';
-import { NButton, NIcon, NInput, NInputGroup, NSelect, NSplit } from 'naive-ui';
+import { NButton, NInputGroup, NSelect, NSplit } from 'naive-ui';
 import { computed } from 'vue';
 import Box from '../Shared/Box.vue';
+import SingleLineEditor from '../Shared/SingleLineEditor/SingleLineEditor.vue';
 import RequestPane from './RequestPane/RequestPane.vue';
 import ResponsePane from './ResponsePane/ResponsePane.vue';
 
@@ -54,8 +51,10 @@ const updateAddress = (value: string) => {
   });
 };
 
-const methods = Object.values(Methods).map((method) => ({ label: method, value: method }));
+const methods = Object.values(Methods).map((method) => ({
+  label: method, value: method,
+}));
+
 
 const sendRequest = () => reqStore.executeRequest(props.tabId);
-
 </script>

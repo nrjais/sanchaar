@@ -5,7 +5,7 @@
       class="h-0 max-h-full flex-grow">
       <HttpTab :tabId="tab.id" />
       <template #tab>
-        <NText class="pr-2 font-medium" v-if="requestTitle(tab.id).method" :style="{ color: methodColor(tab.id) }">
+        <NText class="pr-2 font-medium" v-if="requestTitle(tab.id).method" :style="{ color: tabColor(tab.id) }">
           {{ requestTitle(tab.id).method }}
         </NText>
         <NText>{{ requestTitle(tab.id).name }}</NText>
@@ -18,6 +18,7 @@
 import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
 import { useTabStore } from '@/stores/tabs';
+import { methodColor } from '@/utils/methodColor';
 import { NTabPane, NTabs, NText } from 'naive-ui';
 import HttpTab from '../HttpTab/HttpTab.vue';
 
@@ -32,27 +33,9 @@ if (tabStore.openTabsList.length === 0) {
   tabStore.openNewRequestTab();
 }
 
-const methodColor = (id: string) => {
+const tabColor = (id: string) => {
   const method = requestTitle(id).method;
-  switch (method) {
-    case Methods.GET:
-      return '#059669';
-    case Methods.POST:
-      return '#2563EB';
-    case Methods.PUT:
-      return '#DB2777';
-    case Methods.DELETE:
-      return '#DC2626';
-    case Methods.PATCH:
-      return '#F59E0B';
-    case Methods.HEAD:
-      return '#7C3AED';
-    case Methods.OPTIONS:
-      return '#14B8A6';
-    default:
-      return '#6B7280';
-  }
+  return methodColor(method as Methods);
 };
 
 </script>
-@/models/methods
