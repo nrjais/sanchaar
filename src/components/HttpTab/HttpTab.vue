@@ -1,7 +1,7 @@
 <template>
   <Box class="flex flex-col">
     <NInputGroup class="flex">
-      <Box class="w-28">
+      <Box width="w-28">
         <NSelect :options="methods" v-model:value="method" :on-update-value="updateMethod" :consistent-menu-width="false"
           filterable tag />
       </Box>

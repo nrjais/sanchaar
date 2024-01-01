@@ -6,6 +6,8 @@ import { ResponseDetails } from "@/models/response";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+type ObjectMap<T> = { [key: string]: T };
+
 export type ReqTitle = {
   method?: Methods;
   name: string;
@@ -19,11 +21,11 @@ export type ExecutionState =
   | { state: "completed"; response: ResponseDetails };
 
 export const useRequestStore = defineStore("RequestStore", () => {
-  const requests = ref(new Map<string, RequestConfig>());
-  const executions = ref(new Map<string, ExecutionState>());
+  const requests = ref<ObjectMap<RequestConfig>>({});
+  const executions = ref<ObjectMap<ExecutionState>>({});
 
   const getRequestTitle = (tabId: string): ReqTitle => {
-    const request = requests.value.get(tabId);
+    const request = requests.value[tabId];
     if (request) {
       return {
         method: request.method,
@@ -37,19 +39,26 @@ export const useRequestStore = defineStore("RequestStore", () => {
   };
 
   const updateRequest = (tabId: string, fn: (r: RequestConfig) => void) => {
-    const request = requests.value.get(tabId);
+    const request = requests.value[tabId];
     if (request) {
       fn(request);
     }
   };
 
   const getRequest = (tabId: string): RequestConfig | undefined => {
-    return requests.value.get(tabId);
+    return requests.value[tabId];
   };
 
   const getRequestAddress = (tabId: string): string => {
-    const request = requests.value.get(tabId);
-    return request?.address || "";
+    const request = requests.value[tabId];
+    const address = request?.address || "";
+    const params = new URLSearchParams();
+
+    request?.params.forEach((param) => {
+      params.append(param.key, param.value);
+    });
+
+    return `${address}?${params.toString()}`;
   };
 
   const addNewRequest = (tabId: string) => {
@@ -62,39 +71,39 @@ export const useRequestStore = defineStore("RequestStore", () => {
       query: [],
       body: { type: ContentType.NONE },
     };
-    requests.value.set(tabId, req);
+    requests.value[tabId] = req;
   };
 
   const removeRequest = (tabId: string) => {
-    requests.value.delete(tabId);
-    executions.value.delete(tabId);
+    delete requests.value[tabId];
+    delete executions.value[tabId];
   };
 
   const executeRequest = async (tabId: string) => {
-    const request = requests.value.get(tabId);
+    const request = requests.value[tabId];
     if (!request) {
       return;
     }
 
     const abort = new AbortController();
-    executions.value.set(tabId, {
+    executions.value[tabId] = {
       state: "running",
       abort: () => abort.abort(),
-    });
+    };
     try {
       const response = await execute(request, { signal: abort.signal });
-      executions.value.set(tabId, { state: "completed", response });
+      executions.value[tabId] = { state: "completed", response };
     } catch (error: any) {
       if (error?.name === "AbortError") {
-        executions.value.set(tabId, { state: "cancelled" });
+        executions.value[tabId] = { state: "cancelled" };
       } else {
-        executions.value.set(tabId, { state: "error", error });
+        executions.value[tabId] = { state: "error", error };
       }
     }
   };
 
   const getExecutionResult = (tabId: string): ExecutionState => {
-    return executions.value.get(tabId) || { state: "idle" };
+    return executions.value[tabId] || { state: "idle" };
   };
 
   return {
