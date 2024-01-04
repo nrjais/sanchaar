@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { getPathParams } from '@/backend/replacer';
 import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
 import { NButton, NInputGroup, NSelect, NSplit } from 'naive-ui';
@@ -44,17 +45,16 @@ const updateMethod = (value: string) => {
   });
 };
 
-
 const updateAddress = (value: string) => {
   reqStore.updateRequest(props.tabId, (req) => {
-    req.address = value as Methods;
+    req.params = getPathParams(value);
+    req.address = value;
   });
 };
 
 const methods = Object.values(Methods).map((method) => ({
   label: method, value: method,
 }));
-
 
 const sendRequest = () => reqStore.executeRequest(props.tabId);
 </script>

@@ -2,11 +2,6 @@
   <Box height="h-fit" class="flex flex-col">
     <Box class="flex justify-between">
       <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
-      <NButtonGroup size="tiny" v-if="!$props.fixed">
-        <NButton class="px-2" tertiary type="primary" @click="addRow">
-          Add New
-        </NButton>
-      </NButtonGroup>
     </Box>
     <NTable size="small" bordered :single-line="false" class="flex-grow">
       <thead>
@@ -15,7 +10,15 @@
           <th>Key</th>
           <th>Value</th>
           <th>Description</th>
-          <th v-if="!$props.fixed"></th>
+          <th v-if="!$props.fixed">
+            <NButtonGroup size="tiny">
+              <NButton tertiary type="primary" @click="addRow">
+                <NIcon>
+                  <IconPlus />
+                </NIcon>
+              </NButton>
+            </NButtonGroup>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -35,7 +38,7 @@
               :theme-overrides="themOverides" />
           </td>
           <td v-if="!$props.fixed">
-            <NButton type="error" quaternary class="px-2" size="tiny" v-on:click="removeRow(i)" :disabled="lastRowLeft">
+            <NButton type="error" quaternary size="tiny" v-on:click="removeRow(i)" :disabled="lastRowLeft">
               <NIcon>
                 <IconTrash />
               </NIcon>
@@ -53,6 +56,7 @@ import { IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
 import { computed, onMounted, reactive, watch, watchEffect } from 'vue';
 import Box from './Box.vue';
+import { IconPlus } from '@tabler/icons-vue';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c",

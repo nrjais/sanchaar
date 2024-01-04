@@ -50,15 +50,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
   };
 
   const getRequestAddress = (tabId: string): string => {
-    const request = requests.value[tabId];
-    const address = request?.address || "";
-    const params = new URLSearchParams();
-
-    request?.params.forEach((param) => {
-      params.append(param.key, param.value);
-    });
-
-    return `${address}?${params.toString()}`;
+    return requests.value[tabId]?.address || "";
   };
 
   const addNewRequest = (tabId: string) => {
