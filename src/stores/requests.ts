@@ -1,5 +1,5 @@
 import { execute } from "@/backend/client";
-import { ContentType } from "@/models/common";
+import { ContentType, KeyValue } from "@/models/common";
 import { Methods } from "@/models/methods";
 import { RequestConfig } from "@/models/request";
 import { ResponseDetails } from "@/models/response";
@@ -33,15 +33,30 @@ export const useRequestStore = defineStore("RequestStore", () => {
       };
     }
 
-    return {
-      name: "Unknown",
-    };
+    return { name: "Unknown" };
   };
 
   const updateRequest = (tabId: string, fn: (r: RequestConfig) => void) => {
     const request = requests.value[tabId];
     if (request) {
       fn(request);
+    }
+  };
+
+  const updateRequestDeep = (
+    tabId: string,
+    updates: { address?: string; params?: KeyValue[] }
+  ) => {
+    console.log("updateRequestDeep", tabId, updates);
+
+    const request = requests.value[tabId];
+    if (request) {
+      if (updates.address) {
+        requests.value[tabId].address = updates.address;
+      }
+      if (updates.params) {
+        requests.value[tabId].params = updates.params;
+      }
     }
   };
 
@@ -105,6 +120,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
     addNewRequest,
     removeRequest,
     updateRequest,
+    updateRequestDeep,
     getRequest,
     executeRequest,
     getExecutionResult,

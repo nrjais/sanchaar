@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row, i in rows">
+        <tr v-for="row, i in props.value">
           <td v-if="!$props.fixed">
             <NCheckbox v-if="!$props.fixed" class="px-2" size="small" v-model:checked="row.enabled" />
           </td>
@@ -52,11 +52,10 @@
 
 <script setup lang="ts">
 import { KeyValue } from '@/models/common';
-import { IconTrash } from '@tabler/icons-vue';
+import { IconPlus, IconTrash } from '@tabler/icons-vue';
 import { InputProps, NButton, NButtonGroup, NCheckbox, NIcon, NInput, NTable, NText } from 'naive-ui';
-import { computed, onMounted, reactive, watch, watchEffect } from 'vue';
+import { computed, onMounted, watch, watchEffect } from 'vue';
 import Box from './Box.vue';
-import { IconPlus } from '@tabler/icons-vue';
 
 const themOverides: NonNullable<InputProps['themeOverrides']> = {
   color: "#18181c",
@@ -73,11 +72,10 @@ type Props = {
 
 const props = withDefaults(defineProps<Props>(), { fixed: false });
 
-const rows = reactive<KeyValue[]>(props.value);
-const lastRowLeft = computed(() => rows.length == 1)
+const lastRowLeft = computed(() => props.value.length == 1)
 
 watch(
-  () => rows,
+  () => props.value,
   (value) => {
     props.update(value)
     addIfEmpty();
@@ -86,7 +84,7 @@ watch(
 );
 
 const addRow = () => {
-  rows.push({
+  props.value.push({
     enabled: true,
     key: '',
     value: '',
@@ -97,14 +95,14 @@ const addIfEmpty = () => {
   if (props.fixed) {
     return;
   }
-  const allFilled = rows.every((row) => row.key);
+  const allFilled = props.value.every((row) => row.key);
   if (allFilled) {
     addRow();
   }
 }
 
 const removeRow = (index: number) => {
-  rows.splice(index, 1);
+  props.value.splice(index, 1);
 };
 
 onMounted(() => {

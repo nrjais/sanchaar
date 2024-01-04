@@ -46,9 +46,14 @@ const updateMethod = (value: string) => {
 };
 
 const updateAddress = (value: string) => {
-  reqStore.updateRequest(props.tabId, (req) => {
-    req.params = getPathParams(value);
-    req.address = value;
+  // reqStore.updateRequest(props.tabId, (req) => {
+  //   req.params = getPathParams(value);
+  //   req.address = value;
+  // });
+
+  reqStore.updateRequestDeep(props.tabId, {
+    params: getPathParams(value),
+    address: value,
   });
 };
 

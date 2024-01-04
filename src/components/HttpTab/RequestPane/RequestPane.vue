@@ -4,8 +4,7 @@
     <NTabPane name="Params" display-directive="show:lazy" class="flex-grow h-0">
       <ScrollBox class="flex flex-col gap-4">
         <KeyValEditor header="Query Params" :value="activeReq.query" :update="updateQuery" />
-        <KeyValEditor v-if="hasPathParams" :value="activeReq.params" :update="updateParams" fixed
-          header="Path Variables" />
+        <KeyValEditor v-if="hasPathParams" :value="params" :update="updateParams" fixed header="Path Variables" />
       </ScrollBox>
     </NTabPane>
     <NTabPane name="Headers" display-directive="show:lazy" class="flex-grow h-0">
@@ -31,8 +30,9 @@ const props = defineProps<{ tabId: string, class?: string }>();
 const { getRequest, updateRequest } = useRequestStore();
 
 const activeReq = computed(() => getRequest(props.tabId)!);
+const params = computed(() => activeReq.value.params);
 
-const hasPathParams = computed(() => activeReq.value.params.length > 0);
+const hasPathParams = computed(() => params.value.length > 0);
 
 const updateQuery = (value: KeyValue[]) => {
   updateRequest(props.tabId, (req) => {
