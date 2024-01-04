@@ -43,23 +43,6 @@ export const useRequestStore = defineStore("RequestStore", () => {
     }
   };
 
-  const updateRequestDeep = (
-    tabId: string,
-    updates: { address?: string; params?: KeyValue[] }
-  ) => {
-    console.log("updateRequestDeep", tabId, updates);
-
-    const request = requests.value[tabId];
-    if (request) {
-      if (updates.address) {
-        requests.value[tabId].address = updates.address;
-      }
-      if (updates.params) {
-        requests.value[tabId].params = updates.params;
-      }
-    }
-  };
-
   const getRequest = (tabId: string): RequestConfig | undefined => {
     return requests.value[tabId];
   };
@@ -120,7 +103,6 @@ export const useRequestStore = defineStore("RequestStore", () => {
     addNewRequest,
     removeRequest,
     updateRequest,
-    updateRequestDeep,
     getRequest,
     executeRequest,
     getExecutionResult,
