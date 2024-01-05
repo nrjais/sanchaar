@@ -1,10 +1,10 @@
 import { execute } from "@/backend/client";
-import { ContentType, KeyValue } from "@/models/common";
+import { ContentType } from "@/models/common";
 import { Methods } from "@/models/methods";
 import { RequestConfig } from "@/models/request";
 import { ResponseDetails } from "@/models/response";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, toRaw } from "vue";
 
 type ObjectMap<T> = { [key: string]: T };
 
@@ -81,7 +81,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
       abort: () => abort.abort(),
     };
     try {
-      const response = await execute(request, { signal: abort.signal });
+      const response = await execute(toRaw(request), { signal: abort.signal });
       executions.value[tabId] = { state: "completed", response };
     } catch (error: any) {
       if (error?.name === "AbortError") {

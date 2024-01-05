@@ -10,3 +10,11 @@ export const getPathParams = (url: string): KeyValue[] => {
   }
   return pathParams;
 };
+
+export const replacePathParams = (params: KeyValue[], url: string): string => {
+  let replaced = url;
+  for (let param of params) {
+    replaced = replaced.replace(`:${param.key}`, param.value);
+  }
+  return replaced;
+};

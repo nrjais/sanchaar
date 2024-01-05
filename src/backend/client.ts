@@ -2,6 +2,7 @@ import { ContentType, KeyValue, getContentTypeHeader } from "@/models/common";
 import { RequestConfig, RequestBody } from "@/models/request";
 import { ResponseBody, ResponseDetails } from "@/models/response";
 import { getReasonPhrase } from "http-status-codes";
+import { replacePathParams } from "./replacer";
 
 export const decodeBody = async (response: Response): Promise<ResponseBody> => {
   const headers = response.headers;
@@ -63,7 +64,9 @@ export const execute = async (
     .filter((query) => query.key)
     .map((query) => [query.key, query.value] as [string, string]);
 
-  const url = new URL(address);
+  const withPathParams = replacePathParams(reqConfig.params, address);
+
+  const url = new URL(withPathParams);
   for (const query of queryParams) {
     url.searchParams.append(query[0], query[1]);
   }
