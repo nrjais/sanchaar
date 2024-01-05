@@ -1,5 +1,5 @@
 <template>
-  <Box :class="props.class" >
+  <Box :class="props.class">
     <IdleState v-if="result.state === 'idle'" />
     <ExecutingState v-if="result.state === 'running'" :cancel="result.abort" />
     <CancelledState v-if="result.state === 'cancelled'" />
