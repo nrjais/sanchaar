@@ -1,5 +1,6 @@
 <template>
-  <ScrollBox>
+  <Box>
+    <NText v-if="props.header" strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
     <NTable size="small" bordered :single-line="false">
       <thead>
         <tr>
@@ -14,13 +15,12 @@
         </tr>
       </tbody>
     </NTable>
-  </ScrollBox>
+  </Box>
 </template>
 
 <script setup lang="ts">
-import ScrollBox from '@/components/Shared/ScrollBox.vue';
-import { NTable } from 'naive-ui';
+import { NTable, NText } from 'naive-ui';
+import Box from './Box.vue';
 
-const props = defineProps<{ values: { key: string, value: string }[] }>();
-
+const props = defineProps<{ values: { key: string, value: string }[], header?: string }>();
 </script>

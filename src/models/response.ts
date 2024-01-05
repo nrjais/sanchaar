@@ -32,4 +32,5 @@ export interface ResponseDetails {
   contentLength: number;
   statusText: string;
   latency: number;
+  requestHeaders: KeyValue[];
 }

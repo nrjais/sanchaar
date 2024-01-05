@@ -1,5 +1,5 @@
 import { ContentType, KeyValue, getContentTypeHeader } from "@/models/common";
-import { RequestConfig, RequestBody } from "@/models/request";
+import { RequestBody, RequestConfig } from "@/models/request";
 import { ResponseBody, ResponseDetails } from "@/models/response";
 import { getReasonPhrase } from "http-status-codes";
 import { replacePathParams } from "./replacer";
@@ -71,16 +71,25 @@ export const execute = async (
     url.searchParams.append(query[0], query[1]);
   }
 
-  return sendRequest(url, {
-    method: method.toString(),
-    cache: "no-cache",
-    headers: buildRequestHeaders(reqConfig),
-    signal: options.signal,
-    body: encodeBody(reqConfig.body),
-  });
+  const [headers, used] = buildRequestHeaders(reqConfig);
+  return sendRequest(
+    url,
+    {
+      method: method.toString(),
+      cache: "no-cache",
+      headers: headers,
+      signal: options.signal,
+      body: encodeBody(reqConfig.body),
+    },
+    used
+  );
 };
 
-const sendRequest = async (url: URL, requestConfig: RequestInit) => {
+const sendRequest = async (
+  url: URL,
+  requestConfig: RequestInit,
+  rawHeaders: KeyValue[]
+): Promise<ResponseDetails> => {
   const startTime = Date.now();
   const response = await fetch(url, requestConfig);
   const latency = Date.now() - startTime;
@@ -97,26 +106,25 @@ const sendRequest = async (url: URL, requestConfig: RequestInit) => {
     statusText: getReasonPhrase(response.status),
     content: await decodeBody(response),
     latency: latency,
+    requestHeaders: rawHeaders,
   };
 };
 
 const buildRequestHeaders = (
   reqConfig: RequestConfig
-): HeadersInit | undefined => {
+): [HeadersInit, KeyValue[]] => {
   const headers = reqConfig.headers
     .filter((header) => header.enabled)
-    .filter((header) => header.key)
-    .map((header) => [header.key, header.value] as [string, string]);
+    .filter((header) => header.key);
+  const contentType = getContentTypeHeader(reqConfig.body.type);
+  if (contentType) {
+    headers.push({ key: "Content-Type", value: contentType });
+  }
 
   const headersInit = new Headers();
   for (const header of headers) {
-    headersInit.append(header[0], header[1]);
+    headersInit.append(header.key, header.value);
   }
 
-  const contentType = getContentTypeHeader(reqConfig.body.type);
-  if (contentType) {
-    headersInit.append("Content-Type", contentType);
-  }
-
-  return headersInit;
+  return [headersInit, headers];
 };

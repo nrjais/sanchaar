@@ -1,8 +1,6 @@
 <template>
   <Box height="h-fit" class="flex flex-col">
-    <Box class="flex justify-between">
-      <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
-    </Box>
+    <NText strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
     <NTable size="small" bordered :single-line="false" class="flex-grow">
       <thead>
         <tr>

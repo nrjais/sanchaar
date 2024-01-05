@@ -1,10 +1,14 @@
 <template>
-  <NTabs size="small" animated class="h-full" type="line" pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col pt-1">
+  <NTabs size="small" animated class="h-full" type="line"
+    pane-wrapper-class="h-0 max-h-full flex-grow flex flex-col pt-1">
     <NTabPane name="body" tab="Body" display-directive="show" class="flex-grow h-0">
       <BodyViewer :body="result.body" />
     </NTabPane>
     <NTabPane name="headers" tab="Headers" display-directive="show:lazy" class="flex-grow h-0">
-      <KeyValueViewer :values="result.headers" />
+      <ScrollBox class="flex flex-col gap-4">
+        <KeyValueViewer :values="result.headers" header="Response Headers" />
+        <KeyValueViewer v-if="result.reqHeaders.length" :values="result.reqHeaders" header="Request Headers" />
+      </ScrollBox>
     </NTabPane>
     <template #suffix>
       <Box class="flex gap-4 text-xs items-center font-semibold">
@@ -31,6 +35,7 @@ import { NTabPane, NTabs, NText } from 'naive-ui';
 import prettyBytes from 'pretty-bytes';
 import { computed } from 'vue';
 import BodyViewer from '../BodyViewer/BodyViewer.vue';
+import ScrollBox from '@/components/Shared/ScrollBox.vue';
 
 const props = defineProps<{ response: ResponseDetails }>();
 
@@ -45,6 +50,7 @@ const result = computed(() => {
     latency: response.latency,
     headers: response.headers,
     body: response.content,
+    reqHeaders: response.requestHeaders,
   }
 });
 
