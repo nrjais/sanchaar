@@ -27,6 +27,7 @@ import { NEmpty, NSelect, NText } from 'naive-ui';
 import { computed, ref } from 'vue';
 
 const props = defineProps<{ body: RequestBody, update: (type: RequestBody) => void }>();
+const bodyCache = new Map<ContentType, RequestBody>();
 
 type EditorType = "code" | "keyval" | "file" | "none";
 type EditorBodyType = { editor: "code", data: string }
@@ -89,10 +90,14 @@ const updateKeyValBody = (value: KeyValue[]) => {
 }
 
 const changeContentType = (type: ContentType) => {
+  // Cache to restore data when switching back
+  bodyCache.set(props.body.type, props.body);
+
   const contentType = contentTypes.find(x => x.value == type);
   if (contentType) {
+    const updatedBody = bodyCache.get(type) ?? contentType.body;
     editorType.value = contentType.editor;
-    props.update(contentType.body);
+    props.update(updatedBody);
   }
 }
 </script>
