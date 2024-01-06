@@ -1,5 +1,6 @@
 import { execute } from "@/backend/client";
 import { ContentType } from "@/models/common";
+import Environment from "@/models/environment";
 import { Methods } from "@/models/methods";
 import { RequestConfig } from "@/models/request";
 import { ResponseDetails } from "@/models/response";
@@ -52,6 +53,8 @@ export const useRequestStore = defineStore("RequestStore", () => {
   };
 
   const addNewRequest = (tabId: string) => {
+    const env = new Environment("root");
+    env.define("test", "from-env");
     const req = <RequestConfig>{
       name: "Untitled",
       method: Methods.POST,
@@ -60,6 +63,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
       params: [],
       query: [],
       body: { type: ContentType.NONE },
+      environment: env,
     };
     requests.value[tabId] = req;
   };

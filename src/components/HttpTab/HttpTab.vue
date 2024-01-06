@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { getPathParams } from '@/backend/replacer';
+import { parsePathParams } from '@/backend/preprocess/pathParams';
 import { Methods } from '@/models/methods';
 import { useRequestStore } from '@/stores/requests';
 import { NButton, NInputGroup, NSelect, NSplit } from 'naive-ui';
@@ -47,7 +47,7 @@ const updateMethod = (value: string) => {
 
 const updateAddress = (value: string) => {
   reqStore.updateRequest(props.tabId, (req) => {
-    req.params = getPathParams(value);
+    req.params = parsePathParams(value);
     req.address = value;
   });
 };

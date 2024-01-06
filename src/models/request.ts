@@ -1,4 +1,5 @@
 import { ContentType, KeyValue } from "./common";
+import Environment from "./environment";
 import { Methods } from "./methods";
 
 export type RequestBody =
@@ -38,6 +39,7 @@ export interface RequestConfig {
   params: KeyValue[];
   query: KeyValue[];
   body: RequestBody;
+  environment: Environment;
 }
 
 export interface RequestDetails {

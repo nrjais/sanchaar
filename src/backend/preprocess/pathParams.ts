@@ -1,6 +1,6 @@
 import { KeyValue } from "@/models/common";
 
-export const getPathParams = (url: string): KeyValue[] => {
+export const parsePathParams = (url: string): KeyValue[] => {
   const pathParams: KeyValue[] = [];
   const urlParts = url.split("/");
   for (let part of urlParts) {
