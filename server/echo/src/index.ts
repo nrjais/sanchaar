@@ -72,9 +72,9 @@ const getRequestBody = async (request: Request): Promise<RequestConfig> => {
     method,
     host,
     path,
-    headers,
     queries,
     body,
     bodyType,
+    headers,
   };
 };
