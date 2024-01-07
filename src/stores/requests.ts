@@ -57,14 +57,17 @@ export const useRequestStore = defineStore("RequestStore", () => {
     const req = <RequestConfig>{
       name: "Untitled",
       method: Methods.POST,
-      address: "https://echo.hoppscotch.io",
+      address: "http://localhost:3003",
       headers: [],
       params: [],
       query: [],
       body: { type: ContentType.NONE },
       environment: env,
     };
-    requests.value[tabId].config = req;
+    requests.value[tabId] = {
+      name: "Untitled",
+      config: req,
+    };
   };
 
   const removeRequest = (tabId: string) => {
