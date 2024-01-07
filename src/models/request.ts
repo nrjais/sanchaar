@@ -32,7 +32,6 @@ export type RequestBody =
     };
 
 export interface RequestConfig {
-  name: string;
   method: Methods;
   address: string;
   headers: KeyValue[];
@@ -40,10 +39,4 @@ export interface RequestConfig {
   query: KeyValue[];
   body: RequestBody;
   environment: Environment;
-}
-
-export interface RequestDetails {
-  name: string;
-  description?: string;
-  config: RequestConfig;
 }
