@@ -58,9 +58,12 @@ const getBody = async (request: Request): Promise<[string, BodyType]> => {
 };
 
 const getRequestBody = async (request: Request): Promise<RequestConfig> => {
+  const url = new URL(request.url);
+
   const method = request.method;
-  const host = request.headers.get("host") || "";
-  const path = request.url;
+  const host = url.host;
+  const path = url.pathname;
+
   const headers = getHeaders(request);
   const queries = getQueries(request);
   const [body, bodyType] = await getBody(request);
