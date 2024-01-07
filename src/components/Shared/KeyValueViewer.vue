@@ -1,17 +1,17 @@
 <template>
   <Box>
     <NText v-if="props.header" strong depth="3" tag="div" class="mb-2">{{ props.header }}</NText>
-    <NTable size="small" bordered :single-line="false">
+    <NTable size="small" bordered :single-line="false" class="table-fixed">
       <thead>
         <tr>
           <th>Name</th>
-          <th>Value</th>
+          <th width="65%">Value</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="kv in props.values">
           <td>{{ kv.key }}</td>
-          <td width="65%">{{ kv.value }}</td>
+          <td>{{ kv.value }}</td>
         </tr>
       </tbody>
     </NTable>
