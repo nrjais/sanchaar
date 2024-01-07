@@ -57,7 +57,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
     const req = <RequestConfig>{
       name: "Untitled",
       method: Methods.POST,
-      address: "http://localhost:3003",
+      address: "https://echo.nrjais.workers.dev",
       headers: [],
       params: [],
       query: [],
