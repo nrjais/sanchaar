@@ -55,13 +55,9 @@ const basicSetup: Extension = [
   autocompletion(),
   ...config,
   keymap.of([
-    ...closeBracketsKeymap,
     ...defaultKeymap,
-    ...searchKeymap,
     ...historyKeymap,
-    ...foldKeymap,
     ...completionKeymap,
-    ...lintKeymap
   ]),
 ]
 
