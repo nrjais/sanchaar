@@ -719,6 +719,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "data-url"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c297a1c74b71ae29df00c3e22dd9534821d60eb9af5a0192823fa2acea70c2a"
+
+[[package]]
 name = "deranged"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2812,6 +2818,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build 1.5.0",
+ "tauri-plugin-http",
  "tauri-plugin-window-state",
 ]
 
@@ -3393,6 +3400,40 @@ dependencies = [
  "syn 2.0.41",
  "tauri-codegen",
  "tauri-utils 2.0.0-alpha.12",
+]
+
+[[package]]
+name = "tauri-plugin-fs"
+version = "2.0.0-alpha.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4930141ae4379cdfdc2270b28bf3d54faf1e757f3f8218f2b5b1366faa2dda79"
+dependencies = [
+ "anyhow",
+ "glob",
+ "serde",
+ "serde_repr",
+ "tauri",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "tauri-plugin-http"
+version = "2.0.0-alpha.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7acc9eb023046eabd552d7e9e7f5afb6a6b3bd61cc67b79a9267b80029fabee4"
+dependencies = [
+ "data-url",
+ "glob",
+ "http",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin-fs",
+ "thiserror",
+ "url",
 ]
 
 [[package]]

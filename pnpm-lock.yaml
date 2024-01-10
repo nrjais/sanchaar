@@ -12,8 +12,11 @@ dependencies:
     specifier: ^2.45.0
     version: 2.45.0(vue@3.4.7)
   '@tauri-apps/api':
-    specifier: ^1.5.3
-    version: 1.5.3
+    specifier: ^2.0.0-alpha
+    version: 2.0.0-alpha.13
+  '@tauri-apps/plugin-http':
+    specifier: 2.0.0-alpha.6
+    version: 2.0.0-alpha.6
   '@uiw/codemirror-themes-all':
     specifier: ^4.21.21
     version: 4.21.21(@codemirror/language@6.10.0)(@codemirror/state@6.4.0)(@codemirror/view@6.23.0)
@@ -645,9 +648,9 @@ packages:
     resolution: {integrity: sha512-J10UDghOni9wlrj5CpKAzychDCABCKYq897mGg0wGFsd+tYLaUdz0dt/HZeGnV8gZJo0hIiTPLGwBp5EW42Qsg==}
     dev: false
 
-  /@tauri-apps/api@1.5.3:
-    resolution: {integrity: sha512-zxnDjHHKjOsrIzZm6nO5Xapb/BxqUq1tc7cGkFXsFkGTsSWgCPH1D8mm0XS9weJY2OaR73I3k3S+b7eSzJDfqA==}
-    engines: {node: '>= 14.6.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
+  /@tauri-apps/api@2.0.0-alpha.13:
+    resolution: {integrity: sha512-sGgCkFahF3OZAHoGN5Ozt9WK7wJlbVZSgWpPQKNag4nSOX1+Py6VDRTEWriiJHDiV+gg31CWHnNXRy6TFoZmdA==}
+    engines: {node: '>= 18', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
     dev: false
 
   /@tauri-apps/cli-darwin-arm64@2.0.0-alpha.20:
@@ -756,6 +759,12 @@ packages:
       '@tauri-apps/cli-win32-ia32-msvc': 2.0.0-alpha.20
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-alpha.20
     dev: true
+
+  /@tauri-apps/plugin-http@2.0.0-alpha.6:
+    resolution: {integrity: sha512-d23Xem40/ox+UWaiCzfi+IeV/yMI57oHmy6bXaDwRqfC4KuHjZx22k9xnNV17tLGFWjcmgpuViWPiCuxFdy+Ow==}
+    dependencies:
+      '@tauri-apps/api': 2.0.0-alpha.13
+    dev: false
 
   /@types/estree@1.0.5:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}

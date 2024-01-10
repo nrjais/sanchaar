@@ -3,6 +3,7 @@ import { RequestConfig } from "@/models/request";
 import { ResponseBody, ResponseDetails } from "@/models/response";
 import { getReasonPhrase } from "http-status-codes";
 import { preprocess as preProcess } from "./preprocess";
+import { httpClient } from "./api";
 
 export const decodeBody = async (response: Response): Promise<ResponseBody> => {
   const headers = response.headers;
@@ -33,7 +34,9 @@ export const execute = async (
   const processed = preProcess(reqConfig);
 
   const startTime = Date.now();
-  const response = await fetch(processed.url, {
+  console.log(httpClient);
+
+  const response = await httpClient(processed.url, {
     ...processed.request,
     signal: options.signal,
   });

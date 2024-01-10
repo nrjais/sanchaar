@@ -10,8 +10,10 @@
     "version": "0.0.0"
   },
   "plugins": {
-    "shell": {
-      "open": true
+    "http": {
+      "scope": [
+        "*"
+      ]
     }
   },
   "tauri": {
