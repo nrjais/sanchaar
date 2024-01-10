@@ -42,7 +42,7 @@ const codeIn = computed(() => {
   if (props.body.type == ContentType.JSON) {
     return props.body.data
   }
-  return ""
+  return "{}"
 })
 
 const prettyCode = computed(() => JSON.stringify(JSON.parse(codeIn.value), null, 2))

@@ -28,7 +28,10 @@ export default {
 
     const requestData = await getRequestBody(request);
     return new Response(JSON.stringify(requestData), {
-      headers: accessControlHeaders,
+      headers: {
+        "content-type": "application/json",
+        ...accessControlHeaders,
+      },
     });
   },
 };
