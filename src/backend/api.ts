@@ -11,8 +11,6 @@ export const isTauri = (): boolean => {
 };
 
 export const select = <T>(ifTauri: T, ifNotTauri: T): T => {
-  console.log("isTauri", isTauri());
-
   return isTauri() ? ifTauri : ifNotTauri;
 };
 

@@ -1,5 +1,3 @@
-export interface Env {}
-
 type BodyType = "text" | "base64";
 type RequestConfig = {
   method: string;
@@ -11,19 +9,26 @@ type RequestConfig = {
   bodyType: BodyType;
 };
 
+const accessControlHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "*",
+  "access-control-allow-headers": "*",
+  "access-control-expose-headers": "*",
+  "access-control-max-age": "86400",
+  "access-control-allow-credentials": "true",
+};
+
 export default {
   async fetch(request: Request): Promise<Response> {
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: accessControlHeaders,
+      });
+    }
+
     const requestData = await getRequestBody(request);
     return new Response(JSON.stringify(requestData), {
-      headers: {
-        "content-type": "application/json",
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "*",
-        "access-control-allow-headers": "*",
-        "access-control-expose-headers": "*",
-        "access-control-max-age": "86400",
-        "access-control-allow-credentials": "true",
-      },
+      headers: accessControlHeaders,
     });
   },
 };

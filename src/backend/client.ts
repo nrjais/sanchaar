@@ -34,7 +34,6 @@ export const execute = async (
   const processed = preProcess(reqConfig);
 
   const startTime = Date.now();
-  console.log(httpClient);
 
   const response = await httpClient(processed.url, {
     ...processed.request,

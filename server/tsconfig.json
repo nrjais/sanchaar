@@ -4,7 +4,7 @@
     "lib": ["es2021"],
     "module": "es2022",
     "moduleResolution": "node",
-    "types": ["@cloudflare/workers-types/2023-07-01", "node"],
+    "types": ["@cloudflare/workers-types/2023-07-01"],
     "resolveJsonModule": true,
     "noEmit": true,
 
