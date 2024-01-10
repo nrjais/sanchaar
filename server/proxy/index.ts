@@ -8,6 +8,7 @@ const accessControlHeaders = {
   vary: "Origin",
 };
 
+// Fix not actually proxying the request
 export default {
   async fetch(request: Request) {
     const url = /^http(s)?:\/\//i.test(request.url)
