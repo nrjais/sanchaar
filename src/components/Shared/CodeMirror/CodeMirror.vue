@@ -63,55 +63,58 @@ const contentTypeExtension = (type: ContentType): Extension[] => {
       return []
   }
 }
+const extentions = (): Extension => {
+  const config = [
+    EditorState.tabSize.of(2),
+    EditorState.allowMultipleSelections.of(true),
+    lineWrappingComp.of(EditorView.lineWrapping),
+    EditorState.readOnly.of(props.readOnly),
+    EditorView.updateListener.of(update),
+  ]
 
-const config = [
-  EditorState.tabSize.of(2),
-  EditorState.allowMultipleSelections.of(true),
-  lineWrappingComp.of(EditorView.lineWrapping),
-  EditorState.readOnly.of(props.readOnly),
-  EditorView.updateListener.of(update),
-]
-
-const basicSetup: Extension = [
-  lineNumbers(),
-  highlightActiveLineGutter(),
-  highlightSpecialChars(),
-  history(),
-  foldGutter(),
-  drawSelection(),
-  dropCursor(),
-  indentOnInput(),
-  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-  bracketMatching(),
-  closeBrackets(),
-  autocompletion(),
-  rectangularSelection(),
-  crosshairCursor(),
-  highlightActiveLine(),
-  highlightSelectionMatches(),
-  ...contentTypeExtension(props.type),
-  ...config,
-  keymap.of([
-    ...closeBracketsKeymap,
-    ...defaultKeymap,
-    ...searchKeymap,
-    ...historyKeymap,
-    ...foldKeymap,
-    ...completionKeymap,
-    ...lintKeymap
-  ]),
-]
-
-onMounted(() => {
+  return [
+    lineNumbers(),
+    highlightActiveLineGutter(),
+    highlightSpecialChars(),
+    history(),
+    foldGutter(),
+    drawSelection(),
+    dropCursor(),
+    indentOnInput(),
+    syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+    bracketMatching(),
+    closeBrackets(),
+    autocompletion(),
+    rectangularSelection(),
+    crosshairCursor(),
+    highlightActiveLine(),
+    highlightSelectionMatches(),
+    ...contentTypeExtension(props.type),
+    ...config,
+    keymap.of([
+      ...closeBracketsKeymap,
+      ...defaultKeymap,
+      ...searchKeymap,
+      ...historyKeymap,
+      ...foldKeymap,
+      ...completionKeymap,
+      ...lintKeymap
+    ]),
+  ]
+}
+const createEditor = () => {
+  if (editor.value) {
+    editor.value.destroy()
+  }
   editor.value = new EditorView({
     doc: props.code,
     extensions: [
-      basicSetup,
+      extentions(),
       vscodeDark
     ],
     parent: editorRef.value!,
   })
-})
+}
 
 watch(() => props.code, (doc) => {
   if (doc === lastUpdated.value) return
@@ -136,6 +139,11 @@ watch(() => props.readOnly, (readOnly) => {
   });
 })
 
+watch(() => props.type, (type, old) => {
+  if (type === old) return;
+  createEditor()
+})
+onMounted(() => createEditor())
 onBeforeUnmount(() => editor.value?.destroy())
 </script>
 

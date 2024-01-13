@@ -15,6 +15,12 @@
   -webkit-text-size-adjust: 100%;
 }
 
+* {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+}
+
 html,
 body,
 #app {
