@@ -1,12 +1,18 @@
 <template>
-  <ScrollBox class="bg-[#171717] px-1">
+  <ScrollBox class="bg-[#1a1a1a] px-1 h-full">
     <NInput size="small" v-model:value="pattern" placeholder="Search" class="w-full" />
     <NTree :show-line="true" :expand-on-click="true" :show-irrelevant-nodes="false" :pattern="pattern" :data="tree"
-      block-line />
+      block-line class="mt-2">
+      <template #empty>
+        <div>
+        </div>
+      </template>
+    </NTree>
   </ScrollBox>
 </template>
 
 <script setup lang="ts">
+import ScrollBox from '@/components/Shared/ScrollBox.vue';
 import { Collection, CollectionEntry, EntryType } from '@/models/collection';
 import { ContentType } from '@/models/common';
 import Environment from '@/models/environment';
@@ -14,7 +20,6 @@ import { Methods } from '@/models/methods';
 import { RequestConfig } from '@/models/request';
 import { NInput, NTree, TreeOption } from 'naive-ui';
 import { ref } from 'vue';
-import ScrollBox from '@/components/Shared/ScrollBox.vue';
 
 const pattern = ref("");
 

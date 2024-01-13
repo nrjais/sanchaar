@@ -1,5 +1,5 @@
 import { execute } from "@/backend/client";
-import { CollectionRequest } from "@/models/collection";
+import { CollectionRequest, EntryType } from "@/models/collection";
 import { ContentType } from "@/models/common";
 import Environment from "@/models/environment";
 import { Methods } from "@/models/methods";
@@ -65,6 +65,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
       environment: env,
     };
     requests.value[tabId] = {
+      type: EntryType.Request,
       name: "Untitled",
       config: req,
     };

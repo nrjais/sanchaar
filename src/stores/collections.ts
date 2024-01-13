@@ -1,17 +1,16 @@
+import { Collection } from "@/models/collection";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import { nanoid } from "nanoid";
 
-const nextCollectionId = ((start: number) => {
-  return () => `col-${start++}`;
-})(0);
-
-interface CollectionEntry {
+interface OpenCollection {
   id: string;
   position: number;
+  collection: Collection;
 }
 
 export const useTabStore = defineStore("CollectoinStore", () => {
-  const openCollections = ref(new Map<string, CollectionEntry>());
+  const openCollections = ref(new Map<string, OpenCollection>());
 
   const openCollectionsList = computed(() => {
     const tabs = [...openCollections.value.values()];
@@ -19,7 +18,8 @@ export const useTabStore = defineStore("CollectoinStore", () => {
   });
 
   const openNewCollection = () => {
-    const id = nextCollectionId();
+    const id = nanoid();
+
   };
 
   return {

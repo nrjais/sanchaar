@@ -1,10 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useRequestStore } from "./requests";
-
-const nextTabId = ((start: number) => {
-  return () => `tab-${start++}`;
-})(0);
+import { nanoid } from "nanoid";
 
 export interface Tab {
   id: string;
@@ -23,7 +20,7 @@ export const useTabStore = defineStore("TabStore", () => {
   });
 
   const openNewRequestTab = () => {
-    const id = nextTabId();
+    const id = nanoid();
     reqStore.addNewRequest(id);
 
     activeTab.value = id;

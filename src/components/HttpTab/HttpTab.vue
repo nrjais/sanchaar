@@ -1,11 +1,9 @@
 <template>
   <Box class="flex flex-col">
-    <NInputGroup class="flex">
-      <Box width="w-28">
-        <NSelect :options="methods" v-model:value="method" :on-update-value="updateMethod" :consistent-menu-width="false"
-          filterable tag />
-      </Box>
-      <SingleLineEditor :value="address" :update="updateAddress"></SingleLineEditor>
+    <NInputGroup>
+      <NSelect :options="methods" v-model:value="method" :on-update-value="updateMethod" :consistent-menu-width="false"
+        filterable tag :style="{ width: '7.5rem' }" />
+      <SingleLineEditor class="flex-grow" :value="address" :update="updateAddress"></SingleLineEditor>
       <NButton type="success" @click="sendRequest">
         Send
       </NButton>
@@ -52,9 +50,8 @@ const updateAddress = (value: string) => {
   });
 };
 
-const methods = Object.values(Methods).map((method) => ({
-  label: method, value: method,
-}));
+const methods = Object.values(Methods)
+  .map((method) => ({ label: method, value: method }));
 
 const sendRequest = () => reqStore.executeRequest(props.tabId);
 </script>

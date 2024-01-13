@@ -1,5 +1,7 @@
 <template>
-  <div ref="editorRef" class="overflow-scroll h-full flex-grow codemirror"></div>
+  <Box :class="props.class">
+    <div ref="editorRef" class="overflow-scroll h-full codemirror"></div>
+  </Box>
 </template>
 
 <script setup lang="ts">
@@ -19,8 +21,9 @@ import {
 } from "@codemirror/view";
 import { androidstudio } from '@uiw/codemirror-themes-all';
 import { onBeforeUnmount, onMounted, ref, watchEffect } from 'vue';
+import Box from "../Box.vue";
 
-const props = defineProps<{ value: string, update?: (value: string) => void }>();
+const props = defineProps<{ class: string, value: string, update?: (value: string) => void }>();
 
 const editorRef = ref()
 const editor = ref<EditorView | null>(null)
