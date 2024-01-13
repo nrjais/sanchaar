@@ -3,15 +3,12 @@
 </template>
 
 <script setup lang="ts">
-import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from "@codemirror/autocomplete";
+import { autocompletion, closeBrackets, completionKeymap } from "@codemirror/autocomplete";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import {
   defaultHighlightStyle,
-  foldKeymap,
   syntaxHighlighting
 } from "@codemirror/language";
-import { lintKeymap } from "@codemirror/lint";
-import { searchKeymap } from "@codemirror/search";
 import { EditorState, Extension } from "@codemirror/state";
 import {
   EditorView,

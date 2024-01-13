@@ -5,7 +5,7 @@ const nextCollectionId = ((start: number) => {
   return () => `col-${start++}`;
 })(0);
 
-export interface CollectionEntry {
+interface CollectionEntry {
   id: string;
   position: number;
 }

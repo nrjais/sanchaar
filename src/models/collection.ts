@@ -6,14 +6,21 @@ export interface Collection {
   entries: CollectionEntry[];
 }
 
-type CollectionEntry = CollectionFolder | CollectionRequest;
+export type CollectionEntry = CollectionFolder | CollectionRequest;
+
+export enum EntryType {
+  Folder = "folder",
+  Request = "request",
+}
 
 export interface CollectionFolder {
+  type: EntryType.Folder;
   name: string;
   entries: CollectionEntry[];
 }
 
 export interface CollectionRequest {
+  type: EntryType.Request;
   name: string;
   config: RequestConfig;
 }
