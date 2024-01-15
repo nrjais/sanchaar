@@ -2,7 +2,7 @@ import { RequestConfig } from "./request";
 
 export interface Collection {
   name: string;
-  description: string;
+  description?: string;
   entries: CollectionEntry[];
 }
 

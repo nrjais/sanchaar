@@ -13,56 +13,14 @@
 
 <script setup lang="ts">
 import ScrollBox from '@/components/Shared/ScrollBox.vue';
-import { Collection, CollectionEntry, EntryType } from '@/models/collection';
-import { ContentType } from '@/models/common';
-import Environment from '@/models/environment';
-import { Methods } from '@/models/methods';
-import { RequestConfig } from '@/models/request';
+import { Collection, CollectionEntry } from '@/models/collection';
+import { useCollectionStore } from '@/stores/collections';
 import { NInput, NTree, TreeOption } from 'naive-ui';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const pattern = ref("");
-
-const req: RequestConfig = {
-  method: Methods.GET,
-  address: "https://jsonplaceholder.typicode.com/todos/1",
-  params: [],
-  environment: new Environment("request"),
-  query: [],
-  headers: [
-    {
-      key: "Content-Type",
-      value: "application/json"
-    }
-  ],
-  body: {
-    type: ContentType.JSON,
-    data: `{name: "Test"}`
-  }
-}
-
-const collections: Collection[] = [{
-  name: 'Test Collection',
-  description: 'Test Description',
-  entries: [
-    {
-      type: EntryType.Folder,
-      name: "Folder",
-      entries: [
-        {
-          type: EntryType.Request,
-          name: "Req",
-          config: req
-        }
-      ]
-    },
-    {
-      type: EntryType.Request,
-      name: "Req 2",
-      config: req
-    }
-  ],
-}]
+const collectionStore = useCollectionStore()
+const collections = computed<Collection[]>(() => collectionStore.openCollectionsList)
 
 const buildTree = (entries: CollectionEntry[]): TreeOption[] => {
   return entries.map((entry): TreeOption => {
@@ -76,10 +34,10 @@ const buildTree = (entries: CollectionEntry[]): TreeOption[] => {
   })
 }
 
-const tree: TreeOption[] = collections
-  .map((collection): TreeOption => ({
+const tree = computed<TreeOption[]>(() => collections.value
+  .map((collection: Collection): TreeOption => ({
     key: collection.name,
     label: collection.name,
     children: buildTree(collection.entries)
-  }))
+  })))
 </script>
