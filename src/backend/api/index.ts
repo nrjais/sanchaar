@@ -1,5 +1,3 @@
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-
 declare global {
   interface Window {
     __TAURI_INTERNALS__: any;
@@ -14,5 +12,4 @@ export const select = <T>(ifTauri: T, ifNotTauri: T): T => {
   return isTauri() ? ifTauri : ifNotTauri;
 };
 
-const browserFetch = fetch;
-export const httpClient = select(tauriFetch, browserFetch);
+export * from "./fs";

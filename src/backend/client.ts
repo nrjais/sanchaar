@@ -3,7 +3,11 @@ import { RequestConfig } from "@/models/request";
 import { ResponseBody, ResponseDetails } from "@/models/response";
 import { getReasonPhrase } from "http-status-codes";
 import { preprocess as preProcess } from "./preprocess";
-import { httpClient } from "./api";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { select } from "./api";
+
+const browserFetch = fetch;
+export const httpClient = select(tauriFetch, browserFetch);
 
 export const decodeBody = async (response: Response): Promise<ResponseBody> => {
   const headers = response.headers;
