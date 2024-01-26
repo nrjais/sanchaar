@@ -1,6 +1,6 @@
 <template>
   <Box>
-    <NSplit direction="horizontal" :max="0.25" :min="0.05" :default-size="0.12" class="pt-2 flex-grow">
+    <NSplit direction="horizontal" :max="0.25" :min="0.05" :default-size="0.2" class="pt-2 flex-grow">
       <template #1>
         <SidePanel></SidePanel>
       </template>

@@ -1,5 +1,3 @@
-import { RequestConfig } from "./request";
-
 export interface Collection {
   name: string;
   description?: string;
@@ -22,5 +20,4 @@ export interface CollectionFolder {
 export interface CollectionRequest {
   type: EntryType.Request;
   name: string;
-  config: RequestConfig;
 }

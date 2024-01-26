@@ -1,20 +1,26 @@
+import { storage } from "@/backend/store";
 import { Collection, EntryType } from "@/models/collection";
-import { ContentType } from "@/models/common";
-import Environment from "@/models/environment";
-import { Methods } from "@/models/methods";
-import { RequestConfig } from "@/models/request";
 import { nanoid } from "nanoid";
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watchEffect } from "vue";
 
 interface OpenCollection {
   id: string;
   position: number;
+  path: string;
   collection: Collection;
 }
 
+const loadCollections = async (): Promise<ObjectMap<OpenCollection>> => {
+  return (await storage.load<ObjectMap<OpenCollection>>("collections")) || {};
+};
+
 export const useCollectionStore = defineStore("CollectionStore", () => {
   const openCollections = ref<ObjectMap<OpenCollection>>({});
+
+  loadCollections().then((collections) => {
+    openCollections.value = collections;
+  });
 
   const openCollectionsList = computed<Collection[]>((): Collection[] => {
     const tabs = Object.values(openCollections.value);
@@ -25,37 +31,18 @@ export const useCollectionStore = defineStore("CollectionStore", () => {
     return open;
   });
 
-  const openCollection = (collection: Collection): void => {
+  const openCollection = (path: string, collection: Collection): void => {
     const id = nanoid();
     const position = Object.keys(openCollections.value).length;
-    openCollections.value[id] = { id, position, collection };
+    openCollections.value[id] = { id, position, collection, path };
   };
 
   const createCollection = (name: string): void => {
     const collection: Collection = {
       name,
-      description: "",
       entries: [],
     };
-    openCollection(collection);
-  };
-
-  const req: RequestConfig = {
-    method: Methods.GET,
-    address: "https://jsonplaceholder.typicode.com/todos/1",
-    params: [],
-    environment: new Environment("request"),
-    query: [],
-    headers: [
-      {
-        key: "Content-Type",
-        value: "application/json",
-      },
-    ],
-    body: {
-      type: ContentType.JSON,
-      data: `{name: "Test"}`,
-    },
+    openCollection("", collection);
   };
 
   const collections: Collection[] = [
@@ -70,20 +57,24 @@ export const useCollectionStore = defineStore("CollectionStore", () => {
             {
               type: EntryType.Request,
               name: "Req",
-              config: req,
             },
           ],
         },
         {
           type: EntryType.Request,
           name: "Req 2",
-          config: req,
         },
       ],
     },
   ];
 
-  collections.forEach((collection) => openCollection(collection));
+  collections.forEach((collection, i) =>
+    openCollection("test" + i, collection)
+  );
+
+  watchEffect(() => {
+    storage.save("collections", openCollections.value);
+  });
 
   return {
     openCollections,

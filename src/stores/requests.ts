@@ -1,5 +1,4 @@
 import { execute } from "@/backend/client";
-import { CollectionRequest, EntryType } from "@/models/collection";
 import { ContentType } from "@/models/common";
 import Environment from "@/models/environment";
 import { Methods } from "@/models/methods";
@@ -13,6 +12,11 @@ export type ReqTitle = {
   name: string;
 };
 
+export type OpenRequest = {
+  name: string;
+  config: RequestConfig;
+};
+
 export type ExecutionState =
   | { state: "idle" }
   | { state: "running"; abort: () => void }
@@ -21,7 +25,7 @@ export type ExecutionState =
   | { state: "completed"; response: ResponseDetails };
 
 export const useRequestStore = defineStore("RequestStore", () => {
-  const requests = ref<ObjectMap<CollectionRequest>>({});
+  const requests = ref<ObjectMap<OpenRequest>>({});
   const executions = ref<ObjectMap<ExecutionState>>({});
 
   const getRequestTitle = (tabId: string): ReqTitle => {
@@ -55,7 +59,6 @@ export const useRequestStore = defineStore("RequestStore", () => {
     const env = new Environment("request");
     env.define("test", "from-env");
     const req = <RequestConfig>{
-      name: "Untitled",
       method: Methods.POST,
       address: "https://echo.nrjais.com",
       headers: [],
@@ -64,11 +67,11 @@ export const useRequestStore = defineStore("RequestStore", () => {
       body: { type: ContentType.NONE },
       environment: env,
     };
-    requests.value[tabId] = {
-      type: EntryType.Request,
-      name: "Untitled",
-      config: req,
-    };
+    addRequest(tabId, { config: req, name: "Untitled" });
+  };
+
+  const addRequest = (tabId: string, request: OpenRequest) => {
+    requests.value[tabId] = request;
   };
 
   const removeRequest = (tabId: string) => {
@@ -109,6 +112,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
     executions,
     getRequestTitle,
     addNewRequest,
+    addRequest,
     removeRequest,
     updateRequest,
     getRequest,

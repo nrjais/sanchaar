@@ -3,22 +3,22 @@ version = "chuglee-1"
 description = "Get Todos"
 documentation = "docs/Get_Todos.md"
 
-[request]
+[http]
 method = "GET"
 domain = "https://jsonplaceholder.typicode.com"
 path = "/todos/{{id}}"
 
-[request.params]
+[http.params]
 id = { value = "1", description = "Todo ID" }
 
-[request.query]
-userId = { value = "1", description = "User ID" }
+[http.query]
+userId = { value = "1", description = "User ID", disabled = true }
 
-[request.headers]
+[http.headers]
 Accept = { value = "application/json", description = "Accept header" }
-Content-Type = { value = "application/json", description = "Content-Type header" }
+Content-Type = { disabled = true, value = "application/json", description = "Content-Type header" }
 
-[request.body]
+[http.body]
 type = "json" # json, form, urlencoded, text, file, xml
 # store form as key val pairs json
 content = """
@@ -27,4 +27,9 @@ content = """
   "body": "bar",
   "userId": 1
 }
+"""
+
+[docs]
+md = """
+# Get Todos
 """
