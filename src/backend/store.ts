@@ -1,4 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
+import { select } from "./api";
 
 export interface Storage {
   save: <T>(key: string, value: T) => Promise<void>;
@@ -16,4 +17,18 @@ class TauriStorage implements Storage {
   }
 }
 
-export const storage = new TauriStorage();
+class LocalStorage implements Storage {
+  async save<T>(key: string, value: T): Promise<void> {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  async load<T>(key: string): Promise<T | null> {
+    const value = localStorage.getItem(key);
+    if (value) {
+      return JSON.parse(value);
+    }
+    return null;
+  }
+}
+
+export const storage = select(new TauriStorage(), new LocalStorage());

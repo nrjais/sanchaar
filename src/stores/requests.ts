@@ -56,8 +56,6 @@ export const useRequestStore = defineStore("RequestStore", () => {
   };
 
   const addNewRequest = (tabId: string) => {
-    const env = new Environment("request");
-    env.define("test", "from-env");
     const req = <RequestConfig>{
       method: Methods.POST,
       address: "https://echo.nrjais.com",
@@ -65,7 +63,7 @@ export const useRequestStore = defineStore("RequestStore", () => {
       params: [],
       query: [],
       body: { type: ContentType.NONE },
-      environment: env,
+      environment: Environment.request(),
     };
     addRequest(tabId, { config: req, name: "Untitled" });
   };

@@ -9,6 +9,10 @@ export default class Environment {
     this.scopeName = scopeName;
   }
 
+  static request(): Environment {
+    return new Environment("request");
+  }
+
   define(name: string, value: string) {
     this.values.set(name, value);
   }

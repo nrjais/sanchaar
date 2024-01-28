@@ -1,5 +1,5 @@
 <template>
-  <ScrollBox class="bg-[#1a1a1a] px-1 h-full gap-1 flex flex-col">
+  <ScrollBox class="bg-[#1a1a1a] px-1 h-full gap-1 flex flex-col py-2">
     <NInputGroup>
       <NInput size="small" v-model:value="pattern" placeholder="Search" class="w-full" />
       <NDropdown :options="menuOptions" trigger="click" placement="bottom-start">
@@ -11,7 +11,7 @@
       </NDropdown>
     </NInputGroup>
     <NTree :show-line="true" :expand-on-click="true" :show-irrelevant-nodes="false" :pattern="pattern" :data="tree"
-      block-line>
+      block-line :node-props="nodeProps">
       <template #empty>
         <div>
         </div>
@@ -32,6 +32,15 @@ const pattern = ref("");
 const collectionStore = useCollectionStore()
 const collections = computed<Collection[]>(() => collectionStore.openCollectionsList);
 
+const nodeProps = ({ option }: { option: TreeOption }) => {
+  return {
+    onClick() {
+      if (option.isLeaf) {
+        collectionStore.openRequest(option.data as any)
+      }
+    }
+  }
+}
 
 const menuOptions = [
   { label: "New Collection", key: "new-collection" },
@@ -44,7 +53,8 @@ const buildTree = (entries: CollectionEntry[]): TreeOption[] => {
       label: entry.name,
       key: entry.name,
       isLeaf: entry.type !== "folder",
-      children
+      children,
+      data: entry,
     }
   })
 }
