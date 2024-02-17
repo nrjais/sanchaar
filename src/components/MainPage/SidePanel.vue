@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import ScrollBox from '@/components/Shared/ScrollBox.vue';
-import { Collection, CollectionEntry } from '@/models/collection';
+import { Collection, CollectionEntry, EntryType } from '@/models/collection';
 import { useCollectionStore } from '@/stores/collections';
 import { IconDotsVertical } from '@tabler/icons-vue';
 import { NButton, NDropdown, NIcon, NInput, NInputGroup, NTree, TreeOption } from 'naive-ui';
@@ -35,8 +35,12 @@ const collections = computed<Collection[]>(() => collectionStore.openCollections
 const nodeProps = ({ option }: { option: TreeOption }) => {
   return {
     onClick() {
-      if (option.isLeaf) {
-        collectionStore.openRequest(option.data as any)
+      const data = option.data as any as { entry: CollectionEntry, name: string };
+      if (!option.isLeaf) {
+        return
+      }
+      if (data.entry.type === EntryType.Request) {
+        collectionStore.openRequest(data.name, data.entry)
       }
     }
   }
@@ -46,15 +50,18 @@ const menuOptions = [
   { label: "New Collection", key: "new-collection" },
 ]
 
-const buildTree = (entries: CollectionEntry[]): TreeOption[] => {
+const buildTree = (name: string, entries: CollectionEntry[]): TreeOption[] => {
   return entries.map((entry): TreeOption => {
-    const children = entry.type === "folder" ? buildTree(entry.entries) : undefined;
+    const children = entry.type === "folder" ? buildTree(name, entry.entries) : undefined;
     return {
       label: entry.name,
       key: entry.name,
       isLeaf: entry.type !== "folder",
       children,
-      data: entry,
+      data: {
+        collection: name,
+        entry
+      },
     }
   })
 }
@@ -63,6 +70,6 @@ const tree = computed<TreeOption[]>(() => collections.value
   .map((collection: Collection): TreeOption => ({
     key: collection.name,
     label: collection.name,
-    children: buildTree(collection.entries)
+    children: buildTree(collection.name, collection.entries)
   })))
 </script>

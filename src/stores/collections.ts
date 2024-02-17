@@ -78,7 +78,7 @@ export const useCollectionStore = defineStore("CollectionStore", () => {
     storage.save("collections", openCollections.value);
   });
 
-  const openRequest = (entry: CollectionRequest) => {
+  const openRequest = (collection: string, entry: CollectionRequest) => {
     tabStore.openRequestTab(entry.name, {
       method: Methods.POST,
       address: "https://echo.nrjais.com",
