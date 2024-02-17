@@ -1,0 +1,27 @@
+[package]
+name = "sanchaar"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+iced = { version = "0.12.0", features = [
+  "svg",
+  "tokio",
+  "web-colors",
+  "image",
+  "highlighter",
+  "debug",
+  "advanced",
+] }
+rfd = { version = "0.13.0", default-features = false, features = [
+  "xdg-portal",
+  "tokio",
+] }
+tokio = { version = "1.36.0", features = ["fs", "net"] }
+iced_aw = { git = "https://github.com/iced-rs/iced_aw", branch = "main", features = [
+  "tabs",
+  "split",
+  "segmented_button",
+  "icons",
+] }
+strum = { version = "0.26.1", features = ["derive"] }
