@@ -9,6 +9,12 @@ pub struct AppState {
     pub tabs: Vec<Tab>,
 }
 
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AppState {
     pub fn new() -> Self {
         let tabs = vec![Tab::new()];

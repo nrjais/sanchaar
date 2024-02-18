@@ -78,7 +78,7 @@ pub enum KeyValUpdateMsg {
     Remove(usize),
 }
 
-pub fn keyval_editor<'a, M>(values: &'a KeyValList) -> KeyValEditor<'a, M> {
+pub fn keyval_editor<M>(values: &KeyValList) -> KeyValEditor<'_, M> {
     KeyValEditor {
         values,
         on_change: None,

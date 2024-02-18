@@ -1,10 +1,16 @@
-use iced_aw::split;
+
 
 use super::request::Request;
 
 #[derive(Debug)]
 pub struct Tab {
     pub request: Request,
+}
+
+impl Default for Tab {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Tab {

@@ -1,5 +1,5 @@
 use iced::widget::{container, text};
-use iced_aw::{tabs, TabLabel, Tabs};
+use iced_aw::{TabLabel, Tabs};
 
 use crate::{
     components::{keyval_editor, KeyValUpdateMsg},

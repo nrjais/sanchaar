@@ -1,8 +1,8 @@
 use iced::{
-    widget::{column, container, row},
+    widget::{column, container},
     Element,
 };
-use iced_aw::split::{Axis, Split};
+use iced_aw::split::{Split};
 
 use crate::state::AppState;
 

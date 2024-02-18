@@ -1,7 +1,7 @@
 use iced_aw::split;
 use strum::{Display, EnumString, VariantArray};
 
-use crate::components::{KeyValue, KeyValList};
+use crate::components::{KeyValList};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {

@@ -5,7 +5,8 @@ pub mod state;
 
 use app::AppMsg;
 use iced::{
-    window::{self, Position}, Application, Command, Element, Point, Settings, Size, Theme
+    window::{self, Position},
+    Application, Command, Element, Point, Settings, Size, Theme,
 };
 use state::AppState;
 

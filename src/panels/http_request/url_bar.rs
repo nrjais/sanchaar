@@ -1,8 +1,8 @@
 use iced::{
-    widget::{button, column, container, pick_list, row, text_input},
-    Element, Padding,
+    widget::{button, container, pick_list, row, text_input},
+    Element,
 };
-use iced_aw::{graphics::icons, NerdIcon};
+use iced_aw::{NerdIcon};
 use strum::VariantArray;
 
 use crate::{
