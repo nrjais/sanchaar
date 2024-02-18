@@ -2,7 +2,7 @@ use iced::{
     widget::{column, container},
     Element,
 };
-use iced_aw::split::{Split};
+use iced_aw::split::Split;
 
 use crate::state::AppState;
 

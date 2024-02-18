@@ -12,7 +12,7 @@ iced = { version = "0.12.0", features = [
   "highlighter",
   "debug",
   "advanced",
-  "lazy"
+  "lazy",
 ] }
 rfd = { version = "0.13.0", default-features = false, features = [
   "xdg-portal",

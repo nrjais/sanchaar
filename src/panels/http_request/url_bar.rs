@@ -2,7 +2,7 @@ use iced::{
     widget::{button, container, pick_list, row, text_input},
     Element,
 };
-use iced_aw::{NerdIcon};
+use iced_aw::NerdIcon;
 use strum::VariantArray;
 
 use crate::{

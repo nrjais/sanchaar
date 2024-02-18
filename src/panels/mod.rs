@@ -1,4 +1,4 @@
-use iced::{widget::container};
+use iced::widget::container;
 
 use crate::state::AppState;
 

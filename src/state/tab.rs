@@ -1,5 +1,3 @@
-
-
 use super::request::Request;
 
 #[derive(Debug)]
