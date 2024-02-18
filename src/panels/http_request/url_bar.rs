@@ -7,7 +7,7 @@ use strum::VariantArray;
 
 use crate::{
     components::icon,
-    state::{AppState, Method},
+    state::{request::Method, AppState},
 };
 
 #[derive(Debug, Clone)]
@@ -16,14 +16,15 @@ pub enum UrlBarMsg {
     UrlChanged(String),
     SendRequest,
 }
+
 impl UrlBarMsg {
     pub(crate) fn update(&self, state: &mut AppState) {
         match self {
             UrlBarMsg::MethodChanged(method) => {
-                state.active_tab_mut().method = *method;
+                state.active_tab_mut().request.method = *method;
             }
             UrlBarMsg::UrlChanged(url) => {
-                state.active_tab_mut().url = url.clone();
+                state.active_tab_mut().request.url = url.clone();
             }
             UrlBarMsg::SendRequest => {
                 // TODO: Send the request
@@ -33,18 +34,21 @@ impl UrlBarMsg {
 }
 
 pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
-    let tab = state.active_tab();
+    let request = &state.active_tab().request;
 
-    let method = pick_list(Method::VARIANTS, Some(tab.method), move |s| {
-        UrlBarMsg::MethodChanged(s)
-    });
-    let url = text_input("Enter Address", &tab.url).on_input(|s| UrlBarMsg::UrlChanged(s));
+    let method = pick_list(
+        Method::VARIANTS,
+        Some(request.method),
+        UrlBarMsg::MethodChanged,
+    );
+    let url = text_input("Enter Address", &request.url).on_input(UrlBarMsg::UrlChanged);
 
     let send =
         button(container(icon(NerdIcon::Send)).padding([0, 8])).on_press(UrlBarMsg::SendRequest);
 
     row!(method, url, send)
-        .height(iced::Length::Fill)
+        .height(iced::Length::Shrink)
         .width(iced::Length::Fill)
+        .spacing(4)
         .into()
 }

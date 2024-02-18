@@ -1,4 +1,7 @@
-use strum::{Display, EnumString, VariantArray};
+pub mod request;
+pub mod tab;
+
+pub use tab::*;
 
 #[derive(Debug)]
 pub struct AppState {
@@ -8,7 +11,7 @@ pub struct AppState {
 
 impl AppState {
     pub fn new() -> Self {
-        let tabs = vec![Tab::default()];
+        let tabs = vec![Tab::new()];
         Self {
             active_tab: 0,
             tabs,
@@ -26,28 +29,4 @@ impl AppState {
             .get(self.active_tab)
             .expect("Active tab not found")
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct Tab {
-    pub url: String,
-    pub method: Method,
-}
-
-impl Default for Tab {
-    fn default() -> Self {
-        Self {
-            url: "http://echo.nrjais.com".to_string(),
-            method: Method::GET,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumString, VariantArray, Display, Default)]
-pub enum Method {
-    #[default]
-    GET,
-    POST,
-    PUT,
-    DELETE,
 }

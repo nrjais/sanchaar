@@ -1,4 +1,4 @@
-use iced::Command;
+use iced::{widget::container, Command};
 
 use crate::state::AppState;
 
@@ -18,5 +18,11 @@ impl PanelMsg {
 }
 
 pub fn view(state: &AppState) -> iced::Element<PanelMsg> {
-    http_request::view(state).map(PanelMsg::Http)
+    let req = http_request::view(state).map(PanelMsg::Http);
+
+    container::Container::new(req)
+        .width(iced::Length::Fill)
+        .height(iced::Length::Fill)
+        .padding(4)
+        .into()
 }
