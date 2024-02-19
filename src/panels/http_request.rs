@@ -1,5 +1,5 @@
 use iced::{
-    widget::{column, container},
+    widget::{container, Column},
     Element,
 };
 use iced_aw::split::Split;
@@ -51,9 +51,10 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     .height(iced::Length::Fill)
     .width(iced::Length::Fill);
 
-    let req_res = container(req_res).padding([4, 0, 0, 0]);
-    column!(url_bar, req_res)
+    let req_res = container(req_res).padding([4, 0, 0, 0]).into();
+    Column::with_children([url_bar, req_res])
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
+        .spacing(4)
         .into()
 }
