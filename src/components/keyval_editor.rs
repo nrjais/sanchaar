@@ -94,7 +94,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         self.on_change.as_ref().map(|f| f(event))
     }
 
-    fn view(&self, _state: &Self::State) -> iced::Element<KeyValUpdateMsg> {
+    fn view(&self, _state: &Self::State) -> iced::Element<Self::Event> {
         let size = 14;
         let spacing = 2;
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
@@ -103,18 +103,17 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .size(size)
                 .spacing(spacing);
 
-            let enabled = container(enabled)
-                .padding([4, 2])
-                .style(|theme: &Theme| container::Appearance {
-                    border: Border {
-                        color: theme.extended_palette().secondary.strong.color,
-                        width: 1.,
-                        radius: 2.into(),
-                    },
-                    ..container::Appearance::default()
-                })
-                .center_x()
-                .center_y();
+            let enabled =
+                container(enabled)
+                    .padding([4, 2])
+                    .style(|theme: &Theme| container::Appearance {
+                        border: Border {
+                            color: theme.extended_palette().secondary.strong.color,
+                            width: 1.,
+                            radius: 2.into(),
+                        },
+                        ..container::Appearance::default()
+                    });
 
             let name = text_input("Key", &kv.name)
                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))

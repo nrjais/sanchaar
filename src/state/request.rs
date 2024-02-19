@@ -6,7 +6,7 @@ use crate::components::KeyValList;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {
     #[default]
-    Queries,
+    Params,
     Body,
     Headers,
 }

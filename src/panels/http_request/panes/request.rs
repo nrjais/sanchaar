@@ -1,8 +1,10 @@
-use iced::widget::{container, text};
-use iced_aw::{TabLabel, Tabs};
+use iced::{
+    widget::{container, text},
+    Length,
+};
 
 use crate::{
-    components::{keyval_editor, KeyValUpdateMsg},
+    components::{button_tab, button_tabs, keyval_editor, ButtonTabLabel, KeyValUpdateMsg},
     state::{request::ReqTabId, AppState},
 };
 
@@ -32,28 +34,34 @@ impl RequestMsg {
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
     let request = &state.active_tab().request;
 
-    let tabs = Tabs::new(RequestMsg::TabSelected)
-        .push(
-            ReqTabId::Queries,
-            TabLabel::Text("Queries".into()),
-            keyval_editor(&request.query_params)
-                .on_change(RequestMsg::Queries)
-                .element(),
-        )
-        .push(ReqTabId::Body, TabLabel::Text("Body".into()), text("Body"))
-        .push(
-            ReqTabId::Headers,
-            TabLabel::Text("Headers".into()),
-            keyval_editor(&request.headers)
-                .on_change(RequestMsg::Headers)
-                .element(),
-        )
-        .width(iced::Length::Fill)
-        .height(iced::Length::Fill)
-        .set_active_tab(&request.tab);
+    let tabs = button_tabs(
+        request.tab,
+        Vec::from([
+            button_tab(
+                ReqTabId::Params,
+                ButtonTabLabel::Text(text("Params")),
+                keyval_editor(&request.query_params)
+                    .on_change(RequestMsg::Queries)
+                    .element(),
+            ),
+            button_tab(
+                ReqTabId::Headers,
+                ButtonTabLabel::Text(text("Headers")),
+                keyval_editor(&request.headers)
+                    .on_change(RequestMsg::Headers)
+                    .element(),
+            ),
+            button_tab(
+                ReqTabId::Body,
+                ButtonTabLabel::Text(text("Body")),
+                text::Text::new("Body").into(),
+            ),
+        ]),
+        RequestMsg::TabSelected,
+    );
 
     container(tabs)
-        .width(iced::Length::Fill)
-        .height(iced::Length::Fill)
+        .width(Length::Fill)
+        .height(Length::Fill)
         .into()
 }

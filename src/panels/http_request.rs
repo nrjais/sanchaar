@@ -38,6 +38,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     let request_view = request::view(state).map(HttpMsg::Req);
     let response_view = response::view(state).map(HttpMsg::Res);
 
+    let min_size = 200;
     let req_res = Split::new(
         container(request_view).padding([0, 4, 0, 0]),
         container(response_view).padding([0, 0, 0, 4]),
@@ -45,6 +46,8 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
         request.split_axis,
         HttpMsg::SplitPos,
     )
+    .min_size_first(min_size)
+    .min_size_second(min_size)
     .height(iced::Length::Fill)
     .width(iced::Length::Fill);
 

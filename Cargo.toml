@@ -26,3 +26,12 @@ iced_aw = { git = "https://github.com/iced-rs/iced_aw", branch = "main", feature
   "icons",
 ] }
 strum = { version = "0.26.1", features = ["derive"] }
+
+
+[dev-dependencies.cargo-husky]
+version = "1"
+default-features = false
+features = ["precommit-hook", "run-cargo-fmt", "run-cargo-clippy"]
+
+[profile.dev.package."*"]
+opt-level = 3
