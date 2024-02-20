@@ -8,12 +8,12 @@ use super::icon;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct KeyValue {
-    pub enabled: bool,
+    pub disabled: bool,
     pub name: String,
     pub value: String,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct KeyValList(Vec<KeyValue>);
 impl Default for KeyValList {
     fn default() -> Self {
@@ -22,14 +22,14 @@ impl Default for KeyValList {
 }
 
 impl KeyValList {
-    pub fn update(&mut self, msg: &KeyValUpdateMsg) {
+    pub fn update(&mut self, msg: KeyValUpdateMsg) {
         match msg {
             KeyValUpdateMsg::AddHeader => self.0.push(KeyValue::default()),
-            KeyValUpdateMsg::Toggled(idx, enabled) => self.0[*idx].enabled = *enabled,
-            KeyValUpdateMsg::NameChanged(idx, name) => self.0[*idx].name = name.clone(),
-            KeyValUpdateMsg::ValueChanged(idx, value) => self.0[*idx].value = value.clone(),
+            KeyValUpdateMsg::Toggled(idx, enabled) => self.0[idx].disabled = !enabled,
+            KeyValUpdateMsg::NameChanged(idx, name) => self.0[idx].name = name,
+            KeyValUpdateMsg::ValueChanged(idx, value) => self.0[idx].value = value,
             KeyValUpdateMsg::Remove(idx) => {
-                self.0.remove(*idx);
+                self.0.remove(idx);
             }
         }
         let last = self.0.last();
@@ -98,7 +98,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         let size = 14;
         let spacing = 2;
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
-            let enabled = checkbox("", kv.enabled)
+            let enabled = checkbox("", kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
                 .size(size)
                 .spacing(spacing);

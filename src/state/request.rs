@@ -20,7 +20,7 @@ pub enum Method {
     DELETE,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Request {
     pub url: String,
     pub method: Method,

@@ -16,10 +16,10 @@ pub enum RequestMsg {
 }
 
 impl RequestMsg {
-    pub(crate) fn update(&self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) {
         match self {
             RequestMsg::TabSelected(tab) => {
-                state.active_tab_mut().request.tab = *tab;
+                state.active_tab_mut().request.tab = tab;
             }
             RequestMsg::Headers(msg) => {
                 state.active_tab_mut().request.headers.update(msg);

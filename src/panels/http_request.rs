@@ -19,13 +19,13 @@ pub enum HttpMsg {
     SplitPos(u16),
 }
 impl HttpMsg {
-    pub(crate) fn update(&self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) {
         match self {
             HttpMsg::Req(msg) => msg.update(state),
             HttpMsg::Res(msg) => msg.update(state),
             HttpMsg::Url(msg) => msg.update(state),
             HttpMsg::SplitPos(pos) => {
-                state.active_tab_mut().request.split_pos.replace(*pos);
+                state.active_tab_mut().request.split_pos.replace(pos);
             }
         }
     }

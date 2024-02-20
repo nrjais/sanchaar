@@ -10,7 +10,7 @@ pub enum PanelMsg {
 }
 
 impl PanelMsg {
-    pub(crate) fn update(&self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) {
         match self {
             PanelMsg::Http(msg) => msg.update(state),
         }

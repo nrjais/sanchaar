@@ -1,6 +1,7 @@
 use iced::Command;
 
 use crate::{
+    commands::{self, CommandMsg},
     panels::{self, PanelMsg},
     state::AppState,
 };
@@ -8,14 +9,16 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum AppMsg {
     Panel(PanelMsg),
+    Command(CommandMsg),
 }
 
 impl AppMsg {
-    pub fn update(&self, state: &mut AppState) -> Command<AppMsg> {
+    pub fn update(self, state: &mut AppState) -> Command<AppMsg> {
         match self {
             AppMsg::Panel(msg) => msg.update(state),
+            AppMsg::Command(msg) => msg.update(state),
         }
-        Command::none()
+        commands::commands(state)
     }
 }
 

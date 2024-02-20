@@ -3,10 +3,19 @@ pub mod tab;
 
 pub use tab::*;
 
+use crate::{commands::Commands, core::client::create_client};
+
+#[derive(Debug)]
+pub struct AppCtx {
+    pub client: reqwest::Client,
+}
+
 #[derive(Debug)]
 pub struct AppState {
     pub active_tab: usize,
     pub tabs: Vec<Tab>,
+    pub ctx: AppCtx,
+    pub commands: Commands,
 }
 
 impl Default for AppState {
@@ -21,6 +30,10 @@ impl AppState {
         Self {
             active_tab: 0,
             tabs,
+            ctx: AppCtx {
+                client: create_client(),
+            },
+            commands: Commands::new(),
         }
     }
 
