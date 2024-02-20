@@ -1,3 +1,4 @@
+use iced::widget::horizontal_space;
 use iced::{
     theme,
     widget::{button, Column, Row, Rule, Text},
@@ -26,9 +27,10 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     active: T,
     tabs: Vec<ButtonTab<'a, T, M>>,
     on_tab_change: impl Fn(T) -> M,
+    suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
     let mut tabs_row = Row::new();
-    let mut active_tab = None;
+    let mut active_tab: Option<Element<'a, M>> = None;
     for tab in tabs {
         let active = tab.id == active;
         if active {
@@ -47,10 +49,15 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
         );
     }
 
+    if let Some(suffix) = suffix {
+        tabs_row = tabs_row.push(horizontal_space()).push(suffix);
+    }
+
     Column::new()
         .push(tabs_row)
         .push(Rule::horizontal(2.))
         .push(active_tab.expect("Invalid active tab id"))
+        .width(iced::Length::Fill)
         .spacing(2)
         .into()
 }

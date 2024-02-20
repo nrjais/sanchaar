@@ -4,7 +4,7 @@ use iced::{
 };
 
 use crate::{
-    components::{button_tab, button_tabs, keyval_editor, ButtonTabLabel, KeyValUpdateMsg},
+    components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
     state::{request::ReqTabId, AppState},
 };
 
@@ -40,14 +40,14 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
             button_tab(
                 ReqTabId::Params,
                 ButtonTabLabel::Text(text("Params")),
-                keyval_editor(&request.query_params)
+                key_value_editor(&request.query_params)
                     .on_change(RequestMsg::Queries)
                     .element(),
             ),
             button_tab(
                 ReqTabId::Headers,
                 ButtonTabLabel::Text(text("Headers")),
-                keyval_editor(&request.headers)
+                key_value_editor(&request.headers)
                     .on_change(RequestMsg::Headers)
                     .element(),
             ),
@@ -58,6 +58,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
             ),
         ]),
         RequestMsg::TabSelected,
+        None,
     );
 
     container(tabs)

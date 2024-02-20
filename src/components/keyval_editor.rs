@@ -78,7 +78,7 @@ pub enum KeyValUpdateMsg {
     Remove(usize),
 }
 
-pub fn keyval_editor<M>(values: &KeyValList) -> KeyValEditor<'_, M> {
+pub fn key_value_editor<M>(values: &KeyValList) -> KeyValEditor<'_, M> {
     KeyValEditor {
         values,
         on_change: None,
@@ -98,7 +98,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         let size = 14;
         let spacing = 2;
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
-            let enabled = checkbox("", kv.disabled)
+            let enabled = checkbox("", !kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
                 .size(size)
                 .spacing(spacing);

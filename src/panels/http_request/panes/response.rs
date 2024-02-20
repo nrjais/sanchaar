@@ -1,15 +1,25 @@
-use iced::widget::Column;
 use iced::{
     widget::{container, text},
     Element,
 };
+
 use serde_json::Value;
 
+mod body_viewer;
+
 #[derive(Debug, Clone)]
-pub enum ResponseMsg {}
+pub enum ResponseMsg {
+    BodyViewMessage(body_viewer::BodyViewerMsg),
+}
 
 impl ResponseMsg {
-    pub(crate) fn update(&self, _state: &mut crate::state::AppState) {}
+    pub(crate) fn update(self, state: &mut crate::state::AppState) {
+        match self {
+            Self::BodyViewMessage(msg) => {
+                msg.update(state);
+            }
+        }
+    }
 }
 
 fn response_container(body: Element<ResponseMsg>) -> Element<ResponseMsg> {
@@ -31,14 +41,8 @@ fn pretty_body(body: &[u8]) -> String {
 pub(crate) fn view(state: &crate::state::AppState) -> Element<ResponseMsg> {
     let active_tab = state.active_tab();
 
-    let res = if let Some(ref res) = active_tab.response {
-        Column::new()
-            .push(text(format!("Status: {}", res.status)))
-            .push(text(format!("Duration: {:?}", res.duration)))
-            .push(text(format!("Headers: {}", res.headers.len())))
-            .push(text(pretty_body(&res.body.data)))
-            .spacing(4)
-            .into()
+    let res = if let Some(ref res) = active_tab.response.response {
+        body_viewer::view(state, res).map(ResponseMsg::BodyViewMessage)
     } else {
         text("Response Pane").into()
     };

@@ -1,11 +1,11 @@
-use crate::core::client;
+use crate::state::response::Response;
 
 use super::request::Request;
 
 #[derive(Debug)]
 pub struct Tab {
     pub request: Request,
-    pub response: Option<client::Response>,
+    pub response: Response,
 }
 
 impl Default for Tab {
@@ -18,7 +18,7 @@ impl Tab {
     pub fn new() -> Self {
         Self {
             request: Request::new(),
-            response: None,
+            response: Response::new(),
         }
     }
 }

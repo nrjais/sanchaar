@@ -5,25 +5,25 @@ edition = "2021"
 
 [dependencies]
 iced = { version = "0.12.0", features = [
-  "svg",
-  "tokio",
-  "web-colors",
-  "image",
-  "highlighter",
-  "debug",
-  "advanced",
-  "lazy",
+    "svg",
+    "tokio",
+    "web-colors",
+    "image",
+    "highlighter",
+    "debug",
+    "advanced",
+    "lazy",
 ] }
-rfd = { version = "0.13.0", default-features = false, features = [
-  "xdg-portal",
-  "tokio",
+rfd = { version = "0.14.0", default-features = false, features = [
+    "xdg-portal",
+    "tokio",
 ] }
 tokio = { version = "1.36.0", features = ["fs", "net"] }
 iced_aw = { git = "https://github.com/iced-rs/iced_aw", branch = "main", features = [
-  "tabs",
-  "split",
-  "segmented_button",
-  "icons",
+    "tabs",
+    "split",
+    "segmented_button",
+    "icons",
 ] }
 strum = { version = "0.26.1", features = ["derive"] }
 reqwest = { version = "0.11.6", features = ["json"] }
@@ -32,4 +32,4 @@ serde_json = "1.0.68"
 anyhow = "1.0.42"
 
 [profile.dev.package."*"]
-opt-level = 1
+opt-level = 3

@@ -23,7 +23,7 @@ impl CommandMsg {
     pub fn update(self, state: &mut AppState) {
         match self {
             CommandMsg::UpdateResponse(response) => {
-                state.active_tab_mut().response = Some(response);
+                state.active_tab_mut().response.response = Some(response);
             }
         }
     }
