@@ -19,16 +19,17 @@ pub enum UrlBarMsg {
 }
 
 impl UrlBarMsg {
-    pub(crate) fn update(&self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) {
+        let active_tab = state.active_tab_mut();
         match self {
             UrlBarMsg::MethodChanged(method) => {
-                state.active_tab_mut().request.method = *method;
+                active_tab.request.method = method;
             }
             UrlBarMsg::UrlChanged(url) => {
-                state.active_tab_mut().request.url = url.clone();
+                active_tab.request.url = url;
             }
             UrlBarMsg::SendRequest => {
-                let req = state.active_tab().request.clone();
+                let req = active_tab.request.clone();
                 state.commands.send_request(req)
             }
         }
