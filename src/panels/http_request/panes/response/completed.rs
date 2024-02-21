@@ -4,7 +4,7 @@ use iced::theme::Text;
 use iced::widget::{text, Column, Row};
 
 use crate::components::{
-    button_tab, button_tabs, code_viewer, key_value_viewer, ButtonTabLabel, CodeViewerMsg,
+    button_tab, button_tabs, code_editor, key_value_viewer, ButtonTabLabel, CodeViewerMsg,
     ContentType,
 };
 use crate::state::response::{CompletedResponse, ResponseState};
@@ -87,7 +87,7 @@ pub(crate) fn view<'a>(
         .collect::<Vec<_>>();
 
     let tab_content = match active_tab.response.active_tab {
-        ResponseTabId::Body => code_viewer(&cr.content, ContentType::Json)
+        ResponseTabId::Body => code_editor(&cr.content, ContentType::Json)
             .on_action(CompletedMsg::CodeViewerMsg)
             .element(),
         ResponseTabId::Headers => key_value_viewer(&headers),

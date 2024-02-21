@@ -1,20 +1,16 @@
 use std::mem;
 
 use iced::widget::text_editor;
-use iced::Subscription;
+
 use serde_json::Value;
 
 use crate::state::response::{CompletedResponse, ResponseState};
-use crate::transformers::request::transform_request;
-use crate::{
-    app::AppMsg,
-    core::client,
-    state::{request::RequestPane, AppState},
-};
 
-#[derive(Debug, Clone)]
+use crate::{app::AppMsg, core::client, state::AppState};
+
+#[derive(Debug)]
 pub enum Command {
-    SendRequest(RequestPane),
+    SendRequest(reqwest::Request),
 }
 
 #[derive(Debug, Clone)]
@@ -46,7 +42,7 @@ impl CommandMsg {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Commands(Vec<Command>);
 
 impl Default for Commands {
@@ -60,7 +56,7 @@ impl Commands {
         Self(Vec::new())
     }
 
-    pub fn send_request(&mut self, req: RequestPane) {
+    pub fn send_request(&mut self, req: reqwest::Request) {
         self.0.push(Command::SendRequest(req));
     }
 
@@ -76,19 +72,12 @@ pub fn commands(state: &mut AppState) -> iced::Command<AppMsg> {
     };
 
     let cmds = cmds.into_iter().map(|cmd| match cmd {
-        Command::SendRequest(req) => {
-            let req = transform_request(&state.ctx.client, req).expect("Failed to create request");
-            iced::Command::perform(client::send_request(req), |r| {
-                AppMsg::Command(CommandMsg::UpdateResponse(
-                    r.expect("Failed to send request"),
-                ))
-            })
-        }
+        Command::SendRequest(req) => iced::Command::perform(client::send_request(req), |r| {
+            AppMsg::Command(CommandMsg::UpdateResponse(
+                r.expect("Failed to send request"),
+            ))
+        }),
     });
 
     iced::Command::batch(cmds)
-}
-
-pub fn subscriptions() -> Subscription<AppMsg> {
-    Subscription::none()
 }

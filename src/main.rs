@@ -32,10 +32,10 @@ pub struct Sanchaar {
 }
 
 impl Application for Sanchaar {
-    type Message = AppMsg;
-    type Flags = ();
-    type Theme = Theme;
     type Executor = iced::executor::Default;
+    type Message = AppMsg;
+    type Theme = Theme;
+    type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Sanchaar, Command<AppMsg>) {
         (

@@ -1,3 +1,5 @@
+mod body_editor;
+
 use iced::widget::Column;
 use iced::{widget::text, Length};
 
@@ -36,10 +38,10 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
         ReqTabId::Params => key_value_editor(&request.query_params)
             .on_change(RequestMsg::Queries)
             .element(),
-        ReqTabId::Body => text::Text::new("Body").into(),
         ReqTabId::Headers => key_value_editor(&request.headers)
             .on_change(RequestMsg::Headers)
             .element(),
+        ReqTabId::Body => text::Text::new("Body").into(),
     };
 
     let tabs = button_tabs(

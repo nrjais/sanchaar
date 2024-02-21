@@ -7,12 +7,14 @@ use iced::{highlighter, Font, Length, Renderer, Theme};
 pub enum ContentType {
     Json,
     Text,
+    XML,
 }
 
 pub struct CodeViewer<'a, M> {
     pub code: &'a text_editor::Content,
     pub content_type: ContentType,
     pub on_action: Option<Box<dyn Fn(CodeViewerMsg) -> M>>,
+    pub editable: bool,
 }
 
 impl<'a, M: 'a> CodeViewer<'a, M> {
@@ -34,20 +36,21 @@ impl ContentType {
         match self {
             ContentType::Json => "json".to_string(),
             ContentType::Text => "txt".to_string(),
+            ContentType::XML => "xml".to_string(),
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum CodeViewerMsg {
-    EditorAction(Action),
+    EditorAction(Action, bool),
 }
 
 impl CodeViewerMsg {
     pub fn update(self, state: &mut text_editor::Content) {
         match self {
-            Self::EditorAction(action) => match action {
-                Action::Edit(_) => {}
+            Self::EditorAction(action, editable) => match action {
+                Action::Edit(_) if !editable => {}
                 _ => {
                     state.perform(action);
                 }
@@ -56,11 +59,12 @@ impl CodeViewerMsg {
     }
 }
 
-pub fn code_viewer<M>(code: &text_editor::Content, content_type: ContentType) -> CodeViewer<'_, M> {
+pub fn code_editor<M>(code: &text_editor::Content, content_type: ContentType) -> CodeViewer<'_, M> {
     CodeViewer {
         code,
         content_type,
         on_action: None,
+        editable: false,
     }
 }
 
@@ -76,7 +80,7 @@ impl<'a, M> Component<M> for CodeViewer<'a, M> {
         text_editor(self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
-            .on_action(CodeViewerMsg::EditorAction)
+            .on_action(|ac| CodeViewerMsg::EditorAction(ac, self.editable))
             .highlight::<Highlighter>(
                 highlighter::Settings {
                     theme: highlighter::Theme::SolarizedDark,

@@ -7,6 +7,7 @@ use response::ResponseState;
 use strum::VariantArray;
 
 use crate::state::{request, response};
+use crate::transformers::request::transform_request;
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -30,8 +31,10 @@ impl UrlBarMsg {
                 active_tab.request.url = url;
             }
             UrlBarMsg::SendRequest => {
-                let req = active_tab.request.clone();
                 active_tab.response.state = ResponseState::Executing;
+                let active_tab = state.active_tab();
+                let req = transform_request(&state.ctx.client, &active_tab.request)
+                    .expect("Failed to create request");
                 state.commands.send_request(req)
             }
         }
