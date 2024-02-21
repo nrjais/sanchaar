@@ -1,7 +1,5 @@
-use iced::{
-    widget::{container, text},
-    Length,
-};
+use iced::widget::Column;
+use iced::{widget::text, Length};
 
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
@@ -34,35 +32,32 @@ impl RequestMsg {
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
     let request = &state.active_tab().request;
 
+    let tab_content = match request.tab {
+        ReqTabId::Params => key_value_editor(&request.query_params)
+            .on_change(RequestMsg::Queries)
+            .element(),
+        ReqTabId::Body => text::Text::new("Body").into(),
+        ReqTabId::Headers => key_value_editor(&request.headers)
+            .on_change(RequestMsg::Headers)
+            .element(),
+    };
+
     let tabs = button_tabs(
         request.tab,
-        Vec::from([
-            button_tab(
-                ReqTabId::Params,
-                ButtonTabLabel::Text(text("Params")),
-                key_value_editor(&request.query_params)
-                    .on_change(RequestMsg::Queries)
-                    .element(),
-            ),
-            button_tab(
-                ReqTabId::Headers,
-                ButtonTabLabel::Text(text("Headers")),
-                key_value_editor(&request.headers)
-                    .on_change(RequestMsg::Headers)
-                    .element(),
-            ),
-            button_tab(
-                ReqTabId::Body,
-                ButtonTabLabel::Text(text("Body")),
-                text::Text::new("Body").into(),
-            ),
-        ]),
+        &[
+            button_tab(ReqTabId::Params, ButtonTabLabel::Text(text("Params"))),
+            button_tab(ReqTabId::Headers, ButtonTabLabel::Text(text("Headers"))),
+            button_tab(ReqTabId::Body, ButtonTabLabel::Text(text("Body"))),
+        ],
         RequestMsg::TabSelected,
         None,
     );
 
-    container(tabs)
+    Column::new()
+        .push(tabs)
+        .push(tab_content)
         .width(Length::Fill)
         .height(Length::Fill)
+        .spacing(2)
         .into()
 }

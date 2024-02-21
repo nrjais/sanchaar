@@ -74,7 +74,7 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
         text_input("Enter Address", build_url(request).as_str()).on_input(UrlBarMsg::UrlChanged);
 
     let send =
-        button(container(icon(NerdIcon::Send)).padding([0, 8])).on_press(UrlBarMsg::SendRequest);
+        button(container(icon(NerdIcon::Send)).padding([0, 12])).on_press(UrlBarMsg::SendRequest);
 
     row!(method, url, send)
         .height(iced::Length::Shrink)

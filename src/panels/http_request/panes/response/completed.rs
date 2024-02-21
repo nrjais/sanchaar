@@ -1,10 +1,11 @@
 use iced::{Color, Element};
 
 use iced::theme::Text;
-use iced::widget::{text, Row};
+use iced::widget::{text, Column, Row};
 
 use crate::components::{
-    button_tab, button_tabs, code_viewer, ButtonTabLabel, CodeViewerMsg, ContentType,
+    button_tab, button_tabs, code_viewer, key_value_viewer, ButtonTabLabel, CodeViewerMsg,
+    ContentType,
 };
 use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::{response::ResponseTabId, AppState};
@@ -78,25 +79,37 @@ pub(crate) fn view<'a>(
         .padding([4, 0, 0, 0])
         .spacing(8);
 
-    let tabs = Vec::from([
-        button_tab(
-            ResponseTabId::Body,
-            ButtonTabLabel::Text(text("Body")),
-            code_viewer(&cr.content, ContentType::Json)
-                .on_action(CompletedMsg::CodeViewerMsg)
-                .element(),
-        ),
-        button_tab(
-            ResponseTabId::Headers,
-            ButtonTabLabel::Text(text("Headers")),
-            text("Headers").into(),
-        ),
-    ]);
+    let headers = res
+        .headers
+        .iter()
+        .map(|(k, v)| (k.as_str(), v.to_str().unwrap_or_default()))
+        .collect::<Vec<_>>();
 
-    button_tabs(
+    let tab_content = match active_tab.response.active_tab {
+        ResponseTabId::Body => code_viewer(&cr.content, ContentType::Json)
+            .on_action(CompletedMsg::CodeViewerMsg)
+            .element(),
+        ResponseTabId::Headers => key_value_viewer(&headers),
+    };
+
+    let tabs = button_tabs(
         active_tab.response.active_tab,
-        tabs,
+        &[
+            button_tab(ResponseTabId::Body, ButtonTabLabel::Text(text("Body"))),
+            button_tab(
+                ResponseTabId::Headers,
+                ButtonTabLabel::Text(text("Headers")),
+            ),
+        ],
         CompletedMsg::TabChanged,
         Some(status.into()),
-    )
+    );
+
+    Column::new()
+        .push(tabs)
+        .push(tab_content)
+        .width(iced::Length::Fill)
+        .height(iced::Length::Fill)
+        .spacing(2)
+        .into()
 }
