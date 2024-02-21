@@ -19,7 +19,7 @@ rfd = { version = "0.14.0", default-features = false, features = [
     "tokio",
 ] }
 tokio = { version = "1.36.0", features = ["fs", "net"] }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw", branch = "main", features = [
+iced_aw = { path = "../iced_aw", features = [
     "tabs",
     "split",
     "segmented_button",
@@ -34,3 +34,8 @@ anyhow = "1.0.80"
 
 [profile.dev.package."*"]
 opt-level = 3
+
+[patch.crates-io]
+iced = { path = "../iced" }
+iced_aw = { path = "../iced_aw" }
+

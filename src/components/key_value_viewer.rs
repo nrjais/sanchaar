@@ -1,4 +1,4 @@
-use iced::widget::text::Shaping;
+use iced::widget::text::Wrapping;
 use iced::widget::{container, text};
 use iced::{
     theme,
@@ -15,13 +15,14 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
             .push(
                 text(key)
                     .size(size)
+                    .wrapping(Wrapping::Glyph)
                     .style(theme::Text::Color(colors::DARK_GREY))
                     .width(Length::FillPortion(2)),
             )
             .push(
                 text(val)
                     .size(size)
-                    .shaping(Shaping::Advanced)
+                    .wrapping(Wrapping::Glyph)
                     .style(theme::Text::Color(colors::DARK_GREY))
                     .width(Length::FillPortion(3)),
             )

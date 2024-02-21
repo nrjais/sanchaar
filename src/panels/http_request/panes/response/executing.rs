@@ -1,5 +1,5 @@
 use iced::widget::{button, container, text, Column};
-use iced::Length;
+use iced::{theme, Length};
 use iced_aw::Spinner;
 
 use crate::panels::http_request::panes::response::ResponseMsg;
@@ -26,7 +26,8 @@ pub fn view(_state: &AppState) -> iced::Element<'_, ResponseMsg> {
     );
 
     let cancel = center_x(
-        button(container(text("Cancel").size(16.0)).padding([0, 24])),
+        button(container(text("Cancel").size(16.0)).padding([0, 24]))
+            .style(theme::Button::Destructive),
         0,
     );
 
