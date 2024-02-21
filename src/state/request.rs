@@ -21,7 +21,7 @@ pub enum Method {
 }
 
 #[derive(Debug, Default, Clone)]
-pub struct Request {
+pub struct RequestPane {
     pub url: String,
     pub method: Method,
     pub headers: KeyValList,
@@ -31,10 +31,10 @@ pub struct Request {
     pub tab: ReqTabId,
 }
 
-impl Request {
-    pub(crate) fn new() -> Request {
-        Request {
-            url: "http://echo.nrjais.com".to_string(),
+impl RequestPane {
+    pub(crate) fn new() -> RequestPane {
+        RequestPane {
+            url: "https://echo.nrjais.com".to_string(),
             ..Default::default()
         }
     }

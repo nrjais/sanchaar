@@ -3,9 +3,10 @@ use iced::{
     Element,
 };
 use iced_aw::NerdIcon;
+use response::ResponseState;
 use strum::VariantArray;
 
-use crate::state::request;
+use crate::state::{request, response};
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -30,13 +31,14 @@ impl UrlBarMsg {
             }
             UrlBarMsg::SendRequest => {
                 let req = active_tab.request.clone();
+                active_tab.response.state = ResponseState::Executing;
                 state.commands.send_request(req)
             }
         }
     }
 }
 
-fn build_url(req: &request::Request) -> String {
+fn build_url(req: &request::RequestPane) -> String {
     let mut params = String::new();
     for kv in req.query_params.values().iter() {
         if kv.disabled || kv.name.is_empty() {

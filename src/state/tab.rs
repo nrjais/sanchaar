@@ -1,11 +1,11 @@
-use crate::state::response::Response;
+use crate::state::response::ResponsePane;
 
-use super::request::Request;
+use super::request::RequestPane;
 
 #[derive(Debug)]
 pub struct Tab {
-    pub request: Request,
-    pub response: Response,
+    pub request: RequestPane,
+    pub response: ResponsePane,
 }
 
 impl Default for Tab {
@@ -17,8 +17,8 @@ impl Default for Tab {
 impl Tab {
     pub fn new() -> Self {
         Self {
-            request: Request::new(),
-            response: Response::new(),
+            request: RequestPane::new(),
+            response: ResponsePane::new(),
         }
     }
 }

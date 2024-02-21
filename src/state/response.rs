@@ -9,24 +9,37 @@ pub enum ResponseTabId {
 }
 
 #[derive(Debug)]
-pub struct Response {
-    pub response: Option<client::Response>,
-    pub text_viewer: text_editor::Content,
+pub struct CompletedResponse {
+    pub result: client::Response,
+    pub content: text_editor::Content,
+}
+
+#[derive(Debug, Default)]
+pub enum ResponseState {
+    #[default]
+    Idle,
+    Executing,
+    Completed(CompletedResponse),
+    Failed(anyhow::Error),
+}
+
+#[derive(Debug)]
+pub struct ResponsePane {
+    pub state: ResponseState,
     pub active_tab: ResponseTabId,
 }
 
-impl Default for Response {
+impl Default for ResponsePane {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Response {
+impl ResponsePane {
     pub fn new() -> Self {
         Self {
-            response: None,
+            state: ResponseState::Idle,
             active_tab: ResponseTabId::Body,
-            text_viewer: text_editor::Content::default(),
         }
     }
 }

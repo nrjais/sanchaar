@@ -4,16 +4,17 @@ use iced::widget::text_editor;
 use iced::Subscription;
 use serde_json::Value;
 
+use crate::state::response::{CompletedResponse, ResponseState};
 use crate::transformers::request::transform_request;
 use crate::{
     app::AppMsg,
     core::client,
-    state::{request::Request, AppState},
+    state::{request::RequestPane, AppState},
 };
 
 #[derive(Debug, Clone)]
 pub enum Command {
-    SendRequest(Request),
+    SendRequest(RequestPane),
 }
 
 #[derive(Debug, Clone)]
@@ -36,8 +37,10 @@ impl CommandMsg {
             CommandMsg::UpdateResponse(res) => {
                 let active_tab = state.active_tab_mut();
                 let content = text_editor::Content::with_text(pretty_body(&res.body.data).as_str());
-                active_tab.response.response = Some(res);
-                active_tab.response.text_viewer = content;
+                active_tab.response.state = ResponseState::Completed(CompletedResponse {
+                    result: res,
+                    content,
+                });
             }
         }
     }
@@ -57,7 +60,7 @@ impl Commands {
         Self(Vec::new())
     }
 
-    pub fn send_request(&mut self, req: Request) {
+    pub fn send_request(&mut self, req: RequestPane) {
         self.0.push(Command::SendRequest(req));
     }
 

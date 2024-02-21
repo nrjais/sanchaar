@@ -33,7 +33,7 @@ fn req_params(builder: RequestBuilder, params: &KeyValList) -> RequestBuilder {
 
 pub fn transform_request(
     client: &reqwest::Client,
-    req: request::Request,
+    req: request::RequestPane,
 ) -> anyhow::Result<reqwest::Request> {
     let mut builder = client.request(req_method(req.method), req.url);
 

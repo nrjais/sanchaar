@@ -6,16 +6,16 @@ use iced::widget::{text, Row};
 use crate::components::{
     button_tab, button_tabs, code_viewer, ButtonTabLabel, CodeViewerMsg, ContentType,
 };
-use crate::core::client::Response;
+use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::{response::ResponseTabId, AppState};
 
 #[derive(Debug, Clone)]
-pub enum BodyViewerMsg {
+pub enum CompletedMsg {
     TabChanged(ResponseTabId),
     CodeViewerMsg(CodeViewerMsg),
 }
 
-impl BodyViewerMsg {
+impl CompletedMsg {
     pub(crate) fn update(self, state: &mut AppState) {
         let active_tab = state.active_tab_mut();
         match self {
@@ -23,7 +23,9 @@ impl BodyViewerMsg {
                 active_tab.response.active_tab = tab;
             }
             Self::CodeViewerMsg(msg) => {
-                msg.update(&mut active_tab.response.text_viewer);
+                if let ResponseState::Completed(ref mut res) = active_tab.response.state {
+                    msg.update(&mut res.content);
+                }
             }
         }
     }
@@ -54,8 +56,12 @@ fn status_color(status: reqwest::StatusCode) -> Color {
     }
 }
 
-pub(crate) fn view<'a>(state: &'a AppState, res: &Response) -> Element<'a, BodyViewerMsg> {
+pub(crate) fn view<'a>(
+    state: &'a AppState,
+    cr: &'a CompletedResponse,
+) -> Element<'a, CompletedMsg> {
     let active_tab = state.active_tab();
+    let res = &cr.result;
 
     let status_size = 12;
     let status = Row::new()
@@ -76,8 +82,8 @@ pub(crate) fn view<'a>(state: &'a AppState, res: &Response) -> Element<'a, BodyV
         button_tab(
             ResponseTabId::Body,
             ButtonTabLabel::Text(text("Body")),
-            code_viewer(&active_tab.response.text_viewer, ContentType::Json)
-                .on_action(BodyViewerMsg::CodeViewerMsg)
+            code_viewer(&cr.content, ContentType::Json)
+                .on_action(CompletedMsg::CodeViewerMsg)
                 .element(),
         ),
         button_tab(
@@ -90,7 +96,7 @@ pub(crate) fn view<'a>(state: &'a AppState, res: &Response) -> Element<'a, BodyV
     button_tabs(
         active_tab.response.active_tab,
         tabs,
-        BodyViewerMsg::TabChanged,
+        CompletedMsg::TabChanged,
         Some(status.into()),
     )
 }
