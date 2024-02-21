@@ -1,4 +1,4 @@
-use iced::{Color, Element};
+use iced::{Alignment, Color, Element};
 
 use iced::theme::Text;
 use iced::widget::{text, Column, Row};
@@ -76,8 +76,9 @@ pub(crate) fn view<'a>(
                 .size(status_size)
                 .style(Text::Color(Color::from_rgb8(160, 160, 160))),
         )
-        .padding([4, 0, 0, 0])
-        .spacing(8);
+        .padding([4, 8])
+        .spacing(8)
+        .align_items(Alignment::Center);
 
     let headers = res
         .headers
