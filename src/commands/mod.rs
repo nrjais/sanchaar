@@ -1,6 +1,8 @@
 use std::mem;
 
+use iced::widget::text_editor;
 use iced::Subscription;
+use serde_json::Value;
 
 use crate::transformers::request::transform_request;
 use crate::{
@@ -19,11 +21,23 @@ pub enum CommandMsg {
     UpdateResponse(client::Response),
 }
 
+fn pretty_body(body: &[u8]) -> String {
+    let json = serde_json::from_slice::<Value>(body);
+    if let Ok(json) = json {
+        serde_json::to_string_pretty(&json).unwrap()
+    } else {
+        String::from_utf8_lossy(body).to_string()
+    }
+}
+
 impl CommandMsg {
     pub fn update(self, state: &mut AppState) {
         match self {
-            CommandMsg::UpdateResponse(response) => {
-                state.active_tab_mut().response.response = Some(response);
+            CommandMsg::UpdateResponse(res) => {
+                let active_tab = state.active_tab_mut();
+                let content = text_editor::Content::with_text(pretty_body(&res.body.data).as_str());
+                active_tab.response.response = Some(res);
+                active_tab.response.text_viewer = content;
             }
         }
     }

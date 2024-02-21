@@ -1,4 +1,4 @@
-use iced::widget::horizontal_space;
+use iced::widget::{container, horizontal_space};
 use iced::{
     theme,
     widget::{button, Column, Row, Rule, Text},
@@ -56,7 +56,7 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     Column::new()
         .push(tabs_row)
         .push(Rule::horizontal(2.))
-        .push(active_tab.expect("Invalid active tab id"))
+        .push(container(active_tab.expect("Invalid active tab id")).height(iced::Length::Fill))
         .width(iced::Length::Fill)
         .spacing(2)
         .into()

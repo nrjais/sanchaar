@@ -3,8 +3,6 @@ use iced::{
     Element,
 };
 
-use serde_json::Value;
-
 mod body_viewer;
 
 #[derive(Debug, Clone)]
@@ -27,15 +25,6 @@ fn response_container(body: Element<ResponseMsg>) -> Element<ResponseMsg> {
         .width(iced::Length::Fill)
         .height(iced::Length::Fill)
         .into()
-}
-
-fn pretty_body(body: &[u8]) -> String {
-    let json = serde_json::from_slice::<Value>(body);
-    if let Ok(json) = json {
-        serde_json::to_string_pretty(&json).unwrap()
-    } else {
-        String::from_utf8_lossy(body).to_string()
-    }
 }
 
 pub(crate) fn view(state: &crate::state::AppState) -> Element<ResponseMsg> {
