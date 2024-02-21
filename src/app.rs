@@ -1,24 +1,24 @@
 use iced::Command;
 
 use crate::{
-    commands::{self, CommandMsg},
+    commands::CommandResultMsg,
     panels::{self, PanelMsg},
     state::AppState,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum AppMsg {
     Panel(PanelMsg),
-    Command(CommandMsg),
+    Command(CommandResultMsg),
 }
 
 impl AppMsg {
     pub fn update(self, state: &mut AppState) -> Command<AppMsg> {
         match self {
             AppMsg::Panel(msg) => msg.update(state),
-            AppMsg::Command(msg) => msg.update(state),
+            AppMsg::Command(msg) => return msg.update(state),
         }
-        commands::commands(state)
+        Command::none()
     }
 }
 

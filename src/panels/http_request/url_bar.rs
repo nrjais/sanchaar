@@ -3,11 +3,9 @@ use iced::{
     Element,
 };
 use iced_aw::NerdIcon;
-use response::ResponseState;
 use strum::VariantArray;
 
-use crate::state::{request, response};
-use crate::transformers::request::transform_request;
+use crate::state::request;
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -30,13 +28,7 @@ impl UrlBarMsg {
             UrlBarMsg::UrlChanged(url) => {
                 active_tab.request.url = url;
             }
-            UrlBarMsg::SendRequest => {
-                active_tab.response.state = ResponseState::Executing;
-                let active_tab = state.active_tab();
-                let req = transform_request(&state.ctx.client, &active_tab.request)
-                    .expect("Failed to create request");
-                state.commands.send_request(req)
-            }
+            UrlBarMsg::SendRequest => state.commands.send_request(),
         }
     }
 }
