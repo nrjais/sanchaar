@@ -1,7 +1,6 @@
-use crate::components::icon;
 use iced::widget::{button, container, text, Column};
 use iced::Length;
-use iced_aw::NerdIcon;
+use iced_aw::Spinner;
 
 use crate::panels::http_request::panes::response::ResponseMsg;
 use crate::state::AppState;
@@ -19,7 +18,12 @@ pub fn center_x<'a>(
 }
 
 pub fn view(_state: &AppState) -> iced::Element<'_, ResponseMsg> {
-    let send_icon = center_x(icon(NerdIcon::SendClock).size(60.0), 4);
+    let send_icon = center_x(
+        Spinner::new()
+            .width(Length::Fixed(40.))
+            .height(Length::Fixed(40.)),
+        4,
+    );
 
     let cancel = center_x(
         button(container(text("Cancel").size(16.0)).padding([0, 24])),
