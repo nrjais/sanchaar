@@ -1,6 +1,5 @@
 mod body_editor;
 
-use iced::advanced::Widget;
 use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
 use iced_aw::NerdIcon;
@@ -72,7 +71,8 @@ fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
                 Some(body.as_str()),
                 RequestPaneMsg::ChangeBodyType,
             )
-            .text_size(size),
+            .text_size(size)
+            .padding([2, 4]),
         )
         .height(Length::Shrink)
         .align_items(iced::Alignment::Center);
