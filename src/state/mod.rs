@@ -18,14 +18,6 @@ pub struct AppCtx {
     pub task_cancel_tx: SlotMap<TaskCancelKey, oneshot::Sender<()>>,
 }
 
-impl AppCtx {
-    pub fn cancel_task(&mut self, key: TaskCancelKey) {
-        if let Some(tx) = self.task_cancel_tx.remove(key) {
-            let _ = tx.send(());
-        }
-    }
-}
-
 #[derive(Debug)]
 pub struct AppState {
     pub active_tab: usize,
@@ -64,5 +56,13 @@ impl AppState {
         self.tabs
             .get(self.active_tab)
             .expect("Active tab not found")
+    }
+
+    pub fn cancel_task(&mut self, key: TaskCancelKey) {
+        if let Some(tx) = self.ctx.task_cancel_tx.remove(key) {
+            let _ = tx.send(());
+        }
+
+        self.active_tab_mut().response.state = response::ResponseState::Idle;
     }
 }

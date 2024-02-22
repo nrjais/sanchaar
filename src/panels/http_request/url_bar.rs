@@ -31,7 +31,7 @@ impl UrlBarMsg {
             }
             UrlBarMsg::SendRequest => {
                 if let ResponseState::Executing(key) = active_tab.response.state {
-                    state.ctx.cancel_task(key);
+                    state.cancel_task(key);
                 }
                 state.commands.send_request()
             }
