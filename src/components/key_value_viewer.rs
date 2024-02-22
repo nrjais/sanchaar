@@ -1,5 +1,6 @@
+use iced::futures::SinkExt;
 use iced::widget::text::Wrapping;
-use iced::widget::{container, text};
+use iced::widget::{container, scrollable, text};
 use iced::{
     theme,
     widget::{Column, Row},
@@ -30,14 +31,14 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
             .into()
     });
 
-    container(
+    container(scrollable(
         Column::with_children(values)
             .spacing(spacing)
+            .padding([8, 12, 8, 8])
             .width(Length::Fill),
-    )
+    ))
     .width(Length::Fill)
     .height(Length::Fill)
-    .padding(8)
     .style(|theme: &Theme| container::Appearance {
         border: Border {
             color: theme.extended_palette().secondary.strong.color,

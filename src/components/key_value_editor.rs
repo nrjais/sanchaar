@@ -1,3 +1,4 @@
+use iced::widget::scrollable;
 use iced::{
     widget::{button, checkbox, component, container, text_input, Column, Component, Row},
     Border, Element, Theme,
@@ -15,6 +16,7 @@ pub struct KeyValue {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct KeyValList(Vec<KeyValue>);
+
 impl Default for KeyValList {
     fn default() -> Self {
         KeyValList(vec![KeyValue::default()])
@@ -140,9 +142,11 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .into()
         });
 
-        Column::with_children(values)
-            .spacing(spacing)
-            .padding([4, 0])
-            .into()
+        scrollable(
+            Column::with_children(values)
+                .spacing(spacing)
+                .padding([4, 8, 4, 4]),
+        )
+        .into()
     }
 }
