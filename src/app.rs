@@ -1,5 +1,6 @@
 use iced::Command;
 
+use crate::commands::commands;
 use crate::{
     commands::CommandResultMsg,
     panels::{self, PanelMsg},
@@ -16,9 +17,9 @@ impl AppMsg {
     pub fn update(self, state: &mut AppState) -> Command<AppMsg> {
         match self {
             AppMsg::Panel(msg) => msg.update(state),
-            AppMsg::Command(msg) => return msg.update(state),
-        }
-        Command::none()
+            AppMsg::Command(msg) => msg.update(state),
+        };
+        commands(state)
     }
 }
 

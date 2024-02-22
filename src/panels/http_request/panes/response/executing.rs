@@ -2,13 +2,13 @@ use iced::widget::{button, container, text, Column};
 use iced::{theme, Length};
 use iced_aw::Spinner;
 
-use crate::panels::http_request::panes::response::ResponseMsg;
+use crate::panels::http_request::panes::response::ResponsePaneMsg;
 use crate::state::AppState;
 
 pub fn center_x<'a>(
-    el: impl Into<iced::Element<'a, ResponseMsg>>,
+    el: impl Into<iced::Element<'a, ResponsePaneMsg>>,
     padding: u16,
-) -> iced::Element<'a, ResponseMsg> {
+) -> iced::Element<'a, ResponsePaneMsg> {
     container(el)
         .width(Length::Fill)
         .height(Length::Shrink)
@@ -17,7 +17,7 @@ pub fn center_x<'a>(
         .into()
 }
 
-pub fn view(_state: &AppState) -> iced::Element<'_, ResponseMsg> {
+pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
     let send_icon = center_x(
         Spinner::new()
             .width(Length::Fixed(40.))
@@ -27,7 +27,8 @@ pub fn view(_state: &AppState) -> iced::Element<'_, ResponseMsg> {
 
     let cancel = center_x(
         button(container(text("Cancel").size(16.0)).padding([0, 24]))
-            .style(theme::Button::Destructive),
+            .style(theme::Button::Destructive)
+            .on_press(ResponsePaneMsg::CancelRequest),
         0,
     );
 

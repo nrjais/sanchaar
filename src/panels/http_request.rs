@@ -14,7 +14,7 @@ pub mod url_bar;
 #[derive(Debug, Clone)]
 pub enum HttpMsg {
     Req(request::RequestMsg),
-    Res(response::ResponseMsg),
+    Res(response::ResponsePaneMsg),
     Url(url_bar::UrlBarMsg),
     SplitPos(u16),
 }

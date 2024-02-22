@@ -2,13 +2,20 @@ pub mod request;
 pub mod response;
 pub mod tab;
 
+use slotmap::SlotMap;
 pub use tab::*;
+use tokio::sync::oneshot;
 
 use crate::{commands::Commands, core::client::create_client};
+
+slotmap::new_key_type! {
+    pub struct TaskCancelKey;
+}
 
 #[derive(Debug)]
 pub struct AppCtx {
     pub client: reqwest::Client,
+    pub task_cancel_tx: SlotMap<TaskCancelKey, oneshot::Sender<()>>,
 }
 
 #[derive(Debug)]
@@ -33,6 +40,7 @@ impl AppState {
             tabs,
             ctx: AppCtx {
                 client: create_client(),
+                task_cancel_tx: SlotMap::with_key(),
             },
             commands: Commands::new(),
         }

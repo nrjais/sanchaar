@@ -3,10 +3,10 @@ use crate::panels::http_request::panes::response::executing::center_x;
 use iced::widget::{container, text, Column};
 use iced_aw::NerdIcon;
 
-use crate::panels::http_request::panes::response::ResponseMsg;
+use crate::panels::http_request::panes::response::ResponsePaneMsg;
 use crate::state::AppState;
 
-pub fn view(_state: &AppState) -> iced::Element<'_, ResponseMsg> {
+pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
     let error_icon = center_x(icon(NerdIcon::Error).size(60.0), 10);
 
     let col = Column::new()
