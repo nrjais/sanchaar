@@ -58,8 +58,8 @@ impl RequestRawBody {
         }
     }
 
-    pub fn all_variants() -> Vec<&'static str> {
-        Vec::from(["URL Encoded", "Json", "XML", "Text", "File", "None"])
+    pub fn all_variants() -> &'static [&'static str] {
+        &["URL Encoded", "Json", "XML", "Text", "File", "None"]
     }
 }
 

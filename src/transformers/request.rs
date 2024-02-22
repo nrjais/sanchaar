@@ -1,5 +1,5 @@
 use anyhow::Context;
-use mime::{APPLICATION_JSON, APPLICATION_WWW_FORM_URLENCODED, TEXT_PLAIN, TEXT_XML};
+use mime::{APPLICATION_JSON, TEXT_PLAIN, TEXT_XML};
 use mime_guess::mime;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::RequestBuilder;
@@ -64,12 +64,7 @@ async fn req_body(builder: RequestBuilder, body: RequestBody) -> RequestBuilder 
             .body(json)
             .header(CONTENT_TYPE, APPLICATION_JSON.as_ref()),
         RequestBody::XML(xml) => builder.body(xml).header(CONTENT_TYPE, TEXT_XML.as_ref()),
-        RequestBody::Form(form) => {
-            let form = enabled_params(&form);
-            builder
-                .form(&form)
-                .header(CONTENT_TYPE, APPLICATION_WWW_FORM_URLENCODED.as_ref())
-        }
+        RequestBody::Form(form) => builder.form(&enabled_params(&form)),
         RequestBody::File(file) => {
             let content_type = mime_guess::from_path(&file)
                 .first_or_octet_stream()

@@ -29,6 +29,11 @@ impl<'a, M: 'a> CodeEditor<'a, M> {
         self.on_action = Some(Box::new(f));
         self
     }
+
+    pub fn editable(mut self) -> Self {
+        self.editable = true;
+        self
+    }
 }
 
 impl ContentType {
@@ -49,12 +54,11 @@ pub enum CodeEditorMsg {
 impl CodeEditorMsg {
     pub fn update(self, state: &mut text_editor::Content) {
         match self {
-            Self::EditorAction(action, editable) => match action {
-                Action::Edit(_) if !editable => {}
-                _ => {
+            Self::EditorAction(action, editable) => {
+                if editable || !action.is_edit() {
                     state.perform(action);
                 }
-            },
+            }
         }
     }
 }

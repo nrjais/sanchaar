@@ -1,9 +1,11 @@
 mod body_editor;
 
-use iced::widget::Column;
+use iced::advanced::Widget;
+use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
+use iced_aw::NerdIcon;
 
-use crate::components::{CodeEditorMsg, ContentType};
+use crate::components::{icon, CodeEditorMsg, ContentType};
 use crate::state::request::RequestRawBody;
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
@@ -17,6 +19,7 @@ pub enum RequestPaneMsg {
     Queries(KeyValUpdateMsg),
     BodyEditorAction(CodeEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
+    ChangeBodyType(&'static str),
 }
 
 impl RequestPaneMsg {
@@ -43,20 +46,78 @@ impl RequestPaneMsg {
                     form.update(edit);
                 }
             }
+            RequestPaneMsg::ChangeBodyType(content_type) => {
+                request.body = match content_type {
+                    "URL Encoded" => RequestRawBody::Form(Default::default()),
+                    "Json" => RequestRawBody::Json(Default::default()),
+                    "XML" => RequestRawBody::XML(Default::default()),
+                    "Text" => RequestRawBody::Text(Default::default()),
+                    "File" => RequestRawBody::File(Default::default()),
+                    "None" => RequestRawBody::None,
+                    _ => RequestRawBody::None,
+                };
+            }
         }
     }
 }
 
 fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
-    match body {
+    let size = 14;
+    let header = Row::new()
+        .push(text(format!("Content Type: {}", body.as_str())).size(size))
+        .push(horizontal_space())
+        .push(
+            pick_list(
+                RequestRawBody::all_variants(),
+                Some(body.as_str()),
+                RequestPaneMsg::ChangeBodyType,
+            )
+            .text_size(size),
+        )
+        .height(Length::Shrink)
+        .align_items(iced::Alignment::Center);
+
+    let body = match body {
         RequestRawBody::Json(content) => body_editor::view(content, ContentType::Json),
         RequestRawBody::XML(content) => body_editor::view(content, ContentType::XML),
         RequestRawBody::Text(content) => body_editor::view(content, ContentType::Text),
-        RequestRawBody::Form(values) => key_value_editor(values)
-            .on_change(RequestPaneMsg::FormBodyEditAction)
-            .element(),
-        RequestRawBody::File(_) | RequestRawBody::None => text("No body").into(),
-    }
+        RequestRawBody::Form(values) => container(
+            key_value_editor(values)
+                .on_change(RequestPaneMsg::FormBodyEditAction)
+                .element(),
+        )
+        .height(Length::Fill)
+        .width(Length::Fill)
+        .into(),
+        RequestRawBody::File(_) | RequestRawBody::None => {
+            let empty_icon = container(icon(NerdIcon::FileCancel).size(60.0))
+                .padding(10)
+                .center_x()
+                .width(Length::Fill)
+                .height(Length::Shrink);
+
+            container(
+                Column::new()
+                    .push(empty_icon)
+                    .push(text("No Body Content"))
+                    .height(Length::Shrink)
+                    .width(Length::Shrink),
+            )
+            .into()
+        }
+    };
+
+    Column::new()
+        .push(header)
+        .push(
+            container(body)
+                .height(Length::Fill)
+                .width(Length::Fill)
+                .center_x()
+                .center_y(),
+        )
+        .spacing(4)
+        .into()
 }
 
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {

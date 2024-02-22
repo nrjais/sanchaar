@@ -94,7 +94,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         self.on_change.as_ref().map(|f| f(event))
     }
 
-    fn view(&self, _state: &Self::State) -> iced::Element<Self::Event> {
+    fn view(&self, _state: &Self::State) -> Element<Self::Event> {
         let size = 14;
         let spacing = 2;
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
