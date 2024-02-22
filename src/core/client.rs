@@ -21,6 +21,7 @@ pub struct Response {
     pub headers: HeaderMap,
     pub body: ResponseBody,
     pub duration: Duration,
+    pub size_bytes: usize,
 }
 
 pub async fn send_request(req: reqwest::Request) -> anyhow::Result<Response> {
@@ -34,6 +35,7 @@ pub async fn send_request(req: reqwest::Request) -> anyhow::Result<Response> {
         .get(reqwest::header::CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
         .unwrap_or_default();
+
     let body: ResponseBody = match content_type {
         "application/json" => ResponseBody {
             content_type: ContentType::Json,
@@ -49,11 +51,14 @@ pub async fn send_request(req: reqwest::Request) -> anyhow::Result<Response> {
         },
     };
 
+    let size_bytes = body.data.len();
+
     Ok(Response {
         status,
         headers,
         body,
         duration,
+        size_bytes,
     })
 }
 

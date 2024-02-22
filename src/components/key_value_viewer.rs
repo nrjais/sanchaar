@@ -1,4 +1,3 @@
-use iced::futures::SinkExt;
 use iced::widget::text::Wrapping;
 use iced::widget::{container, scrollable, text};
 use iced::{

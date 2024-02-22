@@ -1,3 +1,4 @@
+use humansize::{format_size, BINARY};
 use iced::{Alignment, Color, Element};
 
 use iced::theme::Text;
@@ -75,6 +76,11 @@ pub(crate) fn view<'a>(
             text(fmt_duration(res.duration))
                 .size(status_size)
                 .style(Text::Color(Color::from_rgb8(160, 160, 160))),
+        )
+        .push(
+            text(format_size(res.size_bytes, BINARY))
+                .size(status_size)
+                .style(Text::Color(Color::from_rgb8(182, 128, 182))),
         )
         .padding([4, 8])
         .spacing(8)
