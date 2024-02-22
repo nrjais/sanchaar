@@ -60,9 +60,8 @@ impl CommandResultMsg {
                 active_tab.response.state = ResponseState::Failed(e);
             }
             CommandResultMsg::UpdateResponse(ResponseResult::Cancelled, cancel) => {
+                // Response state is already updated to idle in cancel_task
                 state.ctx.task_cancel_tx.remove(cancel);
-                let active_tab = state.active_tab_mut();
-                active_tab.response.state = ResponseState::Idle;
             }
             CommandResultMsg::RequestReady(req, cancel) => {
                 state.ctx.task_cancel_tx.remove(cancel);
