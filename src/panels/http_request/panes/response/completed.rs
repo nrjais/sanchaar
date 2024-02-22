@@ -4,7 +4,7 @@ use iced::theme::Text;
 use iced::widget::{text, Column, Row};
 
 use crate::components::{
-    button_tab, button_tabs, code_editor, key_value_viewer, ButtonTabLabel, CodeViewerMsg,
+    button_tab, button_tabs, code_editor, key_value_viewer, ButtonTabLabel, CodeEditorMsg,
     ContentType,
 };
 use crate::state::response::{CompletedResponse, ResponseState};
@@ -13,7 +13,7 @@ use crate::state::{response::ResponseTabId, AppState};
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {
     TabChanged(ResponseTabId),
-    CodeViewerMsg(CodeViewerMsg),
+    CodeViewerMsg(CodeEditorMsg),
 }
 
 impl CompletedMsg {

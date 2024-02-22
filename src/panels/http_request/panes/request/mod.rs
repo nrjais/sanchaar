@@ -3,45 +3,73 @@ mod body_editor;
 use iced::widget::Column;
 use iced::{widget::text, Length};
 
+use crate::components::{CodeEditorMsg, ContentType};
+use crate::state::request::RequestRawBody;
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
     state::{request::ReqTabId, AppState},
 };
 
 #[derive(Debug, Clone)]
-pub enum RequestMsg {
+pub enum RequestPaneMsg {
     TabSelected(ReqTabId),
     Headers(KeyValUpdateMsg),
     Queries(KeyValUpdateMsg),
+    BodyEditorAction(CodeEditorMsg),
+    FormBodyEditAction(KeyValUpdateMsg),
 }
 
-impl RequestMsg {
+impl RequestPaneMsg {
     pub(crate) fn update(self, state: &mut AppState) {
+        let request = &mut state.active_tab_mut().request;
         match self {
-            RequestMsg::TabSelected(tab) => {
-                state.active_tab_mut().request.tab = tab;
+            RequestPaneMsg::TabSelected(tab) => {
+                request.tab = tab;
             }
-            RequestMsg::Headers(msg) => {
-                state.active_tab_mut().request.headers.update(msg);
+            RequestPaneMsg::Headers(msg) => {
+                request.headers.update(msg);
             }
-            RequestMsg::Queries(msg) => {
-                state.active_tab_mut().request.query_params.update(msg);
+            RequestPaneMsg::Queries(msg) => {
+                request.query_params.update(msg);
+            }
+            RequestPaneMsg::BodyEditorAction(action) => match &mut request.body {
+                RequestRawBody::Json(content)
+                | RequestRawBody::XML(content)
+                | RequestRawBody::Text(content) => action.update(content),
+                _ => {}
+            },
+            RequestPaneMsg::FormBodyEditAction(edit) => {
+                if let RequestRawBody::Form(form) = &mut request.body {
+                    form.update(edit);
+                }
             }
         }
     }
 }
 
-pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
+fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
+    match body {
+        RequestRawBody::Json(content) => body_editor::view(content, ContentType::Json),
+        RequestRawBody::XML(content) => body_editor::view(content, ContentType::XML),
+        RequestRawBody::Text(content) => body_editor::view(content, ContentType::Text),
+        RequestRawBody::Form(values) => key_value_editor(values)
+            .on_change(RequestPaneMsg::FormBodyEditAction)
+            .element(),
+        RequestRawBody::File(_) | RequestRawBody::None => text("No body").into(),
+    }
+}
+
+pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let request = &state.active_tab().request;
 
     let tab_content = match request.tab {
         ReqTabId::Params => key_value_editor(&request.query_params)
-            .on_change(RequestMsg::Queries)
+            .on_change(RequestPaneMsg::Queries)
             .element(),
         ReqTabId::Headers => key_value_editor(&request.headers)
-            .on_change(RequestMsg::Headers)
+            .on_change(RequestPaneMsg::Headers)
             .element(),
-        ReqTabId::Body => text::Text::new("Body").into(),
+        ReqTabId::Body => body_tab(&request.body),
     };
 
     let tabs = button_tabs(
@@ -51,7 +79,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestMsg> {
             button_tab(ReqTabId::Headers, ButtonTabLabel::Text(text("Headers"))),
             button_tab(ReqTabId::Body, ButtonTabLabel::Text(text("Body"))),
         ],
-        RequestMsg::TabSelected,
+        RequestPaneMsg::TabSelected,
         None,
     );
 

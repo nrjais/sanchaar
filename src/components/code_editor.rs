@@ -10,21 +10,21 @@ pub enum ContentType {
     XML,
 }
 
-pub struct CodeViewer<'a, M> {
+pub struct CodeEditor<'a, M> {
     pub code: &'a text_editor::Content,
     pub content_type: ContentType,
-    pub on_action: Option<Box<dyn Fn(CodeViewerMsg) -> M>>,
+    pub on_action: Option<Box<dyn Fn(CodeEditorMsg) -> M>>,
     pub editable: bool,
 }
 
-impl<'a, M: 'a> CodeViewer<'a, M> {
+impl<'a, M: 'a> CodeEditor<'a, M> {
     pub fn element(self) -> Element<'a, M, Theme, Renderer> {
         component(self)
     }
 
-    pub fn on_action<F>(mut self, f: F) -> CodeViewer<'a, M>
+    pub fn on_action<F>(mut self, f: F) -> CodeEditor<'a, M>
     where
-        F: 'static + Fn(CodeViewerMsg) -> M,
+        F: 'static + Fn(CodeEditorMsg) -> M,
     {
         self.on_action = Some(Box::new(f));
         self
@@ -42,11 +42,11 @@ impl ContentType {
 }
 
 #[derive(Debug, Clone)]
-pub enum CodeViewerMsg {
+pub enum CodeEditorMsg {
     EditorAction(Action, bool),
 }
 
-impl CodeViewerMsg {
+impl CodeEditorMsg {
     pub fn update(self, state: &mut text_editor::Content) {
         match self {
             Self::EditorAction(action, editable) => match action {
@@ -59,8 +59,8 @@ impl CodeViewerMsg {
     }
 }
 
-pub fn code_editor<M>(code: &text_editor::Content, content_type: ContentType) -> CodeViewer<'_, M> {
-    CodeViewer {
+pub fn code_editor<M>(code: &text_editor::Content, content_type: ContentType) -> CodeEditor<'_, M> {
+    CodeEditor {
         code,
         content_type,
         on_action: None,
@@ -68,9 +68,9 @@ pub fn code_editor<M>(code: &text_editor::Content, content_type: ContentType) ->
     }
 }
 
-impl<'a, M> Component<M> for CodeViewer<'a, M> {
+impl<'a, M> Component<M> for CodeEditor<'a, M> {
     type State = ();
-    type Event = CodeViewerMsg;
+    type Event = CodeEditorMsg;
 
     fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
         self.on_action.as_ref().map(|on_action| on_action(event))
@@ -80,7 +80,7 @@ impl<'a, M> Component<M> for CodeViewer<'a, M> {
         text_editor(self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
-            .on_action(|ac| CodeViewerMsg::EditorAction(ac, self.editable))
+            .on_action(|ac| CodeEditorMsg::EditorAction(ac, self.editable))
             .highlight::<Highlighter>(
                 highlighter::Settings {
                     theme: highlighter::Theme::SolarizedDark,
