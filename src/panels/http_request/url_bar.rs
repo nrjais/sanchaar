@@ -6,6 +6,7 @@ use iced_aw::NerdIcon;
 use strum::VariantArray;
 
 use crate::state::request;
+use crate::state::response::ResponseState;
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -28,7 +29,12 @@ impl UrlBarMsg {
             UrlBarMsg::UrlChanged(url) => {
                 active_tab.request.url = url;
             }
-            UrlBarMsg::SendRequest => state.commands.send_request(),
+            UrlBarMsg::SendRequest => {
+                if let ResponseState::Executing(key) = active_tab.response.state {
+                    state.ctx.cancel_task(key);
+                }
+                state.commands.send_request()
+            }
         }
     }
 }

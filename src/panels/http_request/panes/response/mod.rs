@@ -21,10 +21,7 @@ impl ResponsePaneMsg {
             Self::CancelRequest => {
                 let res_state = &state.active_tab().response.state;
                 if let ResponseState::Executing(task) = res_state {
-                    let task = state.ctx.task_cancel_tx.remove(*task);
-                    if let Some(task) = task {
-                        let _ = task.send(());
-                    }
+                    state.ctx.cancel_task(*task);
                 }
             }
         }

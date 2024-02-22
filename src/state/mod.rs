@@ -18,6 +18,14 @@ pub struct AppCtx {
     pub task_cancel_tx: SlotMap<TaskCancelKey, oneshot::Sender<()>>,
 }
 
+impl AppCtx {
+    pub fn cancel_task(&mut self, key: TaskCancelKey) {
+        if let Some(tx) = self.task_cancel_tx.remove(key) {
+            let _ = tx.send(());
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct AppState {
     pub active_tab: usize,
