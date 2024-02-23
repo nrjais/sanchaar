@@ -1,5 +1,4 @@
 use crate::components::icon;
-use iced::advanced::Widget;
 use iced::widget::{container, horizontal_space};
 use iced::{
     theme,

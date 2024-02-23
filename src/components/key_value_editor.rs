@@ -1,5 +1,6 @@
 use iced::widget::scrollable;
 use iced::{
+    theme,
     widget::{button, checkbox, component, container, text_input, Column, Component, Row},
     Border, Element, Theme,
 };
@@ -99,23 +100,38 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
     fn view(&self, _state: &Self::State) -> Element<Self::Event> {
         let size = 14;
         let spacing = 2;
+
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
             let enabled = checkbox("", !kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
                 .size(size)
                 .spacing(spacing);
 
-            let enabled =
-                container(enabled)
-                    .padding([4, 2])
-                    .style(|theme: &Theme| container::Appearance {
-                        border: Border {
-                            color: theme.extended_palette().secondary.strong.color,
-                            width: 1.,
-                            radius: 2.into(),
-                        },
-                        ..container::Appearance::default()
-                    });
+            let remove = button(container(icon(NerdIcon::TrashCan).size(size + 4)))
+                .padding(0)
+                .style(theme::Button::Text)
+                .on_press_maybe(if idx < self.values.values().len() - 1 {
+                    Some(KeyValUpdateMsg::Remove(idx))
+                } else {
+                    None
+                });
+
+            let actions = container(
+                Row::new()
+                    .push(enabled)
+                    .push(remove)
+                    .align_items(iced::Alignment::Center)
+                    .spacing(8),
+            )
+            .padding([2, 8])
+            .style(|theme: &Theme| container::Appearance {
+                border: Border {
+                    color: theme.extended_palette().secondary.strong.color,
+                    width: 1.,
+                    radius: 2.into(),
+                },
+                ..container::Appearance::default()
+            });
 
             let name = text_input("Key", &kv.name)
                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))
@@ -126,18 +142,10 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .size(size)
                 .width(iced::Length::FillPortion(3));
 
-            let remove = button(container(icon(NerdIcon::TrashCan).size(size)).padding([0, 4]))
-                .on_press_maybe(if idx < self.values.values().len() - 1 {
-                    Some(KeyValUpdateMsg::Remove(idx))
-                } else {
-                    None
-                });
-
             Row::new()
-                .push(enabled)
                 .push(name)
                 .push(value)
-                .push(remove)
+                .push(actions)
                 .spacing(spacing)
                 .into()
         });
