@@ -5,6 +5,7 @@ pub mod tab;
 use slotmap::SlotMap;
 pub use tab::*;
 
+use crate::commands::AppCommand;
 use crate::state::response::ResponseState;
 use crate::{commands::Commands, core::client::create_client};
 
@@ -78,7 +79,7 @@ impl AppState {
             tab.cancel_tasks();
         }
 
-        self.active_tab_mut().response.state = response::ResponseState::Idle;
+        self.active_tab_mut().response.state = ResponseState::Idle;
     }
 
     pub fn close_tab(&mut self, tab: TabKey) {
@@ -94,6 +95,10 @@ impl AppState {
             self.cancel_tab_tasks(self.active_tab);
         }
 
-        self.commands.send_request(self.active_tab);
+        self.commands.add(AppCommand::InitRequest(self.active_tab));
+    }
+
+    pub fn save_request(&mut self) {
+        self.commands.add(AppCommand::SaveRequest(self.active_tab));
     }
 }

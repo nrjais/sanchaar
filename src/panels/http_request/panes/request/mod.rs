@@ -4,7 +4,7 @@ use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
 use iced_aw::NerdIcon;
 
-use crate::components::{icon, CodeEditorMsg, ContentType};
+use crate::components::{icon, CodeEditorMsg, ContentType, KeyValList};
 use crate::state::request::RequestRawBody;
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
@@ -47,7 +47,7 @@ impl RequestPaneMsg {
             }
             RequestPaneMsg::ChangeBodyType(content_type) => {
                 request.body = match content_type {
-                    "URL Encoded" => RequestRawBody::Form(Default::default()),
+                    "URL Encoded" => RequestRawBody::Form(KeyValList::new()),
                     "Json" => RequestRawBody::Json(Default::default()),
                     "XML" => RequestRawBody::XML(Default::default()),
                     "Text" => RequestRawBody::Text(Default::default()),

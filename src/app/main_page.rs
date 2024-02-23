@@ -62,11 +62,11 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
 
     let tabs = tabs
         .into_iter()
-        .map(|(k, v)| {
+        .map(|(key, tab)| {
             card_tab(
-                k,
-                text(v.request.method)
-                    .style(iced::theme::Text::Color(method_color(v.request.method)))
+                key,
+                text(tab.request.method)
+                    .style(iced::theme::Text::Color(method_color(tab.request.method)))
                     .shaping(Advanced)
                     .size(12)
                     .height(Shrink)
@@ -74,7 +74,7 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
                         weight: Weight::Semibold,
                         ..Default::default()
                     }),
-                text("Untitled"),
+                text(&tab.request.name),
             )
         })
         .collect();
@@ -89,5 +89,6 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         .push(panels::view(state).map(MainPageMsg::Panel))
         .spacing(8)
         .padding(4)
+        .align_items(iced::Alignment::Center)
         .into()
 }

@@ -68,8 +68,10 @@ impl RequestRawBody {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct RequestPane {
+    pub name: String,
+    pub description: String,
     pub url: String,
     pub method: Method,
     pub headers: KeyValList,
@@ -92,6 +94,8 @@ pub enum RequestBody {
 
 #[derive(Debug, Clone)]
 pub struct Request {
+    pub name: String,
+    pub description: String,
     pub method: Method,
     pub url: String,
     pub headers: KeyValList,
@@ -103,12 +107,22 @@ impl RequestPane {
     pub(crate) fn new() -> RequestPane {
         RequestPane {
             url: "https://echo.nrjais.com".to_string(),
-            ..Default::default()
+            method: Method::GET,
+            headers: KeyValList::new(),
+            body: RequestRawBody::None,
+            query_params: KeyValList::new(),
+            split_axis: split::Axis::Vertical,
+            split_pos: None,
+            tab: ReqTabId::Params,
+            name: "Untitled".to_string(),
+            description: "Http request".to_string(),
         }
     }
 
     pub fn to_request(&self) -> Request {
         Request {
+            name: self.name.clone(),
+            description: self.description.clone(),
             method: self.method,
             url: self.url.clone(),
             headers: self.headers.clone(),

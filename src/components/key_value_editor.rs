@@ -20,11 +20,28 @@ pub struct KeyValList(Vec<KeyValue>);
 
 impl Default for KeyValList {
     fn default() -> Self {
-        KeyValList(vec![KeyValue::default()])
+        Self::new()
     }
 }
 
 impl KeyValList {
+    pub fn new() -> Self {
+        KeyValList(vec![KeyValue::default()])
+    }
+
+    pub fn from(values: Vec<KeyValue>) -> Self {
+        let last = &values.last();
+        match last {
+            Some(last) if !last.name.is_empty() => {
+                let mut values = values;
+                values.push(KeyValue::default());
+                KeyValList(values)
+            }
+            Some(_) => KeyValList(values),
+            None => KeyValList(vec![KeyValue::default()]),
+        }
+    }
+
     pub fn update(&mut self, msg: KeyValUpdateMsg) {
         match msg {
             KeyValUpdateMsg::AddHeader => self.0.push(KeyValue::default()),

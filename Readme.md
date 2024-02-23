@@ -9,7 +9,7 @@
     [*] XML
     [] Multipart
 [*] Request cancellation
-[] Tab view for multiple requests
+[*] Tab view for multiple requests
 [] File persistence
     [] TOML file format
     [] Save/Load

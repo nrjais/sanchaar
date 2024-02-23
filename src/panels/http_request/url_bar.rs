@@ -1,7 +1,9 @@
+use iced::widget::{Button, Row};
 use iced::{
     widget::{button, container, pick_list, row, text_input},
     Element,
 };
+
 use iced_aw::NerdIcon;
 use strum::VariantArray;
 
@@ -17,6 +19,7 @@ pub enum UrlBarMsg {
     MethodChanged(Method),
     UrlChanged(String),
     SendRequest,
+    SaveRequest,
 }
 
 impl UrlBarMsg {
@@ -31,10 +34,12 @@ impl UrlBarMsg {
                 active_tab.request.url = url;
             }
             UrlBarMsg::SendRequest => state.send_request(),
+            UrlBarMsg::SaveRequest => state.save_request(),
         }
     }
 }
 
+// TODO: Show query params in the url
 fn build_url(req: &request::RequestPane) -> String {
     let mut params = String::new();
     for kv in req.query_params.values().iter() {
@@ -58,6 +63,10 @@ fn build_url(req: &request::RequestPane) -> String {
     }
 }
 
+fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
+    button(container(icon(ico)).padding([0, 10]))
+}
+
 pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     let request = &state.active_tab().request;
 
@@ -67,13 +76,14 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
         UrlBarMsg::MethodChanged,
     );
 
-    let url =
-        text_input("Enter Address", build_url(request).as_str()).on_input(UrlBarMsg::UrlChanged);
+    let url = text_input("Enter Address", &request.url).on_input(UrlBarMsg::UrlChanged);
 
-    let send =
-        button(container(icon(NerdIcon::Send)).padding([0, 12])).on_press(UrlBarMsg::SendRequest);
+    let buttons = Row::new()
+        .push(icon_button(NerdIcon::Send).on_press(UrlBarMsg::SendRequest))
+        .push(icon_button(NerdIcon::ContentSave).on_press(UrlBarMsg::SaveRequest))
+        .spacing(2);
 
-    row!(method, url, send)
+    row!(method, url, buttons)
         .height(iced::Length::Shrink)
         .width(iced::Length::Fill)
         .spacing(4)
