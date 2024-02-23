@@ -10,6 +10,7 @@ use crate::{commands::Commands, core::client::create_client};
 
 slotmap::new_key_type! {
     pub struct TaskCancelKey;
+    pub struct TabKey;
 }
 
 #[derive(Debug)]
@@ -20,8 +21,8 @@ pub struct AppCtx {
 
 #[derive(Debug)]
 pub struct AppState {
-    pub active_tab: usize,
-    pub tabs: Vec<Tab>,
+    pub active_tab: TabKey,
+    pub tabs: SlotMap<TabKey, Tab>,
     pub ctx: AppCtx,
     pub commands: Commands,
 }
@@ -34,9 +35,12 @@ impl Default for AppState {
 
 impl AppState {
     pub fn new() -> Self {
-        let tabs = vec![Tab::new()];
+        let tab = Tab::new();
+        let mut tabs = SlotMap::with_key();
+        let active_tab = tabs.insert(tab);
+
         Self {
-            active_tab: 0,
+            active_tab,
             tabs,
             ctx: AppCtx {
                 client: create_client(),

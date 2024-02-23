@@ -4,9 +4,9 @@ use mime_guess::mime;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::RequestBuilder;
 
+use crate::components::KeyValList;
 use crate::components::KeyValue;
-use crate::state::request::{Request, RequestBody};
-use crate::{components::KeyValList, state::request};
+use crate::state::request::{Method, Request, RequestBody};
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
@@ -21,12 +21,17 @@ fn enabled_params(params: &KeyValList) -> Vec<(&String, &String)> {
         .collect()
 }
 
-fn req_method(method: request::Method) -> reqwest::Method {
+fn req_method(method: Method) -> reqwest::Method {
     match method {
-        request::Method::GET => reqwest::Method::GET,
-        request::Method::POST => reqwest::Method::POST,
-        request::Method::PUT => reqwest::Method::PUT,
-        request::Method::DELETE => reqwest::Method::DELETE,
+        Method::GET => reqwest::Method::GET,
+        Method::POST => reqwest::Method::POST,
+        Method::PUT => reqwest::Method::PUT,
+        Method::DELETE => reqwest::Method::DELETE,
+        Method::PATCH => reqwest::Method::PATCH,
+        Method::HEAD => reqwest::Method::HEAD,
+        Method::OPTIONS => reqwest::Method::OPTIONS,
+        Method::CONNECT => reqwest::Method::CONNECT,
+        Method::TRACE => reqwest::Method::TRACE,
     }
 }
 

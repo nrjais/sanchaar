@@ -20,6 +20,11 @@ pub enum Method {
     POST,
     PUT,
     DELETE,
+    PATCH,
+    HEAD,
+    OPTIONS,
+    CONNECT,
+    TRACE,
 }
 
 #[derive(Debug, Default)]

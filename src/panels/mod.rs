@@ -23,6 +23,5 @@ pub fn view(state: &AppState) -> iced::Element<PanelMsg> {
     container::Container::new(req)
         .width(iced::Length::Fill)
         .height(iced::Length::Fill)
-        .padding(4)
         .into()
 }
