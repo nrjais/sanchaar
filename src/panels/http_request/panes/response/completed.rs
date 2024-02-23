@@ -73,14 +73,14 @@ pub(crate) fn view<'a>(
                 .style(Text::Color(status_color(res.status))),
         )
         .push(
-            text(fmt_duration(res.duration))
-                .size(status_size)
-                .style(Text::Color(Color::from_rgb8(160, 160, 160))),
-        )
-        .push(
             text(format_size(res.size_bytes, BINARY))
                 .size(status_size)
                 .style(Text::Color(Color::from_rgb8(182, 128, 182))),
+        )
+        .push(
+            text(fmt_duration(res.duration))
+                .size(status_size)
+                .style(Text::Color(Color::from_rgb8(160, 160, 160))),
         )
         .padding([4, 8])
         .spacing(8)

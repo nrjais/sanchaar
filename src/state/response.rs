@@ -1,5 +1,4 @@
 use crate::core::client;
-use crate::state::TaskCancelKey;
 use iced::widget::text_editor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -19,7 +18,7 @@ pub struct CompletedResponse {
 pub enum ResponseState {
     #[default]
     Idle,
-    Executing(TaskCancelKey),
+    Executing,
     Completed(CompletedResponse),
     Failed(anyhow::Error),
 }

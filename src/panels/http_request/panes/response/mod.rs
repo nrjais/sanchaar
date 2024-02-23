@@ -20,8 +20,8 @@ impl ResponsePaneMsg {
             }
             Self::CancelRequest => {
                 let res_state = &state.active_tab().response.state;
-                if let ResponseState::Executing(task) = res_state {
-                    state.cancel_task(*task);
+                if let ResponseState::Executing = res_state {
+                    state.cancel_tab_tasks(state.active_tab);
                 }
             }
         }
@@ -34,7 +34,7 @@ pub(crate) fn view(state: &crate::state::AppState) -> Element<ResponsePaneMsg> {
 
     let res = match res.state {
         ResponseState::Idle => idle::view(state),
-        ResponseState::Executing(_) => executing::view(state),
+        ResponseState::Executing => executing::view(state),
         ResponseState::Completed(ref result) => {
             completed::view(state, result).map(ResponsePaneMsg::Completed)
         }

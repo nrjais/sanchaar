@@ -4,19 +4,17 @@ pub mod tab;
 
 use slotmap::SlotMap;
 pub use tab::*;
-use tokio::sync::oneshot;
 
+use crate::state::response::ResponseState;
 use crate::{commands::Commands, core::client::create_client};
 
 slotmap::new_key_type! {
-    pub struct TaskCancelKey;
     pub struct TabKey;
 }
 
 #[derive(Debug)]
 pub struct AppCtx {
     pub client: reqwest::Client,
-    pub task_cancel_tx: SlotMap<TaskCancelKey, oneshot::Sender<()>>,
 }
 
 #[derive(Debug)]
@@ -44,10 +42,17 @@ impl AppState {
             tabs,
             ctx: AppCtx {
                 client: create_client(),
-                task_cancel_tx: SlotMap::with_key(),
             },
             commands: Commands::new(),
         }
+    }
+
+    pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
+        self.tabs.get_mut(key)
+    }
+
+    pub fn get_tab(&self, key: TabKey) -> Option<&Tab> {
+        self.tabs.get(key)
     }
 
     pub fn active_tab_mut(&mut self) -> &mut Tab {
@@ -62,11 +67,33 @@ impl AppState {
             .expect("Active tab not found")
     }
 
-    pub fn cancel_task(&mut self, key: TaskCancelKey) {
-        if let Some(tx) = self.ctx.task_cancel_tx.remove(key) {
-            let _ = tx.send(());
+    pub fn clear_tab_tasks(&mut self, tab: TabKey) {
+        if let Some(tab) = self.get_tab_mut(tab) {
+            tab.cancel_tasks();
+        }
+    }
+
+    pub fn cancel_tab_tasks(&mut self, tab: TabKey) {
+        if let Some(tab) = self.get_tab_mut(tab) {
+            tab.cancel_tasks();
         }
 
         self.active_tab_mut().response.state = response::ResponseState::Idle;
+    }
+
+    pub fn close_tab(&mut self, tab: TabKey) {
+        self.tabs.remove(tab);
+        if self.active_tab == tab {
+            self.active_tab = self.tabs.insert(Tab::new());
+        }
+    }
+
+    pub fn send_request(&mut self) {
+        let active_tab = self.active_tab_mut();
+        if let ResponseState::Executing = active_tab.response.state {
+            self.cancel_tab_tasks(self.active_tab);
+        }
+
+        self.commands.send_request(self.active_tab);
     }
 }

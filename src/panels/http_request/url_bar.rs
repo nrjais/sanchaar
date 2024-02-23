@@ -6,7 +6,7 @@ use iced_aw::NerdIcon;
 use strum::VariantArray;
 
 use crate::state::request;
-use crate::state::response::ResponseState;
+
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -21,20 +21,16 @@ pub enum UrlBarMsg {
 
 impl UrlBarMsg {
     pub(crate) fn update(self, state: &mut AppState) {
-        let active_tab = state.active_tab_mut();
         match self {
             UrlBarMsg::MethodChanged(method) => {
+                let active_tab = state.active_tab_mut();
                 active_tab.request.method = method;
             }
             UrlBarMsg::UrlChanged(url) => {
+                let active_tab = state.active_tab_mut();
                 active_tab.request.url = url;
             }
-            UrlBarMsg::SendRequest => {
-                if let ResponseState::Executing(key) = active_tab.response.state {
-                    state.cancel_task(key);
-                }
-                state.commands.send_request()
-            }
+            UrlBarMsg::SendRequest => state.send_request(),
         }
     }
 }
