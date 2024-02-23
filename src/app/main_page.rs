@@ -20,22 +20,9 @@ impl MainPageMsg {
     pub fn update(self, state: &mut AppState) {
         match self {
             Self::TabBarAction(action) => match action {
-                TabBarAction::ChangeTab(tab) => {
-                    state.active_tab = tab;
-                }
-                TabBarAction::NewTab => {
-                    let tab = state.tabs.insert(Default::default());
-                    state.active_tab = tab;
-                }
-                TabBarAction::CloseTab(key) => {
-                    state.tabs.remove(key);
-                    if state.tabs.is_empty() {
-                        let tab = state.tabs.insert(Default::default());
-                        state.active_tab = tab;
-                    } else if state.active_tab == key {
-                        state.active_tab = state.tabs.keys().next().unwrap();
-                    }
-                }
+                TabBarAction::ChangeTab(tab) => state.active_tab = tab,
+                TabBarAction::NewTab => state.active_tab = state.tabs.insert(Default::default()),
+                TabBarAction::CloseTab(key) => state.close_tab(key),
             },
             Self::Panel(msg) => msg.update(state),
         }
@@ -71,7 +58,7 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
                     .size(12)
                     .height(Shrink)
                     .font(Font {
-                        weight: Weight::Semibold,
+                        weight: Weight::Bold,
                         ..Default::default()
                     }),
                 text(&tab.request.name),

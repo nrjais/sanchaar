@@ -149,6 +149,6 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         .push(tab_content)
         .width(Length::Fill)
         .height(Length::Fill)
-        .spacing(2)
+        .spacing(4)
         .into()
 }

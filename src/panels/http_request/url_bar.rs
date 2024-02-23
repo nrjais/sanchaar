@@ -7,8 +7,6 @@ use iced::{
 use iced_aw::NerdIcon;
 use strum::VariantArray;
 
-use crate::state::request;
-
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -36,30 +34,6 @@ impl UrlBarMsg {
             UrlBarMsg::SendRequest => state.send_request(),
             UrlBarMsg::SaveRequest => state.save_request(),
         }
-    }
-}
-
-// TODO: Show query params in the url
-fn build_url(req: &request::RequestPane) -> String {
-    let mut params = String::new();
-    for kv in req.query_params.values().iter() {
-        if kv.disabled || kv.name.is_empty() {
-            continue;
-        }
-
-        if !params.is_empty() {
-            params.push('&');
-        }
-
-        params.push_str(kv.name.as_str());
-        params.push('=');
-        params.push_str(kv.value.as_str());
-    }
-
-    if !params.is_empty() {
-        format!("{}?{}", req.url, params)
-    } else {
-        req.url.clone()
     }
 }
 

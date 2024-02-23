@@ -155,7 +155,7 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                 let req = sel_tab.request.to_request();
                 let req = encode_request(&req);
                 Command::perform(
-                    save_req_to_file(TryFrom::try_from("./test").unwrap(), req),
+                    save_req_to_file(From::from("./test"), req),
                     move |r| match r {
                         Ok(_) => CommandResultMsg::Completed,
                         Err(e) => {

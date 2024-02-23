@@ -3254,6 +3254,7 @@ dependencies = [
  "strum",
  "tokio",
  "toml",
+ "toml_edit 0.22.6",
 ]
 
 [[package]]

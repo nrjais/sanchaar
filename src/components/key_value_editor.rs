@@ -170,7 +170,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         scrollable(
             Column::with_children(values)
                 .spacing(spacing)
-                .padding([4, 8, 4, 4]),
+                .padding([0, 8, 0, 0]),
         )
         .into()
     }

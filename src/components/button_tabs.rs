@@ -36,6 +36,7 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                 } else {
                     theme::Button::Text
                 })
+                .padding([2, 6])
                 .on_press(on_tab_change(tab.id.clone())),
         );
     }

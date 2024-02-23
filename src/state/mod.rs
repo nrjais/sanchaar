@@ -84,8 +84,10 @@ impl AppState {
 
     pub fn close_tab(&mut self, tab: TabKey) {
         self.tabs.remove(tab);
-        if self.active_tab == tab {
-            self.active_tab = self.tabs.insert(Tab::new());
+        if self.tabs.is_empty() {
+            self.active_tab = self.tabs.insert(Default::default());
+        } else if self.active_tab == tab {
+            self.active_tab = self.tabs.keys().next().unwrap();
         }
     }
 

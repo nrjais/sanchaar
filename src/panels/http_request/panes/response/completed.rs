@@ -117,6 +117,6 @@ pub(crate) fn view<'a>(
         .push(tab_content)
         .width(iced::Length::Fill)
         .height(iced::Length::Fill)
-        .spacing(2)
+        .spacing(4)
         .into()
 }
