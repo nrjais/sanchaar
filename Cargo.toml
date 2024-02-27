@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-iced = { version = "0.12.0", features = [
+iced = { path = "../iced", features = [
     "svg",
     "tokio",
     "web-colors",
@@ -43,4 +43,5 @@ opt-level = 3
 [patch.crates-io]
 iced = { path = "../iced" }
 iced_aw = { path = "../iced_aw" }
+
 

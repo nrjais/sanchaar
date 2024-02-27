@@ -38,7 +38,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     let request_view = request::view(state).map(HttpMsg::Req);
     let response_view = response::view(state).map(HttpMsg::Res);
 
-    let min_size = 200;
+    let min_size = 300;
     let req_res = Split::new(
         container(request_view).padding([0, 4, 0, 0]),
         container(response_view).padding([0, 0, 0, 4]),
