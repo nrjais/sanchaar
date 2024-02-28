@@ -3,6 +3,7 @@ use iced::{
     Element,
 };
 use iced_aw::split::Split;
+use log::debug;
 
 use crate::state::AppState;
 
@@ -18,6 +19,7 @@ pub enum HttpMsg {
     Url(url_bar::UrlBarMsg),
     SplitPos(u16),
 }
+
 impl HttpMsg {
     pub(crate) fn update(self, state: &mut AppState) {
         match self {
@@ -25,14 +27,14 @@ impl HttpMsg {
             HttpMsg::Res(msg) => msg.update(state),
             HttpMsg::Url(msg) => msg.update(state),
             HttpMsg::SplitPos(pos) => {
-                state.active_tab_mut().request.split_pos.replace(pos);
+                state.active_tab_mut().split_pos.replace(pos);
             }
         }
     }
 }
 
 pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
-    let request = &state.active_tab().request;
+    let tab = state.active_tab();
 
     let url_bar = url_bar::view(state).map(HttpMsg::Url);
     let request_view = request::view(state).map(HttpMsg::Req);
@@ -42,10 +44,11 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     let req_res = Split::new(
         container(request_view).padding([0, 4, 0, 0]),
         container(response_view).padding([0, 0, 0, 4]),
-        request.split_pos,
-        request.split_axis,
+        tab.split_pos,
+        tab.split_axis,
         HttpMsg::SplitPos,
     )
+    .spacing(4.)
     .min_size_first(min_size)
     .min_size_second(min_size)
     .height(iced::Length::Fill)

@@ -1,4 +1,5 @@
 use crate::state::response::ResponsePane;
+use iced_aw::split;
 use tokio::sync::oneshot;
 
 use super::request::RequestPane;
@@ -8,6 +9,8 @@ pub struct Tab {
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
+    pub split_axis: split::Axis,
+    pub split_pos: Option<u16>,
 }
 
 impl Default for Tab {
@@ -22,6 +25,8 @@ impl Tab {
             request: RequestPane::new(),
             response: ResponsePane::new(),
             tasks: Vec::new(),
+            split_axis: split::Axis::Vertical,
+            split_pos: None,
         }
     }
 

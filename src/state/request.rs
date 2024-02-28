@@ -77,8 +77,6 @@ pub struct RequestPane {
     pub headers: KeyValList,
     pub body: RequestRawBody,
     pub query_params: KeyValList,
-    pub split_axis: split::Axis,
-    pub split_pos: Option<u16>,
     pub tab: ReqTabId,
 }
 
@@ -111,8 +109,6 @@ impl RequestPane {
             headers: KeyValList::new(),
             body: RequestRawBody::None,
             query_params: KeyValList::new(),
-            split_axis: split::Axis::Vertical,
-            split_pos: None,
             tab: ReqTabId::Params,
             name: "Untitled".to_string(),
             description: "Http request".to_string(),

@@ -1,8 +1,8 @@
+use iced::advanced::Widget;
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{text, Column};
-use iced::Length::Shrink;
-use iced::{Color, Font};
+use iced::widget::{button, scrollable, text, vertical_rule, Column, Row};
+use iced::{Color, Font, Length};
 
 use crate::components::{card_tab, card_tabs, TabBarAction};
 use crate::panels;
@@ -56,7 +56,7 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
                     .style(iced::theme::Text::Color(method_color(tab.request.method)))
                     .shaping(Advanced)
                     .size(12)
-                    .height(Shrink)
+                    .height(Length::Shrink)
                     .font(Font {
                         weight: Weight::Bold,
                         ..Default::default()
@@ -66,7 +66,7 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         })
         .collect();
 
-    Column::new()
+    let content = Column::new()
         .push(card_tabs(
             state.active_tab,
             tabs,
@@ -75,7 +75,18 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         ))
         .push(panels::view(state).map(MainPageMsg::Panel))
         .spacing(8)
-        .padding(4)
         .align_items(iced::Alignment::Center)
+        .width(Length::FillPortion(5));
+
+    let tree = scrollable(button("Collection 1").padding([1, 4]))
+        .height(Length::Fill)
+        .width(Length::FillPortion(1));
+
+    Row::new()
+        .push(tree)
+        .push(vertical_rule(4))
+        .push(content)
+        .spacing(4)
+        .padding(4)
         .into()
 }
