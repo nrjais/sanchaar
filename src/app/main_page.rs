@@ -1,7 +1,6 @@
-use iced::advanced::Widget;
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{button, scrollable, text, vertical_rule, Column, Row};
+use iced::widget::{button, pick_list, scrollable, text, vertical_rule, Column, Row};
 use iced::{Color, Font, Length};
 
 use crate::components::{card_tab, card_tabs, TabBarAction};
@@ -14,6 +13,7 @@ use crate::state::{AppState, TabKey};
 pub enum MainPageMsg {
     TabBarAction(TabBarAction<TabKey>),
     Panel(PanelMsg),
+    Test,
 }
 
 impl MainPageMsg {
@@ -25,6 +25,7 @@ impl MainPageMsg {
                 TabBarAction::CloseTab(key) => state.close_tab(key),
             },
             Self::Panel(msg) => msg.update(state),
+            Self::Test => println!("Test"),
         }
     }
 }
@@ -78,7 +79,22 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         .align_items(iced::Alignment::Center)
         .width(Length::FillPortion(5));
 
-    let tree = scrollable(button("Collection 1").padding([1, 4]))
+    let coll = Column::new()
+        .push(button(text("Collection 1")).width(Length::Fill))
+        .push(
+            pick_list(["Dev", "Prod"], None as Option<&'static str>, |_s| {
+                MainPageMsg::Test
+            })
+            .width(Length::Fill)
+            .text_size(16)
+            .padding([2, 4])
+            .placeholder("No Environment"),
+        )
+        .push(text("Collection 3"))
+        .spacing(4)
+        .width(Length::Fill);
+
+    let tree = scrollable(coll)
         .height(Length::Fill)
         .width(Length::FillPortion(1));
 

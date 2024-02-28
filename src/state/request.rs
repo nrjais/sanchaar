@@ -1,5 +1,5 @@
 use iced::widget::text_editor;
-use iced_aw::split;
+
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
 

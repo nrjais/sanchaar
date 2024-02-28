@@ -46,45 +46,34 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .align_items(iced::Alignment::Center)
             .spacing(4);
 
-        tabs_row = if active {
-            tabs_row.push(
-                container(
-                    button(label)
-                        .style(theme::Button::Positive)
-                        .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
-                )
-                .padding(1)
-                .style(|theme: &Theme| container::Appearance {
-                    border: Border {
-                        radius: 3.into(),
-                        color: theme.extended_palette().background.weak.color,
-                        width: 2.0,
-                    },
-                    ..container::Appearance::default()
-                }),
-            )
-        } else {
-            tabs_row.push(
-                button(label)
-                    .style(theme::Button::Secondary)
-                    .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
-            )
-        }
+        tabs_row = tabs_row.push(
+            button(label)
+                .padding([2, 4])
+                .style(if active {
+                    theme::Button::Positive
+                } else {
+                    theme::Button::Secondary
+                })
+                .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
+        )
     }
 
-    tabs_row = tabs_row.push(
-        button(icon(NerdIcon::PlusBox).size(28))
-            .style(theme::Button::Text)
-            .padding([0, 4])
-            .on_press(on_action(TabBarAction::NewTab)),
-    );
+    tabs_row = tabs_row
+        .push(
+            button(icon(NerdIcon::PlusBox).size(24))
+                .style(theme::Button::Text)
+                .padding([0, 4])
+                .on_press(on_action(TabBarAction::NewTab)),
+        )
+        .push(horizontal_space());
 
     if let Some(suffix) = suffix {
-        tabs_row = tabs_row.push(horizontal_space()).push(suffix);
+        tabs_row = tabs_row.push(suffix);
     }
 
     container(tabs_row)
         .width(iced::Length::Fill)
+        .padding(1)
         .style(|theme: &Theme| container::Appearance {
             border: Border {
                 radius: 3.into(),

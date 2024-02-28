@@ -3,7 +3,6 @@ use iced::{
     Element,
 };
 use iced_aw::split::Split;
-use log::debug;
 
 use crate::state::AppState;
 

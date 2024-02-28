@@ -60,6 +60,6 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     row!(method, url, buttons)
         .height(iced::Length::Shrink)
         .width(iced::Length::Fill)
-        .spacing(4)
+        .spacing(2)
         .into()
 }
