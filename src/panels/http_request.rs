@@ -8,6 +8,7 @@ use crate::state::AppState;
 
 use self::panes::{request, response};
 
+pub mod action_bar;
 pub mod panes;
 pub mod url_bar;
 
@@ -17,6 +18,7 @@ pub enum HttpMsg {
     Res(response::ResponsePaneMsg),
     Url(url_bar::UrlBarMsg),
     SplitPos(u16),
+    Actions(action_bar::ActionBarMsg),
 }
 
 impl HttpMsg {
@@ -28,6 +30,7 @@ impl HttpMsg {
             HttpMsg::SplitPos(pos) => {
                 state.active_tab_mut().split_pos.replace(pos);
             }
+            HttpMsg::Actions(ac) => ac.update(state),
         }
     }
 }
@@ -36,6 +39,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     let tab = state.active_tab();
 
     let url_bar = url_bar::view(state).map(HttpMsg::Url);
+    let action_bar = action_bar::view(state).map(HttpMsg::Actions);
     let request_view = request::view(state).map(HttpMsg::Req);
     let response_view = response::view(state).map(HttpMsg::Res);
 
@@ -54,7 +58,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     .width(iced::Length::Fill);
 
     let req_res = container(req_res).padding([4, 0, 0, 0]).into();
-    Column::with_children([url_bar, req_res])
+    Column::with_children([action_bar, url_bar, req_res])
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
         .spacing(4)

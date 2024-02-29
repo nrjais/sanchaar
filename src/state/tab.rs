@@ -11,6 +11,7 @@ pub struct Tab {
     pub tasks: Vec<oneshot::Sender<()>>,
     pub split_axis: split::Axis,
     pub split_pos: Option<u16>,
+    pub editing_name: bool,
 }
 
 impl Default for Tab {
@@ -27,6 +28,7 @@ impl Tab {
             tasks: Vec::new(),
             split_axis: split::Axis::Vertical,
             split_pos: None,
+            editing_name: false,
         }
     }
 
