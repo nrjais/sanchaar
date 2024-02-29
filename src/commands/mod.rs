@@ -131,8 +131,9 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
             }
 
             AppCommand::SendRequest(tab, req) => {
+                let future = client::send_request(state.ctx.client.clone(), req);
+                let (cancel_tx, req) = cancellable_task(future);
                 let sel_tab = state.get_tab_mut(tab)?;
-                let (cancel_tx, req) = cancellable_task(client::send_request(req));
                 sel_tab.add_task(cancel_tx);
                 sel_tab.response.state = ResponseState::Executing;
 

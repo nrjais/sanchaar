@@ -42,7 +42,9 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
 }
 
 pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
-    let request = &state.active_tab().request;
+    let tab = state.active_tab();
+    let request = &tab.request;
+    let executing = tab.response.is_executing();
 
     let method = pick_list(
         Method::VARIANTS,
@@ -52,8 +54,14 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
 
     let url = text_input("Enter Address", &request.url).on_input(UrlBarMsg::UrlChanged);
 
+    let on_press = if executing {
+        None
+    } else {
+        Some(UrlBarMsg::SendRequest)
+    };
+
     let buttons = Row::new()
-        .push(icon_button(NerdIcon::Send).on_press(UrlBarMsg::SendRequest))
+        .push(icon_button(NerdIcon::Send).on_press_maybe(on_press))
         .push(icon_button(NerdIcon::ContentSave).on_press(UrlBarMsg::SaveRequest))
         .spacing(2);
 

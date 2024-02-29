@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use reqwest::{header::HeaderMap, StatusCode};
+use reqwest::{header::HeaderMap, Client, StatusCode};
 
 #[derive(Debug, Clone)]
 pub enum ContentType {
@@ -24,9 +24,9 @@ pub struct Response {
     pub size_bytes: usize,
 }
 
-pub async fn send_request(req: reqwest::Request) -> anyhow::Result<Response> {
+pub async fn send_request(client: Client, req: reqwest::Request) -> anyhow::Result<Response> {
     let start = std::time::Instant::now();
-    let res = reqwest::Client::new().execute(req).await?;
+    let res = client.execute(req).await?;
     let duration = start.elapsed();
     let status = res.status();
     let headers = res.headers().clone();

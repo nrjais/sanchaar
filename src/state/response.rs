@@ -42,4 +42,8 @@ impl ResponsePane {
             active_tab: ResponseTabId::Body,
         }
     }
+
+    pub fn is_executing(&self) -> bool {
+        matches!(self.state, ResponseState::Executing)
+    }
 }
