@@ -4,9 +4,9 @@ use iced::{
     Element,
 };
 
-use iced_aw::NerdIcon;
 use strum::VariantArray;
 
+use crate::components::{icons, NerdIcon};
 use crate::{
     components::icon,
     state::{request::Method, AppState},
@@ -24,12 +24,10 @@ impl UrlBarMsg {
     pub(crate) fn update(self, state: &mut AppState) {
         match self {
             UrlBarMsg::MethodChanged(method) => {
-                let active_tab = state.active_tab_mut();
-                active_tab.request.method = method;
+                state.active_tab_mut().request.method = method;
             }
             UrlBarMsg::UrlChanged(url) => {
-                let active_tab = state.active_tab_mut();
-                active_tab.request.url = url;
+                state.active_tab_mut().request.url = url;
             }
             UrlBarMsg::SendRequest => state.send_request(),
             UrlBarMsg::SaveRequest => state.save_request(),
@@ -61,8 +59,8 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     };
 
     let buttons = Row::new()
-        .push(icon_button(NerdIcon::Send).on_press_maybe(on_press))
-        .push(icon_button(NerdIcon::ContentSave).on_press(UrlBarMsg::SaveRequest))
+        .push(icon_button(icons::Send).on_press_maybe(on_press))
+        .push(icon_button(icons::ContentSave).on_press(UrlBarMsg::SaveRequest))
         .spacing(2);
 
     row!(method, url, buttons)

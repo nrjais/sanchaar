@@ -2,9 +2,8 @@ mod body_editor;
 
 use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
-use iced_aw::NerdIcon;
 
-use crate::components::{icon, CodeEditorMsg, ContentType, KeyValList};
+use crate::components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
 use crate::state::request::RequestRawBody;
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
@@ -90,7 +89,7 @@ fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
         .width(Length::Fill)
         .into(),
         RequestRawBody::File(_) | RequestRawBody::None => {
-            let empty_icon = container(icon(NerdIcon::FileCancel).size(60.0))
+            let empty_icon = container(icon(icons::FileCancel).size(60.0))
                 .padding(10)
                 .center_x()
                 .width(Length::Fill)

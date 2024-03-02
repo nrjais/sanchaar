@@ -4,9 +4,8 @@ use iced::{
     widget::{button, checkbox, component, container, text_input, Column, Component, Row},
     Border, Element, Theme,
 };
-use iced_aw::NerdIcon;
 
-use super::icon;
+use super::{icon, icons};
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct KeyValue {
@@ -124,7 +123,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .size(size)
                 .spacing(spacing);
 
-            let remove = button(container(icon(NerdIcon::TrashCan).size(size + 4)))
+            let remove = button(container(icon(icons::TrashCan).size(size + 4)))
                 .padding(0)
                 .style(theme::Button::Text)
                 .on_press_maybe(if idx < self.values.values().len() - 1 {

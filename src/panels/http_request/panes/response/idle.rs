@@ -1,12 +1,11 @@
-use crate::components::icon;
 use iced::widget::{container, Column};
-use iced_aw::NerdIcon;
 
+use crate::components::{icon, icons};
 use crate::panels::http_request::panes::response::ResponsePaneMsg;
 use crate::state::AppState;
 
 pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
-    let send_icon = container(icon(NerdIcon::Send).size(60.0))
+    let send_icon = container(icon(icons::SendUp).size(60.0))
         .padding(10)
         .center_x()
         .width(iced::Length::Fill)

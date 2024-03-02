@@ -23,7 +23,6 @@ iced_aw = { path = "../iced_aw", features = [
     "tabs",
     "split",
     "segmented_button",
-    "icons",
     "spinner"
 ] }
 strum = { version = "0.26.1", features = ["derive"] }
@@ -36,7 +35,6 @@ anyhow = "1.0.80"
 mime_guess = "2.0.4"
 slotmap = "1.0.7"
 humansize = "2.1.3"
-log = "0.4.20"
 
 [profile.dev.package."*"]
 opt-level = 3

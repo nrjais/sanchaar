@@ -6,8 +6,8 @@ use iced::{
     widget::{button, container},
     Element, Length,
 };
-use iced_aw::NerdIcon;
 
+use crate::components::{icons, NerdIcon};
 use crate::{components::icon, state::AppState};
 
 #[derive(Debug, Clone)]
@@ -58,9 +58,9 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
 
     let edit_name = icon_button(
         if tab.editing_name {
-            NerdIcon::CheckBold
+            icons::CheckBold
         } else {
-            NerdIcon::PencilOutline
+            icons::PencilOutline
         },
         size,
     )

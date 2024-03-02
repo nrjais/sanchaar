@@ -1,9 +1,9 @@
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{button, pick_list, scrollable, text, vertical_rule, Column, Row};
-use iced::{Color, Font, Length};
+use iced::widget::{button, scrollable, text, vertical_rule, Column, Row};
+use iced::{theme, Color, Font, Length};
 
-use crate::components::{card_tab, card_tabs, TabBarAction};
+use crate::components::{card_tab, card_tabs, icon, icons, TabBarAction};
 use crate::panels;
 use crate::panels::PanelMsg;
 use crate::state::request::Method;
@@ -80,15 +80,14 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         .width(Length::FillPortion(5));
 
     let coll = Column::new()
-        .push(button(text("Collection 1")).width(Length::Fill))
         .push(
-            pick_list(["Dev", "Prod"], None as Option<&'static str>, |_s| {
-                MainPageMsg::Test
-            })
-            .width(Length::Fill)
-            .text_size(16)
-            .padding([2, 4])
-            .placeholder("No Environment"),
+            button(Row::with_children([
+                icon(icons::TriangleRight).into(),
+                text("Collection 1").into(),
+            ]))
+            .style(theme::Button::Text)
+            .padding(2)
+            .width(Length::Fill),
         )
         .push(text("Collection 3"))
         .spacing(4)

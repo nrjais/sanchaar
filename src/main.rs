@@ -12,6 +12,10 @@ use iced::{
     Application, Command, Element, Point, Settings, Size, Theme,
 };
 use state::AppState;
+use std::borrow::Cow;
+
+pub const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
+pub const HACK_BOLD_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Bold.ttf");
 
 fn main() -> iced::Result {
     Sanchaar::run(Settings {
@@ -22,6 +26,7 @@ fn main() -> iced::Result {
             min_size: Some(Size::new(800.0, 600.0)),
             ..Default::default()
         },
+        fonts: Vec::from([Cow::from(HACK_REG_BYTES), Cow::from(HACK_BOLD_BYTES)]),
         ..Settings::default()
     })
 }

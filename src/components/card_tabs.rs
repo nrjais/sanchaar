@@ -1,11 +1,10 @@
-use crate::components::icon;
+use crate::components::{icon, icons};
 use iced::widget::{container, horizontal_space};
 use iced::{
     theme,
     widget::{button, Row, Text},
     Border, Element, Shadow, Theme,
 };
-use iced_aw::NerdIcon;
 
 #[derive(Debug, Clone)]
 pub enum TabBarAction<T: Clone> {
@@ -38,7 +37,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .push(tab.icon)
             .push(tab.label)
             .push(
-                button(icon(NerdIcon::CloseBox).size(20))
+                button(icon(icons::CloseBox).size(20))
                     .style(theme::Button::Text)
                     .padding([0, 4])
                     .on_press(on_action(TabBarAction::CloseTab(tab.id.clone()))),
@@ -60,7 +59,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
     tabs_row = tabs_row
         .push(
-            button(icon(NerdIcon::PlusBox).size(24))
+            button(icon(icons::PlusBox).size(24))
                 .style(theme::Button::Text)
                 .padding([0, 4])
                 .on_press(on_action(TabBarAction::NewTab)),

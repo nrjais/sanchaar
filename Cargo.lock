@@ -3236,7 +3236,6 @@ dependencies = [
  "humansize",
  "iced",
  "iced_aw",
- "log",
  "mime_guess",
  "reqwest",
  "rfd",
