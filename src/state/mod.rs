@@ -1,35 +1,59 @@
+use slotmap::SlotMap;
+
+pub use tab::*;
+
+use crate::commands::AppCommand;
+use crate::state::collection::Collection;
+use crate::state::response::ResponseState;
+use crate::{commands::Commands, core::client::create_client};
+
+pub mod collection;
 pub mod request;
 pub mod response;
 pub mod tab;
 
-use slotmap::SlotMap;
-pub use tab::*;
-
-use crate::commands::AppCommand;
-use crate::state::response::ResponseState;
-use crate::{commands::Commands, core::client::create_client};
-
 slotmap::new_key_type! {
     pub struct TabKey;
-}
-
-#[derive(Debug)]
-pub struct AppCtx {
-    pub client: reqwest::Client,
+    pub struct CollectionKey;
 }
 
 #[derive(Debug)]
 pub struct AppState {
     pub active_tab: TabKey,
     pub tabs: SlotMap<TabKey, Tab>,
-    pub ctx: AppCtx,
+    pub collections: SlotMap<CollectionKey, Collection>,
     pub commands: Commands,
+    pub client: reqwest::Client,
 }
 
 impl Default for AppState {
     fn default() -> Self {
         Self::new()
     }
+}
+
+fn test_collection() -> SlotMap<CollectionKey, Collection> {
+    let mut collections = SlotMap::with_key();
+
+    let collection = Collection {
+        name: "Test Collection".to_string(),
+        children: vec![
+            collection::Entry::Item(collection::Item {
+                name: "Item 1".to_string(),
+            }),
+            collection::Entry::Folder(collection::Folder {
+                name: "Folder 1".to_string(),
+                children: vec![collection::Entry::Item(collection::Item {
+                    name: "Item 2".to_string(),
+                })],
+                expanded: true,
+            }),
+        ],
+        expanded: true,
+    };
+    let _ = collections.insert(collection);
+
+    collections
 }
 
 impl AppState {
@@ -41,10 +65,9 @@ impl AppState {
         Self {
             active_tab,
             tabs,
-            ctx: AppCtx {
-                client: create_client(),
-            },
+            client: create_client(),
             commands: Commands::new(),
+            collections: test_collection(),
         }
     }
 

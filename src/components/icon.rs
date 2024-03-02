@@ -17,9 +17,9 @@ pub mod icons {
     pub const TriangleDown: NerdIcon = NerdIcon('');
     pub const CloseBox: NerdIcon = NerdIcon('󰅗');
     pub const PlusBox: NerdIcon = NerdIcon('󰐖');
-    pub const TrashCan: NerdIcon = NerdIcon('󰩹');
+    pub const Delete: NerdIcon = NerdIcon('󰆴');
     pub const CheckBold: NerdIcon = NerdIcon('󰸞');
-    pub const PencilOutline: NerdIcon = NerdIcon('󰲶');
+    pub const Pencil: NerdIcon = NerdIcon('󰏫');
     pub const FileCancel: NerdIcon = NerdIcon('󰷆');
     pub const Error: NerdIcon = NerdIcon('');
     pub const Send: NerdIcon = NerdIcon('󰒊');

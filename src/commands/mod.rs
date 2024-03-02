@@ -110,7 +110,7 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
     let cmds = cmds.into_iter().filter_map(|cmd| {
         let cmd = match cmd {
             AppCommand::InitRequest(tab) => {
-                let client = state.ctx.client.clone();
+                let client = state.client.clone();
                 let sel_tab = state.get_tab_mut(tab)?;
                 let req = transform_request(client, sel_tab.request.to_request());
                 let (cancel_tx, req) = cancellable_task(req);
@@ -131,7 +131,7 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
             }
 
             AppCommand::SendRequest(tab, req) => {
-                let future = client::send_request(state.ctx.client.clone(), req);
+                let future = client::send_request(state.client.clone(), req);
                 let (cancel_tx, req) = cancellable_task(future);
                 let sel_tab = state.get_tab_mut(tab)?;
                 sel_tab.add_task(cancel_tx);

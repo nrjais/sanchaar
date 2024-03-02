@@ -123,7 +123,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .size(size)
                 .spacing(spacing);
 
-            let remove = button(container(icon(icons::TrashCan).size(size + 4)))
+            let remove = button(container(icon(icons::Delete).size(size + 4)))
                 .padding(0)
                 .style(theme::Button::Text)
                 .on_press_maybe(if idx < self.values.values().len() - 1 {

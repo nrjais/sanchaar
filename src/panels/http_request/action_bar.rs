@@ -60,7 +60,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
         if tab.editing_name {
             icons::CheckBold
         } else {
-            icons::PencilOutline
+            icons::Pencil
         },
         size,
     )

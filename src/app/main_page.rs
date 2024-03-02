@@ -1,11 +1,12 @@
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
 use iced::widget::{button, scrollable, text, vertical_rule, Column, Row};
-use iced::{theme, Color, Font, Length};
+use iced::{theme, Color, Element, Font, Length};
 
 use crate::components::{card_tab, card_tabs, icon, icons, TabBarAction};
 use crate::panels;
 use crate::panels::PanelMsg;
+use crate::state::collection::Entry;
 use crate::state::request::Method;
 use crate::state::{AppState, TabKey};
 
@@ -79,21 +80,7 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         .align_items(iced::Alignment::Center)
         .width(Length::FillPortion(5));
 
-    let coll = Column::new()
-        .push(
-            button(Row::with_children([
-                icon(icons::TriangleRight).into(),
-                text("Collection 1").into(),
-            ]))
-            .style(theme::Button::Text)
-            .padding(2)
-            .width(Length::Fill),
-        )
-        .push(text("Collection 3"))
-        .spacing(4)
-        .width(Length::Fill);
-
-    let tree = scrollable(coll)
+    let tree = scrollable(collection_tree(state))
         .height(Length::Fill)
         .width(Length::FillPortion(1));
 
@@ -103,5 +90,109 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         .push(content)
         .spacing(4)
         .padding(4)
+        .into()
+}
+
+fn folder_tree(entries: &[Entry]) -> Element<MainPageMsg> {
+    let it = entries.iter().map(|entry| match entry {
+        Entry::Item(item) => text(&item.name).into(),
+        Entry::Folder(folder) => {
+            let children = folder_tree(&folder.children);
+            let icon_tree = if folder.expanded {
+                icons::TriangleDown
+            } else {
+                icons::TriangleRight
+            };
+
+            Column::new()
+                .push(
+                    button(Row::with_children([
+                        icon(icon_tree).into(),
+                        text(&folder.name).into(),
+                    ]))
+                    .style(theme::Button::Text)
+                    .padding(2)
+                    .on_press(MainPageMsg::Test)
+                    .width(Length::Fill),
+                )
+                .push(children)
+                .spacing(4)
+                .width(Length::Fill)
+                .into()
+        }
+    });
+
+    Column::with_children(it)
+        .spacing(4)
+        .width(Length::Fill)
+        .into()
+}
+
+fn collection_tree(state: &AppState) -> Element<MainPageMsg> {
+    let it = state.collections.iter().map(|(key, collection)| {
+        let children = collection
+            .children
+            .iter()
+            .map(|entry| match entry {
+                Entry::Item(item) => text(&item.name).into(),
+                Entry::Folder(folder) => {
+                    let children = folder_tree(&folder.children);
+                    let icon_tree = if folder.expanded {
+                        icons::TriangleDown
+                    } else {
+                        icons::TriangleRight
+                    };
+
+                    Column::new()
+                        .push(
+                            button(Row::with_children([
+                                icon(icon_tree).into(),
+                                text(&folder.name).into(),
+                            ]))
+                            .style(theme::Button::Text)
+                            .padding(2)
+                            .on_press(MainPageMsg::Test)
+                            .width(Length::Fill),
+                        )
+                        .push(children)
+                        .spacing(4)
+                        .width(Length::Fill)
+                        .into()
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let children = if collection.expanded {
+            Column::with_children(children)
+        } else {
+            Column::new()
+        };
+
+        let children = if collection.expanded {
+            children
+        } else {
+            children.width(Length::Shrink).height(Length::Shrink)
+        };
+
+        Column::new()
+            .push(
+                button(Row::with_children([
+                    icon(icons::TriangleRight).into(),
+                    text(&collection.name).into(),
+                ]))
+                .style(theme::Button::Text)
+                .padding(2)
+                .on_press(MainPageMsg::Test)
+                .width(Length::Fill),
+            )
+            .push(children)
+            .spacing(4)
+            .width(Length::Fill)
+            .into()
+    });
+
+    Column::with_children(it)
+        .spacing(4)
+        .width(Length::Fill)
         .into()
 }
