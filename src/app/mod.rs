@@ -1,4 +1,6 @@
-mod main_page;
+mod collection_tree;
+pub mod main_page;
+pub mod panels;
 
 use iced::Command;
 

@@ -1,22 +1,19 @@
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{button, scrollable, text, vertical_rule, Button, Column, Row};
+use iced::widget::{scrollable, text, vertical_rule, Column, Row};
 use iced::{theme, Color, Element, Font, Length};
 
-use crate::components::{card_tab, card_tabs, icon, icons, NerdIcon, TabBarAction};
-use crate::panels;
-use crate::panels::PanelMsg;
-use crate::state::collection::{Entry, Folder};
+use crate::app::panels::PanelMsg;
+use crate::app::{collection_tree, panels};
+use crate::components::{card_tab, card_tabs, TabBarAction};
 use crate::state::request::Method;
-use crate::state::{AppState, CollectionKey, TabKey};
+use crate::state::{AppState, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {
     TabBarAction(TabBarAction<TabKey>),
     Panel(PanelMsg),
-    Test,
-    ToggleExpandCollection(CollectionKey),
-    ToggleFolder(CollectionKey, String),
+    CollectionTree(collection_tree::CollectionTreeMsg),
 }
 
 impl MainPageMsg {
@@ -28,27 +25,7 @@ impl MainPageMsg {
                 TabBarAction::CloseTab(key) => state.close_tab(key),
             },
             Self::Panel(msg) => msg.update(state),
-            Self::Test => println!("Test"),
-            Self::ToggleExpandCollection(key) => {
-                if let Some(collection) = state.collections.get_mut(key) {
-                    collection.expanded = !collection.expanded;
-                }
-            }
-            Self::ToggleFolder(col, name) => {
-                if let Some(collection) = state.collections.get_mut(col) {
-                    if let Some(folder) =
-                        collection
-                            .children
-                            .iter_mut()
-                            .find_map(|entry| match entry {
-                                Entry::Folder(folder) if folder.name == name => Some(folder),
-                                _ => None,
-                            })
-                    {
-                        folder.expanded = !folder.expanded;
-                    }
-                }
-            }
+            Self::CollectionTree(msg) => msg.update(state),
         }
     }
 }
@@ -102,7 +79,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
         .align_items(iced::Alignment::Center)
         .width(Length::FillPortion(5));
 
-    let tree = scrollable(collection_tree(state))
+    let tree = scrollable(collection_tree::view(state).map(MainPageMsg::CollectionTree))
         .height(Length::Fill)
         .width(Length::FillPortion(1));
 
@@ -112,84 +89,5 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
         .push(content)
         .spacing(4)
         .padding(4)
-        .into()
-}
-
-fn folder_tree(col: CollectionKey, entries: &[Entry], depth: u16) -> Element<MainPageMsg> {
-    let it = entries.iter().map(|entry| match entry {
-        Entry::Item(item) => text(&item.name).into(),
-        Entry::Folder(folder) => expandable(
-            col,
-            depth,
-            &folder.name,
-            &folder.children,
-            folder.expanded,
-            MainPageMsg::ToggleFolder(col, folder.name.clone()),
-        ),
-    });
-
-    Column::with_children(it)
-        .spacing(2)
-        .padding([0, 0, 0, 8 * depth])
-        .width(Length::Fill)
-        .into()
-}
-
-fn expandable<'a>(
-    col: CollectionKey,
-    depth: u16,
-    name: &str,
-    entries: &'a [Entry],
-    expanded: bool,
-    on_expand_toggle: MainPageMsg,
-) -> Element<'a, MainPageMsg> {
-    let children = folder_tree(col, entries, depth + 1);
-    if expanded {
-        Column::new()
-            .push(expandable_button(
-                name,
-                on_expand_toggle,
-                icons::TriangleDown,
-            ))
-            .push(children)
-            .spacing(2)
-            .width(Length::Fill)
-            .into()
-    } else {
-        expandable_button(name, on_expand_toggle, icons::TriangleRight).into()
-    }
-}
-
-fn expandable_button<'a>(
-    name: &str,
-    on_expand_toggle: MainPageMsg,
-    arrow: NerdIcon,
-) -> Button<'a, MainPageMsg> {
-    button(
-        Row::with_children([icon(arrow).size(12).into(), text(name).into()])
-            .align_items(iced::Alignment::Center)
-            .spacing(4),
-    )
-    .style(theme::Button::Text)
-    .padding(0)
-    .on_press(on_expand_toggle)
-    .width(Length::Fill)
-}
-
-fn collection_tree(state: &AppState) -> Element<MainPageMsg> {
-    let it = state.collections.iter().map(|(key, collection)| {
-        expandable(
-            key,
-            0,
-            &collection.name,
-            &collection.children,
-            collection.expanded,
-            MainPageMsg::ToggleExpandCollection(key),
-        )
-    });
-
-    Column::with_children(it)
-        .spacing(4)
-        .width(Length::Fill)
         .into()
 }

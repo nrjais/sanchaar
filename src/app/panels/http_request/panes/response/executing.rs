@@ -1,8 +1,8 @@
+use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
 use iced::widget::{button, container, text, Column};
 use iced::{theme, Length};
 use iced_aw::Spinner;
 
-use crate::panels::http_request::panes::response::ResponsePaneMsg;
 use crate::state::AppState;
 
 pub fn center_x<'a>(

@@ -2,7 +2,6 @@ pub mod app;
 pub mod commands;
 pub mod components;
 pub mod core;
-pub mod panels;
 pub mod state;
 pub mod transformers;
 
