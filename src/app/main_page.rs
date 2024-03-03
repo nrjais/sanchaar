@@ -1,20 +1,22 @@
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{button, scrollable, text, vertical_rule, Column, Row};
+use iced::widget::{button, scrollable, text, vertical_rule, Button, Column, Row};
 use iced::{theme, Color, Element, Font, Length};
 
-use crate::components::{card_tab, card_tabs, icon, icons, TabBarAction};
+use crate::components::{card_tab, card_tabs, icon, icons, NerdIcon, TabBarAction};
 use crate::panels;
 use crate::panels::PanelMsg;
-use crate::state::collection::Entry;
+use crate::state::collection::{Entry, Folder};
 use crate::state::request::Method;
-use crate::state::{AppState, TabKey};
+use crate::state::{AppState, CollectionKey, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {
     TabBarAction(TabBarAction<TabKey>),
     Panel(PanelMsg),
     Test,
+    ToggleExpandCollection(CollectionKey),
+    ToggleFolder(CollectionKey, String),
 }
 
 impl MainPageMsg {
@@ -27,6 +29,26 @@ impl MainPageMsg {
             },
             Self::Panel(msg) => msg.update(state),
             Self::Test => println!("Test"),
+            Self::ToggleExpandCollection(key) => {
+                if let Some(collection) = state.collections.get_mut(key) {
+                    collection.expanded = !collection.expanded;
+                }
+            }
+            Self::ToggleFolder(col, name) => {
+                if let Some(collection) = state.collections.get_mut(col) {
+                    if let Some(folder) =
+                        collection
+                            .children
+                            .iter_mut()
+                            .find_map(|entry| match entry {
+                                Entry::Folder(folder) if folder.name == name => Some(folder),
+                                _ => None,
+                            })
+                    {
+                        folder.expanded = !folder.expanded;
+                    }
+                }
+            }
         }
     }
 }
@@ -45,7 +67,7 @@ fn method_color(method: Method) -> Color {
     }
 }
 
-pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
+pub fn view(state: &AppState) -> Element<MainPageMsg> {
     let mut tabs = state.tabs.iter().collect::<Vec<_>>();
     tabs.sort_unstable_by_key(|(k, _v)| *k);
 
@@ -55,7 +77,7 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
             card_tab(
                 key,
                 text(tab.request.method)
-                    .style(iced::theme::Text::Color(method_color(tab.request.method)))
+                    .style(theme::Text::Color(method_color(tab.request.method)))
                     .shaping(Advanced)
                     .size(12)
                     .height(Length::Shrink)
@@ -93,102 +115,77 @@ pub fn view(state: &AppState) -> iced::Element<MainPageMsg> {
         .into()
 }
 
-fn folder_tree(entries: &[Entry]) -> Element<MainPageMsg> {
+fn folder_tree(col: CollectionKey, entries: &[Entry], depth: u16) -> Element<MainPageMsg> {
     let it = entries.iter().map(|entry| match entry {
         Entry::Item(item) => text(&item.name).into(),
-        Entry::Folder(folder) => {
-            let children = folder_tree(&folder.children);
-            let icon_tree = if folder.expanded {
-                icons::TriangleDown
-            } else {
-                icons::TriangleRight
-            };
-
-            Column::new()
-                .push(
-                    button(Row::with_children([
-                        icon(icon_tree).into(),
-                        text(&folder.name).into(),
-                    ]))
-                    .style(theme::Button::Text)
-                    .padding(2)
-                    .on_press(MainPageMsg::Test)
-                    .width(Length::Fill),
-                )
-                .push(children)
-                .spacing(4)
-                .width(Length::Fill)
-                .into()
-        }
+        Entry::Folder(folder) => expandable(
+            col,
+            depth,
+            &folder.name,
+            &folder.children,
+            folder.expanded,
+            MainPageMsg::ToggleFolder(col, folder.name.clone()),
+        ),
     });
 
     Column::with_children(it)
-        .spacing(4)
+        .spacing(2)
+        .padding([0, 0, 0, 8 * depth])
         .width(Length::Fill)
         .into()
 }
 
-fn collection_tree(state: &AppState) -> Element<MainPageMsg> {
-    let it = state.collections.iter().map(|(key, collection)| {
-        let children = collection
-            .children
-            .iter()
-            .map(|entry| match entry {
-                Entry::Item(item) => text(&item.name).into(),
-                Entry::Folder(folder) => {
-                    let children = folder_tree(&folder.children);
-                    let icon_tree = if folder.expanded {
-                        icons::TriangleDown
-                    } else {
-                        icons::TriangleRight
-                    };
-
-                    Column::new()
-                        .push(
-                            button(Row::with_children([
-                                icon(icon_tree).into(),
-                                text(&folder.name).into(),
-                            ]))
-                            .style(theme::Button::Text)
-                            .padding(2)
-                            .on_press(MainPageMsg::Test)
-                            .width(Length::Fill),
-                        )
-                        .push(children)
-                        .spacing(4)
-                        .width(Length::Fill)
-                        .into()
-                }
-            })
-            .collect::<Vec<_>>();
-
-        let children = if collection.expanded {
-            Column::with_children(children)
-        } else {
-            Column::new()
-        };
-
-        let children = if collection.expanded {
-            children
-        } else {
-            children.width(Length::Shrink).height(Length::Shrink)
-        };
-
+fn expandable<'a>(
+    col: CollectionKey,
+    depth: u16,
+    name: &str,
+    entries: &'a [Entry],
+    expanded: bool,
+    on_expand_toggle: MainPageMsg,
+) -> Element<'a, MainPageMsg> {
+    let children = folder_tree(col, entries, depth + 1);
+    if expanded {
         Column::new()
-            .push(
-                button(Row::with_children([
-                    icon(icons::TriangleRight).into(),
-                    text(&collection.name).into(),
-                ]))
-                .style(theme::Button::Text)
-                .padding(2)
-                .on_press(MainPageMsg::Test)
-                .width(Length::Fill),
-            )
+            .push(expandable_button(
+                name,
+                on_expand_toggle,
+                icons::TriangleDown,
+            ))
             .push(children)
-            .spacing(4)
+            .spacing(2)
             .width(Length::Fill)
             .into()
+    } else {
+        expandable_button(name, on_expand_toggle, icons::TriangleRight).into()
+    }
+}
+
+fn expandable_button<'a>(
+    name: &str,
+    on_expand_toggle: MainPageMsg,
+    arrow: NerdIcon,
+) -> Button<'a, MainPageMsg> {
+    button(
+        Row::with_children([icon(arrow).size(12).into(), text(name).into()])
+            .align_items(iced::Alignment::Center)
+            .spacing(4),
+    )
+    .style(theme::Button::Text)
+    .padding(0)
+    .on_press(on_expand_toggle)
+    .width(Length::Fill)
+}
+
+fn collection_tree(state: &AppState) -> Element<MainPageMsg> {
+    let it = state.collections.iter().map(|(key, collection)| {
+        expandable(
+            key,
+            0,
+            &collection.name,
+            &collection.children,
+            collection.expanded,
+            MainPageMsg::ToggleExpandCollection(key),
+        )
     });
 
     Column::with_children(it)
