@@ -12,6 +12,12 @@ pub mod request;
 pub mod response;
 pub mod tab;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum SplitState {
+    First,  // Left or Top
+    Second, // Right or Bottom
+}
+
 slotmap::new_key_type! {
     pub struct TabKey;
     pub struct CollectionKey;

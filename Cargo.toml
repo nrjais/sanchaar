@@ -41,6 +41,5 @@ opt-level = 3
 
 [patch.crates-io]
 iced = { path = "../iced" }
-iced_aw = { path = "../iced_aw" }
 
 

@@ -1,6 +1,5 @@
 use iced::widget::scrollable;
 use iced::{
-    theme,
     widget::{button, checkbox, component, container, text_input, Column, Component, Row},
     Border, Element, Theme,
 };
@@ -125,7 +124,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
 
             let remove = button(container(icon(icons::Delete).size(size + 4)))
                 .padding(0)
-                .style(theme::Button::Text)
+                .style(button::text)
                 .on_press_maybe(if idx < self.values.values().len() - 1 {
                     Some(KeyValUpdateMsg::Remove(idx))
                 } else {
@@ -140,7 +139,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     .spacing(8),
             )
             .padding([2, 8])
-            .style(|theme: &Theme| container::Appearance {
+            .style(|theme: &Theme, _| container::Appearance {
                 border: Border {
                     color: theme.extended_palette().secondary.strong.color,
                     width: 1.,

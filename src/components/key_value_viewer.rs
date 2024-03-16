@@ -1,11 +1,11 @@
-use iced::widget::text::Wrapping;
+use iced::advanced::text::Wrapping;
 use iced::widget::{container, scrollable, text};
 use iced::{
-    theme,
     widget::{Column, Row},
     Border, Element, Length, Theme,
 };
-use iced_aw::style::colors;
+
+use crate::components::colors;
 
 pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a, M> {
     let size = 16;
@@ -16,14 +16,14 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
                 text(key)
                     .size(size)
                     .wrapping(Wrapping::Glyph)
-                    .style(theme::Text::Color(colors::DARK_GREY))
+                    .color(colors::DARK_GREY)
                     .width(Length::FillPortion(2)),
             )
             .push(
                 text(val)
                     .size(size)
                     .wrapping(Wrapping::Glyph)
-                    .style(theme::Text::Color(colors::DARK_GREY))
+                    .color(colors::DARK_GREY)
                     .width(Length::FillPortion(3)),
             )
             .spacing(spacing)
@@ -38,7 +38,7 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
     ))
     .width(Length::Fill)
     .height(Length::Fill)
-    .style(|theme: &Theme| container::Appearance {
+    .style(|theme: &Theme, _| container::Appearance {
         border: Border {
             color: theme.extended_palette().secondary.strong.color,
             width: 1.,

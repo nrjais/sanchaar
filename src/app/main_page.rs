@@ -1,7 +1,7 @@
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
 use iced::widget::{scrollable, text, vertical_rule, Column, Row};
-use iced::{theme, Color, Element, Font, Length};
+use iced::{Color, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
 use crate::app::{collection_tree, panels};
@@ -54,7 +54,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
             card_tab(
                 key,
                 text(tab.request.method)
-                    .style(theme::Text::Color(method_color(tab.request.method)))
+                    .color(method_color(tab.request.method))
                     .shaping(Advanced)
                     .size(12)
                     .height(Length::Shrink)

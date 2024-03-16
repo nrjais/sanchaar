@@ -2,7 +2,7 @@ use crate::components::{icon, icons, NerdIcon};
 use crate::state::collection::Entry;
 use crate::state::{AppState, CollectionKey};
 use iced::widget::{button, text, Button, Column, Row};
-use iced::{theme, Element, Length};
+use iced::{Element, Length};
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
@@ -15,22 +15,12 @@ impl CollectionTreeMsg {
         match self {
             Self::ToggleExpandCollection(key) => {
                 if let Some(collection) = state.collections.get_mut(key) {
-                    collection.expanded = !collection.expanded;
+                    collection.toggle_expand();
                 }
             }
             Self::ToggleFolder(col, name) => {
                 if let Some(collection) = state.collections.get_mut(col) {
-                    if let Some(folder) =
-                        collection
-                            .children
-                            .iter_mut()
-                            .find_map(|entry| match entry {
-                                Entry::Folder(folder) if folder.name == name => Some(folder),
-                                _ => None,
-                            })
-                    {
-                        folder.expanded = !folder.expanded;
-                    }
+                    collection.toggle_folder(&name);
                 }
             }
         }
@@ -110,7 +100,7 @@ fn expandable_button<'a>(
             .align_items(iced::Alignment::Center)
             .spacing(4),
     )
-    .style(theme::Button::Text)
+    .style(button::text)
     .padding(0)
     .on_press(on_expand_toggle)
     .width(Length::Fill)

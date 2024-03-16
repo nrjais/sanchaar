@@ -1,12 +1,10 @@
 use humansize::{format_size, BINARY};
 use iced::{Alignment, Color, Element};
 
-use iced::theme::Text;
 use iced::widget::{text, Column, Row};
 
 use crate::components::{
-    button_tab, button_tabs, code_editor, key_value_viewer, ButtonTabLabel, CodeEditorMsg,
-    ContentType,
+    button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
 };
 use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::{response::ResponseTabId, AppState};
@@ -70,17 +68,17 @@ pub(crate) fn view<'a>(
         .push(
             text(res.status.to_string())
                 .size(status_size)
-                .style(Text::Color(status_color(res.status))),
+                .color(status_color(res.status)),
         )
         .push(
             text(format_size(res.size_bytes, BINARY))
                 .size(status_size)
-                .style(Text::Color(Color::from_rgb8(182, 128, 182))),
+                .color(Color::from_rgb8(182, 128, 182)),
         )
         .push(
             text(fmt_duration(res.duration))
                 .size(status_size)
-                .style(Text::Color(Color::from_rgb8(160, 160, 160))),
+                .color(Color::from_rgb8(160, 160, 160)),
         )
         .padding([4, 8])
         .spacing(8)
@@ -102,11 +100,8 @@ pub(crate) fn view<'a>(
     let tabs = button_tabs(
         active_tab.response.active_tab,
         &[
-            button_tab(ResponseTabId::Body, ButtonTabLabel::Text(text("Body"))),
-            button_tab(
-                ResponseTabId::Headers,
-                ButtonTabLabel::Text(text("Headers")),
-            ),
+            button_tab(ResponseTabId::Body, || text("Body")),
+            button_tab(ResponseTabId::Headers, || text("Headers")),
         ],
         CompletedMsg::TabChanged,
         Some(status.into()),

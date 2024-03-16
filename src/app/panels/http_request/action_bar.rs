@@ -2,7 +2,6 @@ use iced::widget::{
     horizontal_rule, horizontal_space, pick_list, text, text_input, Button, Column, Row,
 };
 use iced::{
-    theme,
     widget::{button, container},
     Element, Length,
 };
@@ -36,7 +35,7 @@ impl ActionBarMsg {
 fn icon_button<'a>(ico: NerdIcon, size: u16) -> Button<'a, ActionBarMsg> {
     button(container(icon(ico).size(size)).padding([0, 8]))
         .padding(0)
-        .style(theme::Button::Text)
+        .style(button::text)
 }
 
 pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {

@@ -1,6 +1,9 @@
-use crate::state::response::ResponsePane;
-use iced_aw::split;
+use iced::widget::pane_grid;
+use iced::widget::pane_grid::Configuration;
 use tokio::sync::oneshot;
+
+use crate::state::response::ResponsePane;
+use crate::state::SplitState;
 
 use super::request::RequestPane;
 
@@ -9,9 +12,8 @@ pub struct Tab {
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
-    pub split_axis: split::Axis,
-    pub split_pos: Option<u16>,
     pub editing_name: bool,
+    pub pane: pane_grid::State<SplitState>,
 }
 
 impl Default for Tab {
@@ -26,8 +28,12 @@ impl Tab {
             request: RequestPane::new(),
             response: ResponsePane::new(),
             tasks: Vec::new(),
-            split_axis: split::Axis::Vertical,
-            split_pos: None,
+            pane: pane_grid::State::with_configuration(Configuration::Split {
+                axis: pane_grid::Axis::Vertical,
+                ratio: 0.45,
+                a: Box::new(Configuration::Pane(SplitState::First)),
+                b: Box::new(Configuration::Pane(SplitState::Second)),
+            }),
             editing_name: false,
         }
     }

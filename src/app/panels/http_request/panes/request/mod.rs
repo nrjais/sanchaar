@@ -6,7 +6,7 @@ use iced::{widget::text, Length};
 use crate::components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
 use crate::state::request::RequestRawBody;
 use crate::{
-    components::{button_tab, button_tabs, key_value_editor, ButtonTabLabel, KeyValUpdateMsg},
+    components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg},
     state::{request::ReqTabId, AppState},
 };
 
@@ -135,9 +135,9 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let tabs = button_tabs(
         request.tab,
         &[
-            button_tab(ReqTabId::Params, ButtonTabLabel::Text(text("Params"))),
-            button_tab(ReqTabId::Headers, ButtonTabLabel::Text(text("Headers"))),
-            button_tab(ReqTabId::Body, ButtonTabLabel::Text(text("Body"))),
+            button_tab(ReqTabId::Params, || text("Params")),
+            button_tab(ReqTabId::Headers, || text("Headers")),
+            button_tab(ReqTabId::Body, || text("Body")),
         ],
         RequestPaneMsg::TabSelected,
         None,

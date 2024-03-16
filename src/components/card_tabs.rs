@@ -1,7 +1,6 @@
 use crate::components::{icon, icons};
 use iced::widget::{container, horizontal_space};
 use iced::{
-    theme,
     widget::{button, Row, Text},
     Border, Element, Shadow, Theme,
 };
@@ -38,7 +37,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .push(tab.label)
             .push(
                 button(icon(icons::CloseBox).size(20))
-                    .style(theme::Button::Text)
+                    .style(button::text)
                     .padding([0, 4])
                     .on_press(on_action(TabBarAction::CloseTab(tab.id.clone()))),
             )
@@ -49,9 +48,9 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             button(label)
                 .padding([2, 4])
                 .style(if active {
-                    theme::Button::Positive
+                    button::success
                 } else {
-                    theme::Button::Secondary
+                    button::secondary
                 })
                 .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
         )
@@ -60,7 +59,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     tabs_row = tabs_row
         .push(
             button(icon(icons::PlusBox).size(24))
-                .style(theme::Button::Text)
+                .style(button::text)
                 .padding([0, 4])
                 .on_press(on_action(TabBarAction::NewTab)),
         )
@@ -73,7 +72,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     container(tabs_row)
         .width(iced::Length::Fill)
         .padding(1)
-        .style(|theme: &Theme| container::Appearance {
+        .style(|theme: &Theme, _| container::Appearance {
             border: Border {
                 radius: 3.into(),
                 color: theme.extended_palette().background.weak.color,

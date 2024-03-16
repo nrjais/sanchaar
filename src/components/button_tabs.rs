@@ -1,21 +1,19 @@
 use iced::widget::horizontal_space;
 use iced::{
-    theme,
     widget::{button, Column, Row, Rule, Text},
     Element,
 };
 
-pub enum ButtonTabLabel<'a> {
-    Text(Text<'a>),
-}
-
 pub struct ButtonTab<'a, T> {
     pub id: T,
-    pub label: ButtonTabLabel<'a>,
+    pub label: Box<dyn Fn() -> Text<'a>>,
 }
 
-pub fn button_tab<T: Eq>(id: T, label: ButtonTabLabel) -> ButtonTab<T> {
-    ButtonTab { id, label }
+pub fn button_tab<'a, T: Eq>(id: T, label: impl Fn() -> Text<'a> + 'static) -> ButtonTab<'a, T> {
+    ButtonTab {
+        id,
+        label: Box::new(label),
+    }
 }
 
 pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
@@ -27,14 +25,13 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     let mut tabs_row = Row::new();
     for tab in tabs {
         let active = tab.id == active;
-        let ButtonTabLabel::Text(tab_label) = &tab.label;
 
         tabs_row = tabs_row.push(
-            button(tab_label.clone())
+            button((tab.label)())
                 .style(if active {
-                    theme::Button::Primary
+                    button::primary
                 } else {
-                    theme::Button::Text
+                    button::text
                 })
                 .padding([2, 6])
                 .on_press(on_tab_change(tab.id.clone())),
