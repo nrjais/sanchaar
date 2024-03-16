@@ -11,8 +11,10 @@ use serde_json::Value;
 use crate::state::response::{CompletedResponse, ResponseState};
 
 use crate::commands::cancellable_task::TaskResult;
+use crate::core::persistence::collections;
 use crate::core::persistence::fs::save_req_to_file;
 use crate::core::persistence::request::encode_request;
+use crate::state::collection::Collection;
 use crate::state::TabKey;
 use crate::transformers::request::transform_request;
 use crate::{app::AppMsg, core::client, state::AppState};
@@ -35,7 +37,8 @@ pub enum ResponseResult {
 pub enum CommandResultMsg {
     UpdateResponse(TabKey, ResponseResult),
     RequestReady(TabKey, reqwest::Request),
-    Completed,
+    CollectionLoaded(Collection),
+    Completed(&'static str),
 }
 
 fn pretty_body(body: &[u8]) -> String {
@@ -72,8 +75,11 @@ impl CommandResultMsg {
                 state.cancel_tab_tasks(tab);
                 state.commands.0.push(AppCommand::SendRequest(tab, req));
             }
-            CommandResultMsg::Completed => {
-                println!("Request saved");
+            CommandResultMsg::CollectionLoaded(collection) => {
+                state.collections.insert(collection);
+            }
+            CommandResultMsg::Completed(msg) => {
+                println!("Command complete: {}", msg);
             }
         };
     }
@@ -158,10 +164,10 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                 Command::perform(
                     save_req_to_file(From::from("./test"), req),
                     move |r| match r {
-                        Ok(_) => CommandResultMsg::Completed,
+                        Ok(_) => CommandResultMsg::Completed("Request saved"),
                         Err(e) => {
                             println!("Error saving request: {:?}", e);
-                            CommandResultMsg::Completed
+                            CommandResultMsg::Completed("Error saving request")
                         }
                     },
                 )
@@ -172,4 +178,28 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
     });
 
     Command::batch(cmds)
+}
+
+pub async fn load_collections() -> anyhow::Result<Collection> {
+    let collection = match collections::load().await {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Error loading collection: {:?}", e);
+            let collection = Collection::new("test".into(), vec![]);
+            collections::save(&collection).await?;
+            collection
+        }
+    };
+    Ok(collection)
+}
+
+pub fn init_command() -> Command<AppMsg> {
+    Command::perform(load_collections(), |r| match r {
+        Ok(collection) => CommandResultMsg::CollectionLoaded(collection),
+        Err(e) => {
+            println!("Error init collection: {:?}", e);
+            CommandResultMsg::CollectionLoaded(Collection::new("test".into(), vec![]))
+        }
+    })
+    .map(AppMsg::Command)
 }

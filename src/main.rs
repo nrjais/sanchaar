@@ -5,6 +5,7 @@ pub mod core;
 pub mod state;
 pub mod transformers;
 
+use crate::commands::init_command;
 use app::AppMsg;
 use iced::{
     window::{self, Position},
@@ -30,7 +31,7 @@ fn main() -> iced::Result {
     })
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Sanchaar {
     state: AppState,
 }
@@ -42,12 +43,7 @@ impl Application for Sanchaar {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Sanchaar, Command<AppMsg>) {
-        (
-            Sanchaar {
-                state: AppState::new(),
-            },
-            Command::none(),
-        )
+        (Sanchaar::default(), init_command())
     }
 
     fn title(&self) -> String {

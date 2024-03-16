@@ -1,3 +1,5 @@
+use iced::widget::pane_grid;
+use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
 
 pub use tab::*;
@@ -30,36 +32,14 @@ pub struct AppState {
     pub collections: SlotMap<CollectionKey, Collection>,
     pub commands: Commands,
     pub client: reqwest::Client,
+    // Collection tree and tabs split
+    pub panes: pane_grid::State<SplitState>,
 }
 
 impl Default for AppState {
     fn default() -> Self {
         Self::new()
     }
-}
-
-fn test_collection() -> SlotMap<CollectionKey, Collection> {
-    let mut collections = SlotMap::with_key();
-
-    let collection = Collection {
-        name: "Test Collection".to_string(),
-        children: vec![
-            collection::Entry::Item(collection::Item {
-                name: "Item 1".to_string(),
-            }),
-            collection::Entry::Folder(collection::Folder {
-                name: "Folder 1".to_string(),
-                children: vec![collection::Entry::Item(collection::Item {
-                    name: "Item 2".to_string(),
-                })],
-                expanded: true,
-            }),
-        ],
-        expanded: true,
-    };
-    let _ = collections.insert(collection);
-
-    collections
 }
 
 impl AppState {
@@ -73,7 +53,13 @@ impl AppState {
             tabs,
             client: create_client(),
             commands: Commands::new(),
-            collections: test_collection(),
+            collections: SlotMap::with_key(),
+            panes: pane_grid::State::with_configuration(Configuration::Split {
+                axis: pane_grid::Axis::Vertical,
+                ratio: 0.2,
+                a: Box::new(Configuration::Pane(SplitState::First)),
+                b: Box::new(Configuration::Pane(SplitState::Second)),
+            }),
         }
     }
 

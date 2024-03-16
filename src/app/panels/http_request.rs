@@ -32,7 +32,7 @@ impl HttpMsg {
             HttpMsg::SplitResize(ResizeEvent { split, ratio }) => {
                 // Only allow resizing if the ratio is min 0.25 on both sides
                 if ratio > 0.25 && ratio < 0.75 {
-                    state.active_tab_mut().pane.resize(split, ratio);
+                    state.active_tab_mut().panes.resize(split, ratio);
                 }
             }
             HttpMsg::Actions(ac) => ac.update(state),
@@ -46,7 +46,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     let url_bar = url_bar::view(state).map(HttpMsg::Url);
     let action_bar = action_bar::view(state).map(HttpMsg::Actions);
 
-    let req_res = PaneGrid::new(&tab.pane, move |_, pane, _| {
+    let req_res = PaneGrid::new(&tab.panes, move |_, pane, _| {
         let pane = match pane {
             SplitState::First => {
                 let request_view = request::view(state).map(HttpMsg::Req);

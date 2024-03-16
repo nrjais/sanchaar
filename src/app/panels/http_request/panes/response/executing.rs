@@ -26,7 +26,7 @@ pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
     );
 
     let col = Column::new()
-        .push(icon(icons::LoaderCircle).size(40))
+        .push(icon(icons::DotsCircle).size(40))
         .push(text("Executing Request."))
         .push(cancel)
         .spacing(8)

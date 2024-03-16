@@ -1,4 +1,5 @@
 use crate::components::{KeyValList, KeyValue};
+use crate::core::persistence::Version;
 use serde::{Deserialize, Serialize};
 use std::ops::Not;
 
@@ -65,11 +66,6 @@ impl From<&KeyValue> for EncodedKeyValue {
             disabled: value.disabled,
         }
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Version {
-    V1,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -13,7 +13,7 @@ pub struct Tab {
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
     pub editing_name: bool,
-    pub pane: pane_grid::State<SplitState>,
+    pub panes: pane_grid::State<SplitState>,
 }
 
 impl Default for Tab {
@@ -28,7 +28,7 @@ impl Tab {
             request: RequestPane::new(),
             response: ResponsePane::new(),
             tasks: Vec::new(),
-            pane: pane_grid::State::with_configuration(Configuration::Split {
+            panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
                 ratio: 0.45,
                 a: Box::new(Configuration::Pane(SplitState::First)),
