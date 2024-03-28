@@ -7,9 +7,10 @@ pub mod transformers;
 
 use crate::commands::init_command;
 use app::AppMsg;
+use iced::advanced::Application;
 use iced::{
     window::{self, Position},
-    Application, Command, Element, Point, Settings, Size, Theme,
+    Command, Element, Point, Renderer, Settings, Size, Theme,
 };
 use state::AppState;
 use std::borrow::Cow;
@@ -40,6 +41,7 @@ impl Application for Sanchaar {
     type Executor = iced::executor::Default;
     type Message = AppMsg;
     type Theme = Theme;
+    type Renderer = Renderer;
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Sanchaar, Command<AppMsg>) {

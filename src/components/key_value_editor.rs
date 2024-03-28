@@ -139,13 +139,13 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     .spacing(8),
             )
             .padding([2, 8])
-            .style(|theme: &Theme, _| container::Appearance {
+            .style(|theme: &Theme| container::Style {
                 border: Border {
                     color: theme.extended_palette().secondary.strong.color,
                     width: 1.,
                     radius: 2.into(),
                 },
-                ..container::Appearance::default()
+                ..container::Style::default()
             });
 
             let name = text_input("Key", &kv.name)

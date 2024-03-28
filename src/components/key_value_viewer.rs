@@ -38,7 +38,7 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
     ))
     .width(Length::Fill)
     .height(Length::Fill)
-    .style(|theme: &Theme, _| container::Appearance {
+    .style(|theme: &Theme| container::Style {
         border: Border {
             color: theme.extended_palette().secondary.strong.color,
             width: 1.,

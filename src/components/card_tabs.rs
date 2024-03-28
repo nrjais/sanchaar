@@ -72,7 +72,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     container(tabs_row)
         .width(iced::Length::Fill)
         .padding(1)
-        .style(|theme: &Theme, _| container::Appearance {
+        .style(|theme: &Theme| container::Style {
             border: Border {
                 radius: 3.into(),
                 color: theme.extended_palette().background.weak.color,
@@ -83,7 +83,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                 offset: iced::Vector::new(0.0, 2.0),
                 blur_radius: 2.0,
             },
-            ..container::Appearance::default()
+            ..container::Style::default()
         })
         .into()
 }

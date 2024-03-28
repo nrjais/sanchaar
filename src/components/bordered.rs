@@ -1,12 +1,12 @@
-use iced::widget::rule::{Appearance, FillMode};
+use iced::widget::rule::{FillMode, Style};
 use iced::widget::{vertical_rule, Row};
 use iced::{Element, Theme};
 
-pub fn style<'a>(width: u16) -> impl Fn(&Theme) -> Appearance + 'a {
+pub fn style<'a>(width: u16) -> impl Fn(&Theme) -> Style + 'a {
     move |theme: &Theme| {
         let palette = theme.extended_palette();
 
-        Appearance {
+        Style {
             color: palette.background.strong.color,
             width,
             radius: 0.0.into(),
