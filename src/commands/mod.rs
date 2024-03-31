@@ -2,6 +2,7 @@ mod cancellable_task;
 
 use iced::Command;
 use std::mem;
+use std::path::PathBuf;
 
 use iced::widget::text_editor;
 
@@ -185,7 +186,7 @@ pub async fn load_collections() -> anyhow::Result<Collection> {
         Ok(c) => c,
         Err(e) => {
             println!("Error loading collection: {:?}", e);
-            let collection = Collection::new("test".into(), vec![]);
+            let collection = Collection::default();
             collections::save(&collection).await?;
             collection
         }
@@ -198,7 +199,7 @@ pub fn init_command() -> Command<AppMsg> {
         Ok(collection) => CommandResultMsg::CollectionLoaded(collection),
         Err(e) => {
             println!("Error init collection: {:?}", e);
-            CommandResultMsg::CollectionLoaded(Collection::new("test".into(), vec![]))
+            CommandResultMsg::CollectionLoaded(Collection::default())
         }
     })
     .map(AppMsg::Command)

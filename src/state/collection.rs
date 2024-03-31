@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[derive(Debug, Clone)]
 pub struct Item {
     pub name: String,
@@ -7,6 +9,7 @@ pub struct Item {
 pub struct Folder {
     pub name: String,
     pub children: Vec<Entry>,
+    pub path: PathBuf,
     pub expanded: bool,
 }
 
@@ -19,6 +22,7 @@ pub enum Entry {
 #[derive(Debug, Clone)]
 pub struct Collection {
     pub name: String,
+    pub path: PathBuf,
     pub children: Vec<Entry>,
     pub expanded: bool,
 }
@@ -37,10 +41,20 @@ fn toggle_folder(entries: &mut [Entry], name: &str) {
 }
 
 impl Collection {
-    pub fn new(name: String, children: Vec<Entry>) -> Self {
+    pub fn new(name: String, children: Vec<Entry>, path: PathBuf) -> Self {
         Self {
             name,
             children,
+            path,
+            expanded: false,
+        }
+    }
+
+    pub fn default() -> Self {
+        Self {
+            name: "New Collection".to_string(),
+            children: vec![],
+            path: PathBuf::new(),
             expanded: false,
         }
     }
