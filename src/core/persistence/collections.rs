@@ -20,17 +20,17 @@ pub async fn load() -> anyhow::Result<Collection> {
     let data = fs::read_to_string(path.join("collection.toml")).await?;
     let collection: EncodedCollection = toml::from_str(&data)?;
 
-    let entries = walk_entries(&path).await?;
+    let entries = walk_entries(&path, true).await?;
     Ok(Collection::new(collection.name, entries, path))
 }
 
-async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
+async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entry>> {
     let mut entries = vec![];
     let mut dir = fs::read_dir(dir_path).await?;
 
     while let Some(entry) = dir.next_entry().await? {
         if entry.file_type().await?.is_dir() {
-            let children = Box::pin(walk_entries(&entry.path())).await?;
+            let children = Box::pin(walk_entries(&entry.path(), false)).await?;
             entries.push(Entry::Folder(Folder {
                 name: entry.file_name().to_string_lossy().to_string(),
                 children,
@@ -38,8 +38,13 @@ async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
                 expanded: false,
             }));
         } else {
+            if root && entry.file_name() == "collection.toml" {
+                continue;
+            }
+
             entries.push(Entry::Item(Item {
                 name: entry.file_name().to_string_lossy().to_string(),
+                path: entry.path(),
             }));
         }
     }

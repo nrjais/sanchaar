@@ -1,27 +1,29 @@
-use crate::components::{icon, icons, NerdIcon};
-use crate::state::collection::Entry;
-use crate::state::{AppState, CollectionKey};
+use crate::commands::AppCommand;
 use iced::widget::{button, text, Button, Column, Row};
 use iced::{Element, Length};
+
+use crate::components::{icon, icons, NerdIcon};
+use crate::state::collection::{Entry, Item};
+use crate::state::{AppState, CollectionKey};
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
     ToggleExpandCollection(CollectionKey),
     ToggleFolder(CollectionKey, String),
+    OpenRequest(CollectionKey, Item),
 }
 
 impl CollectionTreeMsg {
     pub fn update(self, state: &mut AppState) {
         match self {
             Self::ToggleExpandCollection(key) => {
-                if let Some(collection) = state.collections.get_mut(key) {
-                    collection.toggle_expand();
-                }
+                state.with_collection(key, |collection| collection.toggle_expand());
             }
             Self::ToggleFolder(col, name) => {
-                if let Some(collection) = state.collections.get_mut(col) {
-                    collection.toggle_folder(&name);
-                }
+                state.with_collection(col, |collection| collection.toggle_folder(&name));
+            }
+            CollectionTreeMsg::OpenRequest(col, req) => {
+                state.commands.add(AppCommand::OpenRequest(col, req));
             }
         }
     }
@@ -31,7 +33,6 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
     let it = state.collections.iter().map(|(key, collection)| {
         expandable(
             key,
-            0,
             &collection.name,
             &collection.children,
             collection.expanded,
@@ -45,12 +46,15 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         .into()
 }
 
-fn folder_tree(col: CollectionKey, entries: &[Entry], depth: u16) -> Element<CollectionTreeMsg> {
+fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeMsg> {
     let it = entries.iter().map(|entry| match entry {
-        Entry::Item(item) => text(&item.name).into(),
+        Entry::Item(item) => button(text(&item.name))
+            .style(button::text)
+            .padding(0)
+            .on_press(CollectionTreeMsg::OpenRequest(col, item.clone()))
+            .into(),
         Entry::Folder(folder) => expandable(
             col,
-            depth,
             &folder.name,
             &folder.children,
             folder.expanded,
@@ -60,21 +64,20 @@ fn folder_tree(col: CollectionKey, entries: &[Entry], depth: u16) -> Element<Col
 
     Column::with_children(it)
         .spacing(2)
-        .padding([0, 0, 0, 8 * depth])
+        .padding([0, 0, 0, 12])
         .width(Length::Fill)
         .into()
 }
 
 fn expandable<'a>(
     col: CollectionKey,
-    depth: u16,
     name: &str,
     entries: &'a [Entry],
     expanded: bool,
     on_expand_toggle: CollectionTreeMsg,
 ) -> Element<'a, CollectionTreeMsg> {
-    let children = folder_tree(col, entries, depth + 1);
     if expanded {
+        let children = folder_tree(col, entries);
         Column::new()
             .push(expandable_button(
                 name,

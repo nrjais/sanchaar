@@ -3,6 +3,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone)]
 pub struct Item {
     pub name: String,
+    pub path: PathBuf,
 }
 
 #[derive(Debug, Clone)]

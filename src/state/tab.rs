@@ -5,7 +5,7 @@ use tokio::sync::oneshot;
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
 
-use super::request::RequestPane;
+use super::request::{Request, RequestPane};
 
 #[derive(Debug)]
 pub struct Tab {
@@ -18,14 +18,14 @@ pub struct Tab {
 
 impl Default for Tab {
     fn default() -> Self {
-        Self::new()
+        Self::new(Request::default())
     }
 }
 
 impl Tab {
-    pub fn new() -> Self {
+    pub fn new(request: Request) -> Self {
         Self {
-            request: RequestPane::new(),
+            request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
             panes: pane_grid::State::with_configuration(Configuration::Split {

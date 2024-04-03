@@ -44,7 +44,7 @@ impl Default for AppState {
 
 impl AppState {
     pub fn new() -> Self {
-        let tab = Tab::new();
+        let tab = Tab::default();
         let mut tabs = SlotMap::with_key();
         let active_tab = tabs.insert(tab);
 
@@ -61,6 +61,11 @@ impl AppState {
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
         }
+    }
+
+    pub fn open_request(&mut self, request: request::Request) {
+        let tab = Tab::new(request);
+        self.active_tab = self.tabs.insert(tab);
     }
 
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
@@ -117,5 +122,13 @@ impl AppState {
 
     pub fn save_request(&mut self) {
         self.commands.add(AppCommand::SaveRequest(self.active_tab));
+    }
+
+    pub fn with_collection<F, R>(&mut self, key: CollectionKey, f: F) -> R
+    where
+        F: FnOnce(&mut Collection) -> R,
+    {
+        let collection = self.collections.get_mut(key).unwrap();
+        f(collection)
     }
 }

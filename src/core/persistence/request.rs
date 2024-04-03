@@ -1,7 +1,10 @@
 use crate::components::{KeyValList, KeyValue};
+use crate::core::persistence::fs::load_from_file;
 use crate::core::persistence::Version;
+use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use std::ops::Not;
+use std::path::PathBuf;
 
 use crate::state::request::{Method, Request, RequestBody};
 
@@ -122,7 +125,7 @@ fn decode_key_values(kv: &[EncodedKeyValue]) -> KeyValList {
     KeyValList::from(list)
 }
 
-pub fn decode_request(req: &EncodedRequest) -> Request {
+fn decode_request(req: &EncodedRequest) -> Request {
     Request {
         method: req.http.method.into(),
         url: req.http.url.clone(),
@@ -132,4 +135,11 @@ pub fn decode_request(req: &EncodedRequest) -> Request {
         name: req.name.clone(),
         description: req.description.clone(),
     }
+}
+
+pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
+    let enc_req = load_from_file(&path)
+        .map_err(|_| anyhow::format_err!("Failed to read request"))
+        .await?;
+    Ok(decode_request(&enc_req))
 }

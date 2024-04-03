@@ -1,30 +1,30 @@
-mod cancellable_task;
-
-use iced::Command;
 use std::mem;
-use std::path::PathBuf;
 
 use iced::widget::text_editor;
-
-use cancellable_task::cancellable_task;
+use iced::Command;
 use serde_json::Value;
 
-use crate::state::response::{CompletedResponse, ResponseState};
+use cancellable_task::cancellable_task;
 
 use crate::commands::cancellable_task::TaskResult;
 use crate::core::persistence::collections;
 use crate::core::persistence::fs::save_req_to_file;
-use crate::core::persistence::request::encode_request;
-use crate::state::collection::Collection;
-use crate::state::TabKey;
+use crate::core::persistence::request::{encode_request, read_request};
+use crate::state::collection::{Collection, Item};
+use crate::state::request::Request;
+use crate::state::response::{CompletedResponse, ResponseState};
+use crate::state::{CollectionKey, TabKey};
 use crate::transformers::request::transform_request;
 use crate::{app::AppMsg, core::client, state::AppState};
+
+mod cancellable_task;
 
 #[derive(Debug)]
 pub enum AppCommand {
     InitRequest(TabKey),
     SendRequest(TabKey, reqwest::Request),
     SaveRequest(TabKey),
+    OpenRequest(CollectionKey, Item),
 }
 
 #[derive(Debug)]
@@ -40,6 +40,7 @@ pub enum CommandResultMsg {
     RequestReady(TabKey, reqwest::Request),
     CollectionLoaded(Collection),
     Completed(&'static str),
+    OpenRequestTab(Request),
 }
 
 fn pretty_body(body: &[u8]) -> String {
@@ -81,6 +82,9 @@ impl CommandResultMsg {
             }
             CommandResultMsg::Completed(msg) => {
                 println!("Command complete: {}", msg);
+            }
+            CommandResultMsg::OpenRequestTab(req) => {
+                state.open_request(req);
             }
         };
     }
@@ -134,7 +138,6 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                         CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled)
                     }
                 })
-                .map(AppMsg::Command)
             }
 
             AppCommand::SendRequest(tab, req) => {
@@ -155,7 +158,6 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                         CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled)
                     }
                 })
-                .map(AppMsg::Command)
             }
 
             AppCommand::SaveRequest(tab) => {
@@ -172,10 +174,19 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                         }
                     },
                 )
-                .map(AppMsg::Command)
+            }
+            AppCommand::OpenRequest(_, item) => {
+                let path = item.path.clone();
+                Command::perform(read_request(path), move |r| match r {
+                    Ok(req) => CommandResultMsg::OpenRequestTab(req),
+                    Err(_) => {
+                        println!("Error opening request: {:?}", item);
+                        CommandResultMsg::Completed("Error opening request")
+                    }
+                })
             }
         };
-        Some(cmd)
+        Some(cmd.map(AppMsg::Command))
     });
 
     Command::batch(cmds)

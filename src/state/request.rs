@@ -101,20 +101,21 @@ pub struct Request {
     pub query_params: KeyValList,
 }
 
-impl RequestPane {
-    pub(crate) fn new() -> RequestPane {
-        RequestPane {
-            url: "https://echo.nrjais.com".to_string(),
-            method: Method::GET,
-            headers: KeyValList::new(),
-            body: RequestRawBody::None,
-            query_params: KeyValList::new(),
-            tab: ReqTabId::Params,
+impl Default for Request {
+    fn default() -> Self {
+        Self {
             name: "Untitled".to_string(),
             description: "Http request".to_string(),
+            method: Method::GET,
+            url: "https://echo.nrjais.com".to_string(),
+            headers: KeyValList::new(),
+            body: RequestBody::None,
+            query_params: KeyValList::new(),
         }
     }
+}
 
+impl RequestPane {
     pub fn to_request(&self) -> Request {
         Request {
             name: self.name.clone(),
@@ -124,6 +125,19 @@ impl RequestPane {
             headers: self.headers.clone(),
             body: self.body.to_request_body(),
             query_params: self.query_params.clone(),
+        }
+    }
+
+    pub fn from(request: Request) -> RequestPane {
+        RequestPane {
+            name: request.name,
+            description: request.description,
+            url: request.url,
+            method: request.method,
+            headers: request.headers,
+            body: RequestRawBody::None,
+            query_params: request.query_params,
+            tab: ReqTabId::Params,
         }
     }
 }
