@@ -3,6 +3,7 @@ use iced::{
     widget::{button, checkbox, component, container, text_input, Column, Component, Row},
     Border, Element, Theme,
 };
+use std::ops::Not;
 
 use super::{icon, icons};
 
@@ -16,7 +17,7 @@ pub struct KeyValue {
 #[derive(Debug, PartialEq, Clone)]
 pub struct KeyValList {
     list: Vec<KeyValue>,
-    fixed: bool,
+    pub fixed: bool,
 }
 
 impl Default for KeyValList {
@@ -43,7 +44,7 @@ impl KeyValList {
     pub fn from(values: Vec<KeyValue>, fixed: bool) -> Self {
         let last = &values.last();
         match last {
-            Some(last) if !last.name.is_empty() => {
+            Some(last) if !last.name.is_empty() && !fixed => {
                 let mut values = values;
                 values.push(KeyValue::default());
                 KeyValList {
@@ -51,11 +52,7 @@ impl KeyValList {
                     fixed,
                 }
             }
-            Some(_) => KeyValList {
-                list: values,
-                fixed,
-            },
-            None => KeyValList {
+            Some(_) | None => KeyValList {
                 list: values,
                 fixed,
             },
@@ -64,7 +61,6 @@ impl KeyValList {
 
     pub fn update(&mut self, msg: KeyValUpdateMsg) {
         match msg {
-            KeyValUpdateMsg::AddHeader => self.list.push(KeyValue::default()),
             KeyValUpdateMsg::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
             KeyValUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
             KeyValUpdateMsg::ValueChanged(idx, value) => self.list[idx].value = value,
@@ -142,7 +138,6 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum KeyValUpdateMsg {
-    AddHeader,
     Toggled(usize, bool),
     NameChanged(usize, String),
     ValueChanged(usize, String),
@@ -184,21 +179,23 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     None
                 });
 
-            let actions = container(
-                Row::new()
-                    .push(enabled)
-                    .push(remove)
-                    .align_items(iced::Alignment::Center)
-                    .spacing(8),
-            )
-            .padding([2, 8])
-            .style(|theme: &Theme| container::Style {
-                border: Border {
-                    color: theme.extended_palette().secondary.strong.color,
-                    width: 1.,
-                    radius: 2.into(),
-                },
-                ..container::Style::default()
+            let actions = self.values.fixed.not().then(|| {
+                container(
+                    Row::new()
+                        .push(enabled)
+                        .push(remove)
+                        .align_items(iced::Alignment::Center)
+                        .spacing(8),
+                )
+                .padding([2, 8])
+                .style(|theme: &Theme| container::Style {
+                    border: Border {
+                        color: theme.extended_palette().secondary.strong.color,
+                        width: 1.,
+                        radius: 2.into(),
+                    },
+                    ..container::Style::default()
+                })
             });
 
             let name = text_input("Key", &kv.name)
@@ -213,7 +210,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
             Row::new()
                 .push(name)
                 .push(value)
-                .push(actions)
+                .push_maybe(actions)
                 .spacing(spacing)
                 .into()
         });
