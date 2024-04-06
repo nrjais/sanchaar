@@ -128,13 +128,21 @@ fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
         .on_change(RequestPaneMsg::Queries)
         .element();
 
-    let path = key_value_editor(&request.path_params)
-        .on_change(RequestPaneMsg::PathParams)
-        .element();
+    let has_params = request.path_params.size() > 0;
+    let path = has_params.then(|| {
+        Column::new()
+            .push("Path Params")
+            .push(
+                key_value_editor(&request.path_params)
+                    .on_change(RequestPaneMsg::PathParams)
+                    .element(),
+            )
+            .spacing(4)
+    });
 
     Column::new()
         .push(Column::new().push("Query Params").push(query).spacing(4))
-        .push(Column::new().push("Path Params").push(path).spacing(4))
+        .push_maybe(path)
         .spacing(8)
         .into()
 }

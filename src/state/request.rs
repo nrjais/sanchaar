@@ -100,6 +100,7 @@ pub struct Request {
     pub headers: KeyValList,
     pub body: RequestBody,
     pub query_params: KeyValList,
+    pub path_params: KeyValList,
 }
 
 impl Default for Request {
@@ -112,6 +113,7 @@ impl Default for Request {
             headers: KeyValList::new(),
             body: RequestBody::None,
             query_params: KeyValList::new(),
+            path_params: KeyValList::empty(),
         }
     }
 }
@@ -126,6 +128,7 @@ impl RequestPane {
             headers: self.headers.clone(),
             body: self.body.to_request_body(),
             query_params: self.query_params.clone(),
+            path_params: self.path_params.clone(),
         }
     }
 
@@ -138,7 +141,7 @@ impl RequestPane {
             headers: request.headers,
             body: RequestRawBody::None,
             query_params: request.query_params,
-            path_params: KeyValList::empty(),
+            path_params: request.path_params,
             tab: ReqTabId::Params,
         }
     }

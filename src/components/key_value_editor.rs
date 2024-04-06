@@ -14,7 +14,10 @@ pub struct KeyValue {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct KeyValList(Vec<KeyValue>);
+pub struct KeyValList {
+    list: Vec<KeyValue>,
+    fixed: bool,
+}
 
 impl Default for KeyValList {
     fn default() -> Self {
@@ -24,59 +27,82 @@ impl Default for KeyValList {
 
 impl KeyValList {
     pub fn new() -> Self {
-        KeyValList(vec![KeyValue::default()])
+        KeyValList {
+            list: vec![KeyValue::default()],
+            fixed: false,
+        }
     }
 
     pub fn empty() -> Self {
-        KeyValList(vec![])
+        KeyValList {
+            list: vec![],
+            fixed: true,
+        }
     }
 
-    pub fn from(values: Vec<KeyValue>) -> Self {
+    pub fn from(values: Vec<KeyValue>, fixed: bool) -> Self {
         let last = &values.last();
         match last {
             Some(last) if !last.name.is_empty() => {
                 let mut values = values;
                 values.push(KeyValue::default());
-                KeyValList(values)
+                KeyValList {
+                    list: values,
+                    fixed,
+                }
             }
-            Some(_) => KeyValList(values),
-            None => KeyValList(vec![KeyValue::default()]),
+            Some(_) => KeyValList {
+                list: values,
+                fixed,
+            },
+            None => KeyValList {
+                list: values,
+                fixed,
+            },
         }
     }
 
     pub fn update(&mut self, msg: KeyValUpdateMsg) {
         match msg {
-            KeyValUpdateMsg::AddHeader => self.0.push(KeyValue::default()),
-            KeyValUpdateMsg::Toggled(idx, enabled) => self.0[idx].disabled = !enabled,
-            KeyValUpdateMsg::NameChanged(idx, name) => self.0[idx].name = name,
-            KeyValUpdateMsg::ValueChanged(idx, value) => self.0[idx].value = value,
+            KeyValUpdateMsg::AddHeader => self.list.push(KeyValue::default()),
+            KeyValUpdateMsg::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
+            KeyValUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
+            KeyValUpdateMsg::ValueChanged(idx, value) => self.list[idx].value = value,
             KeyValUpdateMsg::Remove(idx) => {
-                self.0.remove(idx);
+                self.list.remove(idx);
             }
         }
-        let last = self.0.last();
+        if self.fixed {
+            return;
+        }
+
+        let last = self.list.last();
         if let Some(last) = last {
             if !last.name.is_empty() || !last.value.is_empty() {
-                self.0.push(KeyValue::default());
+                self.list.push(KeyValue::default());
             }
         } else {
-            self.0.push(KeyValue::default());
+            self.list.push(KeyValue::default());
         }
     }
 
     pub fn values(&self) -> &[KeyValue] {
-        &self.0
+        &self.list
+    }
+
+    pub fn size(&self) -> usize {
+        self.list.len()
     }
 
     pub fn retain<F>(&mut self, f: F)
     where
         F: FnMut(&KeyValue) -> bool,
     {
-        self.0.retain(f);
+        self.list.retain(f);
     }
 
     pub fn insert(&mut self, key: String) {
-        self.0.push(KeyValue {
+        self.list.push(KeyValue {
             name: key,
             disabled: false,
             value: String::new(),
@@ -84,11 +110,11 @@ impl KeyValList {
     }
 
     pub fn remove(&mut self, key: &str) {
-        self.0.retain(|kv| kv.name != key);
+        self.list.retain(|kv| kv.name != key);
     }
 
     pub fn contains_key(&self, key: &str) -> bool {
-        self.0.iter().any(|kv| kv.name == key)
+        self.list.iter().any(|kv| kv.name == key)
     }
 }
 

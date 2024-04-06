@@ -88,6 +88,8 @@ pub struct HttpRequest {
     pub headers: Vec<EncodedKeyValue>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub query: Vec<EncodedKeyValue>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub path_params: Vec<EncodedKeyValue>,
 }
 
 fn encode_key_values(kv: &KeyValList) -> Vec<EncodedKeyValue> {
@@ -105,6 +107,7 @@ pub fn encode_request(req: &Request) -> EncodedRequest {
             url: req.url.clone(),
             headers: encode_key_values(&req.headers),
             query: encode_key_values(&req.query_params),
+            path_params: encode_key_values(&req.path_params),
         },
         name: req.name.clone(),
         description: req.description.clone(),
@@ -112,7 +115,7 @@ pub fn encode_request(req: &Request) -> EncodedRequest {
     }
 }
 
-fn decode_key_values(kv: &[EncodedKeyValue]) -> KeyValList {
+fn decode_key_values(kv: &[EncodedKeyValue], fixed: bool) -> KeyValList {
     let mut list = Vec::new();
     for v in kv {
         list.push(KeyValue {
@@ -122,16 +125,17 @@ fn decode_key_values(kv: &[EncodedKeyValue]) -> KeyValList {
         });
     }
 
-    KeyValList::from(list)
+    KeyValList::from(list, fixed)
 }
 
 fn decode_request(req: &EncodedRequest) -> Request {
     Request {
         method: req.http.method.into(),
         url: req.http.url.clone(),
-        headers: decode_key_values(&req.http.headers),
+        headers: decode_key_values(&req.http.headers, false),
         body: RequestBody::None,
-        query_params: decode_key_values(&req.http.query),
+        query_params: decode_key_values(&req.http.query, false),
+        path_params: decode_key_values(&req.http.path_params, true),
         name: req.name.clone(),
         description: req.description.clone(),
     }
