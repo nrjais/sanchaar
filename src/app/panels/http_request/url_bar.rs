@@ -26,7 +26,8 @@ fn parse_path_params(url: &String) -> Option<Vec<String>> {
     let params = url
         .path_segments()?
         .filter(|segment| !segment.is_empty())
-        .filter(|segment| !segment.starts_with(':'))
+        .filter(|segment| segment.starts_with(':'))
+        .map(|segment| segment.trim_start_matches(':'))
         .map(|segments| segments.to_string())
         .collect::<Vec<String>>();
 

@@ -15,6 +15,7 @@ pub enum RequestPaneMsg {
     TabSelected(ReqTabId),
     Headers(KeyValUpdateMsg),
     Queries(KeyValUpdateMsg),
+    PathParams(KeyValUpdateMsg),
     BodyEditorAction(CodeEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
     ChangeBodyType(&'static str),
@@ -32,6 +33,9 @@ impl RequestPaneMsg {
             }
             RequestPaneMsg::Queries(msg) => {
                 request.query_params.update(msg);
+            }
+            RequestPaneMsg::PathParams(msg) => {
+                request.path_params.update(msg);
             }
             RequestPaneMsg::BodyEditorAction(action) => match &mut request.body {
                 RequestRawBody::Json(content)
@@ -125,7 +129,7 @@ fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
         .element();
 
     let path = key_value_editor(&request.path_params)
-        .on_change(RequestPaneMsg::Queries)
+        .on_change(RequestPaneMsg::PathParams)
         .element();
 
     Column::new()
