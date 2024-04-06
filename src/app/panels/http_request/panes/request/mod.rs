@@ -1,14 +1,14 @@
-mod body_editor;
-
 use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
 
 use crate::components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
-use crate::state::request::RequestRawBody;
+use crate::state::request::{RequestPane, RequestRawBody};
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg},
     state::{request::ReqTabId, AppState},
 };
+
+mod body_editor;
 
 #[derive(Debug, Clone)]
 pub enum RequestPaneMsg {
@@ -119,13 +119,27 @@ fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
         .into()
 }
 
+fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
+    let query = key_value_editor(&request.query_params)
+        .on_change(RequestPaneMsg::Queries)
+        .element();
+
+    let path = key_value_editor(&request.path_params)
+        .on_change(RequestPaneMsg::Queries)
+        .element();
+
+    Column::new()
+        .push(Column::new().push("Query Params").push(query).spacing(4))
+        .push(Column::new().push("Path Params").push(path).spacing(4))
+        .spacing(8)
+        .into()
+}
+
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let request = &state.active_tab().request;
 
     let tab_content = match request.tab {
-        ReqTabId::Params => key_value_editor(&request.query_params)
-            .on_change(RequestPaneMsg::Queries)
-            .element(),
+        ReqTabId::Params => params_view(&request),
         ReqTabId::Headers => key_value_editor(&request.headers)
             .on_change(RequestPaneMsg::Headers)
             .element(),

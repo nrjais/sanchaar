@@ -1,6 +1,6 @@
-use iced::widget::text_editor;
-
 use std::path::PathBuf;
+
+use iced::widget::text_editor;
 use strum::{Display, EnumString, VariantArray};
 
 use crate::components::KeyValList;
@@ -77,6 +77,7 @@ pub struct RequestPane {
     pub headers: KeyValList,
     pub body: RequestRawBody,
     pub query_params: KeyValList,
+    pub path_params: KeyValList,
     pub tab: ReqTabId,
 }
 
@@ -137,6 +138,7 @@ impl RequestPane {
             headers: request.headers,
             body: RequestRawBody::None,
             query_params: request.query_params,
+            path_params: KeyValList::empty(),
             tab: ReqTabId::Params,
         }
     }

@@ -27,6 +27,10 @@ impl KeyValList {
         KeyValList(vec![KeyValue::default()])
     }
 
+    pub fn empty() -> Self {
+        KeyValList(vec![])
+    }
+
     pub fn from(values: Vec<KeyValue>) -> Self {
         let last = &values.last();
         match last {
@@ -62,6 +66,29 @@ impl KeyValList {
 
     pub fn values(&self) -> &[KeyValue] {
         &self.0
+    }
+
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&KeyValue) -> bool,
+    {
+        self.0.retain(f);
+    }
+
+    pub fn insert(&mut self, key: String) {
+        self.0.push(KeyValue {
+            name: key,
+            disabled: false,
+            value: String::new(),
+        });
+    }
+
+    pub fn remove(&mut self, key: &str) {
+        self.0.retain(|kv| kv.name != key);
+    }
+
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.0.iter().any(|kv| kv.name == key)
     }
 }
 

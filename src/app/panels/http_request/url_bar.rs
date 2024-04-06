@@ -3,7 +3,7 @@ use iced::{
     widget::{button, container, pick_list, row, text_input},
     Element,
 };
-
+use reqwest::Url;
 use strum::VariantArray;
 
 use crate::components::{icons, NerdIcon};
@@ -20,6 +20,19 @@ pub enum UrlBarMsg {
     SaveRequest,
 }
 
+fn parse_path_params(url: &String) -> Option<Vec<String>> {
+    let url = Url::parse(url).ok()?;
+
+    let params = url
+        .path_segments()?
+        .filter(|segment| !segment.is_empty())
+        .filter(|segment| !segment.starts_with(':'))
+        .map(|segments| segments.to_string())
+        .collect::<Vec<String>>();
+
+    Some(params)
+}
+
 impl UrlBarMsg {
     pub(crate) fn update(self, state: &mut AppState) {
         match self {
@@ -27,7 +40,21 @@ impl UrlBarMsg {
                 state.active_tab_mut().request.method = method;
             }
             UrlBarMsg::UrlChanged(url) => {
-                state.active_tab_mut().request.url = url;
+                let active_tab = state.active_tab_mut();
+                if let Some(params) = parse_path_params(&url) {
+                    active_tab
+                        .request
+                        .path_params
+                        .retain(|key| params.contains(&key.name));
+
+                    for param in params {
+                        if !active_tab.request.path_params.contains_key(&param) {
+                            active_tab.request.path_params.insert(param);
+                        }
+                    }
+                }
+
+                active_tab.request.url = url;
             }
             UrlBarMsg::SendRequest => state.send_request(),
             UrlBarMsg::SaveRequest => state.save_request(),

@@ -11,10 +11,12 @@
 - [x] Request cancellation
 - [x] Tab view for multiple requests
 - [ ] File persistence
-    - [ ] TOML file format
-    - [ ] Save/Load
+    - [X] TOML file format
+    - [X] Save/Load
+    - [ ] Change indicator
+    - [ ] File Rename
 - [ ] Collections
-    - [ ] Tree view
+    - [X] Tree view
     - [ ] Add/Remove/Update
     - [ ] Auto Save/Load
     - [ ] Export/Import
