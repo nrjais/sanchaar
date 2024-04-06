@@ -53,7 +53,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
         .map(|(key, tab)| {
             card_tab(
                 key,
-                text(tab.request.method)
+                text(tab.request.method.to_string())
                     .color(method_color(tab.request.method))
                     .shaping(Advanced)
                     .size(12)

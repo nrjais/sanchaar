@@ -41,21 +41,23 @@ fn toggle_folder(entries: &mut [Entry], name: &str) {
     }
 }
 
+impl Default for Collection {
+    fn default() -> Self {
+        Self {
+            name: "New Collection".to_string(),
+            children: vec![],
+            path: PathBuf::new(),
+            expanded: false,
+        }
+    }
+}
+
 impl Collection {
     pub fn new(name: String, children: Vec<Entry>, path: PathBuf) -> Self {
         Self {
             name,
             children,
             path,
-            expanded: false,
-        }
-    }
-
-    pub fn default() -> Self {
-        Self {
-            name: "New Collection".to_string(),
-            children: vec![],
-            path: PathBuf::new(),
             expanded: false,
         }
     }

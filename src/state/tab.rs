@@ -1,14 +1,16 @@
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
+use std::path::PathBuf;
 use tokio::sync::oneshot;
 
 use crate::state::response::ResponsePane;
-use crate::state::SplitState;
+use crate::state::{CollectionKey, SplitState};
 
 use super::request::{Request, RequestPane};
 
 #[derive(Debug)]
 pub struct Tab {
+    pub req_ref: Option<(CollectionKey, PathBuf)>,
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
@@ -25,6 +27,7 @@ impl Default for Tab {
 impl Tab {
     pub fn new(request: Request) -> Self {
         Self {
+            req_ref: None,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
@@ -36,6 +39,11 @@ impl Tab {
             }),
             editing_name: false,
         }
+    }
+
+    pub fn set_req_ref(mut self, col: CollectionKey, path: PathBuf) -> Self {
+        self.req_ref = Some((col, path));
+        self
     }
 
     pub fn cancel_tasks(&mut self) {

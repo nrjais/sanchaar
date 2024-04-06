@@ -4,11 +4,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
 use crate::core::persistence::request::EncodedRequest;
 
-pub async fn save_req_to_file(
-    base_path: PathBuf,
-    req: EncodedRequest,
-) -> Result<(), anyhow::Error> {
-    let path = base_path.join(format!("{}.toml", req.name));
+pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), anyhow::Error> {
     let file = tokio::fs::File::create(path).await?;
     let mut writer = BufWriter::new(file);
     let encoded = toml::to_string_pretty(&req)?;

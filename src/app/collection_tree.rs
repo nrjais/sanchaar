@@ -71,7 +71,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
 
 fn expandable<'a>(
     col: CollectionKey,
-    name: &str,
+    name: &'a str,
     entries: &'a [Entry],
     expanded: bool,
     on_expand_toggle: CollectionTreeMsg,
@@ -93,11 +93,11 @@ fn expandable<'a>(
     }
 }
 
-fn expandable_button<'a>(
+fn expandable_button(
     name: &str,
     on_expand_toggle: CollectionTreeMsg,
     arrow: NerdIcon,
-) -> Button<'a, CollectionTreeMsg> {
+) -> Button<CollectionTreeMsg> {
     button(
         Row::with_children([icon(arrow).size(12).into(), text(name).into()])
             .align_items(iced::Alignment::Center)

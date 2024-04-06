@@ -1,6 +1,7 @@
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
+use std::path::PathBuf;
 
 pub use tab::*;
 
@@ -16,7 +17,8 @@ pub mod tab;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SplitState {
-    First,  // Left or Top
+    First,
+    // Left or Top
     Second, // Right or Bottom
 }
 
@@ -63,9 +65,8 @@ impl AppState {
         }
     }
 
-    pub fn open_request(&mut self, request: request::Request) {
-        let tab = Tab::new(request);
-        self.active_tab = self.tabs.insert(tab);
+    pub fn open_request(&mut self, col: CollectionKey, path: PathBuf, request: request::Request) {
+        self.active_tab = self.tabs.insert(Tab::new(request).set_req_ref(col, path));
     }
 
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {

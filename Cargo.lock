@@ -1492,12 +1492,12 @@ dependencies = [
 [[package]]
 name = "glyphon"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a62d0338e4056db6a73221c2fb2e30619452f6ea9651bac4110f51b0f7a7581"
+source = "git+https://github.com/hecrj/glyphon.git?rev=ceed55403ce53e120ce9d1fae17dcfe388726118#ceed55403ce53e120ce9d1fae17dcfe388726118"
 dependencies = [
  "cosmic-text",
  "etagere",
  "lru",
+ "rustc-hash",
  "wgpu",
 ]
 
@@ -1781,10 +1781,10 @@ dependencies = [
  "once_cell",
  "palette",
  "raw-window-handle",
+ "rustc-hash",
  "smol_str",
  "thiserror",
  "web-time",
- "xxhash-rust",
 ]
 
 [[package]]
@@ -1794,6 +1794,7 @@ dependencies = [
  "futures",
  "iced_core",
  "log",
+ "rustc-hash",
  "tokio",
  "wasm-bindgen-futures",
  "wasm-timer",
@@ -1817,7 +1818,6 @@ dependencies = [
  "rustc-hash",
  "thiserror",
  "unicode-segmentation",
- "xxhash-rust",
 ]
 
 [[package]]
@@ -1863,7 +1863,6 @@ dependencies = [
  "rustc-hash",
  "softbuffer",
  "tiny-skia",
- "xxhash-rust",
 ]
 
 [[package]]
@@ -1880,6 +1879,7 @@ dependencies = [
  "log",
  "once_cell",
  "resvg",
+ "rustc-hash",
  "thiserror",
  "wgpu",
 ]
@@ -1892,6 +1892,7 @@ dependencies = [
  "iced_runtime",
  "num-traits",
  "ouroboros",
+ "rustc-hash",
  "thiserror",
  "unicode-segmentation",
 ]
@@ -1903,6 +1904,7 @@ dependencies = [
  "iced_graphics",
  "iced_runtime",
  "log",
+ "rustc-hash",
  "thiserror",
  "tracing",
  "web-sys",
@@ -2221,9 +2223,6 @@ name = "lru"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3262e75e648fce39813cb56ac41f3c3e3f65217ebf3844d818d1f9398cfb0dc"
-dependencies = [
- "hashbrown 0.14.3",
-]
 
 [[package]]
 name = "malloc_buf"
@@ -5136,12 +5135,6 @@ name = "xmlwriter"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec7a2a501ed189703dba8b08142f057e887dfc4b2cc4db2d343ac6376ba3e0b9"
-
-[[package]]
-name = "xxhash-rust"
-version = "0.8.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "927da81e25be1e1a2901d59b81b37dd2efd1fc9c9345a55007f09bf5a2d3ee03"
 
 [[package]]
 name = "yaml-rust"

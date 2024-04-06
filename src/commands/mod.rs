@@ -1,4 +1,5 @@
 use std::mem;
+use std::path::PathBuf;
 
 use iced::widget::text_editor;
 use iced::Command;
@@ -40,7 +41,7 @@ pub enum CommandResultMsg {
     RequestReady(TabKey, reqwest::Request),
     CollectionLoaded(Collection),
     Completed(&'static str),
-    OpenRequestTab(Request),
+    OpenRequestTab(CollectionKey, PathBuf, Request),
 }
 
 fn pretty_body(body: &[u8]) -> String {
@@ -83,8 +84,8 @@ impl CommandResultMsg {
             CommandResultMsg::Completed(msg) => {
                 println!("Command complete: {}", msg);
             }
-            CommandResultMsg::OpenRequestTab(req) => {
-                state.open_request(req);
+            CommandResultMsg::OpenRequestTab(col, path, req) => {
+                state.open_request(col, path, req);
             }
         };
     }
@@ -164,21 +165,24 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                 let sel_tab = state.get_tab(tab)?;
                 let req = sel_tab.request.to_request();
                 let req = encode_request(&req);
-                Command::perform(
-                    save_req_to_file(From::from("./test"), req),
-                    move |r| match r {
-                        Ok(_) => CommandResultMsg::Completed("Request saved"),
-                        Err(e) => {
-                            println!("Error saving request: {:?}", e);
-                            CommandResultMsg::Completed("Error saving request")
-                        }
-                    },
-                )
+
+                match sel_tab.req_ref.as_ref() {
+                    Some((_, path)) => {
+                        Command::perform(save_req_to_file(path.clone(), req), move |r| match r {
+                            Ok(_) => CommandResultMsg::Completed("Request saved"),
+                            Err(e) => {
+                                println!("Error saving request: {:?}", e);
+                                CommandResultMsg::Completed("Error saving request")
+                            }
+                        })
+                    }
+                    None => Command::none(),
+                }
             }
-            AppCommand::OpenRequest(_, item) => {
+            AppCommand::OpenRequest(col, item) => {
                 let path = item.path.clone();
                 Command::perform(read_request(path), move |r| match r {
-                    Ok(req) => CommandResultMsg::OpenRequestTab(req),
+                    Ok(req) => CommandResultMsg::OpenRequestTab(col, item.path.clone(), req),
                     Err(_) => {
                         println!("Error opening request: {:?}", item);
                         CommandResultMsg::Completed("Error opening request")
