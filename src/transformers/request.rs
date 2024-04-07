@@ -52,13 +52,23 @@ pub async fn transform_request(
     client: reqwest::Client,
     req: Request,
 ) -> anyhow::Result<reqwest::Request> {
-    let mut builder = client.request(req_method(req.method), &req.url);
+    let url = replace_path_params(&req.url, &req.path_params);
+
+    let mut builder = client.request(req_method(req.method), url);
 
     builder = req_headers(builder, &req.headers);
     builder = req_params(builder, &req.query_params);
     builder = req_body(builder, req.body).await;
 
     builder.build().context("Failed to build request")
+}
+
+fn replace_path_params(url: &str, params: &KeyValList) -> String {
+    let mut url = url.to_string();
+    for param in params.values() {
+        url = url.replace(&format!(":{}", param.name), &param.value);
+    }
+    url
 }
 
 async fn req_body(builder: RequestBuilder, body: RequestBody) -> RequestBuilder {
