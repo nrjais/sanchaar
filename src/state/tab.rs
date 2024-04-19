@@ -1,6 +1,7 @@
+use crate::core::RequestId;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
-use std::path::PathBuf;
+
 use tokio::sync::oneshot;
 
 use crate::state::response::ResponsePane;
@@ -8,13 +9,19 @@ use crate::state::{CollectionKey, SplitState};
 
 use super::request::{Request, RequestPane};
 
+#[derive(Debug, Clone)]
+pub struct CollectionRequestRef {
+    pub col: CollectionKey,
+    pub id: RequestId,
+}
+
 #[derive(Debug)]
 pub struct Tab {
-    pub req_ref: Option<(CollectionKey, PathBuf)>,
+    pub req_ref: Option<CollectionRequestRef>,
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
-    pub editing_name: bool,
+    pub editing_name: Option<String>,
     pub panes: pane_grid::State<SplitState>,
 }
 
@@ -37,12 +44,12 @@ impl Tab {
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
-            editing_name: false,
+            editing_name: None,
         }
     }
 
-    pub fn set_req_ref(mut self, col: CollectionKey, path: PathBuf) -> Self {
-        self.req_ref = Some((col, path));
+    pub fn set_req_ref(mut self, col: CollectionKey, id: RequestId) -> Self {
+        self.req_ref = Some(CollectionRequestRef { col, id });
         self
     }
 

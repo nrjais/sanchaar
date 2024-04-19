@@ -1,22 +1,22 @@
 ## Roadmap
 
-- [ ] Path param support
+- [x] Path param support
 - [x] Query param support
 - [x] Header param support
 - [ ] Body support
-   -  [x] JSON
-   -  [x] Form
-   -  [x] XML
+    - [x] JSON
+    - [x] Form
+    - [x] XML
     - [ ] Multipart
 - [x] Request cancellation
 - [x] Tab view for multiple requests
 - [ ] File persistence
-    - [X] TOML file format
-    - [X] Save/Load
-    - [ ] Change indicator
-    - [ ] File Rename
+    - [x] TOML file format
+    - [x] Save/Load
+    - [ ] Changed indicator
+    - [x] File Rename
 - [ ] Collections
-    - [X] Tree view
+    - [x] Tree view
     - [ ] Add/Remove/Update
     - [ ] Auto Save/Load
     - [ ] Export/Import

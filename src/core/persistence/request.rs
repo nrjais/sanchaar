@@ -74,7 +74,6 @@ impl From<&KeyValue> for EncodedKeyValue {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncodedRequest {
     pub http: HttpRequest,
-    pub name: String,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub description: String,
     pub version: Version,
@@ -109,7 +108,6 @@ pub fn encode_request(req: &Request) -> EncodedRequest {
             query: encode_key_values(&req.query_params),
             path_params: encode_key_values(&req.path_params),
         },
-        name: req.name.clone(),
         description: req.description.clone(),
         version: Version::V1,
     }
@@ -136,7 +134,6 @@ fn decode_request(req: &EncodedRequest) -> Request {
         body: RequestBody::None,
         query_params: decode_key_values(&req.http.query, false),
         path_params: decode_key_values(&req.http.path_params, true),
-        name: req.name.clone(),
         description: req.description.clone(),
     }
 }

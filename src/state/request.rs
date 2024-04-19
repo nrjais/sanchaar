@@ -70,7 +70,6 @@ impl RequestRawBody {
 
 #[derive(Debug)]
 pub struct RequestPane {
-    pub name: String,
     pub description: String,
     pub url: String,
     pub method: Method,
@@ -93,7 +92,6 @@ pub enum RequestBody {
 
 #[derive(Debug, Clone)]
 pub struct Request {
-    pub name: String,
     pub description: String,
     pub method: Method,
     pub url: String,
@@ -106,7 +104,6 @@ pub struct Request {
 impl Default for Request {
     fn default() -> Self {
         Self {
-            name: "Untitled".to_string(),
             description: "Http request".to_string(),
             method: Method::GET,
             url: "https://echo.nrjais.com".to_string(),
@@ -121,7 +118,6 @@ impl Default for Request {
 impl RequestPane {
     pub fn to_request(&self) -> Request {
         Request {
-            name: self.name.clone(),
             description: self.description.clone(),
             method: self.method,
             url: self.url.clone(),
@@ -134,7 +130,6 @@ impl RequestPane {
 
     pub fn from(request: Request) -> RequestPane {
         RequestPane {
-            name: request.name,
             description: request.description,
             url: request.url,
             method: request.method,

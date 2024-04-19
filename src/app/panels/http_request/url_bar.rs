@@ -20,7 +20,7 @@ pub enum UrlBarMsg {
     SaveRequest,
 }
 
-fn parse_path_params(url: &String) -> Option<Vec<String>> {
+fn parse_path_params(url: &str) -> Option<Vec<String>> {
     let url = Url::parse(url).ok()?;
 
     let params = url

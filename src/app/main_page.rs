@@ -62,7 +62,12 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
                         weight: Weight::Bold,
                         ..Default::default()
                     }),
-                text(&tab.request.name),
+                text(
+                    state
+                        .col_req_ref(key)
+                        .map(|a| &a.name as &str)
+                        .unwrap_or("Untitled"),
+                ),
             )
         })
         .collect();

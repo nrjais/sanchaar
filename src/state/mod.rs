@@ -1,12 +1,11 @@
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
-use std::path::PathBuf;
 
 pub use tab::*;
 
 use crate::commands::AppCommand;
-use crate::state::collection::Collection;
+use crate::state::collection::{Collection, RequestRef};
 use crate::state::response::ResponseState;
 use crate::{commands::Commands, core::client::create_client};
 
@@ -38,12 +37,6 @@ pub struct AppState {
     pub panes: pane_grid::State<SplitState>,
 }
 
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl AppState {
     pub fn new() -> Self {
         let tab = Tab::default();
@@ -65,8 +58,16 @@ impl AppState {
         }
     }
 
-    pub fn open_request(&mut self, col: CollectionKey, path: PathBuf, request: request::Request) {
-        self.active_tab = self.tabs.insert(Tab::new(request).set_req_ref(col, path));
+    pub fn open_request(
+        &mut self,
+        col: CollectionKey,
+        item: RequestRef,
+        request: request::Request,
+    ) {
+        self.with_collection(col, |col| col.save_open_request(item.id, request.clone()));
+        self.active_tab = self
+            .tabs
+            .insert(Tab::new(request).set_req_ref(col, item.id));
     }
 
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
@@ -125,11 +126,23 @@ impl AppState {
         self.commands.add(AppCommand::SaveRequest(self.active_tab));
     }
 
-    pub fn with_collection<F, R>(&mut self, key: CollectionKey, f: F) -> R
+    pub fn with_collection<F, R>(&mut self, key: CollectionKey, f: F) -> Option<R>
     where
         F: FnOnce(&mut Collection) -> R,
     {
-        let collection = self.collections.get_mut(key).unwrap();
-        f(collection)
+        self.collections.get_mut(key).map(f)
+    }
+
+    pub(crate) fn col_req_ref(&self, tab: TabKey) -> Option<&RequestRef> {
+        let tab = self.tabs.get(tab)?;
+        let req_ref = tab.req_ref.as_ref()?;
+        let col = self.collections.get(req_ref.col)?;
+        col.get_request_ref(req_ref.id)
+    }
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
     }
 }

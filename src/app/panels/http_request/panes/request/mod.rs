@@ -151,7 +151,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let request = &state.active_tab().request;
 
     let tab_content = match request.tab {
-        ReqTabId::Params => params_view(&request),
+        ReqTabId::Params => params_view(request),
         ReqTabId::Headers => key_value_editor(&request.headers)
             .on_change(RequestPaneMsg::Headers)
             .element(),

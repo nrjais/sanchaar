@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::core::persistence::Version;
-use crate::state::collection::{Collection, Entry, Folder, Item};
+use crate::core::RequestId;
+use crate::state::collection::{Collection, Entry, Folder, RequestRef};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -42,9 +43,18 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
                 continue;
             }
 
-            entries.push(Entry::Item(Item {
-                name: entry.file_name().to_string_lossy().to_string(),
+            if !entry.file_name().to_string_lossy().ends_with(".toml") {
+                continue;
+            }
+
+            entries.push(Entry::Item(RequestRef {
+                name: entry
+                    .file_name()
+                    .to_string_lossy()
+                    .trim_end_matches(".toml")
+                    .to_string(),
                 path: entry.path(),
+                id: RequestId::new(),
             }));
         }
     }

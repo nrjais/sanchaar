@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use iced::widget::text_editor;
 use iced::Command;
 use serde_json::Value;
+use tokio::fs;
 
 use cancellable_task::cancellable_task;
 
@@ -11,7 +12,7 @@ use crate::commands::cancellable_task::TaskResult;
 use crate::core::persistence::collections;
 use crate::core::persistence::fs::save_req_to_file;
 use crate::core::persistence::request::{encode_request, read_request};
-use crate::state::collection::{Collection, Item};
+use crate::state::collection::{Collection, RequestRef};
 use crate::state::request::Request;
 use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::{CollectionKey, TabKey};
@@ -25,7 +26,8 @@ pub enum AppCommand {
     InitRequest(TabKey),
     SendRequest(TabKey, reqwest::Request),
     SaveRequest(TabKey),
-    OpenRequest(CollectionKey, Item),
+    OpenRequest(CollectionKey, RequestRef),
+    RenameRequest(PathBuf, PathBuf),
 }
 
 #[derive(Debug)]
@@ -41,7 +43,7 @@ pub enum CommandResultMsg {
     RequestReady(TabKey, reqwest::Request),
     CollectionLoaded(Collection),
     Completed(&'static str),
-    OpenRequestTab(CollectionKey, PathBuf, Request),
+    OpenRequestTab(Box<(CollectionKey, RequestRef, Request)>),
 }
 
 fn pretty_body(body: &[u8]) -> String {
@@ -84,8 +86,9 @@ impl CommandResultMsg {
             CommandResultMsg::Completed(msg) => {
                 println!("Command complete: {}", msg);
             }
-            CommandResultMsg::OpenRequestTab(col, path, req) => {
-                state.open_request(col, path, req);
+            CommandResultMsg::OpenRequestTab(bo) => {
+                let (col, item, req) = *bo;
+                state.open_request(col, item, req);
             }
         };
     }
@@ -166,13 +169,15 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                 let req = sel_tab.request.to_request();
                 let req = encode_request(&req);
 
-                match sel_tab.req_ref.as_ref() {
-                    Some((_, path)) => {
-                        Command::perform(save_req_to_file(path.clone(), req), move |r| match r {
-                            Ok(_) => CommandResultMsg::Completed("Request saved"),
-                            Err(e) => {
-                                println!("Error saving request: {:?}", e);
-                                CommandResultMsg::Completed("Error saving request")
+                match state.col_req_ref(tab) {
+                    Some(req_ref) => {
+                        Command::perform(save_req_to_file(req_ref.path.clone(), req), move |r| {
+                            match r {
+                                Ok(_) => CommandResultMsg::Completed("Request saved"),
+                                Err(e) => {
+                                    println!("Error saving request: {:?}", e);
+                                    CommandResultMsg::Completed("Error saving request")
+                                }
                             }
                         })
                     }
@@ -180,13 +185,17 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                 }
             }
             AppCommand::OpenRequest(col, item) => {
-                let path = item.path.clone();
-                Command::perform(read_request(path), move |r| match r {
-                    Ok(req) => CommandResultMsg::OpenRequestTab(col, item.path.clone(), req),
+                Command::perform(read_request(item.path.clone()), move |r| match r {
+                    Ok(req) => CommandResultMsg::OpenRequestTab(Box::new((col, item, req))),
                     Err(_) => {
                         println!("Error opening request: {:?}", item);
                         CommandResultMsg::Completed("Error opening request")
                     }
+                })
+            }
+            AppCommand::RenameRequest(old, new) => {
+                Command::perform(fs::rename(old, new), move |_| {
+                    CommandResultMsg::Completed("Request renamed")
                 })
             }
         };

@@ -3,14 +3,14 @@ use iced::widget::{button, text, Button, Column, Row};
 use iced::{Element, Length};
 
 use crate::components::{icon, icons, NerdIcon};
-use crate::state::collection::{Entry, Item};
+use crate::state::collection::{Entry, RequestRef};
 use crate::state::{AppState, CollectionKey};
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
     ToggleExpandCollection(CollectionKey),
     ToggleFolder(CollectionKey, String),
-    OpenRequest(CollectionKey, Item),
+    OpenRequest(CollectionKey, RequestRef),
 }
 
 impl CollectionTreeMsg {

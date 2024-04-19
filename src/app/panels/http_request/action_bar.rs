@@ -6,28 +6,48 @@ use iced::{
     Element, Length,
 };
 
+use crate::commands::AppCommand;
 use crate::components::{icons, NerdIcon};
 use crate::{components::icon, state::AppState};
 
 #[derive(Debug, Clone)]
 pub enum ActionBarMsg {
     Test,
-    EditNameMode,
+    SubmitNameEdit,
     UpdateName(String),
+    StartNameEdit,
 }
 
 impl ActionBarMsg {
     pub(crate) fn update(self, state: &mut AppState) {
         match self {
-            ActionBarMsg::Test => {}
-            ActionBarMsg::EditNameMode => {
+            ActionBarMsg::StartNameEdit => {
+                let name = state
+                    .col_req_ref(state.active_tab)
+                    .map(|r| r.name.to_string());
+
+                if let Some(name) = name {
+                    state.active_tab_mut().editing_name.replace(name);
+                }
+            }
+            ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
-                tab.editing_name = !tab.editing_name;
+                if let Some((col, name)) = tab.req_ref.clone().zip(tab.editing_name.take()) {
+                    let renamed = state
+                        .collections
+                        .get_mut(col.col)
+                        .and_then(|collection| collection.rename_request(col.id, &name));
+
+                    if let Some((old_path, new_path)) = renamed {
+                        let cmd = AppCommand::RenameRequest(old_path, new_path);
+                        state.commands.add(cmd);
+                    }
+                }
             }
             ActionBarMsg::UpdateName(name) => {
-                let tab = state.active_tab_mut();
-                tab.request.name = name;
+                state.active_tab_mut().editing_name.replace(name);
             }
+            ActionBarMsg::Test => {}
         }
     }
 }
@@ -40,36 +60,39 @@ fn icon_button<'a>(ico: NerdIcon, size: u16) -> Button<'a, ActionBarMsg> {
 
 pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     let tab = state.active_tab();
-    let request = &tab.request;
-
     let size = 16;
 
-    let name: Element<ActionBarMsg> = if tab.editing_name {
-        text_input("Request Name", &request.name)
-            .on_input(ActionBarMsg::UpdateName)
-            .on_submit(ActionBarMsg::EditNameMode)
-            .size(size - 2)
-            .padding(2)
-            .into()
-    } else {
-        text(&request.name).size(size).into()
-    };
+    let (name, edit_name) = match state.col_req_ref(state.active_tab) {
+        Some(req_ref) => {
+            let name: Element<ActionBarMsg> = if let Some(name) = &tab.editing_name {
+                text_input("Request Name", name)
+                    .on_input(ActionBarMsg::UpdateName)
+                    .on_submit(ActionBarMsg::SubmitNameEdit)
+                    .size(size - 2)
+                    .padding(2)
+                    .into()
+            } else {
+                text(&req_ref.name).size(size).into()
+            };
 
-    let edit_name = icon_button(
-        if tab.editing_name {
-            icons::CheckBold
-        } else {
-            icons::Pencil
-        },
-        size,
-    )
-    .on_press(ActionBarMsg::EditNameMode);
+            let edit_name = tab
+                .editing_name
+                .as_ref()
+                .map(|_| icon_button(icons::CheckBold, size).on_press(ActionBarMsg::SubmitNameEdit))
+                .unwrap_or_else(|| {
+                    icon_button(icons::Pencil, size).on_press(ActionBarMsg::StartNameEdit)
+                });
+
+            (Some(name), Some(edit_name))
+        }
+        None => (None, None),
+    };
 
     let envs = ["Dev", "Staging", "Prod"];
 
     let bar = Row::new()
-        .push(name)
-        .push(edit_name)
+        .push_maybe(name)
+        .push_maybe(edit_name)
         .push(horizontal_space())
         .push(
             pick_list(envs, None::<&'static str>, |_s| ActionBarMsg::Test)

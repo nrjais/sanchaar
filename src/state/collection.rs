@@ -1,10 +1,7 @@
+use crate::core::RequestId;
+use crate::state::request::Request;
+use std::collections::HashMap;
 use std::path::PathBuf;
-
-#[derive(Debug, Clone)]
-pub struct Item {
-    pub name: String,
-    pub path: PathBuf,
-}
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -15,8 +12,15 @@ pub struct Folder {
 }
 
 #[derive(Debug, Clone)]
+pub struct RequestRef {
+    pub id: RequestId,
+    pub name: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone)]
 pub enum Entry {
-    Item(Item),
+    Item(RequestRef),
     Folder(Folder),
 }
 
@@ -26,6 +30,57 @@ pub struct Collection {
     pub path: PathBuf,
     pub children: Vec<Entry>,
     pub expanded: bool,
+    pub opened: HashMap<RequestId, Request>,
+}
+
+impl Collection {
+    pub fn new(name: String, children: Vec<Entry>, path: PathBuf) -> Self {
+        Self {
+            name,
+            children,
+            path,
+            expanded: false,
+            opened: HashMap::new(),
+        }
+    }
+
+    pub fn toggle_expand(&mut self) {
+        self.expanded = !self.expanded;
+    }
+
+    pub fn toggle_folder(&mut self, name: &str) {
+        toggle_folder(&mut self.children, name);
+    }
+
+    pub fn rename_request(&mut self, id: RequestId, name: &str) -> Option<(PathBuf, PathBuf)> {
+        for entry in self.children.iter_mut() {
+            if let Entry::Item(item) = entry {
+                if item.id == id {
+                    let old_path = item.path.clone();
+                    let new_path = item.path.with_file_name(format!("{name}.toml"));
+                    item.name = name.to_string();
+                    item.path = new_path.clone();
+                    return Some((old_path, new_path));
+                }
+            }
+        }
+        None
+    }
+
+    pub fn get_request_ref(&self, id: RequestId) -> Option<&RequestRef> {
+        for entry in &self.children {
+            if let Entry::Item(item) = entry {
+                if item.id == id {
+                    return Some(item);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn save_open_request(&mut self, id: RequestId, req: Request) {
+        self.opened.insert(id, req);
+    }
 }
 
 fn toggle_folder(entries: &mut [Entry], name: &str) {
@@ -40,7 +95,6 @@ fn toggle_folder(entries: &mut [Entry], name: &str) {
         }
     }
 }
-
 impl Default for Collection {
     fn default() -> Self {
         Self {
@@ -48,25 +102,7 @@ impl Default for Collection {
             children: vec![],
             path: PathBuf::new(),
             expanded: false,
+            opened: HashMap::new(),
         }
-    }
-}
-
-impl Collection {
-    pub fn new(name: String, children: Vec<Entry>, path: PathBuf) -> Self {
-        Self {
-            name,
-            children,
-            path,
-            expanded: false,
-        }
-    }
-
-    pub fn toggle_expand(&mut self) {
-        self.expanded = !self.expanded;
-    }
-
-    pub fn toggle_folder(&mut self, name: &str) {
-        toggle_folder(&mut self.children, name);
     }
 }
