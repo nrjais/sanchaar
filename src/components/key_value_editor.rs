@@ -31,21 +31,19 @@ impl KeyValList {
         Self::from(Vec::new(), false)
     }
 
-    pub fn from(values: Vec<KeyValue>, fixed: bool) -> Self {
-        let last = &values.last();
+    pub fn from(list: Vec<KeyValue>, fixed: bool) -> Self {
+        if fixed {
+            return KeyValList { list, fixed };
+        }
+
+        let last = &list.last();
         match last {
-            Some(last) if !last.name.is_empty() && !fixed => {
-                let mut values = values;
-                values.push(KeyValue::default());
-                KeyValList {
-                    list: values,
-                    fixed,
-                }
+            Some(last) if last.name.is_empty() => KeyValList { list, fixed },
+            Some(_) | None => {
+                let mut list = list;
+                list.push(KeyValue::default());
+                KeyValList { list, fixed }
             }
-            Some(_) | None => KeyValList {
-                list: values,
-                fixed,
-            },
         }
     }
 

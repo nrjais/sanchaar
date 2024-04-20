@@ -36,8 +36,10 @@ impl Collections {
         self.entries.get(cr.0).and_then(|c| c.get_ref(cr.1))
     }
 
-    pub(crate) fn insert(&mut self, collection: Collection) -> CollectionKey {
-        self.entries.insert(collection)
+    pub(crate) fn insert(&mut self, collections: Vec<Collection>) {
+        for collection in collections {
+            self.entries.insert(collection);
+        }
     }
 
     pub(crate) fn rename_request(

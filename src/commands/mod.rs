@@ -41,7 +41,7 @@ pub enum ResponseResult {
 pub enum CommandResultMsg {
     UpdateResponse(TabKey, ResponseResult),
     RequestReady(TabKey, reqwest::Request),
-    CollectionLoaded(Collection),
+    CollectionsLoaded(Vec<Collection>),
     Completed(&'static str),
     OpenRequestTab(CollectionRequest, Request),
 }
@@ -80,7 +80,7 @@ impl CommandResultMsg {
                 state.cancel_tab_tasks(tab);
                 state.commands.0.push(AppCommand::SendRequest(tab, req));
             }
-            CommandResultMsg::CollectionLoaded(collection) => {
+            CommandResultMsg::CollectionsLoaded(collection) => {
                 state.collections.insert(collection);
             }
             CommandResultMsg::Completed(msg) => {
@@ -212,7 +212,7 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
     Command::batch(cmds)
 }
 
-pub async fn load_collections() -> anyhow::Result<Collection> {
+pub async fn load_collections() -> anyhow::Result<Vec<Collection>> {
     let collection = match collections::load().await {
         Ok(c) => c,
         Err(e) => {
@@ -222,15 +222,15 @@ pub async fn load_collections() -> anyhow::Result<Collection> {
             collection
         }
     };
-    Ok(collection)
+    Ok(vec![collection])
 }
 
 pub fn init_command() -> Command<AppMsg> {
     Command::perform(load_collections(), |r| match r {
-        Ok(collection) => CommandResultMsg::CollectionLoaded(collection),
+        Ok(collection) => CommandResultMsg::CollectionsLoaded(collection),
         Err(e) => {
             println!("Error init collection: {:?}", e);
-            CommandResultMsg::CollectionLoaded(Collection::default())
+            CommandResultMsg::CollectionsLoaded(vec![Collection::default()])
         }
     })
     .map(AppMsg::Command)
