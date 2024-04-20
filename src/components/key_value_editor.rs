@@ -20,25 +20,9 @@ pub struct KeyValList {
     pub fixed: bool,
 }
 
-impl Default for KeyValList {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl KeyValList {
     pub fn new() -> Self {
-        KeyValList {
-            list: vec![KeyValue::default()],
-            fixed: false,
-        }
-    }
-
-    pub fn empty() -> Self {
-        KeyValList {
-            list: vec![],
-            fixed: true,
-        }
+        Self::from(Vec::new(), false)
     }
 
     pub fn from(values: Vec<KeyValue>, fixed: bool) -> Self {

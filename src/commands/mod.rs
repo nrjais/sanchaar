@@ -1,5 +1,4 @@
 use std::mem;
-use std::path::PathBuf;
 
 use iced::widget::text_editor;
 use iced::Command;
@@ -9,14 +8,15 @@ use tokio::fs;
 use cancellable_task::cancellable_task;
 
 use crate::commands::cancellable_task::TaskResult;
+use crate::core::collection::collection::{Collection, RequestRef};
+use crate::core::collection::request::Request;
+use crate::core::collection::{CollectionKey, CollectionRequest};
 use crate::core::persistence::collections;
 use crate::core::persistence::fs::save_req_to_file;
 use crate::core::persistence::request::{encode_request, read_request};
-use crate::state::collection::{Collection, RequestRef};
-use crate::state::request::Request;
+use crate::core::transformers::request::transform_request;
 use crate::state::response::{CompletedResponse, ResponseState};
-use crate::state::{CollectionKey, TabKey};
-use crate::transformers::request::transform_request;
+use crate::state::TabKey;
 use crate::{app::AppMsg, core::client, state::AppState};
 
 mod cancellable_task;
@@ -26,8 +26,8 @@ pub enum AppCommand {
     InitRequest(TabKey),
     SendRequest(TabKey, reqwest::Request),
     SaveRequest(TabKey),
-    OpenRequest(CollectionKey, RequestRef),
-    RenameRequest(PathBuf, PathBuf),
+    OpenRequest(CollectionRequest),
+    RenameRequest(CollectionRequest, String),
 }
 
 #[derive(Debug)]
@@ -43,7 +43,7 @@ pub enum CommandResultMsg {
     RequestReady(TabKey, reqwest::Request),
     CollectionLoaded(Collection),
     Completed(&'static str),
-    OpenRequestTab(Box<(CollectionKey, RequestRef, Request)>),
+    OpenRequestTab(CollectionRequest, Request),
 }
 
 fn pretty_body(body: &[u8]) -> String {
@@ -86,9 +86,8 @@ impl CommandResultMsg {
             CommandResultMsg::Completed(msg) => {
                 println!("Command complete: {}", msg);
             }
-            CommandResultMsg::OpenRequestTab(bo) => {
-                let (col, item, req) = *bo;
-                state.open_request(col, item, req);
+            CommandResultMsg::OpenRequestTab(col, req) => {
+                state.open_request(col, req);
             }
         };
     }
@@ -184,19 +183,27 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
                     None => Command::none(),
                 }
             }
-            AppCommand::OpenRequest(col, item) => {
-                Command::perform(read_request(item.path.clone()), move |r| match r {
-                    Ok(req) => CommandResultMsg::OpenRequestTab(Box::new((col, item, req))),
-                    Err(_) => {
-                        println!("Error opening request: {:?}", item);
-                        CommandResultMsg::Completed("Error opening request")
-                    }
-                })
+            AppCommand::OpenRequest(col) => {
+                if let Some(req) = state.collections.get_ref(&col) {
+                    Command::perform(read_request(req.path.clone()), move |r| match r {
+                        Ok(req) => CommandResultMsg::OpenRequestTab(col, req),
+                        Err(_) => {
+                            println!("Error opening request: {:?}", col);
+                            CommandResultMsg::Completed("Error opening request")
+                        }
+                    })
+                } else {
+                    Command::none()
+                }
             }
-            AppCommand::RenameRequest(old, new) => {
-                Command::perform(fs::rename(old, new), move |_| {
-                    CommandResultMsg::Completed("Request renamed")
-                })
+            AppCommand::RenameRequest(req, new) => {
+                if let Some((old, new)) = state.collections.rename_request(req, new) {
+                    Command::perform(fs::rename(old, new), move |_| {
+                        CommandResultMsg::Completed("Request renamed")
+                    })
+                } else {
+                    Command::none()
+                }
             }
         };
         Some(cmd.map(AppMsg::Command))

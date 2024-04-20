@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 
+use crate::components;
 use iced::widget::text_editor;
 use strum::{Display, EnumString, VariantArray};
 
 use crate::components::KeyValList;
+use crate::core::collection::request::{KeyValue, Method, Request, RequestBody};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {
@@ -13,22 +15,8 @@ pub enum ReqTabId {
     Headers,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumString, VariantArray, Display, Default)]
-pub enum Method {
-    #[default]
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    PATCH,
-    HEAD,
-    OPTIONS,
-    CONNECT,
-    TRACE,
-}
-
 #[derive(Debug, Default)]
-pub enum RequestRawBody {
+pub enum RawRequestBody {
     Form(KeyValList),
     Json(text_editor::Content),
     XML(text_editor::Content),
@@ -38,28 +26,39 @@ pub enum RequestRawBody {
     None,
 }
 
-impl RequestRawBody {
+impl RawRequestBody {
     fn to_request_body(&self) -> RequestBody {
         match self {
-            RequestRawBody::Form(form) => RequestBody::Form(form.clone()),
-            RequestRawBody::Json(json) => RequestBody::Json(json.text()),
-            RequestRawBody::XML(xml) => RequestBody::XML(xml.text()),
-            RequestRawBody::Text(text) => RequestBody::Text(text.text()),
-            RequestRawBody::File(file) => RequestBody::File(file.clone()),
-            RequestRawBody::None => RequestBody::None,
+            RawRequestBody::Form(form) => RequestBody::Form(from_key_val_list(form)),
+            RawRequestBody::Json(json) => RequestBody::Json(json.text()),
+            RawRequestBody::XML(xml) => RequestBody::XML(xml.text()),
+            RawRequestBody::Text(text) => RequestBody::Text(text.text()),
+            RawRequestBody::File(file) => RequestBody::File(file.clone()),
+            RawRequestBody::None => RequestBody::None,
+        }
+    }
+
+    fn from_request_body(body: &RequestBody) -> RawRequestBody {
+        match body {
+            RequestBody::Form(form) => RawRequestBody::Form(to_key_val_list(form.clone(), false)),
+            RequestBody::Json(json) => RawRequestBody::Json(text_editor::Content::with_text(json)),
+            RequestBody::XML(xml) => RawRequestBody::XML(text_editor::Content::with_text(xml)),
+            RequestBody::Text(text) => RawRequestBody::Text(text_editor::Content::with_text(text)),
+            RequestBody::File(file) => RawRequestBody::File(file.clone()),
+            RequestBody::None => RawRequestBody::None,
         }
     }
 }
 
-impl RequestRawBody {
+impl RawRequestBody {
     pub fn as_str(&self) -> &'static str {
         match self {
-            RequestRawBody::Form(_) => "URL Encoded",
-            RequestRawBody::Json(_) => "Json",
-            RequestRawBody::XML(_) => "XML",
-            RequestRawBody::Text(_) => "Text",
-            RequestRawBody::File(_) => "File",
-            RequestRawBody::None => "None",
+            RawRequestBody::Form(_) => "URL Encoded",
+            RawRequestBody::Json(_) => "Json",
+            RawRequestBody::XML(_) => "XML",
+            RawRequestBody::Text(_) => "Text",
+            RawRequestBody::File(_) => "File",
+            RawRequestBody::None => "None",
         }
     }
 
@@ -74,45 +73,10 @@ pub struct RequestPane {
     pub url: String,
     pub method: Method,
     pub headers: KeyValList,
-    pub body: RequestRawBody,
+    pub body: RawRequestBody,
     pub query_params: KeyValList,
     pub path_params: KeyValList,
     pub tab: ReqTabId,
-}
-
-#[derive(Debug, Clone)]
-pub enum RequestBody {
-    Form(KeyValList),
-    Json(String),
-    XML(String),
-    Text(String),
-    File(PathBuf),
-    None,
-}
-
-#[derive(Debug, Clone)]
-pub struct Request {
-    pub description: String,
-    pub method: Method,
-    pub url: String,
-    pub headers: KeyValList,
-    pub body: RequestBody,
-    pub query_params: KeyValList,
-    pub path_params: KeyValList,
-}
-
-impl Default for Request {
-    fn default() -> Self {
-        Self {
-            description: "Http request".to_string(),
-            method: Method::GET,
-            url: "https://echo.nrjais.com".to_string(),
-            headers: KeyValList::new(),
-            body: RequestBody::None,
-            query_params: KeyValList::new(),
-            path_params: KeyValList::empty(),
-        }
-    }
 }
 
 impl RequestPane {
@@ -121,10 +85,10 @@ impl RequestPane {
             description: self.description.clone(),
             method: self.method,
             url: self.url.clone(),
-            headers: self.headers.clone(),
+            headers: from_key_val_list(&self.headers),
             body: self.body.to_request_body(),
-            query_params: self.query_params.clone(),
-            path_params: self.path_params.clone(),
+            query_params: from_key_val_list(&self.query_params),
+            path_params: from_key_val_list(&self.path_params),
         }
     }
 
@@ -133,11 +97,34 @@ impl RequestPane {
             description: request.description,
             url: request.url,
             method: request.method,
-            headers: request.headers,
-            body: RequestRawBody::None,
-            query_params: request.query_params,
-            path_params: request.path_params,
+            headers: to_key_val_list(request.headers, false),
+            body: RawRequestBody::None,
+            query_params: to_key_val_list(request.query_params, false),
+            path_params: to_key_val_list(request.path_params, true),
             tab: ReqTabId::Params,
         }
     }
+}
+
+fn to_key_val_list(values: Vec<KeyValue>, fixed: bool) -> KeyValList {
+    let values = values
+        .into_iter()
+        .map(|kv| components::KeyValue {
+            disabled: kv.disabled,
+            name: kv.name,
+            value: kv.value,
+        })
+        .collect();
+    KeyValList::from(values, fixed)
+}
+
+fn from_key_val_list(list: &KeyValList) -> Vec<KeyValue> {
+    list.values()
+        .into_iter()
+        .map(|kv| KeyValue {
+            disabled: kv.disabled,
+            name: kv.name.clone(),
+            value: kv.value.clone(),
+        })
+        .collect()
 }

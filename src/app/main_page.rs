@@ -6,7 +6,7 @@ use iced::{Color, Element, Font, Length};
 use crate::app::panels::PanelMsg;
 use crate::app::{collection_tree, panels};
 use crate::components::{card_tab, card_tabs, TabBarAction};
-use crate::state::request::Method;
+use crate::core::collection::request::Method;
 use crate::state::{AppState, TabKey};
 
 #[derive(Debug, Clone)]

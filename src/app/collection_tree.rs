@@ -3,34 +3,39 @@ use iced::widget::{button, text, Button, Column, Row};
 use iced::{Element, Length};
 
 use crate::components::{icon, icons, NerdIcon};
-use crate::state::collection::{Entry, RequestRef};
-use crate::state::{AppState, CollectionKey};
+use crate::core::collection::collection::{Entry, RequestRef};
+use crate::core::collection::{CollectionKey, CollectionRequest};
+use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
     ToggleExpandCollection(CollectionKey),
     ToggleFolder(CollectionKey, String),
-    OpenRequest(CollectionKey, RequestRef),
+    OpenRequest(CollectionRequest),
 }
 
 impl CollectionTreeMsg {
     pub fn update(self, state: &mut AppState) {
         match self {
             Self::ToggleExpandCollection(key) => {
-                state.with_collection(key, |collection| collection.toggle_expand());
+                state
+                    .collections
+                    .with_collection_mut(key, |collection| collection.toggle_expand());
             }
             Self::ToggleFolder(col, name) => {
-                state.with_collection(col, |collection| collection.toggle_folder(&name));
+                state
+                    .collections
+                    .with_collection_mut(col, |collection| collection.toggle_folder(&name));
             }
-            CollectionTreeMsg::OpenRequest(col, req) => {
-                state.commands.add(AppCommand::OpenRequest(col, req));
+            CollectionTreeMsg::OpenRequest(col) => {
+                state.commands.add(AppCommand::OpenRequest(col));
             }
         }
     }
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
-    let it = state.collections.iter().map(|(key, collection)| {
+    let it = state.collections.entries.iter().map(|(key, collection)| {
         expandable(
             key,
             &collection.name,
@@ -51,7 +56,9 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
         Entry::Item(item) => button(text(&item.name))
             .style(button::text)
             .padding(0)
-            .on_press(CollectionTreeMsg::OpenRequest(col, item.clone()))
+            .on_press(CollectionTreeMsg::OpenRequest(CollectionRequest(
+                col, item.id,
+            )))
             .into(),
         Entry::Folder(folder) => expandable(
             col,

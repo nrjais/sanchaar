@@ -3,7 +3,6 @@ pub mod commands;
 pub mod components;
 pub mod core;
 pub mod state;
-pub mod transformers;
 
 use crate::commands::init_command;
 use app::AppMsg;

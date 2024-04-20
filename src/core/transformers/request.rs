@@ -4,9 +4,7 @@ use mime_guess::mime;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::RequestBuilder;
 
-use crate::components::KeyValList;
-use crate::components::KeyValue;
-use crate::state::request::{Method, Request, RequestBody};
+use crate::core::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
@@ -14,7 +12,6 @@ fn param_enabled(param: &KeyValue) -> bool {
 
 fn enabled_params(params: &KeyValList) -> Vec<(&String, &String)> {
     params
-        .values()
         .iter()
         .filter(|param| param_enabled(param))
         .map(|param| (&param.name, &param.value))
@@ -36,7 +33,7 @@ fn req_method(method: Method) -> reqwest::Method {
 }
 
 fn req_headers(mut builder: RequestBuilder, headers: &KeyValList) -> RequestBuilder {
-    let iter = headers.values().iter().filter(|p| param_enabled(p));
+    let iter = headers.iter().filter(|p| param_enabled(p));
     for header in iter {
         builder = builder.header(&header.name, &header.value);
     }
@@ -65,7 +62,7 @@ pub async fn transform_request(
 
 fn replace_path_params(url: &str, params: &KeyValList) -> String {
     let mut url = url.to_string();
-    for param in params.values() {
+    for param in params {
         url = url.replace(&format!(":{}", param.name), &param.value);
     }
     url

@@ -1,3 +1,4 @@
+#[macro_export(local_inner_macros)]
 macro_rules! new_id_type {
     ( $(#[$outer:meta])* $vis:vis struct $name:ident; $($rest:tt)* ) => {
         $(#[$outer])*
@@ -15,7 +16,7 @@ macro_rules! new_id_type {
 
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.0)
+                std::write!(f, "{}", self.0)
             }
         }
 
@@ -26,8 +27,4 @@ macro_rules! new_id_type {
         }
     };
     () => {}
-}
-
-new_id_type! {
-    pub struct RequestId;
 }

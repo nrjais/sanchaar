@@ -5,32 +5,31 @@ use slotmap::SlotMap;
 pub use tab::*;
 
 use crate::commands::AppCommand;
-use crate::state::collection::{Collection, RequestRef};
+use crate::core::collection::collection::RequestRef;
+use crate::core::collection::request::Request;
+use crate::core::collection::{CollectionRequest, Collections};
 use crate::state::response::ResponseState;
 use crate::{commands::Commands, core::client::create_client};
 
-pub mod collection;
 pub mod request;
 pub mod response;
 pub mod tab;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SplitState {
-    First,
-    // Left or Top
+    First,  // Left or Top
     Second, // Right or Bottom
 }
 
 slotmap::new_key_type! {
     pub struct TabKey;
-    pub struct CollectionKey;
 }
 
 #[derive(Debug)]
 pub struct AppState {
     pub active_tab: TabKey,
     pub tabs: SlotMap<TabKey, Tab>,
-    pub collections: SlotMap<CollectionKey, Collection>,
+    pub collections: Collections,
     pub commands: Commands,
     pub client: reqwest::Client,
     // Collection tree and tabs split
@@ -48,7 +47,7 @@ impl AppState {
             tabs,
             client: create_client(),
             commands: Commands::new(),
-            collections: SlotMap::with_key(),
+            collections: Collections::default(),
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
                 ratio: 0.2,
@@ -58,16 +57,8 @@ impl AppState {
         }
     }
 
-    pub fn open_request(
-        &mut self,
-        col: CollectionKey,
-        item: RequestRef,
-        request: request::Request,
-    ) {
-        self.with_collection(col, |col| col.save_open_request(item.id, request.clone()));
-        self.active_tab = self
-            .tabs
-            .insert(Tab::new(request).set_req_ref(col, item.id));
+    pub fn open_request(&mut self, req_ref: CollectionRequest, request: Request) {
+        self.active_tab = self.tabs.insert(Tab::with_ref(request, req_ref));
     }
 
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
@@ -126,18 +117,10 @@ impl AppState {
         self.commands.add(AppCommand::SaveRequest(self.active_tab));
     }
 
-    pub fn with_collection<F, R>(&mut self, key: CollectionKey, f: F) -> Option<R>
-    where
-        F: FnOnce(&mut Collection) -> R,
-    {
-        self.collections.get_mut(key).map(f)
-    }
-
     pub(crate) fn col_req_ref(&self, tab: TabKey) -> Option<&RequestRef> {
         let tab = self.tabs.get(tab)?;
         let req_ref = tab.req_ref.as_ref()?;
-        let col = self.collections.get(req_ref.col)?;
-        col.get_request_ref(req_ref.id)
+        self.collections.get_ref(req_ref)
     }
 }
 

@@ -1,23 +1,17 @@
-use crate::core::RequestId;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
-
 use tokio::sync::oneshot;
 
+use crate::core::collection::request::Request;
+use crate::core::collection::{CollectionRequest, Collections};
 use crate::state::response::ResponsePane;
-use crate::state::{CollectionKey, SplitState};
+use crate::state::SplitState;
 
-use super::request::{Request, RequestPane};
-
-#[derive(Debug, Clone)]
-pub struct CollectionRequestRef {
-    pub col: CollectionKey,
-    pub id: RequestId,
-}
+use super::request::RequestPane;
 
 #[derive(Debug)]
 pub struct Tab {
-    pub req_ref: Option<CollectionRequestRef>,
+    pub req_ref: Option<CollectionRequest>,
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
@@ -48,9 +42,10 @@ impl Tab {
         }
     }
 
-    pub fn set_req_ref(mut self, col: CollectionKey, id: RequestId) -> Self {
-        self.req_ref = Some(CollectionRequestRef { col, id });
-        self
+    pub(crate) fn with_ref(req: Request, req_ref: CollectionRequest) -> Tab {
+        let mut tab = Tab::new(req);
+        tab.req_ref = Some(req_ref);
+        tab
     }
 
     pub fn cancel_tasks(&mut self) {

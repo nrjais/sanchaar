@@ -1,7 +1,10 @@
-use crate::core::RequestId;
-use crate::state::request::Request;
-use std::collections::HashMap;
 use std::path::PathBuf;
+
+use crate::new_id_type;
+
+new_id_type! {
+    pub struct RequestId;
+}
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -30,7 +33,6 @@ pub struct Collection {
     pub path: PathBuf,
     pub children: Vec<Entry>,
     pub expanded: bool,
-    pub opened: HashMap<RequestId, Request>,
 }
 
 impl Collection {
@@ -40,7 +42,6 @@ impl Collection {
             children,
             path,
             expanded: false,
-            opened: HashMap::new(),
         }
     }
 
@@ -67,7 +68,7 @@ impl Collection {
         None
     }
 
-    pub fn get_request_ref(&self, id: RequestId) -> Option<&RequestRef> {
+    pub fn get_ref(&self, id: RequestId) -> Option<&RequestRef> {
         for entry in &self.children {
             if let Entry::Item(item) = entry {
                 if item.id == id {
@@ -76,10 +77,6 @@ impl Collection {
             }
         }
         None
-    }
-
-    pub fn save_open_request(&mut self, id: RequestId, req: Request) {
-        self.opened.insert(id, req);
     }
 }
 
@@ -95,6 +92,7 @@ fn toggle_folder(entries: &mut [Entry], name: &str) {
         }
     }
 }
+
 impl Default for Collection {
     fn default() -> Self {
         Self {
@@ -102,7 +100,6 @@ impl Default for Collection {
             children: vec![],
             path: PathBuf::new(),
             expanded: false,
-            opened: HashMap::new(),
         }
     }
 }

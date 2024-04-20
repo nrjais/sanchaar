@@ -7,10 +7,8 @@ use reqwest::Url;
 use strum::VariantArray;
 
 use crate::components::{icons, NerdIcon};
-use crate::{
-    components::icon,
-    state::{request::Method, AppState},
-};
+use crate::core::collection::request::Method;
+use crate::{components::icon, state::AppState};
 
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {

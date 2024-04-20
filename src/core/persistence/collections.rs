@@ -1,11 +1,10 @@
 use std::path::PathBuf;
 
+use crate::core::collection::collection::{Collection, Entry, Folder, RequestId, RequestRef};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::core::persistence::Version;
-use crate::core::RequestId;
-use crate::state::collection::{Collection, Entry, Folder, RequestRef};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {

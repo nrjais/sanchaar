@@ -2,7 +2,7 @@ use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
 
 use crate::components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
-use crate::state::request::{RequestPane, RequestRawBody};
+use crate::state::request::{RawRequestBody, RequestPane};
 use crate::{
     components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg},
     state::{request::ReqTabId, AppState},
@@ -38,39 +38,39 @@ impl RequestPaneMsg {
                 request.path_params.update(msg);
             }
             RequestPaneMsg::BodyEditorAction(action) => match &mut request.body {
-                RequestRawBody::Json(content)
-                | RequestRawBody::XML(content)
-                | RequestRawBody::Text(content) => action.update(content),
+                RawRequestBody::Json(content)
+                | RawRequestBody::XML(content)
+                | RawRequestBody::Text(content) => action.update(content),
                 _ => {}
             },
             RequestPaneMsg::FormBodyEditAction(edit) => {
-                if let RequestRawBody::Form(form) = &mut request.body {
+                if let RawRequestBody::Form(form) = &mut request.body {
                     form.update(edit);
                 }
             }
             RequestPaneMsg::ChangeBodyType(content_type) => {
                 request.body = match content_type {
-                    "URL Encoded" => RequestRawBody::Form(KeyValList::new()),
-                    "Json" => RequestRawBody::Json(Default::default()),
-                    "XML" => RequestRawBody::XML(Default::default()),
-                    "Text" => RequestRawBody::Text(Default::default()),
-                    "File" => RequestRawBody::File(Default::default()),
-                    "None" => RequestRawBody::None,
-                    _ => RequestRawBody::None,
+                    "URL Encoded" => RawRequestBody::Form(KeyValList::new()),
+                    "Json" => RawRequestBody::Json(Default::default()),
+                    "XML" => RawRequestBody::XML(Default::default()),
+                    "Text" => RawRequestBody::Text(Default::default()),
+                    "File" => RawRequestBody::File(Default::default()),
+                    "None" => RawRequestBody::None,
+                    _ => RawRequestBody::None,
                 };
             }
         }
     }
 }
 
-fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
+fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
     let size = 14;
     let header = Row::new()
         .push(text(format!("Content Type: {}", body.as_str())).size(size))
         .push(horizontal_space())
         .push(
             pick_list(
-                RequestRawBody::all_variants(),
+                RawRequestBody::all_variants(),
                 Some(body.as_str()),
                 RequestPaneMsg::ChangeBodyType,
             )
@@ -81,10 +81,10 @@ fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
         .align_items(iced::Alignment::Center);
 
     let body = match body {
-        RequestRawBody::Json(content) => body_editor::view(content, ContentType::Json),
-        RequestRawBody::XML(content) => body_editor::view(content, ContentType::XML),
-        RequestRawBody::Text(content) => body_editor::view(content, ContentType::Text),
-        RequestRawBody::Form(values) => container(
+        RawRequestBody::Json(content) => body_editor::view(content, ContentType::Json),
+        RawRequestBody::XML(content) => body_editor::view(content, ContentType::XML),
+        RawRequestBody::Text(content) => body_editor::view(content, ContentType::Text),
+        RawRequestBody::Form(values) => container(
             key_value_editor(values)
                 .on_change(RequestPaneMsg::FormBodyEditAction)
                 .element(),
@@ -92,7 +92,7 @@ fn body_tab(body: &RequestRawBody) -> iced::Element<RequestPaneMsg> {
         .height(Length::Fill)
         .width(Length::Fill)
         .into(),
-        RequestRawBody::File(_) | RequestRawBody::None => {
+        RawRequestBody::File(_) | RawRequestBody::None => {
             let empty_icon = container(icon(icons::FileCancel).size(60.0))
                 .padding(10)
                 .center_x()

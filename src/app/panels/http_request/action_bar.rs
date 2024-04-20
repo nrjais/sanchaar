@@ -33,15 +33,8 @@ impl ActionBarMsg {
             ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
                 if let Some((col, name)) = tab.req_ref.clone().zip(tab.editing_name.take()) {
-                    let renamed = state
-                        .collections
-                        .get_mut(col.col)
-                        .and_then(|collection| collection.rename_request(col.id, &name));
-
-                    if let Some((old_path, new_path)) = renamed {
-                        let cmd = AppCommand::RenameRequest(old_path, new_path);
-                        state.commands.add(cmd);
-                    }
+                    let cmd = AppCommand::RenameRequest(col, name);
+                    state.commands.add(cmd);
                 }
             }
             ActionBarMsg::UpdateName(name) => {

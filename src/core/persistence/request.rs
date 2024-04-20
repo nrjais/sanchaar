@@ -1,12 +1,10 @@
-use crate::components::{KeyValList, KeyValue};
+use crate::core::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
 use crate::core::persistence::fs::load_from_file;
 use crate::core::persistence::Version;
 use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use std::ops::Not;
 use std::path::PathBuf;
-
-use crate::state::request::{Method, Request, RequestBody};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -92,8 +90,7 @@ pub struct HttpRequest {
 }
 
 fn encode_key_values(kv: &KeyValList) -> Vec<EncodedKeyValue> {
-    kv.values()
-        .iter()
+    kv.iter()
         .filter(|v| !v.name.is_empty())
         .map(|v| v.into())
         .collect()
@@ -113,7 +110,7 @@ pub fn encode_request(req: &Request) -> EncodedRequest {
     }
 }
 
-fn decode_key_values(kv: &[EncodedKeyValue], fixed: bool) -> KeyValList {
+fn decode_key_values(kv: &[EncodedKeyValue]) -> KeyValList {
     let mut list = Vec::new();
     for v in kv {
         list.push(KeyValue {
@@ -123,17 +120,17 @@ fn decode_key_values(kv: &[EncodedKeyValue], fixed: bool) -> KeyValList {
         });
     }
 
-    KeyValList::from(list, fixed)
+    list
 }
 
 fn decode_request(req: &EncodedRequest) -> Request {
     Request {
         method: req.http.method.into(),
         url: req.http.url.clone(),
-        headers: decode_key_values(&req.http.headers, false),
+        headers: decode_key_values(&req.http.headers),
         body: RequestBody::None,
-        query_params: decode_key_values(&req.http.query, false),
-        path_params: decode_key_values(&req.http.path_params, true),
+        query_params: decode_key_values(&req.http.query),
+        path_params: decode_key_values(&req.http.path_params),
         description: req.description.clone(),
     }
 }
