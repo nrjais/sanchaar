@@ -1,3 +1,6 @@
+use anyhow::Context;
+use directories::ProjectDirs;
+
 use std::path::PathBuf;
 
 use crate::core::collection::collection::{
@@ -8,23 +11,105 @@ use tokio::fs;
 
 use crate::core::persistence::Version;
 
+const COLLECTION_ROOT_FILE: &str = "collection.toml";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
     pub name: String,
-    #[serde(default, skip_serializing_if = "String::is_empty")]
-    pub description: String,
     pub version: Version,
 }
 
-pub async fn load() -> anyhow::Result<Collection> {
-    let path = PathBuf::from("test");
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CollectionConfig {
+    Path(PathBuf),
+}
 
-    let data = fs::read_to_string(path.join("collection.toml")).await?;
-    let collection: EncodedCollection = toml::from_str(&data)?;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CollectionsState {
+    pub open: Vec<CollectionConfig>,
+}
 
-    let entries = walk_entries(&path, true).await?;
+fn project_dirs() -> Option<ProjectDirs> {
+    ProjectDirs::from("com", "nrjais", env!("CARGO_PKG_NAME"))
+}
 
-    Ok(Collection::new(collection.name, entries, path))
+fn collections_file() -> Option<PathBuf> {
+    let dirs = project_dirs()?;
+    let data_dir = dirs.data_dir();
+    Some(data_dir.join("collections.toml"))
+}
+
+async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<CollectionsState> {
+    let dirs = project_dirs().context("Failed to find project dir during init")?;
+    let data_dir = dirs.data_dir();
+
+    let default_path = data_dir.join("Sanchaar");
+    fs::create_dir_all(&default_path).await?;
+
+    save(&Collection {
+        name: "Sanchaar".to_string(),
+        children: vec![],
+        path: default_path.clone(),
+        expanded: false,
+    })
+    .await?;
+
+    let state = CollectionsState {
+        open: vec![CollectionConfig::Path(default_path)],
+    };
+
+    let data = toml::to_string_pretty(&state)?;
+    fs::write(collections_file, data).await?;
+
+    Ok(state)
+}
+
+async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
+    let collections_file = collections_file()?;
+
+    let data = match fs::read_to_string(&collections_file).await {
+        Ok(data) => data,
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                return Some(
+                    create_collections_state(collections_file)
+                        .await
+                        .inspect_err(|e| {
+                            println!("Error creating collections state: {:?}", e);
+                        })
+                        .ok()?
+                        .open,
+                );
+            }
+            return None;
+        }
+    };
+    dbg!("Loading from existing file");
+    let collections: CollectionsState = toml::from_str(&data).ok()?;
+
+    Some(collections.open)
+}
+
+pub async fn load() -> anyhow::Result<Vec<Collection>> {
+    let collections = match open_collections_list().await {
+        Some(collections) => collections,
+        None => return Ok(vec![]),
+    };
+
+    let mut result = vec![];
+
+    for collection in collections {
+        match collection {
+            CollectionConfig::Path(path) => {
+                let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
+                let collection: EncodedCollection = toml::from_str(&data)?;
+                let entries = walk_entries(&path, true).await?;
+                result.push(Collection::new(collection.name, entries, path));
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entry>> {
@@ -42,7 +127,7 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
                 expanded: false,
             }));
         } else {
-            if root && entry.file_name() == "collection.toml" {
+            if root && entry.file_name() == COLLECTION_ROOT_FILE {
                 continue;
             }
 
@@ -67,10 +152,12 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
 pub async fn save(collection: &Collection) -> anyhow::Result<()> {
     let encoded = EncodedCollection {
         name: collection.name.clone(),
-        description: "".to_string(),
         version: Version::V1,
     };
     let data = toml::to_string_pretty(&encoded).unwrap();
-    fs::write(PathBuf::from("test/collection.toml"), data).await?;
+
+    fs::create_dir_all(&collection.path).await?;
+    fs::write(collection.path.join(COLLECTION_ROOT_FILE), data).await?;
+
     Ok(())
 }

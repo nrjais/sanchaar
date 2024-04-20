@@ -212,26 +212,13 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
     Command::batch(cmds)
 }
 
-pub async fn load_collections() -> anyhow::Result<Vec<Collection>> {
-    let collection = match collections::load().await {
-        Ok(c) => c,
-        Err(e) => {
-            println!("Error loading collection: {:?}", e);
-            let collection = Collection::default();
-            collections::save(&collection).await?;
-            collection
-        }
-    };
-    Ok(vec![collection])
+pub async fn load_collections() -> Vec<Collection> {
+    collections::load().await.unwrap_or_else(|e| {
+        println!("Error loading collection: {:?}", e);
+        vec![]
+    })
 }
 
 pub fn init_command() -> Command<AppMsg> {
-    Command::perform(load_collections(), |r| match r {
-        Ok(collection) => CommandResultMsg::CollectionsLoaded(collection),
-        Err(e) => {
-            println!("Error init collection: {:?}", e);
-            CommandResultMsg::CollectionsLoaded(vec![Collection::default()])
-        }
-    })
-    .map(AppMsg::Command)
+    Command::perform(load_collections(), CommandResultMsg::CollectionsLoaded).map(AppMsg::Command)
 }

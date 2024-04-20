@@ -110,10 +110,8 @@ fn folder_mut(entries: &mut Vec<Entry>, id: FolderId) -> Option<&mut Folder> {
         if let Entry::Folder(folder) = entry {
             if folder.id == id {
                 return Some(folder);
-            } else {
-                if let Some(folder) = folder_mut(&mut folder.children, id) {
-                    return Some(folder);
-                }
+            } else if let Some(folder) = folder_mut(&mut folder.children, id) {
+                return Some(folder);
             }
         }
     }
