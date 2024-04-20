@@ -25,6 +25,8 @@ macro_rules! new_id_type {
                 Self::new()
             }
         }
+
+        $crate::new_id_type!($($rest)*);
     };
     () => {}
 }

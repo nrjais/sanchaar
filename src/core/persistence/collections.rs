@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use crate::core::collection::collection::{Collection, Entry, Folder, RequestId, RequestRef};
+use crate::core::collection::collection::{
+    Collection, Entry, Folder, FolderId, RequestId, RequestRef,
+};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
@@ -21,6 +23,7 @@ pub async fn load() -> anyhow::Result<Collection> {
     let collection: EncodedCollection = toml::from_str(&data)?;
 
     let entries = walk_entries(&path, true).await?;
+
     Ok(Collection::new(collection.name, entries, path))
 }
 
@@ -32,6 +35,7 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
         if entry.file_type().await?.is_dir() {
             let children = Box::pin(walk_entries(&entry.path(), false)).await?;
             entries.push(Entry::Folder(Folder {
+                id: FolderId::new(),
                 name: entry.file_name().to_string_lossy().to_string(),
                 children,
                 path: entry.path(),

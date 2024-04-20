@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use crate::components;
 use iced::widget::text_editor;
-use strum::{Display, EnumString, VariantArray};
 
 use crate::components::KeyValList;
 use crate::core::collection::request::{KeyValue, Method, Request, RequestBody};
@@ -98,7 +97,7 @@ impl RequestPane {
             url: request.url,
             method: request.method,
             headers: to_key_val_list(request.headers, false),
-            body: RawRequestBody::None,
+            body: RawRequestBody::from_request_body(&request.body),
             query_params: to_key_val_list(request.query_params, false),
             path_params: to_key_val_list(request.path_params, true),
             tab: ReqTabId::Params,
@@ -120,7 +119,7 @@ fn to_key_val_list(values: Vec<KeyValue>, fixed: bool) -> KeyValList {
 
 fn from_key_val_list(list: &KeyValList) -> Vec<KeyValue> {
     list.values()
-        .into_iter()
+        .iter()
         .map(|kv| KeyValue {
             disabled: kv.disabled,
             name: kv.name.clone(),

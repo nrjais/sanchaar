@@ -1,10 +1,6 @@
 use crate::core::collection::collection::{Collection, RequestId, RequestRef};
 use slotmap::SlotMap;
-use std::{collections::HashMap, path::PathBuf};
-
-use self::request::Request;
-
-use super::persistence::request::read_request;
+use std::path::PathBuf;
 
 pub mod collection;
 pub mod request;
@@ -19,11 +15,10 @@ pub struct CollectionRequest(pub CollectionKey, pub RequestId);
 #[derive(Debug, Default)]
 pub struct Collections {
     pub entries: SlotMap<CollectionKey, Collection>,
-    open_requests: HashMap<CollectionRequest, Request>,
 }
 
 impl Collections {
-    pub fn with_collection_mut<F, R>(&mut self, key: CollectionKey, f: F) -> Option<R>
+    pub fn on_collection_mut<F, R>(&mut self, key: CollectionKey, f: F) -> Option<R>
     where
         F: FnOnce(&mut Collection) -> R,
     {
@@ -51,10 +46,5 @@ impl Collections {
         new: String,
     ) -> Option<(PathBuf, PathBuf)> {
         self.entries.get_mut(req.0)?.rename_request(req.1, &new)
-    }
-
-    pub async fn read_request(&self, req: CollectionRequest) -> Option<Request> {
-        let path = &self.get_ref(&req)?.path;
-        read_request(path.clone()).await.ok()
     }
 }

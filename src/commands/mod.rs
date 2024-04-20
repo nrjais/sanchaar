@@ -8,9 +8,9 @@ use tokio::fs;
 use cancellable_task::cancellable_task;
 
 use crate::commands::cancellable_task::TaskResult;
-use crate::core::collection::collection::{Collection, RequestRef};
+use crate::core::collection::collection::Collection;
 use crate::core::collection::request::Request;
-use crate::core::collection::{CollectionKey, CollectionRequest};
+use crate::core::collection::CollectionRequest;
 use crate::core::persistence::collections;
 use crate::core::persistence::fs::save_req_to_file;
 use crate::core::persistence::request::{encode_request, read_request};

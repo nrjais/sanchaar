@@ -20,6 +20,12 @@ pub struct KeyValList {
     pub fixed: bool,
 }
 
+impl Default for KeyValList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KeyValList {
     pub fn new() -> Self {
         Self::from(Vec::new(), false)

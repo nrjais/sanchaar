@@ -32,7 +32,7 @@ impl ActionBarMsg {
             }
             ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
-                if let Some((col, name)) = tab.req_ref.clone().zip(tab.editing_name.take()) {
+                if let Some((col, name)) = tab.req_ref.zip(tab.editing_name.take()) {
                     let cmd = AppCommand::RenameRequest(col, name);
                     state.commands.add(cmd);
                 }

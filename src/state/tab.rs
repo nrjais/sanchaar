@@ -3,7 +3,7 @@ use iced::widget::pane_grid::Configuration;
 use tokio::sync::oneshot;
 
 use crate::core::collection::request::Request;
-use crate::core::collection::{CollectionRequest, Collections};
+use crate::core::collection::CollectionRequest;
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
 

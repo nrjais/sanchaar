@@ -3,14 +3,14 @@ use iced::widget::{button, text, Button, Column, Row};
 use iced::{Element, Length};
 
 use crate::components::{icon, icons, NerdIcon};
-use crate::core::collection::collection::{Entry, RequestRef};
+use crate::core::collection::collection::{Entry, FolderId};
 use crate::core::collection::{CollectionKey, CollectionRequest};
 use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
     ToggleExpandCollection(CollectionKey),
-    ToggleFolder(CollectionKey, String),
+    ToggleFolder(CollectionKey, FolderId),
     OpenRequest(CollectionRequest),
 }
 
@@ -20,12 +20,12 @@ impl CollectionTreeMsg {
             Self::ToggleExpandCollection(key) => {
                 state
                     .collections
-                    .with_collection_mut(key, |collection| collection.toggle_expand());
+                    .on_collection_mut(key, |collection| collection.toggle_expand());
             }
-            Self::ToggleFolder(col, name) => {
+            Self::ToggleFolder(col, id) => {
                 state
                     .collections
-                    .with_collection_mut(col, |collection| collection.toggle_folder(&name));
+                    .on_collection_mut(col, |collection| collection.toggle_folder(id));
             }
             CollectionTreeMsg::OpenRequest(col) => {
                 state.commands.add(AppCommand::OpenRequest(col));
@@ -65,7 +65,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
             &folder.name,
             &folder.children,
             folder.expanded,
-            CollectionTreeMsg::ToggleFolder(col, folder.name.clone()),
+            CollectionTreeMsg::ToggleFolder(col, folder.id),
         ),
     });
 
