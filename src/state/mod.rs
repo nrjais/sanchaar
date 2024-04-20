@@ -61,6 +61,16 @@ impl AppState {
         self.active_tab = self.tabs.insert(Tab::with_ref(request, req_ref));
     }
 
+    pub fn switch_to_tab(&mut self, req: CollectionRequest) -> bool {
+        self.tabs
+            .iter()
+            .find(|tab| tab.1.req_ref == Some(req))
+            .inspect(|tab| {
+                self.active_tab = tab.0;
+            })
+            .is_some()
+    }
+
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
         self.tabs.get_mut(key)
     }

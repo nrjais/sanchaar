@@ -28,7 +28,9 @@ impl CollectionTreeMsg {
                     .on_collection_mut(col, |collection| collection.toggle_folder(id));
             }
             CollectionTreeMsg::OpenRequest(col) => {
-                state.commands.add(AppCommand::OpenRequest(col));
+                if !state.switch_to_tab(col) {
+                    state.commands.add(AppCommand::OpenRequest(col));
+                };
             }
         }
     }
