@@ -82,7 +82,6 @@ async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
             return None;
         }
     };
-    dbg!("Loading from existing file");
     let collections: CollectionsState = toml::from_str(&data).ok()?;
 
     Some(collections.open)

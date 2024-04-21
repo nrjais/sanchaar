@@ -1,9 +1,11 @@
+use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
 use iced::widget::{scrollable, text, vertical_rule, Column, Row};
 use iced::{Color, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
+
 use crate::app::{collection_tree, panels};
 use crate::state::{AppState, TabKey};
 use components::{card_tab, card_tabs, TabBarAction};
@@ -13,7 +15,7 @@ use core::collection::request::Method;
 pub enum MainPageMsg {
     TabBarAction(TabBarAction<TabKey>),
     Panel(PanelMsg),
-    CollectionTree(collection_tree::CollectionTreeMsg),
+    CollectionTree(CollectionTreeMsg),
 }
 
 impl MainPageMsg {

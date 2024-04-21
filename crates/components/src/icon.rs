@@ -26,4 +26,5 @@ pub mod icons {
     pub const SendUp: NerdIcon = NerdIcon('');
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');
     pub const DotsCircle: NerdIcon = NerdIcon('󱥸');
+    pub const Close: NerdIcon = NerdIcon('');
 }

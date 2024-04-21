@@ -7,6 +7,7 @@ mod key_value_editor;
 mod key_value_viewer;
 
 pub mod colors;
+pub mod modal;
 
 pub use bordered::*;
 pub use button_tabs::*;

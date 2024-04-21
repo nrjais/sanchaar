@@ -28,6 +28,11 @@ slotmap::new_key_type! {
     pub struct TabKey;
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum Popup {
+    CreateCollection,
+}
+
 #[derive(Debug)]
 pub struct AppState {
     pub active_tab: TabKey,
@@ -37,6 +42,7 @@ pub struct AppState {
     pub client: reqwest::Client,
     // Collection tree and tabs split
     pub panes: pane_grid::State<SplitState>,
+    pub popup: Option<Popup>,
 }
 
 impl AppState {
@@ -57,6 +63,7 @@ impl AppState {
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
+            popup: None,
         }
     }
 

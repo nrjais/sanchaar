@@ -6,6 +6,7 @@ use serde_json::Value;
 use tokio::fs;
 
 use cancellable_task::cancellable_task;
+use core::client;
 use core::client::send_request;
 
 use crate::state::commands::cancellable_task::TaskResult;
@@ -33,7 +34,7 @@ pub enum AppCommand {
 
 #[derive(Debug)]
 pub enum ResponseResult {
-    Completed(core::client::Response),
+    Completed(client::Response),
     Error(anyhow::Error),
     Cancelled,
 }

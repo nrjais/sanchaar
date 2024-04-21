@@ -7,12 +7,20 @@ use iced::alignment::Alignment;
 use iced::event;
 use iced::mouse;
 use iced::{Color, Element, Event, Length, Point, Rectangle, Size, Vector};
+use std::rc::Rc;
 
 /// A widget that centers a modal element over some base element
 pub struct Modal<'a, Message, Theme, Renderer> {
     base: Element<'a, Message, Theme, Renderer>,
     modal: Element<'a, Message, Theme, Renderer>,
-    on_blur: Option<Message>,
+    on_blur: Option<Rc<dyn Fn() -> Message>>,
+}
+
+pub fn modal<'a, Message, Theme, Renderer>(
+    base: impl Into<Element<'a, Message, Theme, Renderer>>,
+    modal: impl Into<Element<'a, Message, Theme, Renderer>>,
+) -> Modal<'a, Message, Theme, Renderer> {
+    Modal::new(base, modal)
 }
 
 impl<'a, Message, Theme, Renderer> Modal<'a, Message, Theme, Renderer> {
@@ -30,9 +38,9 @@ impl<'a, Message, Theme, Renderer> Modal<'a, Message, Theme, Renderer> {
 
     /// Sets the message that will be produces when the background
     /// of the [`Modal`] is pressed
-    pub fn on_blur(self, on_blur: Message) -> Self {
+    pub fn on_blur(self, on_blur: impl Fn() -> Message + 'static) -> Self {
         Self {
-            on_blur: Some(on_blur),
+            on_blur: Some(Rc::new(on_blur)),
             ..self
         }
     }
@@ -42,7 +50,6 @@ impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
     for Modal<'a, Message, Theme, Renderer>
 where
     Renderer: advanced::Renderer,
-    Message: Clone,
 {
     fn size(&self) -> Size<Length> {
         self.base.as_widget().size()
@@ -165,14 +172,13 @@ struct Overlay<'a, 'b, Message, Theme, Renderer> {
     content: &'b mut Element<'a, Message, Theme, Renderer>,
     tree: &'b mut widget::Tree,
     size: Size,
-    on_blur: Option<Message>,
+    on_blur: Option<Rc<dyn Fn() -> Message>>,
 }
 
 impl<'a, 'b, Message, Theme, Renderer> overlay::Overlay<Message, Theme, Renderer>
     for Overlay<'a, 'b, Message, Theme, Renderer>
 where
     Renderer: advanced::Renderer,
-    Message: Clone,
 {
     fn layout(&mut self, renderer: &Renderer, _bounds: Size) -> layout::Node {
         let limits = layout::Limits::new(Size::ZERO, self.size)
@@ -246,7 +252,7 @@ where
         if let Some(message) = self.on_blur.as_ref() {
             if let Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) = &event {
                 if !cursor.is_over(content_bounds) {
-                    shell.publish(message.clone());
+                    shell.publish((*message)());
                     return event::Status::Captured;
                 }
             }
@@ -298,7 +304,7 @@ impl<'a, Message, Theme, Renderer> From<Modal<'a, Message, Theme, Renderer>>
     for Element<'a, Message, Theme, Renderer>
 where
     Theme: 'a,
-    Message: 'a + Clone,
+    Message: 'a,
     Renderer: 'a + advanced::Renderer,
 {
     fn from(modal: Modal<'a, Message, Theme, Renderer>) -> Self {
