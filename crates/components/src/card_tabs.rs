@@ -1,4 +1,4 @@
-use crate::components::{icon, icons};
+use crate::{icon, icons};
 use iced::widget::{container, horizontal_space};
 use iced::{
     widget::{button, Row, Text},

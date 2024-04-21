@@ -2,8 +2,8 @@ use iced::widget::{button, container, text, Column};
 use iced::Length;
 
 use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
-use crate::components::{icon, icons};
 use crate::state::AppState;
+use components::{icon, icons};
 
 pub fn center_x<'a>(
     el: impl Into<iced::Element<'a, ResponsePaneMsg>>,

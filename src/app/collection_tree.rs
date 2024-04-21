@@ -1,11 +1,11 @@
-use crate::commands::AppCommand;
+use crate::state::commands::AppCommand;
 use iced::widget::{button, text, Button, Column, Row};
 use iced::{Element, Length};
 
-use crate::components::{icon, icons, NerdIcon};
-use crate::core::collection::collection::{Entry, FolderId};
-use crate::core::collection::{CollectionKey, CollectionRequest};
 use crate::state::AppState;
+use components::{icon, icons, NerdIcon};
+use core::collection::collection::{Entry, FolderId};
+use core::collection::{CollectionKey, CollectionRequest};
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {

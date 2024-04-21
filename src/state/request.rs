@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use crate::components;
+use components;
 use iced::widget::text_editor;
 
-use crate::components::KeyValList;
-use crate::core::collection::request::{KeyValue, Method, Request, RequestBody};
+use components::KeyValList;
+use core::collection::request::{KeyValue, Method, Request, RequestBody};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {

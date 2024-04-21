@@ -1,16 +1,13 @@
 pub mod app;
-pub mod commands;
-pub mod components;
-pub mod core;
 pub mod state;
 
-use crate::commands::init_command;
 use app::AppMsg;
 use iced::advanced::Application;
 use iced::{
     window::{self, Position},
     Command, Element, Point, Renderer, Settings, Size, Theme,
 };
+use state::commands::init_command;
 use state::AppState;
 use std::borrow::Cow;
 

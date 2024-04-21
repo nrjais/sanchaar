@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
-use crate::core::persistence::request::EncodedRequest;
+use crate::persistence::request::EncodedRequest;
 
 pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), anyhow::Error> {
     let file = tokio::fs::File::create(path).await?;

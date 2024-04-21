@@ -1,15 +1,18 @@
+pub mod commands;
+
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
 
 pub use tab::*;
 
-use crate::commands::AppCommand;
-use crate::core::collection::collection::RequestRef;
-use crate::core::collection::request::Request;
-use crate::core::collection::{CollectionRequest, Collections};
+use crate::state::commands::AppCommand;
+use crate::state::commands::Commands;
 use crate::state::response::ResponseState;
-use crate::{commands::Commands, core::client::create_client};
+use core::client::create_client;
+use core::collection::collection::RequestRef;
+use core::collection::request::Request;
+use core::collection::{CollectionRequest, Collections};
 
 pub mod request;
 pub mod response;

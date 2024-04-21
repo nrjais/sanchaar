@@ -1,4 +1,4 @@
-use crate::components::{code_editor, ContentType};
+use components::{code_editor, ContentType};
 
 use crate::app::panels::http_request::panes::request::RequestPaneMsg;
 use iced::widget::{container, text_editor};

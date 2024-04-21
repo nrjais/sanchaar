@@ -6,9 +6,9 @@ use iced::{
 use reqwest::Url;
 use strum::VariantArray;
 
-use crate::components::{icons, NerdIcon};
-use crate::core::collection::request::Method;
-use crate::{components::icon, state::AppState};
+use crate::state::AppState;
+use components::{icon, icons, NerdIcon};
+use core::collection::request::Method;
 
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {

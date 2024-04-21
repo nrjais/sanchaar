@@ -6,18 +6,19 @@ use serde_json::Value;
 use tokio::fs;
 
 use cancellable_task::cancellable_task;
+use core::client::send_request;
 
-use crate::commands::cancellable_task::TaskResult;
-use crate::core::collection::collection::Collection;
-use crate::core::collection::request::Request;
-use crate::core::collection::CollectionRequest;
-use crate::core::persistence::collections;
-use crate::core::persistence::fs::save_req_to_file;
-use crate::core::persistence::request::{encode_request, read_request};
-use crate::core::transformers::request::transform_request;
+use crate::state::commands::cancellable_task::TaskResult;
 use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::TabKey;
-use crate::{app::AppMsg, core::client, state::AppState};
+use crate::{app::AppMsg, AppState};
+use core::collection::collection::Collection;
+use core::collection::request::Request;
+use core::collection::CollectionRequest;
+use core::persistence::collections;
+use core::persistence::fs::save_req_to_file;
+use core::persistence::request::{encode_request, read_request};
+use core::transformers::request::transform_request;
 
 mod cancellable_task;
 
@@ -32,7 +33,7 @@ pub enum AppCommand {
 
 #[derive(Debug)]
 pub enum ResponseResult {
-    Completed(client::Response),
+    Completed(core::client::Response),
     Error(anyhow::Error),
     Cancelled,
 }
@@ -144,7 +145,7 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
             }
 
             AppCommand::SendRequest(tab, req) => {
-                let future = client::send_request(state.client.clone(), req);
+                let future = send_request(state.client.clone(), req);
                 let (cancel_tx, req) = cancellable_task(future);
                 let sel_tab = state.get_tab_mut(tab)?;
                 sel_tab.add_task(cancel_tx);

@@ -5,9 +5,9 @@ use iced::{Color, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
 use crate::app::{collection_tree, panels};
-use crate::components::{card_tab, card_tabs, TabBarAction};
-use crate::core::collection::request::Method;
 use crate::state::{AppState, TabKey};
+use components::{card_tab, card_tabs, TabBarAction};
+use core::collection::request::Method;
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {

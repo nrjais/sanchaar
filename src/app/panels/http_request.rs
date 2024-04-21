@@ -1,4 +1,4 @@
-use crate::components::{bordered_left, bordered_right};
+use components::{bordered_left, bordered_right};
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::{pane_grid, PaneGrid};
 use iced::{

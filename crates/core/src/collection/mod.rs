@@ -1,4 +1,4 @@
-use crate::core::collection::collection::{Collection, RequestId, RequestRef};
+use crate::collection::collection::{Collection, RequestId, RequestRef};
 use slotmap::SlotMap;
 use std::path::PathBuf;
 
@@ -32,17 +32,17 @@ impl Collections {
         self.entries.get(key).map(f)
     }
 
-    pub(crate) fn get_ref(&self, cr: &CollectionRequest) -> Option<&RequestRef> {
+    pub fn get_ref(&self, cr: &CollectionRequest) -> Option<&RequestRef> {
         self.entries.get(cr.0).and_then(|c| c.get_ref(cr.1))
     }
 
-    pub(crate) fn insert(&mut self, collections: Vec<Collection>) {
+    pub fn insert(&mut self, collections: Vec<Collection>) {
         for collection in collections {
             self.entries.insert(collection);
         }
     }
 
-    pub(crate) fn rename_request(
+    pub fn rename_request(
         &mut self,
         req: CollectionRequest,
         new: String,

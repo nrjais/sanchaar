@@ -6,9 +6,9 @@ use iced::{
     Element, Length,
 };
 
-use crate::commands::AppCommand;
-use crate::components::{icons, NerdIcon};
-use crate::{components::icon, state::AppState};
+use crate::state::commands::AppCommand;
+use crate::state::AppState;
+use components::{icon, icons, NerdIcon};
 
 #[derive(Debug, Clone)]
 pub enum ActionBarMsg {

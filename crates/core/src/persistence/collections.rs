@@ -3,13 +3,11 @@ use directories::ProjectDirs;
 
 use std::path::PathBuf;
 
-use crate::core::collection::collection::{
-    Collection, Entry, Folder, FolderId, RequestId, RequestRef,
-};
+use crate::collection::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::core::persistence::Version;
+use crate::persistence::Version;
 
 const COLLECTION_ROOT_FILE: &str = "collection.toml";
 

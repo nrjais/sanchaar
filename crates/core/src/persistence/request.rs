@@ -1,6 +1,6 @@
-use crate::core::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
-use crate::core::persistence::fs::load_from_file;
-use crate::core::persistence::Version;
+use crate::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
+use crate::persistence::fs::load_from_file;
+use crate::persistence::Version;
 use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use std::ops::Not;

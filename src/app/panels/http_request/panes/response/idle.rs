@@ -1,8 +1,8 @@
 use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
 use iced::widget::{container, Column};
 
-use crate::components::{icon, icons};
 use crate::state::AppState;
+use components::{icon, icons};
 
 pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
     let send_icon = container(icon(icons::SendUp).size(60.0))

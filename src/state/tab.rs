@@ -2,10 +2,10 @@ use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use tokio::sync::oneshot;
 
-use crate::core::collection::request::Request;
-use crate::core::collection::CollectionRequest;
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
+use core::collection::request::Request;
+use core::collection::CollectionRequest;
 
 use super::request::RequestPane;
 

@@ -5,7 +5,7 @@ use iced::{
     Border, Element, Length, Theme,
 };
 
-use crate::components::colors;
+use crate::colors;
 
 pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a, M> {
     let size = 16;

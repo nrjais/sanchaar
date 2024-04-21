@@ -3,11 +3,11 @@ use iced::{Alignment, Color, Element};
 
 use iced::widget::{text, Column, Row};
 
-use crate::components::{
-    button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
-};
 use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::{response::ResponseTabId, AppState};
+use components::{
+    button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
+};
 
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {

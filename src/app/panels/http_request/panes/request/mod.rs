@@ -1,12 +1,10 @@
 use iced::widget::{container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Length};
 
-use crate::components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
 use crate::state::request::{RawRequestBody, RequestPane};
-use crate::{
-    components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg},
-    state::{request::ReqTabId, AppState},
-};
+use crate::state::{request::ReqTabId, AppState};
+use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
+use components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
 
 mod body_editor;
 

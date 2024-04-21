@@ -11,7 +11,7 @@ pub struct NerdIcon(char);
 
 #[allow(dead_code, non_upper_case_globals)]
 pub mod icons {
-    use crate::components::icon::NerdIcon;
+    use super::NerdIcon;
 
     pub const TriangleRight: NerdIcon = NerdIcon('');
     pub const TriangleDown: NerdIcon = NerdIcon('');

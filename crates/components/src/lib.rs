@@ -2,10 +2,11 @@ mod bordered;
 mod button_tabs;
 mod card_tabs;
 mod code_editor;
-mod colors;
 mod icon;
 mod key_value_editor;
 mod key_value_viewer;
+
+pub mod colors;
 
 pub use bordered::*;
 pub use button_tabs::*;
