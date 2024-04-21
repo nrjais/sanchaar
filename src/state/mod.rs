@@ -1,13 +1,11 @@
-pub mod commands;
-
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
 
 pub use tab::*;
 
-use crate::state::commands::AppCommand;
-use crate::state::commands::Commands;
+use crate::commands::AppCommand;
+use crate::commands::Commands;
 use crate::state::response::ResponseState;
 use core::client::create_client;
 use core::collection::collection::RequestRef;
@@ -63,7 +61,7 @@ impl AppState {
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
-            popup: None,
+            popup: Some(Popup::CreateCollection),
         }
     }
 

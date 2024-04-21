@@ -9,10 +9,10 @@ use cancellable_task::cancellable_task;
 use core::client;
 use core::client::send_request;
 
-use crate::state::commands::cancellable_task::TaskResult;
 use crate::state::response::{CompletedResponse, ResponseState};
 use crate::state::TabKey;
 use crate::{app::AppMsg, AppState};
+use cancellable_task::TaskResult;
 use core::collection::collection::Collection;
 use core::collection::request::Request;
 use core::collection::CollectionRequest;

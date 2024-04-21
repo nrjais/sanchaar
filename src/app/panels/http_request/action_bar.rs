@@ -6,7 +6,7 @@ use iced::{
     Element, Length,
 };
 
-use crate::state::commands::AppCommand;
+use crate::commands::AppCommand;
 use crate::state::AppState;
 use components::{icon, icons, NerdIcon};
 

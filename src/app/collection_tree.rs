@@ -1,4 +1,4 @@
-use crate::state::commands::AppCommand;
+use crate::commands::AppCommand;
 use iced::widget::{button, text, Button, Column, Row};
 use iced::{Element, Length};
 

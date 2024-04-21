@@ -8,8 +8,8 @@ use iced::Command;
 use popups::PopupMsg;
 
 use crate::app::main_page::MainPageMsg;
-use crate::state::commands::commands;
-use crate::state::{commands::CommandResultMsg, AppState};
+use crate::commands::commands;
+use crate::{commands::CommandResultMsg, AppState};
 
 #[derive(Debug)]
 pub enum AppMsg {
