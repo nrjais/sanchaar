@@ -1,6 +1,6 @@
 mod collection_tree;
-pub mod main_page;
-pub mod panels;
+mod main_page;
+mod panels;
 mod popups;
 
 use components::modal::modal;
