@@ -42,8 +42,7 @@ pub fn view(state: &AppState, popup: Popup) -> Element<PopupMsg> {
         Column::new()
             .push(
                 Column::new()
-                    .push(text(title).size(24))
-                    .padding([0, 4])
+                    .push(text(title).size(20))
                     .align_items(iced::Alignment::Center),
             )
             .push(content)

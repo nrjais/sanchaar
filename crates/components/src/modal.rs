@@ -208,7 +208,7 @@ where
                 ..renderer::Quad::default()
             },
             Color {
-                a: 0.80,
+                a: 0.50,
                 ..Color::BLACK
             },
         );
