@@ -1,6 +1,10 @@
-use crate::state::{AppState, Popup};
+use iced::alignment::Horizontal;
+use iced::widget::container::Style;
 use iced::widget::{button, container, horizontal_space, text, Column, Row};
-use iced::Element;
+use iced::{Border, Element};
+
+use crate::state::popups::Popup;
+use crate::state::AppState;
 
 mod create_collection;
 
@@ -19,11 +23,11 @@ impl PopupMsg {
     }
 }
 
-pub fn view(state: &AppState, popup: Popup) -> Element<PopupMsg> {
+pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> {
     let (title, content, done_msg) = match popup {
-        Popup::CreateCollection => (
+        Popup::CreateCollection(ref data) => (
             create_collection::title(),
-            create_collection::view(state).map(PopupMsg::CreateCollection),
+            create_collection::view(state, data).map(PopupMsg::CreateCollection),
             PopupMsg::CreateCollection(create_collection::Message::Done),
         ),
     };
@@ -38,19 +42,28 @@ pub fn view(state: &AppState, popup: Popup) -> Element<PopupMsg> {
         .push(button("Done").style(button::primary).on_press(done_msg))
         .spacing(8);
 
-    container(
-        Column::new()
-            .push(
+    Row::new()
+        .push(horizontal_space())
+        .push(
+            container(
                 Column::new()
-                    .push(text(title).size(20))
-                    .align_items(iced::Alignment::Center),
+                    .push(
+                        container(text(title).size(20))
+                            .width(iced::Length::Fill)
+                            .align_x(Horizontal::Center),
+                    )
+                    .push(content)
+                    .push(buttons)
+                    .spacing(12),
             )
-            .push(content)
-            .push(Column::new().push(buttons).spacing(4))
-            .width(iced::Length::Shrink)
-            .spacing(8),
-    )
-    .padding(8)
-    .style(container::rounded_box)
-    .into()
+            .padding(16)
+            .style(|theme| Style {
+                background: Some(theme.extended_palette().background.weak.color.into()),
+                border: Border::rounded(6),
+                ..Style::default()
+            }),
+        )
+        .push(horizontal_space())
+        .align_items(iced::Alignment::Center)
+        .into()
 }

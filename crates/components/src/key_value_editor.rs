@@ -188,10 +188,12 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
 
             let name = text_input("Key", &kv.name)
                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))
+                .on_paste(move |name| KeyValUpdateMsg::NameChanged(idx, name))
                 .size(size)
                 .width(iced::Length::FillPortion(2));
             let value = text_input("Value", &kv.value)
                 .on_input(move |value| KeyValUpdateMsg::ValueChanged(idx, value))
+                .on_paste(move |value| KeyValUpdateMsg::ValueChanged(idx, value))
                 .size(size)
                 .width(iced::Length::FillPortion(3));
 

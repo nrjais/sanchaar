@@ -60,6 +60,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
             let name: Element<ActionBarMsg> = if let Some(name) = &tab.editing_name {
                 text_input("Request Name", name)
                     .on_input(ActionBarMsg::UpdateName)
+                    .on_paste(ActionBarMsg::UpdateName)
                     .on_submit(ActionBarMsg::SubmitNameEdit)
                     .size(size - 2)
                     .padding(2)

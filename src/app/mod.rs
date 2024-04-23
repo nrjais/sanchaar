@@ -32,7 +32,7 @@ impl AppMsg {
 pub fn view(state: &AppState) -> iced::Element<AppMsg> {
     let main_page = main_page::view(state).map(AppMsg::MainPage);
 
-    if let Some(popup) = state.popup {
+    if let Some(ref popup) = state.popup {
         let popup = popups::view(state, popup).map(AppMsg::Popup);
         modal(main_page, popup).into()
     } else {

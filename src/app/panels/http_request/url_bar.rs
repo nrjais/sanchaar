@@ -76,7 +76,9 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
         UrlBarMsg::MethodChanged,
     );
 
-    let url = text_input("Enter Address", &request.url).on_input(UrlBarMsg::UrlChanged);
+    let url = text_input("Enter Address", &request.url)
+        .on_input(UrlBarMsg::UrlChanged)
+        .on_paste(UrlBarMsg::UrlChanged);
 
     let on_press = if executing {
         None

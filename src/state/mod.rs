@@ -6,29 +6,27 @@ pub use tab::*;
 
 use crate::commands::AppCommand;
 use crate::commands::Commands;
+use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 use core::client::create_client;
 use core::collection::collection::RequestRef;
 use core::collection::request::Request;
 use core::collection::{CollectionRequest, Collections};
 
+pub mod popups;
 pub mod request;
 pub mod response;
 pub mod tab;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SplitState {
-    First,  // Left or Top
+    First,
+    // Left or Top
     Second, // Right or Bottom
 }
 
 slotmap::new_key_type! {
     pub struct TabKey;
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Popup {
-    CreateCollection,
 }
 
 #[derive(Debug)]
@@ -61,7 +59,7 @@ impl AppState {
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
-            popup: Some(Popup::CreateCollection),
+            popup: Some(Popup::CreateCollection(Default::default())),
         }
     }
 
