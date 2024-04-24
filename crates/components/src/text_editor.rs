@@ -1,6 +1,4 @@
 //! Display a multi-line text input for text editing.
-mod gutters;
-
 use iced_core::clipboard::{self, Clipboard};
 use iced_core::event::{self, Event};
 use iced_core::keyboard;
@@ -105,7 +103,7 @@ where
 
     /// Sets the [`Font`] of the [`TextEditor`].
     ///
-    /// [`Font`]: text::Renderer::Font
+    /// [`Font`]: Renderer::Font
     pub fn font(mut self, font: impl Into<Renderer::Font>) -> Self {
         self.font = Some(font.into());
         self
@@ -117,8 +115,8 @@ where
         self
     }
 
-    /// Sets the [`text::LineHeight`] of the [`TextEditor`].
-    pub fn line_height(mut self, line_height: impl Into<text::LineHeight>) -> Self {
+    /// Sets the [`LineHeight`] of the [`TextEditor`].
+    pub fn line_height(mut self, line_height: impl Into<LineHeight>) -> Self {
         self.line_height = line_height.into();
         self
     }
@@ -339,22 +337,6 @@ where
     Theme: Catalog,
     Renderer: text::Renderer,
 {
-    fn tag(&self) -> widget::tree::Tag {
-        widget::tree::Tag::of::<State<Highlighter>>()
-    }
-
-    fn state(&self) -> widget::tree::State {
-        widget::tree::State::new(State {
-            is_focused: false,
-            last_click: None,
-            drag_click: None,
-            partial_scroll: 0.0,
-            highlighter: RefCell::new(Highlighter::new(&self.highlighter_settings)),
-            highlighter_settings: self.highlighter_settings.clone(),
-            highlighter_format_address: self.highlighter_format as usize,
-        })
-    }
-
     fn size(&self) -> Size<Length> {
         Size {
             width: self.width,
@@ -398,13 +380,11 @@ where
         );
 
         match self.height {
-            Length::Fill | Length::FillPortion(_) | Length::Fixed(_) => {
-                layout::Node::new(limits.max())
-            }
+            Length::Fill | Length::FillPortion(_) | Length::Fixed(_) => Node::new(limits.max()),
             Length::Shrink => {
                 let min_bounds = internal.editor.min_bounds();
 
-                layout::Node::new(
+                Node::new(
                     limits
                         .height(min_bounds.height)
                         .max()
@@ -412,81 +392,6 @@ where
                 )
             }
         }
-    }
-
-    fn on_event(
-        &mut self,
-        tree: &mut widget::Tree,
-        event: Event,
-        layout: Layout<'_>,
-        cursor: mouse::Cursor,
-        _renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
-        _viewport: &Rectangle,
-    ) -> event::Status {
-        let Some(on_edit) = self.on_edit.as_ref() else {
-            return event::Status::Ignored;
-        };
-
-        let state = tree.state.downcast_mut::<State<Highlighter>>();
-
-        let Some(update) = Update::from_event(event, state, layout.bounds(), self.padding, cursor)
-        else {
-            return event::Status::Ignored;
-        };
-
-        match update {
-            Update::Click(click) => {
-                let action = match click.kind() {
-                    mouse::click::Kind::Single => Action::Click(click.position()),
-                    mouse::click::Kind::Double => Action::SelectWord,
-                    mouse::click::Kind::Triple => Action::SelectLine,
-                };
-
-                state.is_focused = true;
-                state.last_click = Some(click);
-                state.drag_click = Some(click.kind());
-
-                shell.publish(on_edit(action));
-            }
-            Update::Scroll(lines) => {
-                let lines = lines + state.partial_scroll;
-                state.partial_scroll = lines.fract();
-
-                shell.publish(on_edit(Action::Scroll {
-                    lines: lines as i32,
-                }));
-            }
-            Update::Unfocus => {
-                state.is_focused = false;
-                state.drag_click = None;
-            }
-            Update::Release => {
-                state.drag_click = None;
-            }
-            Update::Action(action) => {
-                shell.publish(on_edit(action));
-            }
-            Update::Copy => {
-                if let Some(selection) = self.content.selection() {
-                    clipboard.write(clipboard::Kind::Standard, selection);
-                }
-            }
-            Update::Cut => {
-                if let Some(selection) = self.content.selection() {
-                    clipboard.write(clipboard::Kind::Standard, selection);
-                    shell.publish(on_edit(Action::Edit(Edit::Delete)));
-                }
-            }
-            Update::Paste => {
-                if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
-                    shell.publish(on_edit(Action::Edit(Edit::Paste(Arc::new(contents)))));
-                }
-            }
-        }
-
-        event::Status::Captured
     }
 
     fn draw(
@@ -585,6 +490,97 @@ where
                 }
             }
         }
+    }
+
+    fn tag(&self) -> widget::tree::Tag {
+        widget::tree::Tag::of::<State<Highlighter>>()
+    }
+
+    fn state(&self) -> widget::tree::State {
+        widget::tree::State::new(State {
+            is_focused: false,
+            last_click: None,
+            drag_click: None,
+            partial_scroll: 0.0,
+            highlighter: RefCell::new(Highlighter::new(&self.highlighter_settings)),
+            highlighter_settings: self.highlighter_settings.clone(),
+            highlighter_format_address: self.highlighter_format as usize,
+        })
+    }
+
+    fn on_event(
+        &mut self,
+        tree: &mut widget::Tree,
+        event: Event,
+        layout: Layout<'_>,
+        cursor: mouse::Cursor,
+        _renderer: &Renderer,
+        clipboard: &mut dyn Clipboard,
+        shell: &mut Shell<'_, Message>,
+        _viewport: &Rectangle,
+    ) -> event::Status {
+        let Some(on_edit) = self.on_edit.as_ref() else {
+            return event::Status::Ignored;
+        };
+
+        let state = tree.state.downcast_mut::<State<Highlighter>>();
+
+        let Some(update) = Update::from_event(event, state, layout.bounds(), self.padding, cursor)
+        else {
+            return event::Status::Ignored;
+        };
+
+        match update {
+            Update::Click(click) => {
+                let action = match click.kind() {
+                    mouse::click::Kind::Single => Action::Click(click.position()),
+                    mouse::click::Kind::Double => Action::SelectWord,
+                    mouse::click::Kind::Triple => Action::SelectLine,
+                };
+
+                state.is_focused = true;
+                state.last_click = Some(click);
+                state.drag_click = Some(click.kind());
+
+                shell.publish(on_edit(action));
+            }
+            Update::Scroll(lines) => {
+                let lines = lines + state.partial_scroll;
+                state.partial_scroll = lines.fract();
+
+                shell.publish(on_edit(Action::Scroll {
+                    lines: lines as i32,
+                }));
+            }
+            Update::Unfocus => {
+                state.is_focused = false;
+                state.drag_click = None;
+            }
+            Update::Release => {
+                state.drag_click = None;
+            }
+            Update::Action(action) => {
+                shell.publish(on_edit(action));
+            }
+            Update::Copy => {
+                if let Some(selection) = self.content.selection() {
+                    clipboard.write(clipboard::Kind::Standard, selection);
+                }
+            }
+            Update::Cut => {
+                if let Some(selection) = self.content.selection() {
+                    clipboard.write(clipboard::Kind::Standard, selection);
+                    shell.publish(on_edit(Action::Edit(Edit::Delete)));
+                }
+            }
+            Update::Paste => {
+                if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
+                    shell.publish(on_edit(Action::Edit(Edit::Paste(Arc::new(contents)))));
+                }
+            }
+        }
+
+        event::Status::Captured
     }
 
     fn mouse_interaction(
