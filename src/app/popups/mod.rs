@@ -31,7 +31,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
         Popup::CreateCollection(ref data) => (
             create_collection::title(),
             create_collection::view(state, data).map(PopupMsg::CreateCollection),
-            PopupMsg::CreateCollection(create_collection::Message::Done),
+            create_collection::done(data).map(PopupMsg::CreateCollection),
         ),
     };
 
@@ -42,7 +42,11 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
                 .style(button::secondary)
                 .on_press(PopupMsg::ClosePopup),
         )
-        .push(button("Done").style(button::primary).on_press(done_msg))
+        .push(
+            button("Done")
+                .style(button::primary)
+                .on_press_maybe(done_msg),
+        )
         .spacing(8);
 
     Row::new()

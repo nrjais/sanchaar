@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-
 use std::sync::Arc;
 
 use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
@@ -45,6 +44,14 @@ pub fn title<'a>() -> Cow<'a, str> {
     Cow::Borrowed("Create Collection")
 }
 
+pub fn done(data: &CreateCollectionState) -> Option<Message> {
+    if data.name.is_empty() || data.path.is_none() {
+        None
+    } else {
+        Some(Message::Done)
+    }
+}
+
 pub(crate) fn view<'a>(
     _state: &'a AppState,
     data: &'a CreateCollectionState,
@@ -63,10 +70,15 @@ pub(crate) fn view<'a>(
         .push(text("Location"))
         .push(horizontal_space())
         .push(
-            button("Browse location")
-                .style(button::text)
-                .padding([2, 6])
-                .on_press(Message::OpenDialog),
+            button(
+                data.path
+                    .as_ref()
+                    .and_then(|p| p.to_str())
+                    .unwrap_or("Browse location"),
+            )
+            .style(button::text)
+            .padding([2, 6])
+            .on_press(Message::OpenDialog),
         )
         .align_items(iced::Alignment::Center)
         .spacing(4);
