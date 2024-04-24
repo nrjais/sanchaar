@@ -59,7 +59,7 @@ impl AppState {
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
-            popup: Some(Popup::CreateCollection(Default::default())),
+            popup: None,
         }
     }
 

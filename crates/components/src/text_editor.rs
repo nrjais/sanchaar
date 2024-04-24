@@ -1,4 +1,13 @@
 //! Display a multi-line text input for text editing.
+
+mod content;
+mod undo_stack;
+
+use std::cell::RefCell;
+use std::ops::DerefMut;
+use std::sync::Arc;
+
+pub use content::ContentAction;
 use iced_core::clipboard::{self, Clipboard};
 use iced_core::event::{self, Event};
 use iced_core::keyboard;
@@ -14,12 +23,6 @@ use iced_core::{
     Background, Border, Color, Element, Length, Padding, Pixels, Rectangle, Shell, Size, Theme,
     Vector,
 };
-
-use std::cell::RefCell;
-use std::fmt;
-use std::ops::DerefMut;
-use std::sync::Arc;
-
 pub use text::editor::{Action, Edit, Motion};
 
 /// A multi-line text input.
@@ -39,7 +42,7 @@ where
     padding: Padding,
     class: Theme::Class<'a>,
     wrapping: Wrapping,
-    on_edit: Option<Box<dyn Fn(Action) -> Message + 'a>>,
+    on_edit: Option<Box<dyn Fn(ContentAction) -> Message + 'a>>,
     highlighter_settings: Highlighter::Settings,
     highlighter_format: fn(&Highlighter::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,
 }
@@ -96,7 +99,7 @@ where
     /// the [`TextEditor`].
     ///
     /// If this method is not called, the [`TextEditor`] will be disabled.
-    pub fn on_action(mut self, on_edit: impl Fn(Action) -> Message + 'a) -> Self {
+    pub fn on_action(mut self, on_edit: impl Fn(ContentAction) -> Message + 'a) -> Self {
         self.on_edit = Some(Box::new(on_edit));
         self
     }
@@ -175,141 +178,7 @@ where
     }
 }
 
-/// The content of a [`TextEditor`].
-pub struct Content<R = iced::Renderer>(RefCell<Internal<R>>)
-where
-    R: text::Renderer;
-
-struct Internal<R>
-where
-    R: text::Renderer,
-{
-    editor: R::Editor,
-    is_dirty: bool,
-}
-
-impl<R> Content<R>
-where
-    R: text::Renderer,
-{
-    /// Creates an empty [`Content`].
-    pub fn new() -> Self {
-        Self::with_text("")
-    }
-
-    /// Creates a [`Content`] with the given text.
-    pub fn with_text(text: &str) -> Self {
-        Self(RefCell::new(Internal {
-            editor: R::Editor::with_text(text),
-            is_dirty: true,
-        }))
-    }
-
-    /// Performs an [`Action`] on the [`Content`].
-    pub fn perform(&mut self, action: Action) {
-        let internal = self.0.get_mut();
-
-        internal.editor.perform(action);
-        internal.is_dirty = true;
-    }
-
-    /// Returns the amount of lines of the [`Content`].
-    pub fn line_count(&self) -> usize {
-        self.0.borrow().editor.line_count()
-    }
-
-    /// Returns the text of the line at the given index, if it exists.
-    pub fn line(&self, index: usize) -> Option<impl std::ops::Deref<Target = str> + '_> {
-        std::cell::Ref::filter_map(self.0.borrow(), |internal| internal.editor.line(index)).ok()
-    }
-
-    /// Returns an iterator of the text of the lines in the [`Content`].
-    pub fn lines(&self) -> impl Iterator<Item = impl std::ops::Deref<Target = str> + '_> {
-        struct Lines<'a, Renderer: text::Renderer> {
-            internal: std::cell::Ref<'a, Internal<Renderer>>,
-            current: usize,
-        }
-
-        impl<'a, Renderer: text::Renderer> Iterator for Lines<'a, Renderer> {
-            type Item = std::cell::Ref<'a, str>;
-
-            fn next(&mut self) -> Option<Self::Item> {
-                let line =
-                    std::cell::Ref::filter_map(std::cell::Ref::clone(&self.internal), |internal| {
-                        internal.editor.line(self.current)
-                    })
-                    .ok()?;
-
-                self.current += 1;
-
-                Some(line)
-            }
-        }
-
-        Lines {
-            internal: self.0.borrow(),
-            current: 0,
-        }
-    }
-
-    /// Returns the text of the [`Content`].
-    ///
-    /// Lines are joined with `'\n'`.
-    pub fn text(&self) -> String {
-        let mut text = self
-            .lines()
-            .enumerate()
-            .fold(String::new(), |mut contents, (i, line)| {
-                if i > 0 {
-                    contents.push('\n');
-                }
-
-                contents.push_str(&line);
-
-                contents
-            });
-
-        if !text.ends_with('\n') {
-            text.push('\n');
-        }
-
-        text
-    }
-
-    /// Returns the selected text of the [`Content`].
-    pub fn selection(&self) -> Option<String> {
-        self.0.borrow().editor.selection()
-    }
-
-    /// Returns the current cursor position of the [`Content`].
-    pub fn cursor_position(&self) -> (usize, usize) {
-        self.0.borrow().editor.cursor_position()
-    }
-}
-
-impl<Renderer> Default for Content<Renderer>
-where
-    Renderer: text::Renderer,
-{
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<Renderer> fmt::Debug for Content<Renderer>
-where
-    Renderer: text::Renderer,
-    Renderer::Editor: fmt::Debug,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let internal = self.0.borrow();
-
-        f.debug_struct("Content")
-            .field("editor", &internal.editor)
-            .field("is_dirty", &internal.is_dirty)
-            .finish()
-    }
-}
+pub type Content<R = iced::Renderer> = content::Content<R>;
 
 /// The state of a [`TextEditor`].
 #[derive(Debug)]
@@ -523,6 +392,8 @@ where
             return event::Status::Ignored;
         };
 
+        let on_edit_act = |action| on_edit(ContentAction::Action(action));
+
         let state = tree.state.downcast_mut::<State<Highlighter>>();
 
         let Some(update) = Update::from_event(event, state, layout.bounds(), self.padding, cursor)
@@ -542,13 +413,13 @@ where
                 state.last_click = Some(click);
                 state.drag_click = Some(click.kind());
 
-                shell.publish(on_edit(action));
+                shell.publish(on_edit_act(action));
             }
             Update::Scroll(lines) => {
                 let lines = lines + state.partial_scroll;
                 state.partial_scroll = lines.fract();
 
-                shell.publish(on_edit(Action::Scroll {
+                shell.publish(on_edit_act(Action::Scroll {
                     lines: lines as i32,
                 }));
             }
@@ -570,12 +441,12 @@ where
             Update::Cut => {
                 if let Some(selection) = self.content.selection() {
                     clipboard.write(clipboard::Kind::Standard, selection);
-                    shell.publish(on_edit(Action::Edit(Edit::Delete)));
+                    shell.publish(on_edit_act(Action::Edit(Edit::Delete)));
                 }
             }
             Update::Paste => {
                 if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
-                    shell.publish(on_edit(Action::Edit(Edit::Paste(Arc::new(contents)))));
+                    shell.publish(on_edit_act(Action::Edit(Edit::Paste(Arc::new(contents)))));
                 }
             }
         }
@@ -624,7 +495,7 @@ enum Update {
     Scroll(f32),
     Unfocus,
     Release,
-    Action(Action),
+    Action(ContentAction),
     Copy,
     Cut,
     Paste,
@@ -638,7 +509,7 @@ impl Update {
         padding: Padding,
         cursor: mouse::Cursor,
     ) -> Option<Self> {
-        let action = |action| Some(Update::Action(action));
+        let action = |action| Some(Update::Action(ContentAction::Action(action)));
         let edit = |edit| action(Action::Edit(edit));
 
         match event {
@@ -711,6 +582,9 @@ impl Update {
                             if modifiers.command() && !modifiers.alt() =>
                         {
                             return Some(Self::Paste);
+                        }
+                        keyboard::Key::Character("z") if modifiers.command() => {
+                            return Some(Self::Action(ContentAction::Undo));
                         }
                         _ => {}
                     }

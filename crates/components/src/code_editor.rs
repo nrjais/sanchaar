@@ -1,10 +1,10 @@
-use crate::text_editor;
-use crate::text_editor::text_editor;
 use iced::advanced::graphics::core::Element;
 use iced::highlighter::Highlighter;
 use iced::widget::{component, Component};
 use iced::{highlighter, Font, Length, Renderer, Theme};
-use iced_core::text::editor::Action;
+
+use crate::text_editor;
+use crate::text_editor::{text_editor, ContentAction};
 
 pub enum ContentType {
     Json,
@@ -50,7 +50,7 @@ impl ContentType {
 
 #[derive(Debug, Clone)]
 pub enum CodeEditorMsg {
-    EditorAction(Action, bool),
+    EditorAction(ContentAction, bool),
 }
 
 impl CodeEditorMsg {

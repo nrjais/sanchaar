@@ -99,7 +99,7 @@ impl RequestPane {
             body: RawRequestBody::from_request_body(&request.body),
             query_params: to_key_val_list(request.query_params, false),
             path_params: to_key_val_list(request.path_params, true),
-            tab: ReqTabId::Params,
+            tab: ReqTabId::Body,
         }
     }
 }
