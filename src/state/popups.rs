@@ -1,6 +1,9 @@
+use std::path::PathBuf;
+
 #[derive(Debug, Default)]
 pub struct CreateCollectionState {
     pub name: String,
+    pub path: Option<PathBuf>,
 }
 
 #[derive(Debug)]

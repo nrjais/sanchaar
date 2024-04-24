@@ -1,32 +1,42 @@
 use std::borrow::Cow;
 
-use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
-use iced::Element;
+use std::sync::Arc;
 
+use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
+use iced::{Command, Element};
+use rfd::FileHandle;
+
+use crate::commands::dialog::open_folder_dialog;
 use crate::state::popups::CreateCollectionState;
 use crate::state::popups::Popup::CreateCollection;
 use crate::state::AppState;
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub enum Message {
     Done,
     NameChanged(String),
     OpenDialog,
+    FolderSelected(Option<Arc<FileHandle>>),
 }
 
 impl Message {
-    pub fn update(self, state: &mut AppState) {
+    pub fn update(self, state: &mut AppState) -> Command<Message> {
         let Some(popup) = state.popup.as_mut() else {
-            return;
+            return Command::none();
         };
         let CreateCollection(data) = popup;
 
         match self {
-            Message::Done => {}
             Message::NameChanged(name) => {
                 data.name = name;
+                Command::none()
             }
-            Message::OpenDialog => {}
+            Message::OpenDialog => open_folder_dialog("Select location", Message::FolderSelected),
+            Message::FolderSelected(Some(handle)) => {
+                data.path = Some(handle.path().to_owned());
+                Command::none()
+            }
+            _ => Command::none(),
         }
     }
 }

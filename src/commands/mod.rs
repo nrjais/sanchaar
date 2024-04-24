@@ -6,13 +6,9 @@ use serde_json::Value;
 use tokio::fs;
 
 use cancellable_task::cancellable_task;
+use cancellable_task::TaskResult;
 use core::client;
 use core::client::send_request;
-
-use crate::state::response::{CompletedResponse, ResponseState};
-use crate::state::TabKey;
-use crate::{app::AppMsg, AppState};
-use cancellable_task::TaskResult;
 use core::collection::collection::Collection;
 use core::collection::request::Request;
 use core::collection::CollectionRequest;
@@ -21,7 +17,12 @@ use core::persistence::fs::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
 use core::transformers::request::transform_request;
 
+use crate::state::response::{CompletedResponse, ResponseState};
+use crate::state::TabKey;
+use crate::{app::AppMsg, AppState};
+
 mod cancellable_task;
+pub mod dialog;
 
 #[derive(Debug)]
 pub enum AppCommand {
@@ -118,11 +119,8 @@ impl Commands {
     }
 }
 
-pub fn commands(state: &mut AppState) -> Command<AppMsg> {
+fn commands_inner(state: &mut AppState) -> Vec<Command<AppMsg>> {
     let cmds = state.commands.take();
-    if cmds.is_empty() {
-        return Command::none();
-    };
     let cmds = cmds.into_iter().filter_map(|cmd| {
         let cmd = match cmd {
             AppCommand::InitRequest(tab) => {
@@ -210,8 +208,18 @@ pub fn commands(state: &mut AppState) -> Command<AppMsg> {
         };
         Some(cmd.map(AppMsg::Command))
     });
+    cmds.collect()
+}
+pub fn commands(state: &mut AppState) -> Command<AppMsg> {
+    let cmds = commands_inner(state);
 
     Command::batch(cmds)
+}
+
+pub fn commands_merged(state: &mut AppState, cmd: Command<AppMsg>) -> Command<AppMsg> {
+    let mut commands = commands_inner(state);
+    commands.push(cmd);
+    Command::batch(commands)
 }
 
 pub async fn load_collections() -> Vec<Collection> {

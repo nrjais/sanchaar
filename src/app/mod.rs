@@ -8,7 +8,7 @@ use iced::Command;
 use popups::PopupMsg;
 
 use crate::app::main_page::MainPageMsg;
-use crate::commands::commands;
+use crate::commands::{commands, commands_merged};
 use crate::{commands::CommandResultMsg, AppState};
 
 #[derive(Debug)]
@@ -23,7 +23,10 @@ impl AppMsg {
         match self {
             AppMsg::Command(msg) => msg.update(state),
             AppMsg::MainPage(msg) => msg.update(state),
-            AppMsg::Popup(msg) => msg.update(state),
+            AppMsg::Popup(msg) => {
+                let cmd = msg.update(state).map(AppMsg::Popup);
+                return commands_merged(state, cmd);
+            }
         };
         commands(state)
     }

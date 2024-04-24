@@ -1,7 +1,7 @@
 use iced::alignment::Horizontal;
 use iced::widget::container::Style;
 use iced::widget::{button, container, horizontal_space, text, Column, Row};
-use iced::{Border, Element};
+use iced::{Border, Command, Element};
 
 use crate::state::popups::Popup;
 use crate::state::AppState;
@@ -15,10 +15,13 @@ pub enum PopupMsg {
 }
 
 impl PopupMsg {
-    pub fn update(self, state: &mut AppState) {
+    pub fn update(self, state: &mut AppState) -> Command<PopupMsg> {
         match self {
-            Self::CreateCollection(msg) => msg.update(state),
-            Self::ClosePopup => state.popup = None,
+            Self::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
+            Self::ClosePopup => {
+                state.popup = None;
+                Command::none()
+            }
         }
     }
 }
