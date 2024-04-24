@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 
 use components;
-use iced::widget::text_editor;
 
-use components::KeyValList;
+use components::{text_editor, KeyValList};
 use core::collection::request::{KeyValue, Method, Request, RequestBody};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]

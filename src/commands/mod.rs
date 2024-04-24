@@ -1,12 +1,12 @@
 use std::mem;
 
-use iced::widget::text_editor;
 use iced::Command;
 use serde_json::Value;
 use tokio::fs;
 
 use cancellable_task::cancellable_task;
 use cancellable_task::TaskResult;
+use components::text_editor;
 use core::client;
 use core::client::send_request;
 use core::collection::collection::Collection;

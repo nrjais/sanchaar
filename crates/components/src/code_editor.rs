@@ -1,8 +1,10 @@
+use crate::text_editor;
+use crate::text_editor::text_editor;
 use iced::advanced::graphics::core::Element;
 use iced::highlighter::Highlighter;
-use iced::widget::text_editor::Action;
-use iced::widget::{component, text_editor, Component};
+use iced::widget::{component, Component};
 use iced::{highlighter, Font, Length, Renderer, Theme};
+use iced_core::text::editor::Action;
 
 pub enum ContentType {
     Json,

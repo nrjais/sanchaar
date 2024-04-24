@@ -17,7 +17,7 @@
     - [x] File Rename
 - [ ] Collections
     - [x] Tree view
-    - [ ] Add/Remove/Update
+    - [ ] Create/Open/Remove/Update
     - [ ] Auto Save/Load
     - [ ] Export/Import
 - [ ] Environments

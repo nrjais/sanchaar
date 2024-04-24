@@ -18,6 +18,7 @@ iced = { path = "../iced", features = [
     "lazy",
     "wgpu"
 ] }
+iced_core = { path = "../iced/core", features = ["advanced"] }
 tokio = { version = "1.36", features = ["fs", "macros", "io-util"] }
 strum = { version = "0.26", features = ["derive"] }
 reqwest = { version = "0.12", features = ["stream"] }
@@ -46,11 +47,9 @@ reqwest = { workspace = true }
 anyhow = { workspace = true }
 rfd = { workspace = true }
 
+
 [profile.dev]
 incremental = true
 
 [profile.dev.package."*"]
 opt-level = 3
-
-[patch.crates-io]
-iced = { path = "../iced" }

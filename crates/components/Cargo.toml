@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 iced = { workspace = true }
+iced_core = { workspace = true }

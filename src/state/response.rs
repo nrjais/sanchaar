@@ -1,5 +1,5 @@
+use components::text_editor;
 use core::client;
-use iced::widget::text_editor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ResponseTabId {

@@ -8,6 +8,7 @@ mod key_value_viewer;
 
 pub mod colors;
 pub mod modal;
+pub mod text_editor;
 
 pub use bordered::*;
 pub use button_tabs::*;
