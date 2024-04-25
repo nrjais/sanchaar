@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use components;
@@ -76,9 +77,26 @@ pub struct RequestPane {
     pub query_params: KeyValList,
     pub path_params: KeyValList,
     pub tab: ReqTabId,
+    pub body_cache: HashMap<&'static str, RawRequestBody>,
 }
 
 impl RequestPane {
+    pub(crate) fn change_body_type(&mut self, content_type: &str) {
+        let new_body = self
+            .body_cache
+            .remove(content_type)
+            .unwrap_or_else(|| match content_type {
+                "URL Encoded" => RawRequestBody::Form(KeyValList::new()),
+                "Json" => RawRequestBody::Json(Default::default()),
+                "XML" => RawRequestBody::XML(Default::default()),
+                "Text" => RawRequestBody::Text(Default::default()),
+                "File" => RawRequestBody::File(Default::default()),
+                "None" => RawRequestBody::None,
+                _ => RawRequestBody::None,
+            });
+        let old_body = std::mem::replace(&mut self.body, new_body);
+        self.body_cache.insert(old_body.as_str(), old_body);
+    }
     pub fn to_request(&self) -> Request {
         Request {
             description: self.description.clone(),
@@ -102,6 +120,7 @@ impl RequestPane {
             query_params: to_key_val_list(request.query_params, false),
             path_params: to_key_val_list(request.path_params, true),
             tab: ReqTabId::Body,
+            body_cache: HashMap::new(),
         }
     }
 }

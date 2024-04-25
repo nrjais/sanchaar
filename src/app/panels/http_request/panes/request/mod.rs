@@ -4,7 +4,7 @@ use iced::{widget::text, Length};
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
 use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
-use components::{icon, icons, CodeEditorMsg, ContentType, KeyValList};
+use components::{icon, icons, CodeEditorMsg, ContentType};
 
 mod body_editor;
 
@@ -46,17 +46,7 @@ impl RequestPaneMsg {
                     form.update(edit);
                 }
             }
-            RequestPaneMsg::ChangeBodyType(content_type) => {
-                request.body = match content_type {
-                    "URL Encoded" => RawRequestBody::Form(KeyValList::new()),
-                    "Json" => RawRequestBody::Json(Default::default()),
-                    "XML" => RawRequestBody::XML(Default::default()),
-                    "Text" => RawRequestBody::Text(Default::default()),
-                    "File" => RawRequestBody::File(Default::default()),
-                    "None" => RawRequestBody::None,
-                    _ => RawRequestBody::None,
-                };
-            }
+            RequestPaneMsg::ChangeBodyType(content_type) => request.change_body_type(content_type),
         }
     }
 }
