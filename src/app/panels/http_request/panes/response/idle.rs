@@ -5,16 +5,9 @@ use crate::state::AppState;
 use components::{icon, icons};
 
 pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
-    let send_icon = container(icon(icons::SendUp).size(60.0))
-        .padding(10)
-        .center_x()
-        .width(iced::Length::Fill)
-        .height(iced::Length::Shrink);
-
     Column::new()
-        .push(send_icon)
+        .push(container(icon(icons::SendUp).size(80.0)).padding(10))
         .push(iced::widget::Text::new("Send Request to view response."))
-        .height(iced::Length::Shrink)
-        .width(iced::Length::Shrink)
+        .align_items(iced::Alignment::Center)
         .into()
 }

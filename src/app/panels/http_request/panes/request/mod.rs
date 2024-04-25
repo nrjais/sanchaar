@@ -82,16 +82,13 @@ fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
         .width(Length::Fill)
         .into(),
         RawRequestBody::File(_) | RawRequestBody::None => {
-            let empty_icon = container(icon(icons::FileCancel).size(60.0))
-                .padding(10)
-                .center_x()
-                .width(Length::Fill)
-                .height(Length::Shrink);
+            let empty_icon = container(icon(icons::FileCancel).size(80.0)).padding(10);
 
             container(
                 Column::new()
                     .push(empty_icon)
                     .push(text("No Body Content"))
+                    .align_items(iced::Alignment::Center)
                     .height(Length::Shrink)
                     .width(Length::Shrink),
             )

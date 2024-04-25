@@ -1,11 +1,12 @@
+use components::colors;
 use iced::Command;
 
 use components::modal::modal;
 use popups::PopupMsg;
 
-use crate::{AppState, commands::CommandResultMsg};
 use crate::app::main_page::MainPageMsg;
 use crate::commands::commands_merged;
+use crate::{commands::CommandResultMsg, AppState};
 
 mod collection_tree;
 mod main_page;

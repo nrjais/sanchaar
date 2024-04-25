@@ -1,14 +1,15 @@
-use iced::widget::{
-    horizontal_rule, horizontal_space, pick_list, text, text_input, Button, Column, Row,
-};
 use iced::{
-    widget::{button, container},
-    Command, Element, Length,
+    Command,
+    Element, Length, widget::{button, container},
 };
+use iced::widget::{
+    Button, Column, horizontal_rule, horizontal_space, pick_list, Row, text, text_input,
+};
+
+use components::{icon, icons, NerdIcon};
 
 use crate::commands::AppCommand;
 use crate::state::AppState;
-use components::{icon, icons, NerdIcon};
 
 #[derive(Debug, Clone)]
 pub enum ActionBarMsg {
@@ -83,19 +84,11 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
         None => (None, None),
     };
 
-    let envs = ["Dev", "Staging", "Prod"];
-
     let bar = Row::new()
         .push_maybe(name)
         .push_maybe(edit_name)
         .push(horizontal_space())
-        .push(
-            pick_list(envs, None::<&'static str>, |_s| ActionBarMsg::Test)
-                .width(Length::Shrink)
-                .text_size(size)
-                .padding([2, 4])
-                .placeholder("No Environment"),
-        )
+        .push(environment_view(size))
         .align_items(iced::Alignment::Center)
         .width(Length::Fill);
 
@@ -103,5 +96,20 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
         .push(bar)
         .push(horizontal_rule(4))
         .spacing(2)
+        .into()
+}
+
+fn environment_view<'a>(size: u16) -> Element<'a, ActionBarMsg> {
+    let envs = ["Dev", "Staging", "Prod"];
+    let picker = pick_list(envs, None::<&'static str>, |_s| ActionBarMsg::Test)
+        .width(Length::Shrink)
+        .text_size(size)
+        .padding([2, 4])
+        .placeholder("No Environment");
+
+    Row::new()
+        .push(picker)
+        .push(icon_button(icons::Gear, size).on_press(ActionBarMsg::Test))
+        .align_items(iced::Alignment::Center)
         .into()
 }
