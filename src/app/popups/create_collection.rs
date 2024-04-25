@@ -23,7 +23,9 @@ impl Message {
         let Some(popup) = state.popup.as_mut() else {
             return Command::none();
         };
-        let CreateCollection(data) = popup;
+        let CreateCollection(data) = popup else {
+            return Command::none();
+        };
 
         match self {
             Message::NameChanged(name) => {

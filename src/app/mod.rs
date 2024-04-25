@@ -1,4 +1,3 @@
-use components::colors;
 use iced::Command;
 
 use components::modal::modal;

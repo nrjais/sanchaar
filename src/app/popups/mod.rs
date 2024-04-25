@@ -7,10 +7,12 @@ use crate::state::popups::Popup;
 use crate::state::AppState;
 
 mod create_collection;
+mod environment_editor;
 
 #[derive(Clone, Debug)]
 pub enum PopupMsg {
     CreateCollection(create_collection::Message),
+    EnvironmentEditor(environment_editor::Message),
     ClosePopup,
 }
 
@@ -18,6 +20,7 @@ impl PopupMsg {
     pub fn update(self, state: &mut AppState) -> Command<PopupMsg> {
         match self {
             Self::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
+            Self::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
             Self::ClosePopup => {
                 state.popup = None;
                 Command::none()
@@ -32,6 +35,11 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             create_collection::title(),
             create_collection::view(state, data).map(PopupMsg::CreateCollection),
             create_collection::done(data).map(PopupMsg::CreateCollection),
+        ),
+        Popup::EnvironmentEditor(tab) => (
+            environment_editor::title(),
+            environment_editor::view(state, *tab).map(PopupMsg::EnvironmentEditor),
+            environment_editor::done().map(PopupMsg::EnvironmentEditor),
         ),
     };
 

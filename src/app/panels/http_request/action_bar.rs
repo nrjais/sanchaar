@@ -1,14 +1,15 @@
-use iced::{
-    Command,
-    Element, Length, widget::{button, container},
-};
 use iced::widget::{
-    Button, Column, horizontal_rule, horizontal_space, pick_list, Row, text, text_input,
+    horizontal_rule, horizontal_space, pick_list, text, text_input, Button, Column, Row,
+};
+use iced::{
+    widget::{button, container},
+    Command, Element, Length,
 };
 
 use components::{icon, icons, NerdIcon};
 
 use crate::commands::AppCommand;
+use crate::state::popups::Popup;
 use crate::state::AppState;
 
 #[derive(Debug, Clone)]
@@ -17,6 +18,7 @@ pub enum ActionBarMsg {
     SubmitNameEdit,
     UpdateName(String),
     StartNameEdit,
+    OpenEnvironments,
 }
 
 impl ActionBarMsg {
@@ -40,6 +42,9 @@ impl ActionBarMsg {
             }
             ActionBarMsg::UpdateName(name) => {
                 state.active_tab_mut().editing_name.replace(name);
+            }
+            ActionBarMsg::OpenEnvironments => {
+                state.popup = Some(Popup::EnvironmentEditor(state.active_tab));
             }
             ActionBarMsg::Test => {}
         }
@@ -107,9 +112,11 @@ fn environment_view<'a>(size: u16) -> Element<'a, ActionBarMsg> {
         .padding([2, 4])
         .placeholder("No Environment");
 
+    let settings = icon_button(icons::Gear, size).on_press(ActionBarMsg::OpenEnvironments);
+
     Row::new()
         .push(picker)
-        .push(icon_button(icons::Gear, size).on_press(ActionBarMsg::Test))
+        .push(settings)
         .align_items(iced::Alignment::Center)
         .into()
 }
