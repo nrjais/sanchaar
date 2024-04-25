@@ -2,6 +2,7 @@
 
 mod content;
 mod undo_stack;
+pub mod gutters;
 
 use std::cell::RefCell;
 use std::ops::DerefMut;
