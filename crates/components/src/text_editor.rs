@@ -509,7 +509,8 @@ impl Update {
         padding: Padding,
         cursor: mouse::Cursor,
     ) -> Option<Self> {
-        let action = |action| Some(Update::Action(ContentAction::Action(action)));
+        let content_action = |action| Some(Update::Action(action));
+        let action = |action| content_action(ContentAction::Action(action));
         let edit = |edit| action(Action::Edit(edit));
 
         match event {
@@ -563,8 +564,24 @@ impl Update {
                         keyboard::Key::Named(key::Named::Enter) => {
                             return edit(Edit::Enter);
                         }
+                        keyboard::Key::Named(key::Named::Backspace)
+                            if modifiers.alt() && !modifiers.command() =>
+                        {
+                            return content_action(ContentAction::DeletePreviousWord);
+                        }
+                        keyboard::Key::Named(key::Named::Backspace)
+                            if !modifiers.alt() && modifiers.command() =>
+                        {
+                            return content_action(ContentAction::DeleteTillLineStart);
+                        }
                         keyboard::Key::Named(key::Named::Backspace) => {
                             return edit(Edit::Backspace);
+                        }
+
+                        keyboard::Key::Named(key::Named::Delete)
+                            if modifiers.alt() && !modifiers.command() =>
+                        {
+                            return content_action(ContentAction::DeleteNextWord);
                         }
                         keyboard::Key::Named(key::Named::Delete) => {
                             return edit(Edit::Delete);
@@ -621,7 +638,7 @@ impl Update {
 }
 
 fn motion(key: key::Named, modifiers: Modifiers) -> Option<Motion> {
-    let cmd_pressed = modifiers.command();
+    let cmd_pressed = platform::is_command_modifier_pressed(modifiers);
     match key {
         key::Named::ArrowLeft => Some(if cmd_pressed {
             Motion::Home
@@ -651,6 +668,14 @@ mod platform {
             modifiers.alt()
         } else {
             modifiers.control()
+        }
+    }
+
+    pub fn is_command_modifier_pressed(modifiers: keyboard::Modifiers) -> bool {
+        if cfg!(target_os = "macos") {
+            modifiers.command()
+        } else {
+            false
         }
     }
 }

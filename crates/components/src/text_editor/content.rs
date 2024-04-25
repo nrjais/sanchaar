@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::sync::Arc;
 
-use iced_core::text::editor::Editor as _;
+use iced_core::text::editor::{Edit, Editor as _, Motion};
 use iced_core::text::{self};
 pub use text::editor::Action;
 
@@ -27,6 +27,9 @@ where
 pub enum ContentAction {
     Action(Action),
     Undo,
+    DeleteNextWord,
+    DeletePreviousWord,
+    DeleteTillLineStart,
 }
 
 impl ContentAction {
@@ -64,34 +67,62 @@ where
 
         match action {
             ContentAction::Action(action) => {
-                let cursor_position = internal.editor.cursor_position();
-                let pre_selection = internal.editor.selection().map(Arc::new);
-                let (at, after) = internal
+                Self::track_action(internal, action);
+            }
+            ContentAction::DeleteNextWord => {
+                let cursor = internal.editor.cursor_position();
+                internal.editor.perform(Action::Move(Motion::WordRight));
+                internal
                     .editor
-                    .line(cursor_position.0)
-                    .map(|line| {
-                        let mut chars = line.chars();
-                        (chars.nth(cursor_position.1.saturating_sub(1)), chars.next())
-                    })
-                    .unwrap_or((None, None));
-
-                internal.editor.perform(action.clone());
-
-                internal.undo_stack.push(EditorAction {
-                    action,
-                    pre_selection,
-                    post_selection: internal.editor.selection().map(Arc::new),
-                    pre_cursor_position: cursor_position,
-                    post_cursor_position: internal.editor.cursor_position(),
-                    char_at_cursor: at,
-                    char_after_cursor: after,
-                });
+                    .perform(Action::SelectTo(cursor.0, cursor.1));
+                Self::track_action(internal, Action::Edit(Edit::Delete));
+            }
+            ContentAction::DeletePreviousWord => {
+                let cursor = internal.editor.cursor_position();
+                internal.editor.perform(Action::Move(Motion::WordLeft));
+                internal
+                    .editor
+                    .perform(Action::SelectTo(cursor.0, cursor.1));
+                Self::track_action(internal, Action::Edit(Edit::Delete));
+            }
+            ContentAction::DeleteTillLineStart => {
+                let cursor = internal.editor.cursor_position();
+                internal.editor.perform(Action::Move(Motion::Home));
+                internal
+                    .editor
+                    .perform(Action::SelectTo(cursor.0, cursor.1));
+                Self::track_action(internal, Action::Edit(Edit::Delete));
             }
             ContentAction::Undo => {
                 internal.undo_stack.undo(&mut internal.editor);
             }
         }
         internal.is_dirty = true;
+    }
+
+    fn track_action(internal: &mut Internal<R>, action: Action) {
+        let cursor_position = internal.editor.cursor_position();
+        let pre_selection = internal.editor.selection().map(Arc::new);
+        let (at, after) = internal
+            .editor
+            .line(cursor_position.0)
+            .map(|line| {
+                let mut chars = line.chars();
+                (chars.nth(cursor_position.1.saturating_sub(1)), chars.next())
+            })
+            .unwrap_or((None, None));
+
+        internal.editor.perform(action.clone());
+
+        internal.undo_stack.push(EditorAction {
+            action,
+            pre_selection,
+            post_selection: internal.editor.selection().map(Arc::new),
+            pre_cursor_position: cursor_position,
+            post_cursor_position: internal.editor.cursor_position(),
+            char_at_cursor: at,
+            char_after_cursor: after,
+        });
     }
 
     /// Returns the amount of lines of the [`Content`].
