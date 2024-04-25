@@ -1,14 +1,14 @@
 use iced::widget::{Button, Row};
 use iced::{
-    widget::{button, container, pick_list, row, text_input},
+    widget::{button, container, pick_list, row},
     Element,
 };
 use reqwest::Url;
 use strum::VariantArray;
 
 use crate::state::AppState;
-use components::text_editor::{line_editor, text_editor, ContentAction};
-use components::{icon, icons, text_editor, NerdIcon};
+use components::text_editor::{line_editor, ContentAction};
+use components::{icon, icons, NerdIcon};
 use core::collection::request::Method;
 
 #[derive(Debug, Clone)]

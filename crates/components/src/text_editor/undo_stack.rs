@@ -1,5 +1,3 @@
-#![allow(unused_variables, dead_code)]
-
 use std::sync::Arc;
 
 use iced_core::text::editor::{Action, Edit};
@@ -38,7 +36,6 @@ impl UndoStack {
             return;
         }
         let actions = self.stack[0..self.current_index].iter().enumerate().rev();
-        let cursor_position = content.cursor_position();
 
         fn paste_prev_selection(action: &EditorAction, content: &mut impl Editor) {
             if let Some(selection) = &action.pre_selection {
@@ -65,7 +62,7 @@ impl UndoStack {
                     paste_prev_selection(action, content);
                     continue;
                 }
-                Edit::Paste(text) => {
+                Edit::Paste(_) => {
                     //TODO: Fix for paste and selection, consider selection direction
                     content.perform(Action::SelectTo(
                         action.pre_cursor_position.0,
@@ -118,12 +115,10 @@ impl UndoStack {
             return;
         }
         let actions = &self.stack[self.current_index..];
-        let cursor_position = content.cursor_position();
-
         let mut insert = false;
 
         // TODO: Restore selection before redo action
-        for (index, action) in actions.iter().enumerate() {
+        for action in actions.iter() {
             if insert && !matches!(action.edit, Edit::Insert(_)) {
                 break;
             }
@@ -134,7 +129,7 @@ impl UndoStack {
                 action.pre_cursor_position.1,
             ));
             match &action.edit {
-                Edit::Insert(char) => {
+                Edit::Insert(_) => {
                     insert = true;
                     content.perform(Action::Edit(action.edit.clone()));
                     continue;
