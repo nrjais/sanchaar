@@ -9,10 +9,9 @@ pub(crate) struct EditorAction {
     pub pre_cursor_position: (usize, usize),
     pub post_cursor_position: (usize, usize),
     pub pre_selection: Option<Arc<String>>,
-    pub post_selection: Option<Arc<String>>,
     pub char_at_cursor: Option<char>,
     pub char_after_cursor: Option<char>,
-    pub action: Action,
+    pub edit: Edit,
 }
 
 pub struct UndoStack {
@@ -49,83 +48,80 @@ impl UndoStack {
         let mut insert = false;
 
         for (index, action) in actions {
-            if insert && !matches!(action.action, Action::Edit(Edit::Insert(_))) {
+            if insert && !matches!(action.edit, Edit::Insert(_)) {
                 break;
             }
             self.current_index = index;
 
             // TODO: Find way to restore selection
-            match &action.action {
-                Action::Edit(edit) => match edit {
-                    Edit::Insert(_) => {
-                        insert = true;
-                        content.perform(Action::Cursor(
-                            action.post_cursor_position.0,
-                            action.post_cursor_position.1,
-                        ));
-                        content.perform(Action::Edit(Edit::Backspace));
-                        paste_selection(action, content);
-                    }
-                    Edit::Paste(text) => {
-                        //TODO: Fix for paste and selection, consider selection direction
-                        content.perform(Action::Cursor(
-                            action.post_cursor_position.0,
-                            action.post_cursor_position.1,
-                        ));
-                        content.perform(Action::SelectTo(
-                            action.pre_cursor_position.0,
-                            action.pre_cursor_position.1,
-                        ));
-                        content.perform(Action::Edit(Edit::Delete));
-                        paste_selection(action, content);
+            match &action.edit {
+                Edit::Insert(_) => {
+                    insert = true;
+                    content.perform(Action::Cursor(
+                        action.post_cursor_position.0,
+                        action.post_cursor_position.1,
+                    ));
+                    content.perform(Action::Edit(Edit::Backspace));
+                    paste_selection(action, content);
+                }
+                Edit::Paste(text) => {
+                    //TODO: Fix for paste and selection, consider selection direction
+                    content.perform(Action::Cursor(
+                        action.post_cursor_position.0,
+                        action.post_cursor_position.1,
+                    ));
+                    content.perform(Action::SelectTo(
+                        action.pre_cursor_position.0,
+                        action.pre_cursor_position.1,
+                    ));
+                    content.perform(Action::Edit(Edit::Delete));
+                    paste_selection(action, content);
+                    content.perform(Action::Cursor(
+                        action.pre_cursor_position.0,
+                        action.pre_cursor_position.1,
+                    ));
+                    break;
+                }
+                Edit::Enter => {
+                    content.perform(Action::Cursor(
+                        action.post_cursor_position.0,
+                        action.post_cursor_position.1,
+                    ));
+                    content.perform(Action::Edit(Edit::Backspace));
+                    paste_selection(action, content);
+                    content.perform(Action::Cursor(
+                        action.pre_cursor_position.0,
+                        action.pre_cursor_position.1,
+                    ));
+                    break;
+                }
+                edit @ (Edit::Backspace | Edit::Delete) => {
+                    content.perform(Action::Cursor(
+                        action.post_cursor_position.0,
+                        action.post_cursor_position.1,
+                    ));
+                    paste_selection(action, content);
+                    if action.pre_selection.is_some() {
                         content.perform(Action::Cursor(
                             action.pre_cursor_position.0,
                             action.pre_cursor_position.1,
                         ));
                         break;
                     }
-                    Edit::Enter => {
-                        content.perform(Action::Cursor(
-                            action.post_cursor_position.0,
-                            action.post_cursor_position.1,
-                        ));
-                        content.perform(Action::Edit(Edit::Backspace));
-                        paste_selection(action, content);
+                    let char = match edit {
+                        Edit::Backspace => action.char_at_cursor,
+                        Edit::Delete => action.char_after_cursor,
+                        _ => None,
+                    };
+                    if let Some(char) = char {
+                        content.perform(Action::Edit(Edit::Insert(char)));
                         content.perform(Action::Cursor(
                             action.pre_cursor_position.0,
                             action.pre_cursor_position.1,
                         ));
-                        break;
                     }
-                    Edit::Backspace | Edit::Delete => {
-                        content.perform(Action::Cursor(
-                            action.post_cursor_position.0,
-                            action.post_cursor_position.1,
-                        ));
-                        paste_selection(action, content);
-                        if action.pre_selection.is_some() {
-                            content.perform(Action::Cursor(
-                                action.pre_cursor_position.0,
-                                action.pre_cursor_position.1,
-                            ));
-                            break;
-                        }
-                        let char = match edit {
-                            Edit::Backspace => action.char_at_cursor,
-                            Edit::Delete => action.char_after_cursor,
-                            _ => None,
-                        };
-                        if let Some(char) = char {
-                            content.perform(Action::Edit(Edit::Insert(char)));
-                            content.perform(Action::Cursor(
-                                action.pre_cursor_position.0,
-                                action.pre_cursor_position.1,
-                            ));
-                        }
-                        break;
-                    }
-                },
-                _ => {}
+                    break;
+                }
             }
         }
     }
@@ -137,15 +133,10 @@ impl UndoStack {
         let actions = &self.stack[self.current_index..];
         let cursor_position = content.cursor_position();
 
-        fn paste_selection(action: &EditorAction, content: &mut impl Editor) {
-            if let Some(selection) = &action.post_selection {
-                content.perform(Action::Edit(Edit::Paste(Arc::clone(selection))));
-            }
-        }
         let mut insert = false;
 
         for (index, action) in actions.iter().enumerate() {
-            if insert && !matches!(action.action, Action::Edit(Edit::Insert(_))) {
+            if insert && !matches!(action.edit, Edit::Insert(_)) {
                 break;
             }
             self.current_index += 1;
@@ -154,21 +145,15 @@ impl UndoStack {
                 action.pre_cursor_position.1,
             ));
 
-            match &action.action {
-                Action::Edit(edit) => {
-                    match edit {
-                        Edit::Insert(char) => {
-                            insert = true;
-                            content.perform(action.action.clone());
-                            paste_selection(action, content);
-                        }
-                        Edit::Paste(_) => {}
-                        Edit::Enter => {}
-                        Edit::Backspace => {}
-                        Edit::Delete => {}
-                    }
+            match &action.edit {
+                Edit::Insert(char) => {
+                    insert = true;
+                    content.perform(Action::Edit(action.edit.clone()));
                 }
-                _ => {}
+                Edit::Paste(_) => {}
+                Edit::Enter => {}
+                Edit::Backspace => {}
+                Edit::Delete => {}
             }
         }
     }

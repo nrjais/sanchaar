@@ -22,6 +22,37 @@ where
     undo_stack: UndoStack,
 }
 
+fn track_action<R: text::Renderer>(internal: &mut Internal<R>, edit: Edit) {
+    let editor = &mut internal.editor;
+
+    let (line, col) = editor.cursor_position();
+    let pre_selection = editor.selection().map(Arc::new);
+
+    let (at, after) = editor
+        .line(line)
+        .map(|line| line.chars())
+        .map(|mut chars| (chars.nth(col.saturating_sub(1)), chars.next()))
+        .unwrap_or((None, None));
+    editor.perform(Action::Edit(edit.clone()));
+
+    internal.undo_stack.push(EditorAction {
+        edit,
+        pre_selection,
+        pre_cursor_position: (line, col),
+        post_cursor_position: editor.cursor_position(),
+        char_at_cursor: at,
+        char_after_cursor: after,
+    });
+}
+
+fn delete_action<R: text::Renderer>(mov: Motion, internal: &mut Internal<R>) {
+    let editor = &mut internal.editor;
+    let cursor = editor.cursor_position();
+    editor.perform(Action::Move(mov));
+    editor.perform(Action::SelectTo(cursor.0, cursor.1));
+    track_action(internal, Edit::Delete);
+}
+
 /// An action that can be performed on the [`Content`] of a [`super::TextEditor`].
 #[derive(Debug, Clone)]
 pub enum ContentAction {
@@ -67,66 +98,15 @@ where
         let internal = self.0.get_mut();
 
         match action {
-            ContentAction::Action(action) => {
-                Self::track_action(internal, action);
-            }
-            ContentAction::DeleteNextWord => {
-                let cursor = internal.editor.cursor_position();
-                internal.editor.perform(Action::Move(Motion::WordRight));
-                internal
-                    .editor
-                    .perform(Action::SelectTo(cursor.0, cursor.1));
-                Self::track_action(internal, Action::Edit(Edit::Delete));
-            }
-            ContentAction::DeletePreviousWord => {
-                let cursor = internal.editor.cursor_position();
-                internal.editor.perform(Action::Move(Motion::WordLeft));
-                internal
-                    .editor
-                    .perform(Action::SelectTo(cursor.0, cursor.1));
-                Self::track_action(internal, Action::Edit(Edit::Delete));
-            }
-            ContentAction::DeleteTillLineStart => {
-                let cursor = internal.editor.cursor_position();
-                internal.editor.perform(Action::Move(Motion::Home));
-                internal
-                    .editor
-                    .perform(Action::SelectTo(cursor.0, cursor.1));
-                Self::track_action(internal, Action::Edit(Edit::Delete));
-            }
-            ContentAction::Undo => {
-                internal.undo_stack.undo(&mut internal.editor);
-            }
-            ContentAction::Redo => {
-                internal.undo_stack.redo(&mut internal.editor);
-            }
+            ContentAction::Action(Action::Edit(edit)) => track_action(internal, edit),
+            ContentAction::Action(action) => internal.editor.perform(action),
+            ContentAction::DeleteNextWord => delete_action(Motion::WordRight, internal),
+            ContentAction::DeletePreviousWord => delete_action(Motion::WordLeft, internal),
+            ContentAction::DeleteTillLineStart => delete_action(Motion::Home, internal),
+            ContentAction::Undo => internal.undo_stack.undo(&mut internal.editor),
+            ContentAction::Redo => internal.undo_stack.redo(&mut internal.editor),
         }
         internal.is_dirty = true;
-    }
-
-    fn track_action(internal: &mut Internal<R>, action: Action) {
-        let cursor_position = internal.editor.cursor_position();
-        let pre_selection = internal.editor.selection().map(Arc::new);
-        let (at, after) = internal
-            .editor
-            .line(cursor_position.0)
-            .map(|line| {
-                let mut chars = line.chars();
-                (chars.nth(cursor_position.1.saturating_sub(1)), chars.next())
-            })
-            .unwrap_or((None, None));
-
-        internal.editor.perform(action.clone());
-
-        internal.undo_stack.push(EditorAction {
-            action,
-            pre_selection,
-            post_selection: internal.editor.selection().map(Arc::new),
-            pre_cursor_position: cursor_position,
-            post_cursor_position: internal.editor.cursor_position(),
-            char_at_cursor: at,
-            char_after_cursor: after,
-        });
     }
 
     /// Returns the amount of lines of the [`Content`].
