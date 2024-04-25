@@ -3,16 +3,16 @@ use std::path::PathBuf;
 
 use body_types::*;
 use components;
-use components::{KeyValList, text_editor};
+use components::{text_editor, KeyValList};
 use core::collection::request::{KeyValue, Method, Request, RequestBody};
 
 pub mod body_types {
-    pub const FORM: &'static str = "URL Encoded";
-    pub const JSON: &'static str = "Json";
-    pub const XML: &'static str = "XML";
-    pub const TEXT: &'static str = "Text";
-    pub const FILE: &'static str = "File";
-    pub const NONE: &'static str = "None";
+    pub const FORM: &str = "URL Encoded";
+    pub const JSON: &str = "Json";
+    pub const XML: &str = "XML";
+    pub const TEXT: &str = "Text";
+    pub const FILE: &str = "File";
+    pub const NONE: &str = "None";
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]

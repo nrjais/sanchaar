@@ -1,18 +1,19 @@
 use humansize::{format_size, BINARY};
+use iced::widget::{button, container, text, Column, Row};
 use iced::{Alignment, Color, Element};
 
-use iced::widget::{text, Column, Row};
-
-use crate::state::response::{CompletedResponse, ResponseState};
-use crate::state::{response::ResponseTabId, AppState};
 use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
 };
+
+use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
+use crate::state::{response::ResponseTabId, AppState};
 
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {
     TabChanged(ResponseTabId),
     CodeViewerMsg(CodeEditorMsg),
+    SetBodyMode(BodyMode),
 }
 
 impl CompletedMsg {
@@ -24,7 +25,12 @@ impl CompletedMsg {
             }
             Self::CodeViewerMsg(msg) => {
                 if let ResponseState::Completed(ref mut res) = active_tab.response.state {
-                    msg.update(&mut res.content);
+                    msg.update(res.selected_content_mut());
+                }
+            }
+            Self::SetBodyMode(mode) => {
+                if let ResponseState::Completed(ref mut res) = active_tab.response.state {
+                    res.mode = mode;
                 }
             }
         }
@@ -54,6 +60,46 @@ fn status_color(status: reqwest::StatusCode) -> Color {
         500..=599 => Color::from_rgb8(200, 0, 0),
         _ => Color::WHITE,
     }
+}
+
+fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
+    let content = cr.selected_content();
+
+    let button_style = |mode| {
+        if cr.mode == mode {
+            button::success
+        } else {
+            button::text
+        }
+    };
+
+    let size = 14;
+    let actions = Row::new()
+        .push(
+            button(text("Preview").size(size))
+                .padding([2, 4])
+                .on_press(CompletedMsg::SetBodyMode(BodyMode::Pretty))
+                .style(button_style(BodyMode::Pretty)),
+        )
+        .push(
+            button(text("Raw").size(size))
+                .padding([2, 4])
+                .on_press(CompletedMsg::SetBodyMode(BodyMode::Raw))
+                .style(button_style(BodyMode::Raw)),
+        )
+        .spacing(2);
+
+    Column::new()
+        .push(container(actions).style(container::rounded_box))
+        .push(
+            code_editor(content, ContentType::Json)
+                .on_action(CompletedMsg::CodeViewerMsg)
+                .element(),
+        )
+        .spacing(4)
+        .height(iced::Length::Fill)
+        .width(iced::Length::Fill)
+        .into()
 }
 
 pub(crate) fn view<'a>(
@@ -91,9 +137,7 @@ pub(crate) fn view<'a>(
         .collect::<Vec<_>>();
 
     let tab_content = match active_tab.response.active_tab {
-        ResponseTabId::Body => code_editor(&cr.content, ContentType::Json)
-            .on_action(CompletedMsg::CodeViewerMsg)
-            .element(),
+        ResponseTabId::Body => body_view(cr),
         ResponseTabId::Headers => key_value_viewer(&headers),
     };
 

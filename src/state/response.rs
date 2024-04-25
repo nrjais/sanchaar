@@ -8,10 +8,33 @@ pub enum ResponseTabId {
     Headers,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum BodyMode {
+    Pretty,
+    Raw,
+}
+
 #[derive(Debug)]
 pub struct CompletedResponse {
     pub result: client::Response,
-    pub content: text_editor::Content,
+    pub content: Option<text_editor::Content>,
+    pub raw: text_editor::Content,
+    pub mode: BodyMode,
+}
+
+impl CompletedResponse {
+    pub fn selected_content(&self) -> &text_editor::Content {
+        match self.mode {
+            BodyMode::Pretty => self.content.as_ref().unwrap_or(&self.raw),
+            BodyMode::Raw => &self.raw,
+        }
+    }
+    pub fn selected_content_mut(&mut self) -> &mut text_editor::Content {
+        match self.mode {
+            BodyMode::Pretty => self.content.as_mut().unwrap_or(&mut self.raw),
+            BodyMode::Raw => &mut self.raw,
+        }
+    }
 }
 
 #[derive(Debug, Default)]

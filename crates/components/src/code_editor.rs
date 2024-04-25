@@ -2,6 +2,7 @@ use iced::advanced::graphics::core::Element;
 use iced::highlighter::Highlighter;
 use iced::widget::{component, Component};
 use iced::{highlighter, Font, Length, Renderer, Theme};
+use iced_core::text::Wrapping;
 
 use crate::text_editor;
 use crate::text_editor::{text_editor, ContentAction};
@@ -86,6 +87,7 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
         text_editor(self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
+            .wrapping(Wrapping::Glyph)
             .on_action(|ac| CodeEditorMsg::EditorAction(ac, self.editable))
             .highlight::<Highlighter>(
                 highlighter::Settings {

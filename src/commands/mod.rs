@@ -16,8 +16,9 @@ use core::persistence::collections;
 use core::persistence::fs::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
 use core::transformers::request::transform_request;
+use text_editor::Content;
 
-use crate::state::response::{CompletedResponse, ResponseState};
+use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::TabKey;
 use crate::{app::AppMsg, AppState};
 
@@ -49,13 +50,14 @@ pub enum CommandResultMsg {
     OpenRequestTab(CollectionRequest, Request),
 }
 
-fn pretty_body(body: &[u8]) -> String {
-    let json = serde_json::from_slice::<Value>(body);
-    if let Ok(json) = json {
-        serde_json::to_string_pretty(&json).unwrap()
-    } else {
-        String::from_utf8_lossy(body).to_string()
-    }
+fn pretty_body(body: &[u8]) -> (String, Option<String>) {
+    let raw = String::from_utf8_lossy(body).to_string();
+
+    let json = serde_json::from_slice::<Value>(body)
+        .ok()
+        .and_then(|v| serde_json::to_string_pretty(&v).ok());
+
+    (raw, json)
 }
 
 impl CommandResultMsg {
@@ -64,10 +66,12 @@ impl CommandResultMsg {
             CommandResultMsg::UpdateResponse(tab, ResponseResult::Completed(res)) => {
                 state.cancel_tab_tasks(tab);
                 let active_tab = state.active_tab_mut();
-                let content = text_editor::Content::with_text(pretty_body(&res.body.data).as_str());
+                let (raw, pretty) = pretty_body(&res.body.data);
                 active_tab.response.state = ResponseState::Completed(CompletedResponse {
                     result: res,
-                    content,
+                    content: pretty.map(|p| Content::with_text(p.as_str())),
+                    raw: Content::with_text(raw.as_str()),
+                    mode: BodyMode::Pretty,
                 });
             }
             CommandResultMsg::UpdateResponse(tab, ResponseResult::Error(e)) => {
