@@ -63,6 +63,7 @@ impl UndoStack {
                     insert = true;
                     content.perform(Action::Edit(Edit::Backspace));
                     paste_prev_selection(action, content);
+                    continue;
                 }
                 Edit::Paste(text) => {
                     //TODO: Fix for paste and selection, consider selection direction
@@ -76,7 +77,6 @@ impl UndoStack {
                         action.pre_cursor_position.0,
                         action.pre_cursor_position.1,
                     ));
-                    break;
                 }
                 Edit::Enter => {
                     content.perform(Action::Edit(Edit::Backspace));
@@ -85,9 +85,14 @@ impl UndoStack {
                         action.pre_cursor_position.0,
                         action.pre_cursor_position.1,
                     ));
-                    break;
                 }
                 edit @ (Edit::Backspace | Edit::Delete) => {
+                    let char = match edit {
+                        Edit::Backspace => action.char_at_cursor,
+                        Edit::Delete => action.char_after_cursor,
+                        _ => None,
+                    };
+
                     paste_prev_selection(action, content);
                     if action.pre_selection.is_some() {
                         content.perform(Action::Cursor(
@@ -95,22 +100,16 @@ impl UndoStack {
                             action.pre_cursor_position.1,
                         ));
                         break;
-                    }
-                    let char = match edit {
-                        Edit::Backspace => action.char_at_cursor,
-                        Edit::Delete => action.char_after_cursor,
-                        _ => None,
-                    };
-                    if let Some(char) = char {
+                    } else if let Some(char) = char {
                         content.perform(Action::Edit(Edit::Insert(char)));
                         content.perform(Action::Cursor(
                             action.pre_cursor_position.0,
                             action.pre_cursor_position.1,
                         ));
                     }
-                    break;
                 }
             }
+            break;
         }
     }
 
@@ -123,26 +122,29 @@ impl UndoStack {
 
         let mut insert = false;
 
+        // TODO: Restore selection before redo action
         for (index, action) in actions.iter().enumerate() {
             if insert && !matches!(action.edit, Edit::Insert(_)) {
                 break;
             }
             self.current_index += 1;
+
             content.perform(Action::Cursor(
                 action.pre_cursor_position.0,
                 action.pre_cursor_position.1,
             ));
-
             match &action.edit {
                 Edit::Insert(char) => {
                     insert = true;
                     content.perform(Action::Edit(action.edit.clone()));
+                    continue;
                 }
-                Edit::Paste(_) => {}
-                Edit::Enter => {}
-                Edit::Backspace => {}
-                Edit::Delete => {}
+                // TODO: Fix for paste and selection, consider selection direction
+                Edit::Paste(_) | Edit::Enter | Edit::Delete | Edit::Backspace => {
+                    content.perform(Action::Edit(action.edit.clone()));
+                }
             }
+            break;
         }
     }
 }
