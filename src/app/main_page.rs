@@ -2,7 +2,7 @@ use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::text::Shaping::Advanced;
 use iced::widget::{scrollable, text, vertical_rule, Column, Row};
-use iced::{Color, Element, Font, Length};
+use iced::{Color, Command, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
 
@@ -19,15 +19,19 @@ pub enum MainPageMsg {
 }
 
 impl MainPageMsg {
-    pub fn update(self, state: &mut AppState) {
+    pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
-            Self::TabBarAction(action) => match action {
-                TabBarAction::ChangeTab(tab) => state.active_tab = tab,
-                TabBarAction::NewTab => state.active_tab = state.tabs.insert(Default::default()),
-                TabBarAction::CloseTab(key) => state.close_tab(key),
-            },
-            Self::Panel(msg) => msg.update(state),
-            Self::CollectionTree(msg) => msg.update(state),
+            Self::TabBarAction(action) => {
+                use TabBarAction::*;
+                match action {
+                    ChangeTab(tab) => state.active_tab = tab,
+                    NewTab => state.active_tab = state.tabs.insert(Default::default()),
+                    CloseTab(key) => state.close_tab(key),
+                }
+                Command::none()
+            }
+            Self::Panel(msg) => msg.update(state).map(Self::Panel),
+            Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
         }
     }
 }

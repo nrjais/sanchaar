@@ -1,6 +1,6 @@
 use humansize::{format_size, BINARY};
 use iced::widget::{button, container, text, Column, Row};
-use iced::{Alignment, Color, Element};
+use iced::{clipboard, Alignment, Color, Command, Element};
 
 use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
@@ -14,10 +14,11 @@ pub enum CompletedMsg {
     TabChanged(ResponseTabId),
     CodeViewerMsg(CodeEditorMsg),
     SetBodyMode(BodyMode),
+    CopyBodyToClipboard,
 }
 
 impl CompletedMsg {
-    pub(crate) fn update(self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) -> Command<CompletedMsg> {
         let active_tab = state.active_tab_mut();
         match self {
             Self::TabChanged(tab) => {
@@ -33,7 +34,13 @@ impl CompletedMsg {
                     res.mode = mode;
                 }
             }
+            CompletedMsg::CopyBodyToClipboard => {
+                if let ResponseState::Completed(ref res) = active_tab.response.state {
+                    return clipboard::write(res.selected_content().text());
+                }
+            }
         }
+        Command::none()
     }
 }
 
@@ -89,8 +96,18 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         )
         .spacing(2);
 
-    Column::new()
+    let action_bar = Row::new()
         .push(container(actions).style(container::rounded_box))
+        .push(
+            button(text("Copy").size(size))
+                .padding([2, 4])
+                .style(button::secondary)
+                .on_press(CompletedMsg::CopyBodyToClipboard),
+        )
+        .spacing(8);
+
+    Column::new()
+        .push(action_bar)
         .push(
             code_editor(content, ContentType::Json)
                 .on_action(CompletedMsg::CodeViewerMsg)

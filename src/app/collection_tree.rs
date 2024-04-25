@@ -1,6 +1,6 @@
 use crate::commands::AppCommand;
 use iced::widget::{button, text, Button, Column, Row};
-use iced::{Element, Length};
+use iced::{Command, Element, Length};
 
 use crate::state::AppState;
 use components::{icon, icons, NerdIcon};
@@ -15,7 +15,7 @@ pub enum CollectionTreeMsg {
 }
 
 impl CollectionTreeMsg {
-    pub fn update(self, state: &mut AppState) {
+    pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
             Self::ToggleExpandCollection(key) => {
                 state
@@ -33,6 +33,7 @@ impl CollectionTreeMsg {
                 };
             }
         }
+        Command::none()
     }
 }
 

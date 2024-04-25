@@ -61,7 +61,7 @@ fn pretty_body(body: &[u8]) -> (String, Option<String>) {
 }
 
 impl CommandResultMsg {
-    pub fn update(self, state: &mut AppState) {
+    pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
             CommandResultMsg::UpdateResponse(tab, ResponseResult::Completed(res)) => {
                 state.cancel_tab_tasks(tab);
@@ -97,6 +97,7 @@ impl CommandResultMsg {
                 state.open_request(col, req);
             }
         };
+        Command::none()
     }
 }
 

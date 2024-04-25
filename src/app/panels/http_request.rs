@@ -3,7 +3,7 @@ use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::{pane_grid, PaneGrid};
 use iced::{
     widget::{container, Column},
-    Element,
+    Command, Element,
 };
 
 use crate::state::{AppState, SplitState};
@@ -24,18 +24,19 @@ pub enum HttpMsg {
 }
 
 impl HttpMsg {
-    pub(crate) fn update(self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
-            HttpMsg::Req(msg) => msg.update(state),
-            HttpMsg::Res(msg) => msg.update(state),
-            HttpMsg::Url(msg) => msg.update(state),
+            HttpMsg::Req(msg) => msg.update(state).map(HttpMsg::Req),
+            HttpMsg::Res(msg) => msg.update(state).map(HttpMsg::Res),
+            HttpMsg::Url(msg) => msg.update(state).map(HttpMsg::Url),
+            HttpMsg::Actions(ac) => ac.update(state).map(HttpMsg::Actions),
             HttpMsg::SplitResize(ResizeEvent { split, ratio }) => {
                 // Only allow resizing if the ratio is min 0.25 on both sides
                 if ratio > 0.25 && ratio < 0.75 {
                     state.active_tab_mut().panes.resize(split, ratio);
                 }
+                Command::none()
             }
-            HttpMsg::Actions(ac) => ac.update(state),
         }
     }
 }

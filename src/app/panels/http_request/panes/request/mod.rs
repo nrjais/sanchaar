@@ -1,5 +1,5 @@
 use iced::widget::{container, horizontal_space, pick_list, Column, Row};
-use iced::{widget::text, Length};
+use iced::{widget::text, Command, Length};
 
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
@@ -20,7 +20,7 @@ pub enum RequestPaneMsg {
 }
 
 impl RequestPaneMsg {
-    pub(crate) fn update(self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
         let request = &mut state.active_tab_mut().request;
         match self {
             RequestPaneMsg::TabSelected(tab) => {
@@ -47,7 +47,8 @@ impl RequestPaneMsg {
                 }
             }
             RequestPaneMsg::ChangeBodyType(content_type) => request.change_body_type(content_type),
-        }
+        };
+        Command::none()
     }
 }
 

@@ -1,7 +1,7 @@
 use iced::widget::{Button, Row};
 use iced::{
     widget::{button, container, pick_list, row},
-    Element,
+    Command, Element,
 };
 use reqwest::Url;
 use strum::VariantArray;
@@ -34,7 +34,7 @@ fn parse_path_params(url: &str) -> Option<Vec<String>> {
 }
 
 impl UrlBarMsg {
-    pub(crate) fn update(self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
             UrlBarMsg::MethodChanged(method) => {
                 state.active_tab_mut().request.method = method;
@@ -61,6 +61,7 @@ impl UrlBarMsg {
             UrlBarMsg::SendRequest => state.send_request(),
             UrlBarMsg::SaveRequest => state.save_request(),
         }
+        Command::none()
     }
 }
 

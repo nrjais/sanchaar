@@ -1,5 +1,5 @@
 use crate::state::response::ResponseState;
-use iced::{widget::container, Element};
+use iced::{widget::container, Command, Element};
 
 mod completed;
 mod executing;
@@ -13,16 +13,15 @@ pub enum ResponsePaneMsg {
 }
 
 impl ResponsePaneMsg {
-    pub(crate) fn update(self, state: &mut crate::state::AppState) {
+    pub(crate) fn update(self, state: &mut crate::state::AppState) -> Command<Self> {
         match self {
-            Self::Completed(msg) => {
-                msg.update(state);
-            }
+            Self::Completed(msg) => msg.update(state).map(ResponsePaneMsg::Completed),
             Self::CancelRequest => {
                 let res_state = &state.active_tab().response.state;
                 if let ResponseState::Executing = res_state {
                     state.cancel_tab_tasks(state.active_tab);
                 }
+                Command::none()
             }
         }
     }

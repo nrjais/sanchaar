@@ -3,7 +3,7 @@ use iced::widget::{
 };
 use iced::{
     widget::{button, container},
-    Element, Length,
+    Command, Element, Length,
 };
 
 use crate::commands::AppCommand;
@@ -19,7 +19,7 @@ pub enum ActionBarMsg {
 }
 
 impl ActionBarMsg {
-    pub(crate) fn update(self, state: &mut AppState) {
+    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
             ActionBarMsg::StartNameEdit => {
                 let name = state
@@ -42,6 +42,7 @@ impl ActionBarMsg {
             }
             ActionBarMsg::Test => {}
         }
+        Command::none()
     }
 }
 
