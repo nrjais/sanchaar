@@ -52,7 +52,7 @@ impl Default for Request {
             method: Method::GET,
             url: "https://echo.nrjais.com".to_string(),
             headers: KeyValList::new(),
-            body: RequestBody::Text("some large text\non two line\n".to_string()),
+            body: RequestBody::None,
             query_params: KeyValList::new(),
             path_params: KeyValList::new(),
         }

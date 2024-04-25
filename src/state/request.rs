@@ -1,10 +1,19 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use body_types::*;
 use components;
-
-use components::{text_editor, KeyValList};
+use components::{KeyValList, text_editor};
 use core::collection::request::{KeyValue, Method, Request, RequestBody};
+
+pub mod body_types {
+    pub const FORM: &'static str = "URL Encoded";
+    pub const JSON: &'static str = "Json";
+    pub const XML: &'static str = "XML";
+    pub const TEXT: &'static str = "Text";
+    pub const FILE: &'static str = "File";
+    pub const NONE: &'static str = "None";
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {
@@ -52,17 +61,17 @@ impl RawRequestBody {
 impl RawRequestBody {
     pub fn as_str(&self) -> &'static str {
         match self {
-            RawRequestBody::Form(_) => "URL Encoded",
-            RawRequestBody::Json(_) => "Json",
-            RawRequestBody::XML(_) => "XML",
-            RawRequestBody::Text(_) => "Text",
-            RawRequestBody::File(_) => "File",
-            RawRequestBody::None => "None",
+            RawRequestBody::Form(_) => FORM,
+            RawRequestBody::Json(_) => JSON,
+            RawRequestBody::XML(_) => XML,
+            RawRequestBody::Text(_) => TEXT,
+            RawRequestBody::File(_) => FILE,
+            RawRequestBody::None => NONE,
         }
     }
 
     pub fn all_variants() -> &'static [&'static str] {
-        &["URL Encoded", "Json", "XML", "Text", "File", "None"]
+        &[FORM, JSON, XML, TEXT, FILE, NONE]
     }
 }
 
@@ -86,12 +95,12 @@ impl RequestPane {
             .body_cache
             .remove(content_type)
             .unwrap_or_else(|| match content_type {
-                "URL Encoded" => RawRequestBody::Form(KeyValList::new()),
-                "Json" => RawRequestBody::Json(Default::default()),
-                "XML" => RawRequestBody::XML(Default::default()),
-                "Text" => RawRequestBody::Text(Default::default()),
-                "File" => RawRequestBody::File(Default::default()),
-                "None" => RawRequestBody::None,
+                FORM => RawRequestBody::Form(KeyValList::new()),
+                JSON => RawRequestBody::Json(Default::default()),
+                XML => RawRequestBody::XML(Default::default()),
+                TEXT => RawRequestBody::Text(Default::default()),
+                FILE => RawRequestBody::File(Default::default()),
+                NONE => RawRequestBody::None,
                 _ => RawRequestBody::None,
             });
         let old_body = std::mem::replace(&mut self.body, new_body);
@@ -119,7 +128,7 @@ impl RequestPane {
             body: RawRequestBody::from_request_body(&request.body),
             query_params: to_key_val_list(request.query_params, false),
             path_params: to_key_val_list(request.path_params, true),
-            tab: ReqTabId::Body,
+            tab: ReqTabId::Params,
             body_cache: HashMap::new(),
         }
     }
