@@ -27,6 +27,7 @@ where
 pub enum ContentAction {
     Action(Action),
     Undo,
+    Redo,
     DeleteNextWord,
     DeletePreviousWord,
     DeleteTillLineStart,
@@ -95,6 +96,9 @@ where
             }
             ContentAction::Undo => {
                 internal.undo_stack.undo(&mut internal.editor);
+            }
+            ContentAction::Redo => {
+                internal.undo_stack.redo(&mut internal.editor);
             }
         }
         internal.is_dirty = true;

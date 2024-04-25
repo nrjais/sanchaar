@@ -129,4 +129,47 @@ impl UndoStack {
             }
         }
     }
+
+    pub fn redo(&mut self, content: &mut impl Editor) {
+        if self.current_index == self.stack.len() {
+            return;
+        }
+        let actions = &self.stack[self.current_index..];
+        let cursor_position = content.cursor_position();
+
+        fn paste_selection(action: &EditorAction, content: &mut impl Editor) {
+            if let Some(selection) = &action.post_selection {
+                content.perform(Action::Edit(Edit::Paste(Arc::clone(selection))));
+            }
+        }
+        let mut insert = false;
+
+        for (index, action) in actions.iter().enumerate() {
+            if insert && !matches!(action.action, Action::Edit(Edit::Insert(_))) {
+                break;
+            }
+            self.current_index += 1;
+            content.perform(Action::Cursor(
+                action.pre_cursor_position.0,
+                action.pre_cursor_position.1,
+            ));
+
+            match &action.action {
+                Action::Edit(edit) => {
+                    match edit {
+                        Edit::Insert(char) => {
+                            insert = true;
+                            content.perform(action.action.clone());
+                            paste_selection(action, content);
+                        }
+                        Edit::Paste(_) => {}
+                        Edit::Enter => {}
+                        Edit::Backspace => {}
+                        Edit::Delete => {}
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
 }

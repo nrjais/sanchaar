@@ -600,8 +600,19 @@ impl Update {
                         {
                             return Some(Self::Paste);
                         }
-                        keyboard::Key::Character("z") if modifiers.command() => {
+                        keyboard::Key::Character("z")
+                            if modifiers.command() && !modifiers.shift() =>
+                        {
                             return Some(Self::Action(ContentAction::Undo));
+                        }
+                        keyboard::Key::Character("z")
+                            if platform::is_command_modifier_pressed(modifiers)
+                                && modifiers.shift() =>
+                        {
+                            return Some(Self::Action(ContentAction::Redo));
+                        }
+                        keyboard::Key::Character("y") if modifiers.control() => {
+                            return Some(Self::Action(ContentAction::Redo));
                         }
                         _ => {}
                     }
