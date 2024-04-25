@@ -69,6 +69,7 @@ impl RawRequestBody {
 pub struct RequestPane {
     pub description: String,
     pub url: String,
+    pub url_content: text_editor::Content,
     pub method: Method,
     pub headers: KeyValList,
     pub body: RawRequestBody,
@@ -93,6 +94,7 @@ impl RequestPane {
     pub fn from(request: Request) -> RequestPane {
         RequestPane {
             description: request.description,
+            url_content: text_editor::Content::with_text(&request.url),
             url: request.url,
             method: request.method,
             headers: to_key_val_list(request.headers, false),

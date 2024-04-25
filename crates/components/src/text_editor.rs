@@ -42,6 +42,7 @@ where
     padding: Padding,
     class: Theme::Class<'a>,
     wrapping: Wrapping,
+    single_line: bool,
     on_edit: Option<Box<dyn Fn(ContentAction) -> Message + 'a>>,
     highlighter_settings: Highlighter::Settings,
     highlighter_format: fn(&Highlighter::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,
@@ -55,7 +56,18 @@ where
     Theme: Catalog + 'a,
     Renderer: text::Renderer,
 {
-    TextEditor::new(content)
+    TextEditor::new(content, false)
+}
+
+pub fn line_editor<'a, Message, Theme, Renderer>(
+    content: &'a Content<Renderer>,
+) -> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
+where
+    Message: Clone,
+    Theme: Catalog + 'a,
+    Renderer: text::Renderer,
+{
+    TextEditor::new(content, true)
 }
 
 impl<'a, Message, Theme, Renderer> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
@@ -64,7 +76,7 @@ where
     Renderer: text::Renderer,
 {
     /// Creates new [`TextEditor`] with the given [`Content`].
-    pub fn new(content: &'a Content<Renderer>) -> Self {
+    pub fn new(content: &'a Content<Renderer>, single_line: bool) -> Self {
         Self {
             content,
             font: None,
@@ -76,6 +88,7 @@ where
             class: Theme::default(),
             wrapping: Wrapping::default(),
             on_edit: None,
+            single_line,
             highlighter_settings: (),
             highlighter_format: |_highlight, _theme| highlighter::Format::default(),
         }
@@ -152,6 +165,7 @@ where
             height: self.height,
             padding: self.padding,
             class: self.class,
+            single_line: self.single_line,
             wrapping: self.wrapping,
             on_edit: self.on_edit,
             highlighter_settings: settings,
@@ -431,7 +445,13 @@ where
                 state.drag_click = None;
             }
             Update::Action(action) => {
-                shell.publish(on_edit(action));
+                if matches!(action, ContentAction::Action(Action::Edit(Edit::Enter)))
+                    && self.single_line
+                {
+                    return event::Status::Ignored;
+                } else {
+                    shell.publish(on_edit(action));
+                }
             }
             Update::Copy => {
                 if let Some(selection) = self.content.selection() {
@@ -711,8 +731,6 @@ pub struct Style {
     pub background: Background,
     /// The [`Border`] of the text input.
     pub border: Border,
-    /// The [`Color`] of the icon of the text input.
-    pub icon: Color,
     /// The [`Color`] of the placeholder of the text input.
     pub placeholder: Color,
     /// The [`Color`] of the value of the text input.
@@ -759,7 +777,6 @@ pub fn default(theme: &Theme, status: Status) -> Style {
             width: 1.0,
             color: palette.background.strong.color,
         },
-        icon: palette.background.weak.text,
         placeholder: palette.background.strong.color,
         value: palette.background.base.text,
         selection: palette.primary.weak.color,

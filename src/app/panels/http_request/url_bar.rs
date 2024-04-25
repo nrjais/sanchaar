@@ -7,13 +7,14 @@ use reqwest::Url;
 use strum::VariantArray;
 
 use crate::state::AppState;
-use components::{icon, icons, NerdIcon};
+use components::text_editor::{line_editor, text_editor, ContentAction};
+use components::{icon, icons, text_editor, NerdIcon};
 use core::collection::request::Method;
 
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {
     MethodChanged(Method),
-    UrlChanged(String),
+    UrlChanged(ContentAction),
     SendRequest,
     SaveRequest,
 }
@@ -38,8 +39,11 @@ impl UrlBarMsg {
             UrlBarMsg::MethodChanged(method) => {
                 state.active_tab_mut().request.method = method;
             }
-            UrlBarMsg::UrlChanged(url) => {
+            UrlBarMsg::UrlChanged(action) => {
                 let active_tab = state.active_tab_mut();
+                active_tab.request.url_content.perform(action);
+
+                let url = active_tab.request.url_content.text();
                 if let Some(params) = parse_path_params(&url) {
                     active_tab
                         .request
@@ -52,7 +56,6 @@ impl UrlBarMsg {
                         }
                     }
                 }
-
                 active_tab.request.url = url;
             }
             UrlBarMsg::SendRequest => state.send_request(),
@@ -76,9 +79,7 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
         UrlBarMsg::MethodChanged,
     );
 
-    let url = text_input("Enter Address", &request.url)
-        .on_input(UrlBarMsg::UrlChanged)
-        .on_paste(UrlBarMsg::UrlChanged);
+    let url = line_editor(&request.url_content).on_action(UrlBarMsg::UrlChanged);
 
     let on_press = if executing {
         None
