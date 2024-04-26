@@ -7,9 +7,9 @@ use tokio::fs;
 
 use components::text_editor;
 use core::client;
-use core::collection::collection::Collection;
-use core::collection::request::Request;
-use core::collection::CollectionRequest;
+use core::http::collection::Collection;
+use core::http::request::Request;
+use core::http::CollectionRequest;
 use core::persistence::collections;
 use core::persistence::request::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
@@ -177,7 +177,7 @@ pub fn commands_merged(state: &mut AppState, cmd: Command<AppMsg>) -> Command<Ap
 
 pub async fn load_collections() -> Vec<Collection> {
     collections::load().await.unwrap_or_else(|e| {
-        println!("Error loading collection: {:?}", e);
+        println!("Error loading http: {:?}", e);
         vec![]
     })
 }

@@ -4,8 +4,8 @@ use iced::{Command, Element, Length};
 
 use crate::state::AppState;
 use components::{icon, icons, NerdIcon};
-use core::collection::collection::{Entry, FolderId};
-use core::collection::{CollectionKey, CollectionRequest};
+use core::http::collection::{Entry, FolderId};
+use core::http::{CollectionKey, CollectionRequest};
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {

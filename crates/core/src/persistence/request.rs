@@ -5,7 +5,7 @@ use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
-use crate::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
+use crate::http::request::{KeyValList, KeyValue, Method, Request, RequestBody};
 use crate::persistence::Version;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

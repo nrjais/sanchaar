@@ -4,8 +4,8 @@ use tokio::sync::oneshot;
 
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
-use core::collection::request::Request;
-use core::collection::CollectionRequest;
+use core::http::request::Request;
+use core::http::CollectionRequest;
 
 use super::request::RequestPane;
 

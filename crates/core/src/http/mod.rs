@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use slotmap::SlotMap;
 
-use crate::collection::collection::{Collection, RequestId, RequestRef};
-use crate::collection::environment::Environments;
+use crate::http::collection::{Collection, RequestId, RequestRef};
+use crate::http::environment::Environments;
 
 pub mod collection;
 pub mod environment;

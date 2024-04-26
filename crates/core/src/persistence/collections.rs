@@ -3,8 +3,8 @@ use directories::ProjectDirs;
 
 use std::path::PathBuf;
 
-use crate::collection::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
-use crate::collection::environment::Environments;
+use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
+use crate::http::environment::Environments;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 

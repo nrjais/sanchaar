@@ -9,7 +9,7 @@ use crate::app::panels::PanelMsg;
 use crate::app::{collection_tree, panels};
 use crate::state::{AppState, TabKey};
 use components::{card_tab, card_tabs, TabBarAction};
-use core::collection::request::Method;
+use core::http::request::Method;
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {

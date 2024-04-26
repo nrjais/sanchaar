@@ -7,7 +7,7 @@ use iced::{
 };
 
 use components::{icon, icons, NerdIcon};
-use core::collection::CollectionKey;
+use core::http::CollectionKey;
 
 use crate::commands::AppCommand;
 use crate::state::popups::Popup;

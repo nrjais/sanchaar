@@ -9,7 +9,7 @@ use strum::VariantArray;
 use crate::state::AppState;
 use components::text_editor::{line_editor, ContentAction};
 use components::{icon, icons, NerdIcon};
-use core::collection::request::Method;
+use core::http::request::Method;
 
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {

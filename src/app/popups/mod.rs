@@ -1,17 +1,19 @@
-use iced::{Border, Command, Element};
-use iced::widget::{button, Column, container, horizontal_space, Row, text};
 use iced::widget::container::Style;
+use iced::widget::{button, container, horizontal_space, text, Column, Row};
+use iced::{Border, Command, Element};
 
-use crate::state::AppState;
 use crate::state::popups::Popup;
+use crate::state::AppState;
 
 mod create_collection;
 mod environment_editor;
+mod save_request;
 
 #[derive(Clone, Debug)]
 pub enum PopupMsg {
     CreateCollection(create_collection::Message),
     EnvironmentEditor(environment_editor::Message),
+    SaveRequest(save_request::Message),
     ClosePopup,
 }
 
@@ -20,6 +22,7 @@ impl PopupMsg {
         match self {
             Self::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
             Self::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
+            PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
             Self::ClosePopup => {
                 state.popup = None;
                 Command::none()
@@ -39,6 +42,11 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             environment_editor::title(),
             environment_editor::view(state, *col).map(PopupMsg::EnvironmentEditor),
             environment_editor::done().map(PopupMsg::EnvironmentEditor),
+        ),
+        Popup::SaveRequest(data) => (
+            save_request::title(),
+            save_request::view(state, data).map(PopupMsg::SaveRequest),
+            save_request::done().map(PopupMsg::SaveRequest),
         ),
     };
 

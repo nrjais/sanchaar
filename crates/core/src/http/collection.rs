@@ -1,4 +1,4 @@
-use crate::collection::environment::Environments;
+use crate::http::environment::Environments;
 use std::path::PathBuf;
 
 use crate::new_id_type;

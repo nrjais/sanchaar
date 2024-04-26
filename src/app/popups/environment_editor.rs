@@ -4,8 +4,8 @@ use iced::widget::{container, value};
 use iced::{Command, Element};
 
 use components::{button_tab, vertical_button_tabs};
-use core::collection::environment::EnvironmentKey;
-use core::collection::CollectionKey;
+use core::http::environment::EnvironmentKey;
+use core::http::CollectionKey;
 
 use crate::state::AppState;
 

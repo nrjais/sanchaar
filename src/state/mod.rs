@@ -9,9 +9,9 @@ use crate::commands::Commands;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 use core::client::create_client;
-use core::collection::collection::RequestRef;
-use core::collection::request::Request;
-use core::collection::{CollectionRequest, Collections};
+use core::http::collection::RequestRef;
+use core::http::request::Request;
+use core::http::{CollectionRequest, Collections};
 
 pub mod popups;
 pub mod request;

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use body_types::*;
 use components;
 use components::{text_editor, KeyValList};
-use core::collection::request::{KeyValue, Method, Request, RequestBody};
+use core::http::request::{KeyValue, Method, Request, RequestBody};
 
 pub mod body_types {
     pub const FORM: &str = "URL Encoded";
