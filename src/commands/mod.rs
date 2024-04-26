@@ -11,7 +11,7 @@ use core::collection::collection::Collection;
 use core::collection::request::Request;
 use core::collection::CollectionRequest;
 use core::persistence::collections;
-use core::persistence::fs::save_req_to_file;
+use core::persistence::request::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
 use text_editor::Content;
 

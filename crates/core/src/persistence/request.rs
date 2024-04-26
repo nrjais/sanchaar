@@ -1,10 +1,12 @@
-use crate::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
-use crate::persistence::fs::load_from_file;
-use crate::persistence::Version;
-use iced::futures::TryFutureExt;
-use serde::{Deserialize, Serialize};
 use std::ops::Not;
 use std::path::PathBuf;
+
+use iced::futures::TryFutureExt;
+use serde::{Deserialize, Serialize};
+use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
+
+use crate::collection::request::{KeyValList, KeyValue, Method, Request, RequestBody};
+use crate::persistence::Version;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -140,4 +142,25 @@ pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
         .map_err(|_| anyhow::format_err!("Failed to read request"))
         .await?;
     Ok(decode_request(&enc_req))
+}
+
+pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), anyhow::Error> {
+    let file = tokio::fs::File::create(path).await?;
+    let mut writer = BufWriter::new(file);
+    let encoded = toml::to_string_pretty(&req)?;
+
+    writer.write_all(encoded.as_bytes()).await?;
+    writer.flush().await?;
+    Ok(())
+}
+
+pub async fn load_from_file(path: &PathBuf) -> Result<EncodedRequest, Box<dyn std::error::Error>> {
+    let file = tokio::fs::File::open(path).await?;
+    let mut reader = tokio::io::BufReader::new(file);
+    let mut buffer = String::new();
+
+    reader.read_to_string(&mut buffer).await?;
+    let decoded: EncodedRequest = toml::from_str(&buffer)?;
+
+    Ok(decoded)
 }
