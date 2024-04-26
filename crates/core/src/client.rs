@@ -1,7 +1,6 @@
-use std::sync::Arc;
 use std::time::Duration;
 
-use reqwest::{header::HeaderMap, Client, StatusCode, Request};
+use reqwest::{header::HeaderMap, Client, Request, StatusCode};
 
 #[derive(Debug, Clone)]
 pub enum ContentType {

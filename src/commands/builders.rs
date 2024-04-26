@@ -16,12 +16,10 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Command<CommandRes
     let Some(sel_tab) = state.get_tab_mut(tab) else {
         return Command::none();
     };
+
     sel_tab.response.state = ResponseState::Executing;
-
-    let request = sel_tab.request.to_request();
-
-    let req_fut =
-        transform_request(client.clone(), request).and_then(|req| send_request(client, req));
+    let req_fut = transform_request(client.clone(), sel_tab.request.to_request())
+        .and_then(|req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
     sel_tab.add_task(cancel_tx);

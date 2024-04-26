@@ -1,6 +1,5 @@
 use iced::widget::{container, mouse_area, opaque, Stack};
 use iced::{Color, Element, Length};
-use iced_core::theme::palette::Background;
 
 pub fn modal<'a, Message: Clone + 'a>(
     base: impl Into<Element<'a, Message>>,

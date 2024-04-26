@@ -15,13 +15,13 @@ use core::persistence::fs::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
 use text_editor::Content;
 
-use crate::commands::commands::send_request_cmd;
+use crate::commands::builders::send_request_cmd;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::TabKey;
 use crate::{app::AppMsg, AppState};
 
+mod builders;
 mod cancellable_task;
-mod commands;
 pub mod dialog;
 
 #[derive(Debug)]

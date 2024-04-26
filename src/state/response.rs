@@ -1,6 +1,6 @@
-use std::sync::Arc;
 use components::text_editor;
 use core::client;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ResponseTabId {
