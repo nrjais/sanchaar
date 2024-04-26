@@ -4,6 +4,7 @@ use directories::ProjectDirs;
 use std::path::PathBuf;
 
 use crate::collection::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
+use crate::collection::environment::Environments;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
@@ -49,6 +50,7 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
         children: vec![],
         path: default_path.clone(),
         expanded: false,
+        environments: Environments::new(),
     })
     .await?;
 

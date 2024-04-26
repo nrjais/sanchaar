@@ -11,7 +11,7 @@ use super::request::RequestPane;
 
 #[derive(Debug)]
 pub struct Tab {
-    pub req_ref: Option<CollectionRequest>,
+    pub col_ref: Option<CollectionRequest>,
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
@@ -28,7 +28,7 @@ impl Default for Tab {
 impl Tab {
     pub fn new(request: Request) -> Self {
         Self {
-            req_ref: None,
+            col_ref: None,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
@@ -44,7 +44,7 @@ impl Tab {
 
     pub(crate) fn with_ref(req: Request, req_ref: CollectionRequest) -> Tab {
         let mut tab = Tab::new(req);
-        tab.req_ref = Some(req_ref);
+        tab.col_ref = Some(req_ref);
         tab
     }
 

@@ -1,14 +1,18 @@
 use std::borrow::Cow;
 
-use components::{button_tab, button_tabs, vertical_button_tabs};
-use iced::widget::{container, text};
-use iced::{Command, Element, Length};
+use iced::widget::{container, value};
+use iced::{Command, Element};
 
-use crate::state::{AppState, TabKey};
+use components::{button_tab, vertical_button_tabs};
+use core::collection::environment::EnvironmentKey;
+use core::collection::CollectionKey;
+
+use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Done,
+    SelectEnv(EnvironmentKey),
 }
 
 impl Message {
@@ -25,13 +29,20 @@ pub fn done() -> Option<Message> {
     Some(Message::Done)
 }
 
-pub(crate) fn view(_state: &AppState, _tab: TabKey) -> Element<Message> {
-    const envs: [&'static str; 3] = ["Dev", "Staging", "Production"];
-    let tabs = envs.map(|tab| button_tab(tab, || text("hello")));
+pub(crate) fn view(state: &AppState, col: CollectionKey) -> Element<Message> {
+    let environments = state.collections.get_envs(col).unwrap();
+
+    let env_tabs = environments.entries().map(|(key, env)| {
+        button_tab(key, {
+            let name = env.name.clone();
+            move || value(&name)
+        })
+    });
+
     container(vertical_button_tabs(
-        "Dev",
-        &tabs,
-        |tab| Message::Done,
+        environments.entries().next().unwrap().0,
+        env_tabs,
+        |env| Message::SelectEnv(env),
         None,
     ))
     .into()

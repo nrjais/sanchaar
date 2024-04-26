@@ -1,5 +1,5 @@
-use crate::state::TabKey;
 use std::path::PathBuf;
+use core::collection::CollectionKey;
 
 #[derive(Debug, Default)]
 pub struct CreateCollectionState {
@@ -10,5 +10,5 @@ pub struct CreateCollectionState {
 #[derive(Debug)]
 pub enum Popup {
     CreateCollection(CreateCollectionState),
-    EnvironmentEditor(TabKey),
+    EnvironmentEditor(CollectionKey),
 }

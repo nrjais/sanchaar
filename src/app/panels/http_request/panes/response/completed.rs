@@ -160,10 +160,11 @@ pub(crate) fn view<'a>(
 
     let tabs = button_tabs(
         active_tab.response.active_tab,
-        &[
+        [
             button_tab(ResponseTabId::Body, || text("Body")),
             button_tab(ResponseTabId::Headers, || text("Headers")),
-        ],
+        ]
+        .into_iter(),
         CompletedMsg::TabChanged,
         Some(status.into()),
     );

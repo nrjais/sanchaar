@@ -70,7 +70,7 @@ impl AppState {
     pub fn switch_to_tab(&mut self, req: CollectionRequest) -> bool {
         self.tabs
             .iter()
-            .find(|tab| tab.1.req_ref == Some(req))
+            .find(|tab| tab.1.col_ref == Some(req))
             .inspect(|tab| {
                 self.active_tab = tab.0;
             })
@@ -135,7 +135,7 @@ impl AppState {
 
     pub(crate) fn col_req_ref(&self, tab: TabKey) -> Option<&RequestRef> {
         let tab = self.tabs.get(tab)?;
-        let req_ref = tab.req_ref.as_ref()?;
+        let req_ref = tab.col_ref.as_ref()?;
         self.collections.get_ref(req_ref)
     }
 }

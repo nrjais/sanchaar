@@ -1,8 +1,12 @@
-use crate::collection::collection::{Collection, RequestId, RequestRef};
-use slotmap::SlotMap;
 use std::path::PathBuf;
 
+use slotmap::SlotMap;
+
+use crate::collection::collection::{Collection, RequestId, RequestRef};
+use crate::collection::environment::Environments;
+
 pub mod collection;
+pub mod environment;
 pub mod request;
 
 slotmap::new_key_type! {
@@ -40,6 +44,10 @@ impl Collections {
         for collection in collections {
             self.entries.insert(collection);
         }
+    }
+
+    pub fn get_envs(&self, key: CollectionKey) -> Option<&Environments> {
+        Some(&self.entries.get(key)?.environments)
     }
 
     pub fn rename_request(

@@ -1,10 +1,9 @@
-use iced::alignment::Horizontal;
-use iced::widget::container::Style;
-use iced::widget::{button, container, horizontal_space, text, Column, Row};
 use iced::{Border, Command, Element};
+use iced::widget::{button, Column, container, horizontal_space, Row, text};
+use iced::widget::container::Style;
 
-use crate::state::popups::Popup;
 use crate::state::AppState;
+use crate::state::popups::Popup;
 
 mod create_collection;
 mod environment_editor;
@@ -36,9 +35,9 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             create_collection::view(state, data).map(PopupMsg::CreateCollection),
             create_collection::done(data).map(PopupMsg::CreateCollection),
         ),
-        Popup::EnvironmentEditor(tab) => (
+        Popup::EnvironmentEditor(col) => (
             environment_editor::title(),
-            environment_editor::view(state, *tab).map(PopupMsg::EnvironmentEditor),
+            environment_editor::view(state, *col).map(PopupMsg::EnvironmentEditor),
             environment_editor::done().map(PopupMsg::EnvironmentEditor),
         ),
     };

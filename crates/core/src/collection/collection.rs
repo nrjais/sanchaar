@@ -1,3 +1,4 @@
+use crate::collection::environment::Environments;
 use std::path::PathBuf;
 
 use crate::new_id_type;
@@ -35,6 +36,7 @@ pub struct Collection {
     pub path: PathBuf,
     pub children: Vec<Entry>,
     pub expanded: bool,
+    pub environments: Environments,
 }
 
 impl Collection {
@@ -44,6 +46,7 @@ impl Collection {
             children,
             path,
             expanded: false,
+            environments: Environments::new(),
         }
     }
 
@@ -101,6 +104,7 @@ impl Default for Collection {
             children: vec![],
             path: PathBuf::new(),
             expanded: false,
+            environments: Environments::new(),
         }
     }
 }

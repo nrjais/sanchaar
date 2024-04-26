@@ -146,11 +146,12 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
 
     let tabs = button_tabs(
         request.tab,
-        &[
+        [
             button_tab(ReqTabId::Params, || text("Params")),
             button_tab(ReqTabId::Headers, || text("Headers")),
             button_tab(ReqTabId::Body, || text("Body")),
-        ],
+        ]
+        .into_iter(),
         RequestPaneMsg::TabSelected,
         None,
     );

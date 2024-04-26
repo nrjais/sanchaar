@@ -7,6 +7,7 @@ use iced::{
 };
 
 use components::{icon, icons, NerdIcon};
+use core::collection::CollectionKey;
 
 use crate::commands::AppCommand;
 use crate::state::popups::Popup;
@@ -18,7 +19,7 @@ pub enum ActionBarMsg {
     SubmitNameEdit,
     UpdateName(String),
     StartNameEdit,
-    OpenEnvironments,
+    OpenEnvironments(CollectionKey),
 }
 
 impl ActionBarMsg {
@@ -35,7 +36,7 @@ impl ActionBarMsg {
             }
             ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
-                if let Some((col, name)) = tab.req_ref.zip(tab.editing_name.take()) {
+                if let Some((col, name)) = tab.col_ref.zip(tab.editing_name.take()) {
                     let cmd = AppCommand::RenameRequest(col, name);
                     state.commands.add(cmd);
                 }
@@ -43,8 +44,8 @@ impl ActionBarMsg {
             ActionBarMsg::UpdateName(name) => {
                 state.active_tab_mut().editing_name.replace(name);
             }
-            ActionBarMsg::OpenEnvironments => {
-                state.popup = Some(Popup::EnvironmentEditor(state.active_tab));
+            ActionBarMsg::OpenEnvironments(col) => {
+                state.popup = Some(Popup::EnvironmentEditor(col));
             }
             ActionBarMsg::Test => {}
         }
@@ -62,49 +63,45 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     let tab = state.active_tab();
     let size = 16;
 
-    let (name, edit_name) = match state.col_req_ref(state.active_tab) {
-        Some(req_ref) => {
-            let name: Element<ActionBarMsg> = if let Some(name) = &tab.editing_name {
-                text_input("Request Name", name)
-                    .on_input(ActionBarMsg::UpdateName)
-                    .on_paste(ActionBarMsg::UpdateName)
-                    .on_submit(ActionBarMsg::SubmitNameEdit)
-                    .size(size - 2)
-                    .padding(2)
-                    .into()
-            } else {
-                text(&req_ref.name).size(size).into()
-            };
+    let req_ref = state.col_req_ref(state.active_tab);
 
-            let edit_name = tab
-                .editing_name
-                .as_ref()
-                .map(|_| icon_button(icons::CheckBold, size).on_press(ActionBarMsg::SubmitNameEdit))
-                .unwrap_or_else(|| {
-                    icon_button(icons::Pencil, size).on_press(ActionBarMsg::StartNameEdit)
-                });
+    let bar = req_ref.zip(tab.col_ref).map(|(req_ref, col_ref)| {
+        let name: Element<ActionBarMsg> = match &tab.editing_name {
+            Some(name) => text_input("Request Name", name)
+                .on_input(ActionBarMsg::UpdateName)
+                .on_paste(ActionBarMsg::UpdateName)
+                .on_submit(ActionBarMsg::SubmitNameEdit)
+                .size(size - 2)
+                .padding(2)
+                .into(),
+            _ => text(&req_ref.name).size(size).into(),
+        };
 
-            (Some(name), Some(edit_name))
-        }
-        None => (None, None),
-    };
+        let edit_name = tab
+            .editing_name
+            .as_ref()
+            .map(|_| icon_button(icons::CheckBold, size).on_press(ActionBarMsg::SubmitNameEdit))
+            .unwrap_or_else(|| {
+                icon_button(icons::Pencil, size).on_press(ActionBarMsg::StartNameEdit)
+            });
 
-    let bar = Row::new()
-        .push_maybe(name)
-        .push_maybe(edit_name)
-        .push(horizontal_space())
-        .push(environment_view(size))
-        .align_items(iced::Alignment::Center)
-        .width(Length::Fill);
+        Row::new()
+            .push(name)
+            .push(edit_name)
+            .push(horizontal_space())
+            .push(environment_view(size, col_ref.0))
+            .align_items(iced::Alignment::Center)
+            .width(Length::Fill)
+    });
 
     Column::new()
-        .push(bar)
-        .push(horizontal_rule(4))
+        .push_maybe(bar)
+        .push_maybe(req_ref.map(|_| horizontal_rule(4)))
         .spacing(2)
         .into()
 }
 
-fn environment_view<'a>(size: u16) -> Element<'a, ActionBarMsg> {
+fn environment_view<'a>(size: u16, key: CollectionKey) -> Element<'a, ActionBarMsg> {
     let envs = ["Dev", "Staging", "Prod"];
     let picker = pick_list(envs, None::<&'static str>, |_s| ActionBarMsg::Test)
         .width(Length::Shrink)
@@ -112,7 +109,7 @@ fn environment_view<'a>(size: u16) -> Element<'a, ActionBarMsg> {
         .padding([2, 4])
         .placeholder("No Environment");
 
-    let settings = icon_button(icons::Gear, size).on_press(ActionBarMsg::OpenEnvironments);
+    let settings = icon_button(icons::Gear, size).on_press(ActionBarMsg::OpenEnvironments(key));
 
     Row::new()
         .push(picker)

@@ -18,7 +18,7 @@ pub fn button_tab<'a, T: Eq>(id: T, label: impl Fn() -> Text<'a> + 'static) -> B
 
 pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     active: T,
-    tabs: &[ButtonTab<'a, T>],
+    tabs: impl Iterator<Item = ButtonTab<'a, T>>,
     on_tab_change: impl Fn(T) -> M,
     suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
@@ -34,7 +34,7 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
 pub fn vertical_button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     active: T,
-    tabs: &[ButtonTab<'a, T>],
+    tabs: impl Iterator<Item = ButtonTab<'a, T>>,
     on_tab_change: impl Fn(T) -> M,
     suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
@@ -50,7 +50,7 @@ pub fn vertical_button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
 fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
     active: T,
-    tabs: &[ButtonTab<'a, T>],
+    tabs: impl Iterator<Item = ButtonTab<'a, T>>,
     on_tab_change: impl Fn(T) -> M + Sized,
     suffix: Option<Element<'a, M>>,
     vertical: bool,
