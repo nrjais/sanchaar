@@ -57,28 +57,23 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
         )
         .spacing(8);
 
-    Row::new()
-        .push(horizontal_space())
-        .push(
-            container(
-                Column::new()
-                    .push(
-                        container(text(title).size(20))
-                            .width(iced::Length::Fill)
-                            .align_x(Horizontal::Center),
-                    )
-                    .push(content)
-                    .push(buttons)
-                    .spacing(12),
+    container(
+        Column::new()
+            .push(
+                container(text(title).size(20))
+                    .width(iced::Length::Fill)
+                    .align_x(Horizontal::Center),
             )
-            .padding(16)
-            .style(|theme| Style {
-                background: Some(theme.extended_palette().background.weak.color.into()),
-                border: Border::rounded(6),
-                ..Style::default()
-            }),
-        )
-        .push(horizontal_space())
-        .align_items(iced::Alignment::Center)
-        .into()
+            .push(content)
+            .push(buttons)
+            .spacing(12),
+    )
+    .max_width(400)
+    .padding(16)
+    .style(|theme| Style {
+        background: Some(theme.extended_palette().background.weak.color.into()),
+        border: Border::rounded(6),
+        ..Style::default()
+    })
+    .into()
 }

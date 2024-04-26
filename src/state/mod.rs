@@ -126,7 +126,7 @@ impl AppState {
             self.cancel_tab_tasks(self.active_tab);
         }
 
-        self.commands.add(AppCommand::InitRequest(self.active_tab));
+        self.commands.add(AppCommand::SendRequest(self.active_tab));
     }
 
     pub fn save_request(&mut self) {

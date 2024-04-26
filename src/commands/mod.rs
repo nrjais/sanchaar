@@ -1,50 +1,47 @@
 use std::mem;
+use std::sync::Arc;
 
 use iced::Command;
 use serde_json::Value;
 use tokio::fs;
 
-use cancellable_task::cancellable_task;
-use cancellable_task::TaskResult;
 use components::text_editor;
 use core::client;
-use core::client::send_request;
 use core::collection::collection::Collection;
 use core::collection::request::Request;
 use core::collection::CollectionRequest;
 use core::persistence::collections;
 use core::persistence::fs::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
-use core::transformers::request::transform_request;
 use text_editor::Content;
 
+use crate::commands::commands::send_request_cmd;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::TabKey;
 use crate::{app::AppMsg, AppState};
 
 mod cancellable_task;
+mod commands;
 pub mod dialog;
 
 #[derive(Debug)]
 pub enum AppCommand {
-    InitRequest(TabKey),
-    SendRequest(TabKey, reqwest::Request),
+    SendRequest(TabKey),
     SaveRequest(TabKey),
     OpenRequest(CollectionRequest),
     RenameRequest(CollectionRequest, String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ResponseResult {
     Completed(client::Response),
-    Error(anyhow::Error),
+    Error(Arc<anyhow::Error>),
     Cancelled,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CommandResultMsg {
     UpdateResponse(TabKey, ResponseResult),
-    RequestReady(TabKey, reqwest::Request),
     CollectionsLoaded(Vec<Collection>),
     Completed(&'static str),
     OpenRequestTab(CollectionRequest, Request),
@@ -65,9 +62,12 @@ impl CommandResultMsg {
         match self {
             CommandResultMsg::UpdateResponse(tab, ResponseResult::Completed(res)) => {
                 state.cancel_tab_tasks(tab);
-                let active_tab = state.active_tab_mut();
+                let Some(tab_mut) = state.get_tab_mut(tab) else {
+                    return Command::none();
+                };
+
                 let (raw, pretty) = pretty_body(&res.body.data);
-                active_tab.response.state = ResponseState::Completed(CompletedResponse {
+                tab_mut.response.state = ResponseState::Completed(CompletedResponse {
                     result: res,
                     content: pretty.map(|p| Content::with_text(p.as_str())),
                     raw: Content::with_text(raw.as_str()),
@@ -82,10 +82,6 @@ impl CommandResultMsg {
             CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled) => {
                 // Response state is already updated to idle in cancel_tasks
                 state.clear_tab_tasks(tab);
-            }
-            CommandResultMsg::RequestReady(tab, req) => {
-                state.cancel_tab_tasks(tab);
-                state.commands.0.push(AppCommand::SendRequest(tab, req));
             }
             CommandResultMsg::CollectionsLoaded(collection) => {
                 state.collections.insert(collection);
@@ -128,87 +124,39 @@ fn commands_inner(state: &mut AppState) -> Vec<Command<AppMsg>> {
     let cmds = state.commands.take();
     let cmds = cmds.into_iter().filter_map(|cmd| {
         let cmd = match cmd {
-            AppCommand::InitRequest(tab) => {
-                let client = state.client.clone();
-                let sel_tab = state.get_tab_mut(tab)?;
-                let req = transform_request(client, sel_tab.request.to_request());
-                let (cancel_tx, req) = cancellable_task(req);
-
-                sel_tab.add_task(cancel_tx);
-                sel_tab.response.state = ResponseState::Executing;
-
-                Command::perform(req, move |r| match r {
-                    TaskResult::Completed(req) => match req {
-                        Ok(req) => CommandResultMsg::RequestReady(tab, req),
-                        Err(e) => CommandResultMsg::UpdateResponse(tab, ResponseResult::Error(e)),
-                    },
-                    TaskResult::Cancelled => {
-                        CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled)
-                    }
-                })
-            }
-
-            AppCommand::SendRequest(tab, req) => {
-                let future = send_request(state.client.clone(), req);
-                let (cancel_tx, req) = cancellable_task(future);
-                let sel_tab = state.get_tab_mut(tab)?;
-                sel_tab.add_task(cancel_tx);
-                sel_tab.response.state = ResponseState::Executing;
-
-                Command::perform(req, move |r| match r {
-                    TaskResult::Completed(Ok(res)) => {
-                        CommandResultMsg::UpdateResponse(tab, ResponseResult::Completed(res))
-                    }
-                    TaskResult::Completed(Err(e)) => {
-                        CommandResultMsg::UpdateResponse(tab, ResponseResult::Error(e))
-                    }
-                    TaskResult::Cancelled => {
-                        CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled)
-                    }
-                })
-            }
-
+            AppCommand::SendRequest(tab) => send_request_cmd(state, tab),
             AppCommand::SaveRequest(tab) => {
                 let sel_tab = state.get_tab(tab)?;
-                let req = sel_tab.request.to_request();
-                let req = encode_request(&req);
+                let req_ref = state.col_req_ref(tab)?;
 
-                match state.col_req_ref(tab) {
-                    Some(req_ref) => {
-                        Command::perform(save_req_to_file(req_ref.path.clone(), req), move |r| {
-                            match r {
-                                Ok(_) => CommandResultMsg::Completed("Request saved"),
-                                Err(e) => {
-                                    println!("Error saving request: {:?}", e);
-                                    CommandResultMsg::Completed("Error saving request")
-                                }
-                            }
-                        })
-                    }
-                    None => Command::none(),
-                }
+                let req = sel_tab.request.to_request();
+                let encoded = encode_request(&req);
+                Command::perform(
+                    save_req_to_file(req_ref.path.clone(), encoded),
+                    move |r| match r {
+                        Ok(_) => CommandResultMsg::Completed("Request saved"),
+                        Err(e) => {
+                            println!("Error saving request: {:?}", e);
+                            CommandResultMsg::Completed("Error saving request")
+                        }
+                    },
+                )
             }
             AppCommand::OpenRequest(col) => {
-                if let Some(req) = state.collections.get_ref(&col) {
-                    Command::perform(read_request(req.path.clone()), move |r| match r {
-                        Ok(req) => CommandResultMsg::OpenRequestTab(col, req),
-                        Err(_) => {
-                            println!("Error opening request: {:?}", col);
-                            CommandResultMsg::Completed("Error opening request")
-                        }
-                    })
-                } else {
-                    Command::none()
-                }
+                let req = state.collections.get_ref(&col)?;
+                Command::perform(read_request(req.path.clone()), move |r| match r {
+                    Ok(req) => CommandResultMsg::OpenRequestTab(col, req),
+                    Err(_) => {
+                        println!("Error opening request: {:?}", col);
+                        CommandResultMsg::Completed("Error opening request")
+                    }
+                })
             }
             AppCommand::RenameRequest(req, new) => {
-                if let Some((old, new)) = state.collections.rename_request(req, new) {
-                    Command::perform(fs::rename(old, new), move |_| {
-                        CommandResultMsg::Completed("Request renamed")
-                    })
-                } else {
-                    Command::none()
-                }
+                let (old, new) = state.collections.rename_request(req, new)?;
+                Command::perform(fs::rename(old, new), move |_| {
+                    CommandResultMsg::Completed("Request renamed")
+                })
             }
         };
         Some(cmd.map(AppMsg::Command))

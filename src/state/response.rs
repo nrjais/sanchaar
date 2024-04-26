@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use components::text_editor;
 use core::client;
 
@@ -43,7 +44,7 @@ pub enum ResponseState {
     Idle,
     Executing,
     Completed(CompletedResponse),
-    Failed(anyhow::Error),
+    Failed(Arc<anyhow::Error>),
 }
 
 #[derive(Debug)]

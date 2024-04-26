@@ -12,7 +12,7 @@ mod main_page;
 mod panels;
 mod popups;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AppMsg {
     Command(CommandResultMsg),
     MainPage(MainPageMsg),
