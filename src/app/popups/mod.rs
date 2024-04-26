@@ -55,20 +55,18 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
                 .style(button::primary)
                 .on_press_maybe(done_msg),
         )
+        .width(iced::Length::Shrink)
         .spacing(8);
 
     container(
         Column::new()
-            .push(
-                container(text(title).size(20))
-                    .width(iced::Length::Fill)
-                    .align_x(Horizontal::Center),
-            )
+            .push(text(title).size(20))
             .push(content)
             .push(buttons)
+            .width(iced::Length::Shrink)
+            .height(iced::Length::Shrink)
             .spacing(12),
     )
-    .max_width(400)
     .padding(16)
     .style(|theme| Style {
         background: Some(theme.extended_palette().background.weak.color.into()),

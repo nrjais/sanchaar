@@ -1,7 +1,8 @@
 use std::borrow::Cow;
 
-use iced::widget::text;
-use iced::{Command, Element};
+use components::{button_tab, button_tabs, vertical_button_tabs};
+use iced::widget::{container, text};
+use iced::{Command, Element, Length};
 
 use crate::state::{AppState, TabKey};
 
@@ -25,5 +26,13 @@ pub fn done() -> Option<Message> {
 }
 
 pub(crate) fn view(_state: &AppState, _tab: TabKey) -> Element<Message> {
-    text("Edit Environment").into()
+    const envs: [&'static str; 3] = ["Dev", "Staging", "Production"];
+    let tabs = envs.map(|tab| button_tab(tab, || text("hello")));
+    container(vertical_button_tabs(
+        "Dev",
+        &tabs,
+        |tab| Message::Done,
+        None,
+    ))
+    .into()
 }
