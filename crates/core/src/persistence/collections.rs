@@ -45,13 +45,13 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
     let default_path = data_dir.join("Sanchaar");
     fs::create_dir_all(&default_path).await?;
 
-    save(&Collection {
-        name: "Sanchaar".to_string(),
-        children: vec![],
-        path: default_path.clone(),
-        expanded: false,
-        environments: Environments::new(),
-    })
+    save_collection(
+        default_path.clone(),
+        EncodedCollection {
+            name: "Sanchaar".to_string(),
+            version: Version::V1,
+        },
+    )
     .await?;
 
     let state = CollectionsState {
@@ -148,15 +148,18 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
     Ok(entries)
 }
 
-pub async fn save(collection: &Collection) -> anyhow::Result<()> {
-    let encoded = EncodedCollection {
+pub fn encode_collection(collection: &Collection) -> EncodedCollection {
+    EncodedCollection {
         name: collection.name.clone(),
         version: Version::V1,
-    };
-    let data = toml::to_string_pretty(&encoded).unwrap();
+    }
+}
 
-    fs::create_dir_all(&collection.path).await?;
-    fs::write(collection.path.join(COLLECTION_ROOT_FILE), data).await?;
+pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> anyhow::Result<()> {
+    let data = toml::to_string_pretty(&collection).unwrap();
+
+    fs::create_dir_all(&path).await?;
+    fs::write(path.join(COLLECTION_ROOT_FILE), data).await?;
 
     Ok(())
 }

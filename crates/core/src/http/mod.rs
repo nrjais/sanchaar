@@ -64,4 +64,14 @@ impl Collections {
     ) -> Option<(PathBuf, PathBuf)> {
         self.entries.get_mut(req.0)?.rename_request(req.1, &new)
     }
+
+    pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
+        let children = Vec::new();
+        let collection = Collection::new(name, children, path);
+
+        let key = self.entries.insert(collection);
+        self.entries
+            .get(key)
+            .expect("Inserted collection not found")
+    }
 }

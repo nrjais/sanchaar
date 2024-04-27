@@ -1,6 +1,8 @@
 use std::borrow::Cow;
+use std::path::PathBuf;
 use std::sync::Arc;
 
+use crate::commands::builders;
 use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
 use iced::{Command, Element};
 use rfd::FileHandle;
@@ -16,14 +18,12 @@ pub enum Message {
     NameChanged(String),
     OpenDialog,
     FolderSelected(Option<Arc<FileHandle>>),
+    CreateCollection(String, PathBuf),
 }
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Command<Message> {
-        let Some(popup) = state.popup.as_mut() else {
-            return Command::none();
-        };
-        let CreateCollection(data) = popup else {
+        let Some(CreateCollection(data)) = state.popup.as_mut() else {
             return Command::none();
         };
 
@@ -33,11 +33,17 @@ impl Message {
                 Command::none()
             }
             Message::OpenDialog => open_folder_dialog("Select location", Message::FolderSelected),
-            Message::FolderSelected(Some(handle)) => {
-                data.path = Some(handle.path().to_owned());
+            Message::FolderSelected(handle) => {
+                data.path = handle.map(|h| h.path().to_owned());
                 Command::none()
             }
-            _ => Command::none(),
+            Message::CreateCollection(name, path) => {
+                builders::create_collection(state, name, path, |_| Message::Done)
+            }
+            Message::Done => {
+                state.popup = None;
+                Command::none()
+            }
         }
     }
 }
@@ -47,10 +53,12 @@ pub fn title<'a>() -> Cow<'a, str> {
 }
 
 pub fn done(data: &CreateCollectionState) -> Option<Message> {
-    if data.name.is_empty() || data.path.is_none() {
+    if data.name.is_empty() {
         None
     } else {
-        Some(Message::Done)
+        data.path
+            .as_ref()
+            .map(|path| Message::CreateCollection(data.name.clone(), path.clone()))
     }
 }
 
