@@ -90,6 +90,25 @@ impl Collection {
         recurse(&mut self.children.iter_mut(), id)
     }
 
+    pub fn folder(&self, id: FolderId) -> Option<&Folder> {
+        fn recurse<'a>(
+            entries: impl Iterator<Item = &'a Entry>,
+            id: FolderId,
+        ) -> Option<&'a Folder> {
+            for entry in entries {
+                if let Entry::Folder(folder) = entry {
+                    if folder.id == id {
+                        return Some(folder);
+                    } else if let Some(folder) = recurse(folder.children.iter(), id) {
+                        return Some(folder);
+                    }
+                }
+            }
+            None
+        }
+        recurse(self.children.iter(), id)
+    }
+
     pub fn rename_request(&mut self, id: RequestId, name: &str) -> Option<(PathBuf, PathBuf)> {
         for entry in self.iter_mut() {
             if let Entry::Item(item) = entry {

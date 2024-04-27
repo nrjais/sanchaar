@@ -1,16 +1,17 @@
 use std::borrow::Cow;
+use std::ffi::OsStr;
 
-use iced::{Command, Element, Length};
 use iced::widget::{
-    button, Column, container, horizontal_space, Row, scrollable, text, text_input,
+    button, container, horizontal_space, scrollable, text, text_input, Column, Row,
 };
+use iced::{Command, Element, Length};
 
 use core::http::collection::{Collection, Entry, Folder, FolderId};
 use core::http::CollectionKey;
 
 use crate::commands::builders::save_new_request;
-use crate::state::AppState;
 use crate::state::popups::{Popup, SaveRequestState};
+use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -97,17 +98,10 @@ pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Elem
 pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Element<Message> {
     let children = match folder {
         Some(folder) => {
-            match collection
-                .children
-                .iter()
-                .find(|e| matches!(e, Entry::Folder(Folder { id, .. }) if *id == folder))
+            &collection
+                .folder(folder)
                 .expect("folder not found")
-            {
-                Entry::Folder(dir) => &dir.children,
-                _ => {
-                    return Column::new().into();
-                }
-            }
+                .children
         }
         _ => &collection.children,
     };
@@ -145,13 +139,17 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
         .spacing(4);
 
     let col_name = collection
-        .map(|c| c.name.as_str())
+        .zip(data.folder_id)
+        .and_then(|(c, f)| c.folder(f))
+        .map(|f| f.path.as_os_str())
+        .or_else(|| collection.map(|c| c.path.as_os_str()))
+        .and_then(OsStr::to_str)
         .unwrap_or("Select Collection");
 
     let path = Row::new()
-        .push(text("Collection"))
+        .push(text("Location"))
         .push(horizontal_space())
-        .push(text(col_name))
+        .push(text(col_name).size(12))
         .spacing(4);
 
     let folder_selector = match collection {
