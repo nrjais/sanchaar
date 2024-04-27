@@ -67,7 +67,27 @@ impl Collection {
     }
 
     pub fn toggle_folder(&mut self, id: FolderId) {
-        folder_mut(&mut self.children, id).map(|folder| folder.expanded = !folder.expanded);
+        self.folder_mut(id)
+            .map(|folder| folder.expanded = !folder.expanded);
+    }
+
+    pub fn folder_mut(&mut self, id: FolderId) -> Option<&mut Folder> {
+        fn recurse<'a>(
+            entries: &mut impl Iterator<Item = &'a mut Entry>,
+            id: FolderId,
+        ) -> Option<&'a mut Folder> {
+            for entry in entries {
+                if let Entry::Folder(folder) = entry {
+                    if folder.id == id {
+                        return Some(folder);
+                    } else if let Some(folder) = recurse(&mut folder.children.iter_mut(), id) {
+                        return Some(folder);
+                    }
+                }
+            }
+            None
+        }
+        recurse(&mut self.children.iter_mut(), id)
     }
 
     pub fn rename_request(&mut self, id: RequestId, name: &str) -> Option<(PathBuf, PathBuf)> {
@@ -107,19 +127,6 @@ impl Default for Collection {
             environments: Environments::new(),
         }
     }
-}
-
-fn folder_mut(entries: &mut Vec<Entry>, id: FolderId) -> Option<&mut Folder> {
-    for entry in entries.iter_mut() {
-        if let Entry::Folder(folder) = entry {
-            if folder.id == id {
-                return Some(folder);
-            } else if let Some(folder) = folder_mut(&mut folder.children, id) {
-                return Some(folder);
-            }
-        }
-    }
-    None
 }
 
 struct IterMut<'a> {

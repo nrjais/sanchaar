@@ -6,7 +6,7 @@ pub use tab::*;
 
 use crate::commands::AppCommand;
 use crate::commands::Commands;
-use crate::state::popups::Popup;
+use crate::state::popups::{Popup, SaveRequestState};
 use crate::state::response::ResponseState;
 use core::client::create_client;
 use core::http::collection::RequestRef;
@@ -130,13 +130,17 @@ impl AppState {
     }
 
     pub fn save_request(&mut self) {
-        self.commands.add(AppCommand::SaveRequest(self.active_tab));
+        if self.active_tab().col_ref.is_some() {
+            self.commands.add(AppCommand::SaveRequest(self.active_tab));
+        } else {
+            self.popup = Some(Popup::SaveRequest(SaveRequestState::new(self.active_tab)));
+        }
     }
 
     pub(crate) fn col_req_ref(&self, tab: TabKey) -> Option<&RequestRef> {
         let tab = self.tabs.get(tab)?;
         let req_ref = tab.col_ref.as_ref()?;
-        self.collections.get_ref(req_ref)
+        self.collections.get_ref(*req_ref)
     }
 }
 

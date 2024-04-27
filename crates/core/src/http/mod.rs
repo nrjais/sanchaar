@@ -36,8 +36,15 @@ impl Collections {
         self.entries.get(key).map(f)
     }
 
-    pub fn get_ref(&self, cr: &CollectionRequest) -> Option<&RequestRef> {
+    pub fn get_ref(&self, cr: CollectionRequest) -> Option<&RequestRef> {
         self.entries.get(cr.0).and_then(|c| c.get_ref(cr.1))
+    }
+
+    pub fn get(&self, key: CollectionKey) -> Option<&Collection> {
+        self.entries.get(key)
+    }
+    pub fn get_mut(&mut self, key: CollectionKey) -> Option<&mut Collection> {
+        self.entries.get_mut(key)
     }
 
     pub fn insert(&mut self, collections: Vec<Collection>) {

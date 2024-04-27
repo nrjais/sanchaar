@@ -1,6 +1,6 @@
 use iced::widget::container::Style;
 use iced::widget::{button, container, horizontal_space, text, Column, Row};
-use iced::{Border, Command, Element};
+use iced::{Alignment, Border, Command, Element};
 
 use crate::state::popups::Popup;
 use crate::state::AppState;
@@ -22,7 +22,7 @@ impl PopupMsg {
         match self {
             Self::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
             Self::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
-            PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
+            Self::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
             Self::ClosePopup => {
                 state.popup = None;
                 Command::none()
@@ -46,7 +46,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
         Popup::SaveRequest(data) => (
             save_request::title(),
             save_request::view(state, data).map(PopupMsg::SaveRequest),
-            save_request::done().map(PopupMsg::SaveRequest),
+            save_request::done(data).map(PopupMsg::SaveRequest),
         ),
     };
 
@@ -62,7 +62,8 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
                 .style(button::primary)
                 .on_press_maybe(done_msg),
         )
-        .width(iced::Length::Shrink)
+        .width(iced::Length::Fill)
+        .align_items(Alignment::End)
         .spacing(8);
 
     container(

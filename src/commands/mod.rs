@@ -15,12 +15,12 @@ use core::persistence::request::save_req_to_file;
 use core::persistence::request::{encode_request, read_request};
 use text_editor::Content;
 
-use crate::commands::builders::send_request_cmd;
+use crate::commands::builders::{save_request, send_request_cmd};
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::TabKey;
 use crate::{app::AppMsg, AppState};
 
-mod builders;
+pub mod builders;
 mod cancellable_task;
 pub mod dialog;
 
@@ -128,22 +128,10 @@ fn commands_inner(state: &mut AppState) -> Vec<Command<AppMsg>> {
             AppCommand::SaveRequest(tab) => {
                 let sel_tab = state.get_tab(tab)?;
                 let req_ref = state.col_req_ref(tab)?;
-
-                let req = sel_tab.request.to_request();
-                let encoded = encode_request(&req);
-                Command::perform(
-                    save_req_to_file(req_ref.path.clone(), encoded),
-                    move |r| match r {
-                        Ok(_) => CommandResultMsg::Completed("Request saved"),
-                        Err(e) => {
-                            println!("Error saving request: {:?}", e);
-                            CommandResultMsg::Completed("Error saving request")
-                        }
-                    },
-                )
+                save_request(&sel_tab.request, req_ref.path.clone())
             }
             AppCommand::OpenRequest(col) => {
-                let req = state.collections.get_ref(&col)?;
+                let req = state.collections.get_ref(col)?;
                 Command::perform(read_request(req.path.clone()), move |r| match r {
                     Ok(req) => CommandResultMsg::OpenRequestTab(col, req),
                     Err(_) => {
