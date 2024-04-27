@@ -2,15 +2,15 @@ use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use crate::commands::builders;
-use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
 use iced::{Command, Element};
+use iced::widget::{button, Column, horizontal_space, Row, text, text_input};
 use rfd::FileHandle;
 
+use crate::commands::builders;
 use crate::commands::dialog::open_folder_dialog;
+use crate::state::AppState;
 use crate::state::popups::CreateCollectionState;
 use crate::state::popups::Popup::CreateCollection;
-use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -81,10 +81,13 @@ pub(crate) fn view<'a>(
         .push(horizontal_space())
         .push(
             button(
-                data.path
-                    .as_ref()
-                    .and_then(|p| p.to_str())
-                    .unwrap_or("Browse location"),
+                text(
+                    data.path
+                        .as_ref()
+                        .and_then(|p| p.to_str())
+                        .unwrap_or("Browse location"),
+                )
+                .size(16),
             )
             .style(button::text)
             .padding([2, 6])
@@ -93,5 +96,10 @@ pub(crate) fn view<'a>(
         .align_items(iced::Alignment::Center)
         .spacing(4);
 
-    Column::new().push(name).push(path).spacing(4).into()
+    Column::new()
+        .push(name)
+        .push(path)
+        .spacing(4)
+        .width(300)
+        .into()
 }

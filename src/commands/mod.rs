@@ -8,17 +8,16 @@ use tokio::fs;
 use components::text_editor;
 use core::client;
 use core::http::collection::Collection;
-use core::http::request::Request;
 use core::http::CollectionRequest;
+use core::http::request::Request;
 use core::persistence::collections;
-use core::persistence::request::save_req_to_file;
-use core::persistence::request::{encode_request, read_request};
+use core::persistence::request::read_request;
 use text_editor::Content;
 
+use crate::{app::AppMsg, AppState};
 use crate::commands::builders::{save_request, send_request_cmd};
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::TabKey;
-use crate::{app::AppMsg, AppState};
 
 pub mod builders;
 mod cancellable_task;
@@ -151,6 +150,7 @@ fn commands_inner(state: &mut AppState) -> Vec<Command<AppMsg>> {
     });
     cmds.collect()
 }
+
 pub fn commands(state: &mut AppState) -> Command<AppMsg> {
     let cmds = commands_inner(state);
 

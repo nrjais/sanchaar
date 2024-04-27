@@ -1,13 +1,11 @@
-use anyhow::Context;
-use directories::ProjectDirs;
-
 use std::path::PathBuf;
 
-use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
-use crate::http::environment::Environments;
+use anyhow::Context;
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
+use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
 use crate::persistence::Version;
 
 const COLLECTION_ROOT_FILE: &str = "collection.toml";

@@ -36,7 +36,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .push(tab.icon)
             .push(tab.label)
             .push(
-                button(icon(icons::CloseBox).size(20))
+                button(icon(icons::Close).size(20))
                     .style(button::text)
                     .padding([0, 4])
                     .on_press(on_action(TabBarAction::CloseTab(tab.id.clone()))),

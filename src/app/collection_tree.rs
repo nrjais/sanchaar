@@ -1,7 +1,9 @@
 use crate::commands::AppCommand;
-use iced::widget::{button, text, Button, Column, Row};
+use iced::widget::tooltip::Position;
+use iced::widget::{button, container, horizontal_rule, text, tooltip, Button, Column, Row};
 use iced::{Command, Element, Length};
 
+use crate::state::popups::Popup;
 use crate::state::AppState;
 use components::{icon, icons, NerdIcon};
 use core::http::collection::{Entry, FolderId};
@@ -12,6 +14,7 @@ pub enum CollectionTreeMsg {
     ToggleExpandCollection(CollectionKey),
     ToggleFolder(CollectionKey, FolderId),
     OpenRequest(CollectionRequest),
+    CreateCollection,
 }
 
 impl CollectionTreeMsg {
@@ -27,14 +30,22 @@ impl CollectionTreeMsg {
                     .collections
                     .on_collection_mut(col, |collection| collection.toggle_folder(id));
             }
-            CollectionTreeMsg::OpenRequest(col) => {
+            Self::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
                     state.commands.add(AppCommand::OpenRequest(col));
                 };
             }
+            Self::CreateCollection => {
+                state.popup = Some(Popup::CreateCollection(Default::default()));
+            }
         }
         Command::none()
     }
+}
+fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
+    button(container(icon(ico).size(20)).padding([0, 8]))
+        .padding(0)
+        .style(button::secondary)
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
@@ -48,7 +59,18 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         )
     });
 
-    Column::with_children(it)
+    let create_col = tooltip(
+        icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection),
+        container(text("Create Collection"))
+            .padding([2, 4])
+            .style(container::rounded_box),
+        Position::Bottom,
+    );
+
+    Column::new()
+        .push(Row::new().push(create_col).width(Length::Fill))
+        .push(horizontal_rule(4))
+        .push(Column::with_children(it).spacing(4))
         .spacing(4)
         .width(Length::Fill)
         .into()

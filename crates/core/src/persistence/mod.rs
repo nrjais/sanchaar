@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 pub mod collections;
-pub mod request;
 mod environment;
+pub mod request;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Version {
