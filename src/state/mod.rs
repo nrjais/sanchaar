@@ -3,12 +3,11 @@ use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
 
 use core::client::create_client;
-use core::http::{CollectionRequest, Collections};
 use core::http::collection::RequestRef;
 use core::http::request::Request;
+use core::http::{CollectionRequest, Collections};
 pub use tab::*;
 
-use crate::commands::Commands;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 
@@ -33,7 +32,6 @@ pub struct AppState {
     pub active_tab: TabKey,
     pub tabs: SlotMap<TabKey, Tab>,
     pub collections: Collections,
-    pub commands: Commands,
     pub client: reqwest::Client,
     // Collection tree and tabs split
     pub panes: pane_grid::State<SplitState>,
@@ -50,7 +48,6 @@ impl AppState {
             active_tab,
             tabs,
             client: create_client(),
-            commands: Commands::new(),
             collections: Collections::default(),
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,

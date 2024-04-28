@@ -19,6 +19,7 @@ pub struct CollectionRequest(pub CollectionKey, pub RequestId);
 #[derive(Debug, Default)]
 pub struct Collections {
     pub entries: SlotMap<CollectionKey, Collection>,
+    pub dirty: bool,
 }
 
 impl Collections {
@@ -26,6 +27,7 @@ impl Collections {
     where
         F: FnOnce(&mut Collection) -> R,
     {
+        self.dirty();
         self.entries.get_mut(key).map(f)
     }
 
@@ -44,17 +46,19 @@ impl Collections {
         self.entries.get(key)
     }
     pub fn get_mut(&mut self, key: CollectionKey) -> Option<&mut Collection> {
+        self.dirty();
         self.entries.get_mut(key)
     }
 
     pub fn insert_all(&mut self, collections: Vec<Collection>) {
+        self.dirty();
         for collection in collections {
             self.entries.insert(collection);
         }
     }
 
     pub fn insert(&mut self, collection: Collection) {
-        dbg!(&collection);
+        self.dirty();
         self.entries.insert(collection);
     }
 
@@ -74,9 +78,14 @@ impl Collections {
         let children = Vec::new();
         let collection = Collection::new(name, children, path);
 
+        self.dirty();
         let key = self.entries.insert(collection);
         self.entries
             .get(key)
             .expect("Inserted collection not found")
+    }
+
+    fn dirty(&mut self) {
+        self.dirty = true;
     }
 }

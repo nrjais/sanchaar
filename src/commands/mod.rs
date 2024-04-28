@@ -1,6 +1,5 @@
-use std::mem;
-
 use iced::Command;
+use log::info;
 
 use core::http::collection::Collection;
 use core::persistence::collections;
@@ -11,46 +10,40 @@ pub mod builders;
 mod cancellable_task;
 pub mod dialog;
 
-#[derive(Debug)]
-pub enum AppCommand {}
-
 #[derive(Debug, Clone)]
-pub enum CommandResultMsg {
+pub enum CommandMsg {
     CollectionsLoaded(Vec<Collection>),
+    Completed(String),
 }
 
-impl CommandResultMsg {
+impl CommandMsg {
     pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
-            CommandResultMsg::CollectionsLoaded(collection) => {
+            CommandMsg::CollectionsLoaded(collection) => {
                 state.collections.insert_all(collection);
+            }
+            CommandMsg::Completed(msg) => {
+                info!("Command completed: {}", msg);
             }
         };
         Command::none()
     }
 }
 
-#[derive(Debug)]
-pub struct Commands(Vec<AppCommand>);
-
-impl Default for Commands {
-    fn default() -> Self {
-        Self::new()
+fn save_open_collections(state: &AppState) -> Command<CommandMsg> {
+    if !state.collections.dirty {
+        return Command::none();
     }
+
+    let collections = state.collections.entries.values().cloned().collect();
+    Command::perform(collections::save(collections), |result| match result {
+        Ok(_) => CommandMsg::Completed("Collections saved".to_string()),
+        Err(e) => CommandMsg::Completed(format!("Error saving collections: {:?}", e)),
+    })
 }
 
-impl Commands {
-    pub fn new() -> Self {
-        Self(Vec::new())
-    }
-
-    pub fn take(&mut self) -> Vec<AppCommand> {
-        mem::take(&mut self.0)
-    }
-
-    pub fn add(&mut self, cmd: AppCommand) {
-        self.0.push(cmd);
-    }
+pub fn background(state: &mut AppState) -> Command<CommandMsg> {
+    return Command::batch([save_open_collections(state)]);
 }
 
 pub async fn load_collections() -> Vec<Collection> {
@@ -61,5 +54,5 @@ pub async fn load_collections() -> Vec<Collection> {
 }
 
 pub fn init_command() -> Command<AppMsg> {
-    Command::perform(load_collections(), CommandResultMsg::CollectionsLoaded).map(AppMsg::Command)
+    Command::perform(load_collections(), CommandMsg::CollectionsLoaded).map(AppMsg::Command)
 }

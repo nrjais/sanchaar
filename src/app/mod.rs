@@ -4,7 +4,8 @@ use components::modal::modal;
 use popups::PopupMsg;
 
 use crate::app::main_page::MainPageMsg;
-use crate::{commands::CommandResultMsg, AppState};
+use crate::commands;
+use crate::{commands::CommandMsg, AppState};
 
 mod collection_tree;
 mod main_page;
@@ -13,18 +14,19 @@ mod popups;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
-    Command(CommandResultMsg),
+    Command(CommandMsg),
     MainPage(MainPageMsg),
     Popup(PopupMsg),
 }
 
 impl AppMsg {
     pub fn update(self, state: &mut AppState) -> Command<AppMsg> {
-        match self {
+        let cmd = match self {
             AppMsg::Command(msg) => msg.update(state).map(AppMsg::Command),
             AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
             AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
-        }
+        };
+        Command::batch([cmd, commands::background(state).map(AppMsg::Command)])
     }
 }
 

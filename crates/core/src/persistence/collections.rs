@@ -107,6 +107,21 @@ pub async fn load() -> anyhow::Result<Vec<Collection>> {
     Ok(result)
 }
 
+pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
+    let collections_file = collections_file().context("Failed to find collections file")?;
+    let state = CollectionsState {
+        open: collection
+            .into_iter()
+            .map(|col| CollectionConfig::Path(col.path.clone()))
+            .collect(),
+    };
+
+    let data = toml::to_string_pretty(&state)?;
+    fs::write(collections_file, data).await?;
+
+    Ok(())
+}
+
 pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error> {
     let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
     let collection: EncodedCollection = toml::from_str(&data)?;
