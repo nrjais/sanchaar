@@ -54,6 +54,7 @@ impl Collections {
     }
 
     pub fn insert(&mut self, collection: Collection) {
+        dbg!(&collection);
         self.entries.insert(collection);
     }
 

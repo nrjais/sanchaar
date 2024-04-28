@@ -134,16 +134,15 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
                 continue;
             }
 
-            if !entry.file_name().to_string_lossy().ends_with(".toml") {
+            let name = entry.file_name();
+            let name = name.to_string_lossy();
+
+            if !name.ends_with(".toml") || name.trim_end_matches(".toml").is_empty() {
                 continue;
             }
 
             entries.push(Entry::Item(RequestRef {
-                name: entry
-                    .file_name()
-                    .to_string_lossy()
-                    .trim_end_matches(".toml")
-                    .to_string(),
+                name: name.trim_end_matches(".toml").to_string(),
                 path: entry.path(),
                 id: RequestId::new(),
             }));

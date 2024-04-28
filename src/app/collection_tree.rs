@@ -1,15 +1,16 @@
-use iced::{Command, Element, Length};
-use iced::widget::{button, Button, Column, container, horizontal_rule, Row, text, tooltip};
+use iced::alignment::Horizontal;
 use iced::widget::tooltip::Position;
+use iced::widget::{button, container, horizontal_rule, text, tooltip, Button, Column, Row};
+use iced::{Command, Element, Length};
 
 use components::{icon, icons, NerdIcon};
-use core::http::{CollectionKey, CollectionRequest};
 use core::http::collection::{Collection, Entry, FolderId};
+use core::http::{CollectionKey, CollectionRequest};
 
-use crate::commands::AppCommand;
 use crate::commands::builders::open_existing_collection;
-use crate::state::AppState;
+use crate::commands::AppCommand;
 use crate::state::popups::Popup;
+use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
@@ -80,7 +81,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
     );
 
     let open_col = tooltip(
-        icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::CreateCollection),
+        icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection),
         container(text("Open Collection"))
             .padding([2, 4])
             .style(container::rounded_box),
@@ -89,11 +90,15 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
 
     Column::new()
         .push(
-            Row::new()
-                .push(create_col)
-                .push(open_col)
-                .width(Length::Fill)
-                .spacing(4),
+            container(
+                Row::new()
+                    .push(create_col)
+                    .push(open_col)
+                    .width(Length::Shrink)
+                    .spacing(4),
+            )
+            .align_x(Horizontal::Center)
+            .width(Length::Fill),
         )
         .push(horizontal_rule(4))
         .push(Column::with_children(it).spacing(4))
