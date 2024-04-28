@@ -103,7 +103,7 @@ fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
             Column::new()
                 .push(text(location))
                 .push(
-                    button(text("Select File").size(20))
+                    button(text("Select File"))
                         .padding([4, 12])
                         .on_press(RequestPaneMsg::OpenFilePicker)
                         .style(button::secondary),

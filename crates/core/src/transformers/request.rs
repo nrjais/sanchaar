@@ -86,7 +86,6 @@ async fn req_body(builder: RequestBuilder, body: RequestBody) -> RequestBuilder 
                 .open(file)
                 .await
                 .expect("Failed to open file");
-            dbg!(&file);
             builder.body(file).header(CONTENT_TYPE, content_type)
         }
         RequestBody::None | RequestBody::File(None) => builder,
