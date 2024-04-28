@@ -47,10 +47,14 @@ impl Collections {
         self.entries.get_mut(key)
     }
 
-    pub fn insert(&mut self, collections: Vec<Collection>) {
+    pub fn insert_all(&mut self, collections: Vec<Collection>) {
         for collection in collections {
             self.entries.insert(collection);
         }
+    }
+
+    pub fn insert(&mut self, collection: Collection) {
+        self.entries.insert(collection);
     }
 
     pub fn get_envs(&self, key: CollectionKey) -> Option<&Environments> {

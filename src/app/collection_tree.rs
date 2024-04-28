@@ -1,13 +1,15 @@
-use crate::commands::AppCommand;
-use iced::widget::tooltip::Position;
-use iced::widget::{button, container, horizontal_rule, text, tooltip, Button, Column, Row};
 use iced::{Command, Element, Length};
+use iced::widget::{button, Button, Column, container, horizontal_rule, Row, text, tooltip};
+use iced::widget::tooltip::Position;
 
-use crate::state::popups::Popup;
-use crate::state::AppState;
 use components::{icon, icons, NerdIcon};
-use core::http::collection::{Entry, FolderId};
 use core::http::{CollectionKey, CollectionRequest};
+use core::http::collection::{Collection, Entry, FolderId};
+
+use crate::commands::AppCommand;
+use crate::commands::builders::open_existing_collection;
+use crate::state::AppState;
+use crate::state::popups::Popup;
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
@@ -15,6 +17,8 @@ pub enum CollectionTreeMsg {
     ToggleFolder(CollectionKey, FolderId),
     OpenRequest(CollectionRequest),
     CreateCollection,
+    OpenCollection,
+    OpenCollectionHandle(Option<Collection>),
 }
 
 impl CollectionTreeMsg {
@@ -37,6 +41,14 @@ impl CollectionTreeMsg {
             }
             Self::CreateCollection => {
                 state.popup = Some(Popup::CreateCollection(Default::default()));
+            }
+            Self::OpenCollection => {
+                return open_existing_collection(Self::OpenCollectionHandle);
+            }
+            Self::OpenCollectionHandle(handle) => {
+                if let Some(handle) = handle {
+                    state.collections.insert(handle);
+                }
             }
         }
         Command::none()
@@ -67,8 +79,22 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         Position::Bottom,
     );
 
+    let open_col = tooltip(
+        icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::CreateCollection),
+        container(text("Open Collection"))
+            .padding([2, 4])
+            .style(container::rounded_box),
+        Position::Bottom,
+    );
+
     Column::new()
-        .push(Row::new().push(create_col).width(Length::Fill))
+        .push(
+            Row::new()
+                .push(create_col)
+                .push(open_col)
+                .width(Length::Fill)
+                .spacing(4),
+        )
         .push(horizontal_rule(4))
         .push(Column::with_children(it).spacing(4))
         .spacing(4)

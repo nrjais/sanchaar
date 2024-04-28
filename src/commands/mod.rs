@@ -83,7 +83,7 @@ impl CommandResultMsg {
                 state.clear_tab_tasks(tab);
             }
             CommandResultMsg::CollectionsLoaded(collection) => {
-                state.collections.insert(collection);
+                state.collections.insert_all(collection);
             }
             CommandResultMsg::Completed(msg) => {
                 println!("Command complete: {}", msg);

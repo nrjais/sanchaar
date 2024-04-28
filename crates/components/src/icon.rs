@@ -18,6 +18,7 @@ pub mod icons {
     pub const CloseBox: NerdIcon = NerdIcon('󰅗');
     pub const PlusBox: NerdIcon = NerdIcon('󰐖');
     pub const Plus: NerdIcon = NerdIcon('');
+    pub const FolderOpen: NerdIcon = NerdIcon('');
     pub const Delete: NerdIcon = NerdIcon('󰆴');
     pub const CheckBold: NerdIcon = NerdIcon('󰸞');
     pub const Pencil: NerdIcon = NerdIcon('󰏫');

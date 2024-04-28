@@ -2,23 +2,25 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::advanced::graphics::futures::MaybeSend;
-use iced::futures::TryFutureExt;
 use iced::Command;
+use iced::futures::TryFutureExt;
+use rfd::AsyncFileDialog;
 
 use core::client::send_request;
 use core::http::{
     collection::{Entry, FolderId, RequestId, RequestRef},
     CollectionKey,
 };
-use core::persistence::collections::{encode_collection, save_collection};
+use core::http::collection::Collection;
+use core::persistence::collections::{encode_collection, open_collection, save_collection};
 use core::persistence::request::{encode_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
-use crate::commands::cancellable_task::{cancellable_task, TaskResult};
 use crate::commands::{CommandResultMsg, ResponseResult};
+use crate::commands::cancellable_task::{cancellable_task, TaskResult};
+use crate::state::{AppState, TabKey};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
-use crate::state::{AppState, TabKey};
 
 pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Command<CommandResultMsg> {
     let client = state.client.clone();
@@ -124,4 +126,23 @@ pub(crate) fn create_collection<Message>(
             }
         },
     )
+}
+
+pub fn open_existing_collection<M>(
+    on_done: impl Fn(Option<Collection>) -> M + 'static + MaybeSend,
+) -> Command<M> {
+    let fut = async {
+        let handle = AsyncFileDialog::new()
+            .set_title("Select Collection Folder")
+            .pick_folder()
+            .await?;
+
+        let path = handle.path().to_owned();
+
+        let col = open_collection(path).await.ok()?;
+
+        Some(col)
+    };
+
+    Command::perform(fut, on_done)
 }

@@ -98,15 +98,21 @@ pub async fn load() -> anyhow::Result<Vec<Collection>> {
     for collection in collections {
         match collection {
             CollectionConfig::Path(path) => {
-                let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
-                let collection: EncodedCollection = toml::from_str(&data)?;
-                let entries = walk_entries(&path, true).await?;
-                result.push(Collection::new(collection.name, entries, path));
+                let col = open_collection(path).await?;
+                result.push(col);
             }
         }
     }
 
     Ok(result)
+}
+
+pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error> {
+    let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
+    let collection: EncodedCollection = toml::from_str(&data)?;
+    let entries = walk_entries(&path, true).await?;
+
+    Ok(Collection::new(collection.name, entries, path))
 }
 
 async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entry>> {
