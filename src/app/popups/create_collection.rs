@@ -2,15 +2,15 @@ use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
 use iced::{Command, Element};
-use iced::widget::{button, Column, horizontal_space, Row, text, text_input};
 use rfd::FileHandle;
 
 use crate::commands::builders;
 use crate::commands::dialog::open_folder_dialog;
-use crate::state::AppState;
 use crate::state::popups::CreateCollectionState;
 use crate::state::popups::Popup::CreateCollection;
+use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum Message {

@@ -152,10 +152,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
         .push(text(col_name).size(12))
         .spacing(4);
 
-    let folder_selector = match collection {
-        Some(c) => Some(dir_selector(c, data.folder_id)),
-        None => None,
-    };
+    let folder_selector = collection.map(|c| dir_selector(c, data.folder_id));
 
     let col_selector = container(
         Row::new()

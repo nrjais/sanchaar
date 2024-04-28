@@ -5,21 +5,22 @@ use iced::{
     widget::{button, container},
     Command, Element, Length,
 };
+use tokio::fs;
 
 use components::{icon, icons, NerdIcon};
 use core::http::CollectionKey;
+use log::info;
 
-use crate::commands::AppCommand;
 use crate::state::popups::Popup;
 use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum ActionBarMsg {
-    Test,
     SubmitNameEdit,
     UpdateName(String),
     StartNameEdit,
     OpenEnvironments(CollectionKey),
+    RequestRenamed,
 }
 
 impl ActionBarMsg {
@@ -33,23 +34,32 @@ impl ActionBarMsg {
                 if let Some(name) = name {
                     state.active_tab_mut().editing_name.replace(name);
                 }
+                Command::none()
             }
             ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
-                if let Some((col, name)) = tab.col_ref.zip(tab.editing_name.take()) {
-                    let cmd = AppCommand::RenameRequest(col, name);
-                    state.commands.add(cmd);
-                }
+                let Some((col, name)) = tab.col_ref.zip(tab.editing_name.take()) else {
+                    return Command::none();
+                };
+                let Some((old, new)) = state.collections.rename_request(col, name) else {
+                    return Command::none();
+                };
+
+                Command::perform(fs::rename(old, new), move |_| ActionBarMsg::RequestRenamed)
             }
             ActionBarMsg::UpdateName(name) => {
                 state.active_tab_mut().editing_name.replace(name);
+                Command::none()
             }
             ActionBarMsg::OpenEnvironments(col) => {
                 state.popup = Some(Popup::EnvironmentEditor(col));
+                Command::none()
             }
-            ActionBarMsg::Test => {}
+            ActionBarMsg::RequestRenamed => {
+                info!("Request renamed");
+                Command::none()
+            }
         }
-        Command::none()
     }
 }
 
@@ -103,7 +113,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
 
 fn environment_view<'a>(size: u16, key: CollectionKey) -> Element<'a, ActionBarMsg> {
     let envs = ["Dev", "Staging", "Prod"];
-    let picker = pick_list(envs, None::<&'static str>, |_s| ActionBarMsg::Test)
+    let picker = pick_list(envs, None::<&'static str>, |_| ActionBarMsg::RequestRenamed)
         .width(Length::Shrink)
         .text_size(size)
         .padding([2, 4])

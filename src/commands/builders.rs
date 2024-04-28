@@ -2,25 +2,26 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::advanced::graphics::futures::MaybeSend;
-use iced::Command;
 use iced::futures::TryFutureExt;
+use iced::Command;
 use rfd::AsyncFileDialog;
 
 use core::client::send_request;
+use core::http::collection::Collection;
 use core::http::{
     collection::{Entry, FolderId, RequestId, RequestRef},
-    CollectionKey,
+    request::Request,
+    CollectionKey, CollectionRequest,
 };
-use core::http::collection::Collection;
 use core::persistence::collections::{encode_collection, open_collection, save_collection};
-use core::persistence::request::{encode_request, save_req_to_file};
+use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
-use crate::commands::{CommandResultMsg, ResponseResult};
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
-use crate::state::{AppState, TabKey};
+use crate::commands::{CommandResultMsg, ResponseResult};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
+use crate::state::{AppState, TabKey};
 
 pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Command<CommandResultMsg> {
     let client = state.client.clone();
@@ -115,7 +116,7 @@ pub(crate) fn create_collection<Message>(
     msg: impl Fn(Option<anyhow::Error>) -> Message + 'static + MaybeSend,
 ) -> Command<Message> {
     let col = state.collections.create_collection(name, path);
-    let encoded = encode_collection(&col);
+    let encoded = encode_collection(col);
     Command::perform(
         save_collection(col.path.clone(), encoded),
         move |r| match r {
@@ -145,4 +146,22 @@ pub fn open_existing_collection<M>(
     };
 
     Command::perform(fut, on_done)
+}
+
+pub fn open_request_cmd<M>(
+    state: &mut AppState,
+    col: CollectionRequest,
+    on_done: impl Fn(Option<Request>) -> M + 'static + MaybeSend,
+) -> Command<M> {
+    let Some(req) = state.collections.get_ref(col) else {
+        return Command::none();
+    };
+
+    Command::perform(read_request(req.path.clone()), move |res| match res {
+        Ok(req) => on_done(Some(req)),
+        Err(e) => {
+            println!("Error opening request: {:?}", e);
+            on_done(None)
+        }
+    })
 }

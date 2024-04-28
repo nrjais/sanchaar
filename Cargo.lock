@@ -3371,6 +3371,7 @@ dependencies = [
  "core",
  "humansize",
  "iced",
+ "log",
  "reqwest",
  "rfd",
  "serde",

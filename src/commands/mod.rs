@@ -3,21 +3,17 @@ use std::sync::Arc;
 
 use iced::Command;
 use serde_json::Value;
-use tokio::fs;
 
 use components::text_editor;
 use core::client;
 use core::http::collection::Collection;
-use core::http::CollectionRequest;
-use core::http::request::Request;
 use core::persistence::collections;
-use core::persistence::request::read_request;
 use text_editor::Content;
 
-use crate::{app::AppMsg, AppState};
 use crate::commands::builders::{save_request, send_request_cmd};
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::TabKey;
+use crate::{app::AppMsg, AppState};
 
 pub mod builders;
 mod cancellable_task;
@@ -27,8 +23,6 @@ pub mod dialog;
 pub enum AppCommand {
     SendRequest(TabKey),
     SaveRequest(TabKey),
-    OpenRequest(CollectionRequest),
-    RenameRequest(CollectionRequest, String),
 }
 
 #[derive(Debug, Clone)]
@@ -43,7 +37,6 @@ pub enum CommandResultMsg {
     UpdateResponse(TabKey, ResponseResult),
     CollectionsLoaded(Vec<Collection>),
     Completed(&'static str),
-    OpenRequestTab(CollectionRequest, Request),
 }
 
 fn pretty_body(body: &[u8]) -> (String, Option<String>) {
@@ -88,9 +81,6 @@ impl CommandResultMsg {
             CommandResultMsg::Completed(msg) => {
                 println!("Command complete: {}", msg);
             }
-            CommandResultMsg::OpenRequestTab(col, req) => {
-                state.open_request(col, req);
-            }
         };
         Command::none()
     }
@@ -128,22 +118,6 @@ fn commands_inner(state: &mut AppState) -> Vec<Command<AppMsg>> {
                 let sel_tab = state.get_tab(tab)?;
                 let req_ref = state.col_req_ref(tab)?;
                 save_request(&sel_tab.request, req_ref.path.clone())
-            }
-            AppCommand::OpenRequest(col) => {
-                let req = state.collections.get_ref(col)?;
-                Command::perform(read_request(req.path.clone()), move |r| match r {
-                    Ok(req) => CommandResultMsg::OpenRequestTab(col, req),
-                    Err(_) => {
-                        println!("Error opening request: {:?}", col);
-                        CommandResultMsg::Completed("Error opening request")
-                    }
-                })
-            }
-            AppCommand::RenameRequest(req, new) => {
-                let (old, new) = state.collections.rename_request(req, new)?;
-                Command::perform(fs::rename(old, new), move |_| {
-                    CommandResultMsg::Completed("Request renamed")
-                })
             }
         };
         Some(cmd.map(AppMsg::Command))

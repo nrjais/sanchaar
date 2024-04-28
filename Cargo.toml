@@ -46,6 +46,7 @@ humansize = { workspace = true }
 reqwest = { workspace = true }
 anyhow = { workspace = true }
 rfd = { workspace = true }
+log = "0.4.21"
 
 
 [profile.dev]

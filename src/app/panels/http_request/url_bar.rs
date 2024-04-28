@@ -1,13 +1,13 @@
-use iced::{
-    Command,
-    Element, widget::{button, container, pick_list, row},
-};
 use iced::widget::{Button, Row};
+use iced::{
+    widget::{button, container, pick_list, row},
+    Command, Element,
+};
 use reqwest::Url;
 use strum::VariantArray;
 
+use components::text_editor::{line_editor, ContentAction};
 use components::{icon, icons, NerdIcon};
-use components::text_editor::{ContentAction, line_editor};
 use core::http::request::Method;
 
 use crate::state::AppState;

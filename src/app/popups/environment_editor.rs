@@ -42,7 +42,7 @@ pub(crate) fn view(state: &AppState, col: CollectionKey) -> Element<Message> {
     container(vertical_button_tabs(
         environments.entries().next().unwrap().0,
         env_tabs,
-        |env| Message::SelectEnv(env),
+        Message::SelectEnv,
         None,
     ))
     .into()

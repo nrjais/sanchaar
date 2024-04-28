@@ -5,10 +5,9 @@ use iced::{Command, Element, Length};
 
 use components::{icon, icons, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId};
-use core::http::{CollectionKey, CollectionRequest};
+use core::http::{request::Request, CollectionKey, CollectionRequest};
 
-use crate::commands::builders::open_existing_collection;
-use crate::commands::AppCommand;
+use crate::commands::builders::{open_existing_collection, open_request_cmd};
 use crate::state::popups::Popup;
 use crate::state::AppState;
 
@@ -20,6 +19,7 @@ pub enum CollectionTreeMsg {
     CreateCollection,
     OpenCollection,
     OpenCollectionHandle(Option<Collection>),
+    RequestLoaded(CollectionRequest, Option<Request>),
 }
 
 impl CollectionTreeMsg {
@@ -37,7 +37,7 @@ impl CollectionTreeMsg {
             }
             Self::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
-                    state.commands.add(AppCommand::OpenRequest(col));
+                    return open_request_cmd(state, col, move |res| Self::RequestLoaded(col, res));
                 };
             }
             Self::CreateCollection => {
@@ -49,6 +49,11 @@ impl CollectionTreeMsg {
             Self::OpenCollectionHandle(handle) => {
                 if let Some(handle) = handle {
                     state.collections.insert(handle);
+                }
+            }
+            Self::RequestLoaded(col, req) => {
+                if let Some(req) = req {
+                    state.open_request(col, req);
                 }
             }
         }
