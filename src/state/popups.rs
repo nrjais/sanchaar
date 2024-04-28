@@ -34,3 +34,9 @@ pub enum Popup {
     EnvironmentEditor(CollectionKey),
     SaveRequest(SaveRequestState),
 }
+
+impl Popup {
+    pub fn save_request(tab: TabKey) -> Self {
+        Self::SaveRequest(SaveRequestState::new(tab))
+    }
+}

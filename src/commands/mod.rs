@@ -1,18 +1,10 @@
 use std::mem;
-use std::sync::Arc;
 
 use iced::Command;
-use serde_json::Value;
 
-use components::text_editor;
-use core::client;
 use core::http::collection::Collection;
 use core::persistence::collections;
-use text_editor::Content;
 
-use crate::commands::builders::{save_request, send_request_cmd};
-use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
-use crate::state::TabKey;
 use crate::{app::AppMsg, AppState};
 
 pub mod builders;
@@ -20,66 +12,18 @@ mod cancellable_task;
 pub mod dialog;
 
 #[derive(Debug)]
-pub enum AppCommand {
-    SendRequest(TabKey),
-    SaveRequest(TabKey),
-}
-
-#[derive(Debug, Clone)]
-pub enum ResponseResult {
-    Completed(client::Response),
-    Error(Arc<anyhow::Error>),
-    Cancelled,
-}
+pub enum AppCommand {}
 
 #[derive(Debug, Clone)]
 pub enum CommandResultMsg {
-    UpdateResponse(TabKey, ResponseResult),
     CollectionsLoaded(Vec<Collection>),
-    Completed(&'static str),
-}
-
-fn pretty_body(body: &[u8]) -> (String, Option<String>) {
-    let raw = String::from_utf8_lossy(body).to_string();
-
-    let json = serde_json::from_slice::<Value>(body)
-        .ok()
-        .and_then(|v| serde_json::to_string_pretty(&v).ok());
-
-    (raw, json)
 }
 
 impl CommandResultMsg {
     pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
-            CommandResultMsg::UpdateResponse(tab, ResponseResult::Completed(res)) => {
-                state.cancel_tab_tasks(tab);
-                let Some(tab_mut) = state.get_tab_mut(tab) else {
-                    return Command::none();
-                };
-
-                let (raw, pretty) = pretty_body(&res.body.data);
-                tab_mut.response.state = ResponseState::Completed(CompletedResponse {
-                    result: res,
-                    content: pretty.map(|p| Content::with_text(p.as_str())),
-                    raw: Content::with_text(raw.as_str()),
-                    mode: BodyMode::Pretty,
-                });
-            }
-            CommandResultMsg::UpdateResponse(tab, ResponseResult::Error(e)) => {
-                state.cancel_tab_tasks(tab);
-                let active_tab = state.active_tab_mut();
-                active_tab.response.state = ResponseState::Failed(e);
-            }
-            CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled) => {
-                // Response state is already updated to idle in cancel_tasks
-                state.clear_tab_tasks(tab);
-            }
             CommandResultMsg::CollectionsLoaded(collection) => {
                 state.collections.insert_all(collection);
-            }
-            CommandResultMsg::Completed(msg) => {
-                println!("Command complete: {}", msg);
             }
         };
         Command::none()
@@ -107,34 +51,6 @@ impl Commands {
     pub fn add(&mut self, cmd: AppCommand) {
         self.0.push(cmd);
     }
-}
-
-fn commands_inner(state: &mut AppState) -> Vec<Command<AppMsg>> {
-    let cmds = state.commands.take();
-    let cmds = cmds.into_iter().filter_map(|cmd| {
-        let cmd = match cmd {
-            AppCommand::SendRequest(tab) => send_request_cmd(state, tab),
-            AppCommand::SaveRequest(tab) => {
-                let sel_tab = state.get_tab(tab)?;
-                let req_ref = state.col_req_ref(tab)?;
-                save_request(&sel_tab.request, req_ref.path.clone())
-            }
-        };
-        Some(cmd.map(AppMsg::Command))
-    });
-    cmds.collect()
-}
-
-pub fn commands(state: &mut AppState) -> Command<AppMsg> {
-    let cmds = commands_inner(state);
-
-    Command::batch(cmds)
-}
-
-pub fn commands_merged(state: &mut AppState, cmd: Command<AppMsg>) -> Command<AppMsg> {
-    let mut commands = commands_inner(state);
-    commands.push(cmd);
-    Command::batch(commands)
 }
 
 pub async fn load_collections() -> Vec<Collection> {

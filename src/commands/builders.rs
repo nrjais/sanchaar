@@ -2,28 +2,38 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::advanced::graphics::futures::MaybeSend;
-use iced::futures::TryFutureExt;
 use iced::Command;
+use iced::futures::TryFutureExt;
 use rfd::AsyncFileDialog;
 
 use core::client::send_request;
-use core::http::collection::Collection;
 use core::http::{
     collection::{Entry, FolderId, RequestId, RequestRef},
-    request::Request,
-    CollectionKey, CollectionRequest,
+    CollectionKey,
+    CollectionRequest, request::Request,
 };
+use core::http::collection::Collection;
 use core::persistence::collections::{encode_collection, open_collection, save_collection};
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
-use crate::commands::{CommandResultMsg, ResponseResult};
+use crate::state::{AppState, TabKey};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
-use crate::state::{AppState, TabKey};
 
-pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Command<CommandResultMsg> {
+#[derive(Debug, Clone)]
+pub enum ResponseResult {
+    Completed(core::client::Response),
+    Error(Arc<anyhow::Error>),
+    Cancelled,
+}
+
+pub fn send_request_cmd<M>(
+    state: &mut AppState,
+    tab: TabKey,
+    on_result: impl Fn(ResponseResult) -> M + 'static + MaybeSend,
+) -> Command<M> {
     let client = state.client.clone();
     let Some(sel_tab) = state.get_tab_mut(tab) else {
         return Command::none();
@@ -37,23 +47,23 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Command<CommandRes
     sel_tab.add_task(cancel_tx);
 
     Command::perform(req_fut, move |r| match r {
-        TaskResult::Completed(Ok(res)) => {
-            CommandResultMsg::UpdateResponse(tab, ResponseResult::Completed(res))
-        }
-        TaskResult::Cancelled => CommandResultMsg::UpdateResponse(tab, ResponseResult::Cancelled),
-        TaskResult::Completed(Err(e)) => {
-            CommandResultMsg::UpdateResponse(tab, ResponseResult::Error(Arc::new(e)))
-        }
+        TaskResult::Completed(Ok(res)) => on_result(ResponseResult::Completed(res)),
+        TaskResult::Cancelled => on_result(ResponseResult::Cancelled),
+        TaskResult::Completed(Err(e)) => on_result(ResponseResult::Error(Arc::new(e))),
     })
 }
 
-pub fn save_request(req: &RequestPane, path: PathBuf) -> Command<CommandResultMsg> {
+pub fn save_request<M>(
+    req: &RequestPane,
+    path: PathBuf,
+    on_done: impl Fn(Option<Arc<anyhow::Error>>) -> M + 'static + MaybeSend,
+) -> Command<M> {
     let encoded = encode_request(&req.to_request());
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
-        Ok(_) => CommandResultMsg::Completed("Request saved"),
+        Ok(_) => on_done(None),
         Err(e) => {
             println!("Error saving request: {:?}", e);
-            CommandResultMsg::Completed("Error saving request")
+            on_done(Some(Arc::new(e)))
         }
     })
 }

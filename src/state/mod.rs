@@ -2,16 +2,15 @@ use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use slotmap::SlotMap;
 
-pub use tab::*;
-
-use crate::commands::AppCommand;
-use crate::commands::Commands;
-use crate::state::popups::{Popup, SaveRequestState};
-use crate::state::response::ResponseState;
 use core::client::create_client;
+use core::http::{CollectionRequest, Collections};
 use core::http::collection::RequestRef;
 use core::http::request::Request;
-use core::http::{CollectionRequest, Collections};
+pub use tab::*;
+
+use crate::commands::Commands;
+use crate::state::popups::Popup;
+use crate::state::response::ResponseState;
 
 pub mod popups;
 pub mod request;
@@ -117,23 +116,6 @@ impl AppState {
             self.active_tab = self.tabs.insert(Default::default());
         } else if self.active_tab == tab {
             self.active_tab = self.tabs.keys().next().unwrap();
-        }
-    }
-
-    pub fn send_request(&mut self) {
-        let active_tab = self.active_tab_mut();
-        if let ResponseState::Executing = active_tab.response.state {
-            self.cancel_tab_tasks(self.active_tab);
-        }
-
-        self.commands.add(AppCommand::SendRequest(self.active_tab));
-    }
-
-    pub fn save_request(&mut self) {
-        if self.active_tab().col_ref.is_some() {
-            self.commands.add(AppCommand::SaveRequest(self.active_tab));
-        } else {
-            self.popup = Some(Popup::SaveRequest(SaveRequestState::new(self.active_tab)));
         }
     }
 
