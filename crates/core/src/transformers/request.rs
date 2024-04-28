@@ -70,14 +70,13 @@ fn replace_path_params(url: &str, params: &KeyValList) -> String {
 
 async fn req_body(builder: RequestBuilder, body: RequestBody) -> RequestBuilder {
     match body {
-        RequestBody::None => builder,
         RequestBody::Text(text) => builder.body(text).header(CONTENT_TYPE, TEXT_PLAIN.as_ref()),
         RequestBody::Json(json) => builder
             .body(json)
             .header(CONTENT_TYPE, APPLICATION_JSON.as_ref()),
         RequestBody::XML(xml) => builder.body(xml).header(CONTENT_TYPE, TEXT_XML.as_ref()),
         RequestBody::Form(form) => builder.form(&enabled_params(&form)),
-        RequestBody::File(file) => {
+        RequestBody::File(Some(file)) => {
             let content_type = mime_guess::from_path(&file)
                 .first_or_octet_stream()
                 .to_string();
@@ -87,7 +86,9 @@ async fn req_body(builder: RequestBuilder, body: RequestBody) -> RequestBuilder 
                 .open(file)
                 .await
                 .expect("Failed to open file");
+            dbg!(&file);
             builder.body(file).header(CONTENT_TYPE, content_type)
         }
+        RequestBody::None | RequestBody::File(None) => builder,
     }
 }

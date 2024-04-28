@@ -16,7 +16,7 @@ pub enum RequestBody {
     Json(String),
     XML(String),
     Text(String),
-    File(PathBuf),
+    File(Option<PathBuf>),
     None,
 }
 

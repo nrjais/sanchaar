@@ -17,3 +17,16 @@ pub fn open_folder_dialog<Message>(
         on_done,
     )
 }
+
+pub fn open_file_dialog<Message>(
+    title: &str,
+    on_done: impl FnOnce(Option<Arc<FileHandle>>) -> Message + MaybeSend + 'static,
+) -> Command<Message> {
+    Command::perform(
+        AsyncFileDialog::new()
+            .set_title(title)
+            .pick_file()
+            .map(|res| res.map(Arc::new)),
+        on_done,
+    )
+}

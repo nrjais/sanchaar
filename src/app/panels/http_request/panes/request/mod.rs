@@ -1,6 +1,9 @@
-use iced::widget::{container, horizontal_space, pick_list, Column, Row};
+use std::path::PathBuf;
+
+use iced::widget::{button, container, horizontal_space, pick_list, Column, Row};
 use iced::{widget::text, Command, Length};
 
+use crate::commands::dialog::open_file_dialog;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
 use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
@@ -16,37 +19,47 @@ pub enum RequestPaneMsg {
     PathParams(KeyValUpdateMsg),
     BodyEditorAction(CodeEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
+    ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
+    OpenFilePicker,
 }
 
 impl RequestPaneMsg {
     pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
         let request = &mut state.active_tab_mut().request;
         match self {
-            RequestPaneMsg::TabSelected(tab) => {
+            Self::TabSelected(tab) => {
                 request.tab = tab;
             }
-            RequestPaneMsg::Headers(msg) => {
+            Self::Headers(msg) => {
                 request.headers.update(msg);
             }
-            RequestPaneMsg::Queries(msg) => {
+            Self::Queries(msg) => {
                 request.query_params.update(msg);
             }
-            RequestPaneMsg::PathParams(msg) => {
+            Self::PathParams(msg) => {
                 request.path_params.update(msg);
             }
-            RequestPaneMsg::BodyEditorAction(action) => match &mut request.body {
+            Self::BodyEditorAction(action) => match &mut request.body {
                 RawRequestBody::Json(content)
                 | RawRequestBody::XML(content)
                 | RawRequestBody::Text(content) => action.update(content),
                 _ => {}
             },
-            RequestPaneMsg::FormBodyEditAction(edit) => {
+            Self::FormBodyEditAction(edit) => {
                 if let RawRequestBody::Form(form) = &mut request.body {
                     form.update(edit);
                 }
             }
-            RequestPaneMsg::ChangeBodyType(content_type) => request.change_body_type(content_type),
+            Self::ChangeBodyFile(path) => {
+                request.body = RawRequestBody::File(path);
+            }
+            Self::ChangeBodyType(content_type) => request.change_body_type(content_type),
+            Self::OpenFilePicker => {
+                return open_file_dialog("Select File", |path| {
+                    RequestPaneMsg::ChangeBodyFile(path.map(|p| p.path().to_path_buf()))
+                });
+            }
         };
         Command::none()
     }
@@ -81,7 +94,25 @@ fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
         .height(Length::Fill)
         .width(Length::Fill)
         .into(),
-        RawRequestBody::File(_) | RawRequestBody::None => {
+        RawRequestBody::File(path) => {
+            let location = path
+                .as_ref()
+                .map(|p| p.to_str().unwrap_or("Invalid File Path"))
+                .unwrap_or("No File Selected");
+
+            Column::new()
+                .push(text(location))
+                .push(
+                    button(text("Select File").size(20))
+                        .padding([4, 12])
+                        .on_press(RequestPaneMsg::OpenFilePicker)
+                        .style(button::secondary),
+                )
+                .align_items(iced::Alignment::Center)
+                .spacing(8)
+                .into()
+        }
+        RawRequestBody::None => {
             let empty_icon = container(icon(icons::FileCancel).size(80.0)).padding(10);
 
             container(

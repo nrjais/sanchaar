@@ -29,7 +29,7 @@ pub enum RawRequestBody {
     Json(text_editor::Content),
     XML(text_editor::Content),
     Text(text_editor::Content),
-    File(PathBuf),
+    File(Option<PathBuf>),
     #[default]
     None,
 }
