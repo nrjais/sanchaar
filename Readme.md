@@ -4,31 +4,32 @@
 - [x] Query param support
 - [x] Header param support
 - [ ] Body support
-    - [x] JSON
-    - [x] Form
-    - [x] XML
-    - [ ] Multipart
+  - [x] JSON
+  - [x] Form
+  - [x] XML
+  - [ ] Multipart
 - [x] Request cancellation
 - [x] Tab view for multiple requests
 - [ ] File persistence
-    - [x] TOML file format
-    - [x] Save/Load
-    - [ ] Changed indicator
-    - [x] File Rename
+  - [x] TOML file format
+  - [x] Save/Load
+  - [ ] Changed indicator
+  - [x] File Rename
 - [ ] Collections
-    - [x] Tree view
-    - [ ] Create/Open/Remove/Update
-    - [ ] Auto Save/Load
-    - [ ] Export/Import
+  - [x] Tree view
+  - [x] Create/Open
+  - [ ] Remove/Update
+  - [ ] Auto Save/Load
+  - [ ] Export/Import
 - [ ] Environments
-    - [ ] Add/Remove/Update
-    - [ ] Choose environment
-    - [ ] Auto Save/Load current state
+  - [ ] Add/Remove/Update
+  - [ ] Choose environment
+  - [ ] Auto Save/Load current state
 - [ ] Code export
 - [ ] History
-    - [ ] Save/Load
-    - [ ] Auto Save/Load
+  - [ ] Save/Load
+  - [ ] Auto Save/Load
 - [ ] Scripting
-    - [ ] Pre request
-    - [ ] Post request
+  - [ ] Pre request
+  - [ ] Post request
 - [ ] Mock APIs
