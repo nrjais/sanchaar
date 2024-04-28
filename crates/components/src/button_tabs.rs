@@ -24,7 +24,7 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 ) -> Element<'a, M> {
     let tabs = tab_list(active, tabs, on_tab_change, suffix, false);
     Column::new()
-        .push(Row::from_vec(tabs))
+        .push(Row::from_vec(tabs).width(iced::Length::Fill))
         .push(Rule::horizontal(2.))
         .width(iced::Length::Fill)
         .height(iced::Length::Shrink)
