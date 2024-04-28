@@ -98,8 +98,13 @@ pub async fn load() -> anyhow::Result<Vec<Collection>> {
     for collection in collections {
         match collection {
             CollectionConfig::Path(path) => {
-                let col = open_collection(path).await?;
-                result.push(col);
+                let col = open_collection(path).await;
+                match col {
+                    Ok(col) => result.push(col),
+                    Err(e) => {
+                        println!("Error opening collection: {:?}", e);
+                    }
+                }
             }
         }
     }
