@@ -17,15 +17,11 @@ pub struct SaveRequestState {
     pub folder_id: Option<FolderId>,
 }
 
-impl SaveRequestState {
-    pub fn new(tab: TabKey) -> Self {
-        Self {
-            tab,
-            name: String::new(),
-            col: None,
-            folder_id: None,
-        }
-    }
+#[derive(Debug, Default)]
+pub struct CreateFolderState {
+    pub name: String,
+    pub col: CollectionKey,
+    pub folder_id: Option<FolderId>,
 }
 
 #[derive(Debug)]
@@ -33,10 +29,24 @@ pub enum Popup {
     CreateCollection(CreateCollectionState),
     EnvironmentEditor(CollectionKey),
     SaveRequest(SaveRequestState),
+    CreateFolder(CreateFolderState),
 }
 
 impl Popup {
     pub fn save_request(tab: TabKey) -> Self {
-        Self::SaveRequest(SaveRequestState::new(tab))
+        Self::SaveRequest(SaveRequestState {
+            tab,
+            name: String::new(),
+            col: None,
+            folder_id: None,
+        })
+    }
+
+    pub fn create_folder(col: CollectionKey, folder_id: Option<FolderId>) -> Self {
+        Self::CreateFolder(CreateFolderState {
+            name: String::new(),
+            col,
+            folder_id,
+        })
     }
 }

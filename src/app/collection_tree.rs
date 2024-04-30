@@ -7,7 +7,7 @@ use components::{context_menu, icon, icons, menu_item, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
-use crate::commands::builders::{open_existing_collection, open_request_cmd};
+use crate::commands::builders::{self, open_existing_collection, open_request_cmd};
 use crate::state::popups::Popup;
 use crate::state::AppState;
 
@@ -20,7 +20,8 @@ pub enum CollectionTreeMsg {
     OpenCollection,
     OpenCollectionHandle(Option<Collection>),
     RequestLoaded(CollectionRequest, Option<Request>),
-    ContextMenu(MenuAction),
+    ContextMenu(CollectionKey, MenuAction),
+    ActionComplete(MenuAction),
 }
 
 impl CollectionTreeMsg {
@@ -29,12 +30,12 @@ impl CollectionTreeMsg {
             CollectionTreeMsg::ToggleExpandCollection(key) => {
                 state
                     .collections
-                    .on_collection_mut(key, |collection| collection.toggle_expand());
+                    .with_collection_mut(key, |collection| collection.toggle_expand());
             }
             CollectionTreeMsg::ToggleFolder(col, id) => {
                 state
                     .collections
-                    .on_collection_mut(col, |collection| collection.toggle_folder(id));
+                    .with_collection_mut(col, |collection| collection.toggle_folder(id));
             }
             CollectionTreeMsg::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
@@ -57,11 +58,37 @@ impl CollectionTreeMsg {
                     state.open_request(col, req);
                 }
             }
-            CollectionTreeMsg::ContextMenu(_) => {}
+            CollectionTreeMsg::ContextMenu(col, action) => {
+                return handle_context_menu(state, col, action);
+            }
+            CollectionTreeMsg::ActionComplete(_) => {}
         }
         Command::none()
     }
 }
+
+fn handle_context_menu(
+    state: &mut AppState,
+    col: CollectionKey,
+    action: MenuAction,
+) -> Command<CollectionTreeMsg> {
+    match action {
+        MenuAction::NewFolderRoot => {
+            state.popup = Some(Popup::create_folder(col, None));
+            Command::none()
+        }
+        MenuAction::NewFolder(folder_id) => {
+            state.popup = Some(Popup::create_folder(col, Some(folder_id)));
+            Command::none()
+        }
+        MenuAction::DeleteFolder(folder_id) => {
+            builders::delete_folder_cmd(state, col, folder_id, move || {
+                CollectionTreeMsg::ActionComplete(action)
+            })
+        }
+    }
+}
+
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
     button(container(icon(ico).size(20)).padding([0, 8]))
         .padding(0)
@@ -76,6 +103,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
             &collection.children,
             collection.expanded,
             CollectionTreeMsg::ToggleExpandCollection(key),
+            None,
         )
     });
 
@@ -129,6 +157,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
             &folder.children,
             folder.expanded,
             CollectionTreeMsg::ToggleFolder(col, folder.id),
+            Some(folder.id),
         ),
     });
 
@@ -145,6 +174,7 @@ fn expandable<'a>(
     entries: &'a [Entry],
     expanded: bool,
     on_expand_toggle: CollectionTreeMsg,
+    folder_id: Option<FolderId>,
 ) -> Element<'a, CollectionTreeMsg> {
     if expanded {
         let children = folder_tree(col, entries);
@@ -153,37 +183,56 @@ fn expandable<'a>(
                 name,
                 on_expand_toggle,
                 icons::TriangleDown,
+                col,
+                folder_id,
             ))
             .push(children)
             .spacing(2)
             .width(Length::Fill)
             .into()
     } else {
-        expandable_button(name, on_expand_toggle, icons::TriangleRight).into()
+        expandable_button(name, on_expand_toggle, icons::TriangleRight, col, folder_id).into()
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum MenuAction {
-    NewFolder,
-    DeleteFolder,
+    NewFolder(FolderId),
+    DeleteFolder(FolderId),
+    NewFolderRoot,
 }
 
-fn context_button<'a>(
+fn context_button_folder<'a>(
     base: impl Into<Element<'a, CollectionTreeMsg>>,
+    col: CollectionKey,
+    folder_id: FolderId,
 ) -> Element<'a, CollectionTreeMsg> {
     context_menu(
         base,
         vec![
             menu_item(
                 "New Folder",
-                CollectionTreeMsg::ContextMenu(MenuAction::NewFolder),
+                CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolder(folder_id)),
             ),
             menu_item(
                 "Delete Folder",
-                CollectionTreeMsg::ContextMenu(MenuAction::DeleteFolder),
+                CollectionTreeMsg::ContextMenu(col, MenuAction::DeleteFolder(folder_id)),
             ),
         ],
+    )
+    .into()
+}
+
+fn context_button_collection<'a>(
+    base: impl Into<Element<'a, CollectionTreeMsg>>,
+    col: CollectionKey,
+) -> Element<'a, CollectionTreeMsg> {
+    context_menu(
+        base,
+        vec![menu_item(
+            "New Folder",
+            CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolderRoot),
+        )],
     )
     .into()
 }
@@ -192,16 +241,22 @@ fn expandable_button(
     name: &str,
     on_expand_toggle: CollectionTreeMsg,
     arrow: NerdIcon,
+    col: CollectionKey,
+    folder_id: Option<FolderId>,
 ) -> impl Into<Element<CollectionTreeMsg>> {
-    context_button(
-        button(
-            Row::with_children([icon(arrow).size(12).into(), text(name).into()])
-                .align_items(iced::Alignment::Center)
-                .spacing(4),
-        )
-        .style(button::text)
-        .on_press(on_expand_toggle)
-        .width(Length::Fill)
-        .padding(0),
+    let base = button(
+        Row::with_children([icon(arrow).size(12).into(), text(name).into()])
+            .align_items(iced::Alignment::Center)
+            .spacing(4),
     )
+    .style(button::text)
+    .on_press(on_expand_toggle)
+    .width(Length::Fill)
+    .padding(0);
+
+    if let Some(folder_id) = folder_id {
+        context_button_folder(base, col, folder_id)
+    } else {
+        context_button_collection(base, col)
+    }
 }

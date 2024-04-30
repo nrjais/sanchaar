@@ -23,7 +23,7 @@ pub struct Collections {
 }
 
 impl Collections {
-    pub fn on_collection_mut<F, R>(&mut self, key: CollectionKey, f: F) -> Option<R>
+    pub fn with_collection_mut<F, R>(&mut self, key: CollectionKey, f: F) -> Option<R>
     where
         F: FnOnce(&mut Collection) -> R,
     {
@@ -88,5 +88,26 @@ impl Collections {
 
     fn dirty(&mut self) {
         self.dirty = true;
+    }
+
+    pub fn delete_folder(
+        &mut self,
+        col: CollectionKey,
+        folder_id: collection::FolderId,
+    ) -> Option<PathBuf> {
+        self.with_collection_mut(col, |collection| collection.delete_folder(folder_id))
+            .flatten()
+    }
+
+    pub fn create_folder_in(
+        &mut self,
+        name: String,
+        col: CollectionKey,
+        folder_id: Option<collection::FolderId>,
+    ) -> Option<PathBuf> {
+        self.entries
+            .get_mut(col)
+            .map(|collection| collection.create_folder(name, folder_id))
+            .flatten()
     }
 }

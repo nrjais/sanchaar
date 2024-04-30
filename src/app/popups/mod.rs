@@ -6,6 +6,7 @@ use crate::state::popups::Popup;
 use crate::state::AppState;
 
 mod create_collection;
+mod create_folder;
 mod environment_editor;
 mod save_request;
 
@@ -14,16 +15,18 @@ pub enum PopupMsg {
     CreateCollection(create_collection::Message),
     EnvironmentEditor(environment_editor::Message),
     SaveRequest(save_request::Message),
+    CreateFolder(create_folder::Message),
     ClosePopup,
 }
 
 impl PopupMsg {
     pub fn update(self, state: &mut AppState) -> Command<PopupMsg> {
         match self {
-            Self::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
-            Self::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
-            Self::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
-            Self::ClosePopup => {
+            PopupMsg::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
+            PopupMsg::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
+            PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
+            PopupMsg::CreateFolder(msg) => msg.update(state).map(PopupMsg::CreateFolder),
+            PopupMsg::ClosePopup => {
                 state.popup = None;
                 Command::none()
             }
@@ -47,6 +50,11 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             save_request::title(),
             save_request::view(state, data).map(PopupMsg::SaveRequest),
             save_request::done(data).map(PopupMsg::SaveRequest),
+        ),
+        Popup::CreateFolder(data) => (
+            create_folder::title(),
+            create_folder::view(state, data).map(PopupMsg::CreateFolder),
+            create_folder::done(data).map(PopupMsg::CreateFolder),
         ),
     };
 

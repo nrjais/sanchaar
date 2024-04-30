@@ -62,7 +62,11 @@ pub fn title<'a>() -> Cow<'a, str> {
 }
 
 pub fn done(data: &SaveRequestState) -> Option<Message> {
-    data.col.map(Message::Done)
+    if data.name.is_empty() || data.col.is_none() {
+        None
+    } else {
+        Some(Message::Done(data.col.unwrap()))
+    }
 }
 
 pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {

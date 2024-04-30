@@ -2,25 +2,26 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::advanced::graphics::futures::MaybeSend;
-use iced::Command;
 use iced::futures::TryFutureExt;
+use iced::Command;
 use rfd::AsyncFileDialog;
+use tokio::fs;
 
 use core::client::send_request;
+use core::http::collection::Collection;
 use core::http::{
     collection::{Entry, FolderId, RequestId, RequestRef},
-    CollectionKey,
-    CollectionRequest, request::Request,
+    request::Request,
+    CollectionKey, CollectionRequest,
 };
-use core::http::collection::Collection;
 use core::persistence::collections::{encode_collection, open_collection, save_collection};
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
-use crate::state::{AppState, TabKey};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
+use crate::state::{AppState, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum ResponseResult {
@@ -174,4 +175,34 @@ pub fn open_request_cmd<M>(
             on_done(None)
         }
     })
+}
+
+pub(crate) fn delete_folder_cmd<M>(
+    state: &mut AppState,
+    col: CollectionKey,
+    folder_id: FolderId,
+    on_done: impl Fn() -> M + 'static + MaybeSend,
+) -> Command<M> {
+    let path = state.collections.delete_folder(col, folder_id);
+    if let Some(path) = path {
+        Command::perform(fs::remove_dir_all(path), move |_| on_done())
+    } else {
+        Command::none()
+    }
+}
+
+pub(crate) fn create_folder<Message>(
+    state: &mut AppState,
+    col: CollectionKey,
+    folder_id: Option<FolderId>,
+    name: String,
+    done: impl Fn() -> Message + 'static + MaybeSend,
+) -> Command<Message> {
+    let path = state.collections.create_folder_in(name, col, folder_id);
+
+    if let Some(path) = path {
+        Command::perform(fs::create_dir(path), move |_| done())
+    } else {
+        Command::none()
+    }
 }

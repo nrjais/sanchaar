@@ -1,5 +1,5 @@
 use crate::http::environment::Environments;
-use std::path::PathBuf;
+use std::{ops::Not, path::PathBuf};
 
 use crate::new_id_type;
 
@@ -133,6 +133,61 @@ impl Collection {
             }
         }
         None
+    }
+
+    pub fn delete_folder(&mut self, folder_id: FolderId) -> Option<PathBuf> {
+        fn recurse<'a>(entries: &mut Vec<Entry>, id: FolderId) -> Option<PathBuf> {
+            let mut path = None;
+
+            let iter = entries.iter_mut();
+            for entry in iter {
+                if let Entry::Folder(folder) = entry {
+                    if folder.id == id {
+                        path = Some(folder.path.clone());
+                        break;
+                    } else {
+                        return recurse(&mut folder.children, id);
+                    }
+                }
+            }
+            if path.is_some() {
+                entries.retain(|e| matches!(e, Entry::Folder(f) if f.id == id).not());
+            }
+            path
+        }
+        recurse(&mut self.children, folder_id)
+    }
+
+    pub(crate) fn create_folder(
+        &mut self,
+        name: String,
+        folder_id: Option<FolderId>,
+    ) -> Option<PathBuf> {
+        let create_entry = |name: String, path: &PathBuf| {
+            let path = path.join(&name);
+            (
+                Entry::Folder(Folder {
+                    name,
+                    id: FolderId::new(),
+                    children: Vec::new(),
+                    expanded: true,
+                    path: path.clone(),
+                }),
+                path,
+            )
+        };
+
+        if let Some(folder_id) = folder_id {
+            let folder = self.folder_mut(folder_id)?;
+            let (entry, path) = create_entry(name, &folder.path);
+            folder.children.push(entry);
+
+            Some(path)
+        } else {
+            let (entry, path) = create_entry(name, &self.path);
+            self.children.push(entry);
+            Some(path)
+        }
     }
 }
 
