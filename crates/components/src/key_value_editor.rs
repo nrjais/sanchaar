@@ -1,6 +1,6 @@
-use iced::widget::scrollable;
+use iced::widget::{column, scrollable};
 use iced::{
-    widget::{button, checkbox, component, container, text_input, Column, Component, Row},
+    widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
 };
 use std::ops::Not;
@@ -205,11 +205,6 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .into()
         });
 
-        scrollable(
-            Column::with_children(values)
-                .spacing(spacing)
-                .padding([0, 8, 0, 0]),
-        )
-        .into()
+        scrollable(column(values).spacing(spacing).padding([0, 8, 0, 0])).into()
     }
 }

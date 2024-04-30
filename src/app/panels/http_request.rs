@@ -1,10 +1,7 @@
 use components::{bordered_left, bordered_right};
 use iced::widget::pane_grid::ResizeEvent;
-use iced::widget::{pane_grid, PaneGrid};
-use iced::{
-    widget::{container, Column},
-    Command, Element,
-};
+use iced::widget::{column, pane_grid, PaneGrid};
+use iced::{widget::container, Command, Element};
 
 use crate::state::{AppState, SplitState};
 
@@ -66,7 +63,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     .on_resize(10, HttpMsg::SplitResize);
 
     let req_res = container(req_res).padding([4, 0, 0, 0]).into();
-    Column::with_children([action_bar, url_bar, req_res])
+    column([action_bar, url_bar, req_res])
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
         .spacing(4)

@@ -1,9 +1,6 @@
 use iced::advanced::text::Wrapping;
-use iced::widget::{container, scrollable, text};
-use iced::{
-    widget::{Column, Row},
-    Border, Element, Length, Theme,
-};
+use iced::widget::{column, container, scrollable, text};
+use iced::{widget::Row, Border, Element, Length, Theme};
 
 use crate::colors;
 
@@ -31,7 +28,7 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
     });
 
     container(scrollable(
-        Column::with_children(values)
+        column(values)
             .spacing(spacing)
             .padding([8, 12, 8, 8])
             .width(Length::Fill),

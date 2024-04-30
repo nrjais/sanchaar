@@ -30,4 +30,5 @@ pub mod icons {
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');
     pub const DotsCircle: NerdIcon = NerdIcon('󱥸');
     pub const Close: NerdIcon = NerdIcon('󰅖');
+    pub const API: NerdIcon = NerdIcon('󱂛');
 }

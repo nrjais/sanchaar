@@ -1,6 +1,8 @@
 use iced::alignment::Horizontal;
 use iced::widget::tooltip::Position;
-use iced::widget::{button, container, horizontal_rule, text, tooltip, Button, Column, Row};
+use iced::widget::{
+    button, column, container, horizontal_rule, row, text, tooltip, Button, Column, Row,
+};
 use iced::{Command, Element, Length};
 
 use components::{context_menu, icon, icons, menu_item, NerdIcon};
@@ -140,7 +142,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
             .width(Length::Fill),
         )
         .push(horizontal_rule(4))
-        .push(Column::with_children(it).spacing(4))
+        .push(column(it).spacing(4))
         .spacing(4)
         .width(Length::Fill)
         .into()
@@ -148,13 +150,17 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
 
 fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeMsg> {
     let it = entries.iter().map(|entry| match entry {
-        Entry::Item(item) => button(text(&item.name))
-            .style(button::text)
-            .padding(0)
-            .on_press(CollectionTreeMsg::OpenRequest(CollectionRequest(
-                col, item.id,
-            )))
-            .into(),
+        Entry::Item(item) => button(
+            row([icon(icons::API).into(), text(&item.name).into()])
+                .align_items(iced::Alignment::Center)
+                .spacing(6),
+        )
+        .style(button::text)
+        .padding(0)
+        .on_press(CollectionTreeMsg::OpenRequest(CollectionRequest(
+            col, item.id,
+        )))
+        .into(),
         Entry::Folder(folder) => expandable(
             col,
             &folder.name,
@@ -165,7 +171,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
         ),
     });
 
-    Column::with_children(it)
+    column(it)
         .spacing(2)
         .padding([0, 0, 0, 12])
         .width(Length::Fill)
@@ -254,7 +260,7 @@ fn expandable_button(
     folder_id: Option<FolderId>,
 ) -> impl Into<Element<CollectionTreeMsg>> {
     let base = button(
-        Row::with_children([icon(arrow).size(12).into(), text(name).into()])
+        row([icon(arrow).into(), text(name).into()])
             .align_items(iced::Alignment::Center)
             .spacing(4),
     )
