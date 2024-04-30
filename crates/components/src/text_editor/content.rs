@@ -46,6 +46,12 @@ fn track_action<R: text::Renderer>(internal: &mut Internal<R>, edit: Edit) {
 }
 
 fn delete_action<R: text::Renderer>(mov: Motion, internal: &mut Internal<R>) {
+    let selection = internal.editor.selection();
+    if selection.is_some() {
+        track_action(internal, Edit::Delete);
+        return;
+    };
+
     let editor = &mut internal.editor;
     let cursor = editor.cursor_position();
     editor.perform(Action::Move(mov));
