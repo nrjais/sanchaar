@@ -179,6 +179,8 @@ impl Collection {
 
         if let Some(folder_id) = folder_id {
             let folder = self.folder_mut(folder_id)?;
+            folder.expanded = true;
+
             let (entry, path) = create_entry(name, &folder.path);
             folder.children.push(entry);
 
@@ -186,6 +188,7 @@ impl Collection {
         } else {
             let (entry, path) = create_entry(name, &self.path);
             self.children.push(entry);
+            self.expanded = true;
             Some(path)
         }
     }
