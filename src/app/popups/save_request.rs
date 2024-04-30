@@ -113,9 +113,12 @@ pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Elemen
     let entries: Vec<Element<Message>> = children
         .iter()
         .filter_map(|e| match e {
-            Entry::Folder(Folder { id, name, .. }) => {
-                Some(button(text(name)).on_press(Message::SelectDir(*id)).into())
-            }
+            Entry::Folder(Folder { id, name, .. }) => Some(
+                button(text(name))
+                    .padding([2, 4])
+                    .on_press(Message::SelectDir(*id))
+                    .into(),
+            ),
             Entry::Item(_) => None,
         })
         .collect();
