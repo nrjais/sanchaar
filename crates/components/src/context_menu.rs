@@ -47,7 +47,7 @@ where
             .spacing(2),
         )
         .padding(4)
-        .style(container::rounded_box)
+        .style(container::bordered_box)
     };
 
     let menu = double_pass(build_menu(Length::Shrink), build_menu(Length::Fill));
