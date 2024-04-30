@@ -33,3 +33,8 @@
   - [ ] Pre request
   - [ ] Post request
 - [ ] Mock APIs
+- [ ] CLI
+  - [ ] Run request by path
+  - [ ] Select environment by name
+  - [ ] Run tests by path
+  - [ ] Run all collection tests
