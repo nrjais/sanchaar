@@ -1,21 +1,21 @@
-use iced::{
-    Command,
-    Element, widget::{button, container, pick_list, row},
-};
 use iced::widget::{Button, Row};
+use iced::{
+    widget::{button, container, pick_list, row},
+    Command, Element,
+};
 use log::info;
 use reqwest::Url;
 use serde_json::Value;
 use strum::VariantArray;
 
+use components::text_editor::{line_editor, Content, ContentAction};
 use components::{icon, icons, NerdIcon};
-use components::text_editor::{Content, ContentAction, line_editor};
 use core::http::request::Method;
 
-use crate::commands::builders::{ResponseResult, save_request, send_request_cmd};
-use crate::state::{AppState, TabKey};
+use crate::commands::builders::{save_request, send_request_cmd, ResponseResult};
 use crate::state::popups::Popup;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
+use crate::state::{AppState, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {

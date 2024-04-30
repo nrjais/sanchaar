@@ -86,6 +86,10 @@ fn handle_context_menu(
                 CollectionTreeMsg::ActionComplete(action)
             })
         }
+        MenuAction::RemoveCollection => {
+            state.collections.remove(col);
+            Command::none()
+        }
     }
 }
 
@@ -200,6 +204,7 @@ pub enum MenuAction {
     NewFolder(FolderId),
     DeleteFolder(FolderId),
     NewFolderRoot,
+    RemoveCollection,
 }
 
 fn context_button_folder<'a>(
@@ -220,7 +225,6 @@ fn context_button_folder<'a>(
             ),
         ],
     )
-    .into()
 }
 
 fn context_button_collection<'a>(
@@ -229,12 +233,17 @@ fn context_button_collection<'a>(
 ) -> Element<'a, CollectionTreeMsg> {
     context_menu(
         base,
-        vec![menu_item(
-            "New Folder",
-            CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolderRoot),
-        )],
+        vec![
+            menu_item(
+                "Remove",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::RemoveCollection),
+            ),
+            menu_item(
+                "New Folder",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolderRoot),
+            ),
+        ],
     )
-    .into()
 }
 
 fn expandable_button(

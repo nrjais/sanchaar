@@ -43,7 +43,7 @@ fn save_open_collections(state: &AppState) -> Command<CommandMsg> {
 }
 
 pub fn background(state: &mut AppState) -> Command<CommandMsg> {
-    return Command::batch([save_open_collections(state)]);
+    Command::batch([save_open_collections(state)])
 }
 
 pub async fn load_collections() -> Vec<Collection> {

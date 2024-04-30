@@ -5,7 +5,7 @@ use iced::{
     event, mouse, Command, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector,
 };
 
-use super::double_pass::double_pass;
+use crate::min_width::min_width;
 
 #[derive(Debug, Clone)]
 pub struct MenuButton<'a, M: Clone + 'a> {
@@ -50,7 +50,7 @@ where
         .style(container::bordered_box)
     };
 
-    let menu = double_pass(build_menu(Length::Shrink), build_menu(Length::Fill));
+    let menu = min_width(build_menu(Length::Shrink), build_menu(Length::Fill), 150.);
 
     ContextMenu {
         base: base.into(),

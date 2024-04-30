@@ -110,4 +110,9 @@ impl Collections {
             .map(|collection| collection.create_folder(name, folder_id))
             .flatten()
     }
+
+    pub fn remove(&mut self, col: CollectionKey) {
+        self.dirty();
+        self.entries.remove(col);
+    }
 }

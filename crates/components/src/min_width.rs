@@ -1,32 +1,34 @@
 //! A widget that uses a two pass layout.
 //!
-//! Layout from first pass is used as the limits for the second pass
+//! Layout from first pass is used to set the limits for the second pass
 
 use iced::advanced::widget::tree;
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::{event, mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
 
-/// Layout from first pass is used as the limits for the second pass
-pub fn double_pass<'a, Message>(
+pub fn min_width<'a, Message>(
     first_pass: impl Into<Element<'a, Message>>,
     second_pass: impl Into<Element<'a, Message>>,
+    min_width: f32,
 ) -> Element<'a, Message>
 where
     Message: 'a,
 {
-    DoublePass {
+    MinWidth {
         first_pass: first_pass.into(),
         second_pass: second_pass.into(),
+        min_width,
     }
     .into()
 }
 
-struct DoublePass<'a, Message> {
+struct MinWidth<'a, Message> {
     first_pass: Element<'a, Message>,
     second_pass: Element<'a, Message>,
+    min_width: f32,
 }
 
-impl<'a, Message> Widget<Message, Theme, Renderer> for DoublePass<'a, Message> {
+impl<'a, Message> Widget<Message, Theme, Renderer> for MinWidth<'a, Message> {
     fn size(&self) -> Size<Length> {
         self.second_pass.as_widget().size()
     }
@@ -47,13 +49,13 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for DoublePass<'a, Message> {
             limits,
         );
 
+        let bounds = layout.bounds();
+
+        let size = Size::new(self.min_width.max(bounds.width), bounds.height);
+
         let new_limits = layout::Limits::new(
             Size::ZERO,
-            layout
-                .size()
-                // eliminate float precision issues if second pass
-                // is fill
-                .expand(Size::new(horizontal_expansion(), 1.0)),
+            size.expand(Size::new(horizontal_expansion(), 1.0)),
         );
 
         self.second_pass
@@ -146,11 +148,11 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for DoublePass<'a, Message> {
     }
 }
 
-impl<'a, Message> From<DoublePass<'a, Message>> for Element<'a, Message>
+impl<'a, Message> From<MinWidth<'a, Message>> for Element<'a, Message>
 where
     Message: 'a,
 {
-    fn from(double_pass: DoublePass<'a, Message>) -> Self {
+    fn from(double_pass: MinWidth<'a, Message>) -> Self {
         Element::new(double_pass)
     }
 }
