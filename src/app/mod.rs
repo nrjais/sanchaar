@@ -1,6 +1,6 @@
 use iced::Command;
 
-use components::modal::modal;
+use components::modal;
 use popups::PopupMsg;
 
 use crate::app::main_page::MainPageMsg;

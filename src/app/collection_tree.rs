@@ -3,7 +3,7 @@ use iced::widget::tooltip::Position;
 use iced::widget::{button, container, horizontal_rule, text, tooltip, Button, Column, Row};
 use iced::{Command, Element, Length};
 
-use components::{icon, icons, NerdIcon};
+use components::{context_menu, icon, icons, menu_item, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
@@ -20,42 +20,44 @@ pub enum CollectionTreeMsg {
     OpenCollection,
     OpenCollectionHandle(Option<Collection>),
     RequestLoaded(CollectionRequest, Option<Request>),
+    ContextMenu(MenuAction),
 }
 
 impl CollectionTreeMsg {
     pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
-            Self::ToggleExpandCollection(key) => {
+            CollectionTreeMsg::ToggleExpandCollection(key) => {
                 state
                     .collections
                     .on_collection_mut(key, |collection| collection.toggle_expand());
             }
-            Self::ToggleFolder(col, id) => {
+            CollectionTreeMsg::ToggleFolder(col, id) => {
                 state
                     .collections
                     .on_collection_mut(col, |collection| collection.toggle_folder(id));
             }
-            Self::OpenRequest(col) => {
+            CollectionTreeMsg::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
                     return open_request_cmd(state, col, move |res| Self::RequestLoaded(col, res));
                 };
             }
-            Self::CreateCollection => {
+            CollectionTreeMsg::CreateCollection => {
                 state.popup = Some(Popup::CreateCollection(Default::default()));
             }
-            Self::OpenCollection => {
+            CollectionTreeMsg::OpenCollection => {
                 return open_existing_collection(Self::OpenCollectionHandle);
             }
-            Self::OpenCollectionHandle(handle) => {
+            CollectionTreeMsg::OpenCollectionHandle(handle) => {
                 if let Some(handle) = handle {
                     state.collections.insert(handle);
                 }
             }
-            Self::RequestLoaded(col, req) => {
+            CollectionTreeMsg::RequestLoaded(col, req) => {
                 if let Some(req) = req {
                     state.open_request(col, req);
                 }
             }
+            CollectionTreeMsg::ContextMenu(_) => {}
         }
         Command::none()
     }
@@ -161,18 +163,45 @@ fn expandable<'a>(
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum MenuAction {
+    NewFolder,
+    DeleteFolder,
+}
+
+fn context_button<'a>(
+    base: impl Into<Element<'a, CollectionTreeMsg>>,
+) -> Element<'a, CollectionTreeMsg> {
+    context_menu(
+        base,
+        vec![
+            menu_item(
+                "New Folder",
+                CollectionTreeMsg::ContextMenu(MenuAction::NewFolder),
+            ),
+            menu_item(
+                "Delete Folder",
+                CollectionTreeMsg::ContextMenu(MenuAction::DeleteFolder),
+            ),
+        ],
+    )
+    .into()
+}
+
 fn expandable_button(
     name: &str,
     on_expand_toggle: CollectionTreeMsg,
     arrow: NerdIcon,
-) -> Button<CollectionTreeMsg> {
-    button(
-        Row::with_children([icon(arrow).size(12).into(), text(name).into()])
-            .align_items(iced::Alignment::Center)
-            .spacing(4),
+) -> impl Into<Element<CollectionTreeMsg>> {
+    context_button(
+        button(
+            Row::with_children([icon(arrow).size(12).into(), text(name).into()])
+                .align_items(iced::Alignment::Center)
+                .spacing(4),
+        )
+        .style(button::text)
+        .on_press(on_expand_toggle)
+        .width(Length::Fill)
+        .padding(0),
     )
-    .style(button::text)
-    .padding(0)
-    .on_press(on_expand_toggle)
-    .width(Length::Fill)
 }

@@ -4,8 +4,7 @@ use iced::widget::{component, Component};
 use iced::{highlighter, Font, Length, Renderer, Theme};
 use iced_core::text::Wrapping;
 
-use crate::text_editor;
-use crate::text_editor::{text_editor, ContentAction};
+use crate::text_editor::{self, text_editor, ContentAction};
 
 pub enum ContentType {
     Json,
