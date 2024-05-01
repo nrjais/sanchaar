@@ -27,26 +27,36 @@ fn track_action<R: text::Renderer>(internal: &mut Internal<R>, edit: Edit) {
 
     let (line, col) = editor.cursor_position();
     let pre_selection = editor.selection().map(Arc::new);
+    let pre_selection_c = editor.selection_cursor();
 
-    let (at, after) = editor
+    let (mut at, mut after) = editor
         .line(line)
         .map(|line| line.chars())
         .map(|mut chars| (chars.nth(col.saturating_sub(1)), chars.next()))
         .unwrap_or((None, None));
+    if col == 0 {
+        at = (line > 0).then_some('\n');
+    }
+    if after.is_none() {
+        after = editor.line(line + 1).map(|_| '\n');
+    }
+
     editor.perform(Action::Edit(edit.clone()));
 
     internal.undo_stack.push(EditorAction {
         edit,
-        pre_selection,
-        pre_cursor_position: (line, col),
-        post_cursor_position: editor.cursor_position(),
+        pre_selection_text: pre_selection,
+        pre_cursor: (line, col),
+        post_cursor: editor.cursor_position(),
         char_at_cursor: at,
         char_after_cursor: after,
+        pre_selection: pre_selection_c,
+        post_selection: editor.selection_cursor(),
     });
 }
 
 fn delete_action<R: text::Renderer>(mov: Motion, internal: &mut Internal<R>) {
-    let selection = internal.editor.selection();
+    let selection = internal.editor.selection_cursor();
     if selection.is_some() {
         track_action(internal, Edit::Delete);
         return;
