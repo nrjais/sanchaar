@@ -30,12 +30,12 @@ impl CommandMsg {
     }
 }
 
-fn save_open_collections(state: &AppState) -> Command<CommandMsg> {
+fn save_open_collections(state: &mut AppState) -> Command<CommandMsg> {
     if !state.collections.dirty {
         return Command::none();
     }
 
-    let collections = state.collections.entries.values().cloned().collect();
+    let collections = state.collections.get_collections_for_save();
     Command::perform(collections::save(collections), |result| match result {
         Ok(_) => CommandMsg::Completed("Collections saved".to_string()),
         Err(e) => CommandMsg::Completed(format!("Error saving collections: {:?}", e)),

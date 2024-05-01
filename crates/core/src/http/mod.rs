@@ -90,6 +90,11 @@ impl Collections {
         self.dirty = true;
     }
 
+    pub fn get_collections_for_save(&mut self) -> Vec<Collection> {
+        self.dirty = false;
+        self.entries.values().cloned().collect()
+    }
+
     pub fn delete_folder(
         &mut self,
         col: CollectionKey,
