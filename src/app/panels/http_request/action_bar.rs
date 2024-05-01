@@ -52,7 +52,7 @@ impl ActionBarMsg {
                 Command::none()
             }
             ActionBarMsg::OpenEnvironments(col) => {
-                state.popup = Some(Popup::EnvironmentEditor(col));
+                Popup::environment_editor(state, col);
                 Command::none()
             }
             ActionBarMsg::RequestRenamed => {

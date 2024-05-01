@@ -45,7 +45,7 @@ impl CollectionTreeMsg {
                 };
             }
             CollectionTreeMsg::CreateCollection => {
-                state.popup = Some(Popup::CreateCollection(Default::default()));
+                Popup::create_collection(state);
             }
             CollectionTreeMsg::OpenCollection => {
                 return open_existing_collection(Self::OpenCollectionHandle);
@@ -76,11 +76,11 @@ fn handle_context_menu(
 ) -> Command<CollectionTreeMsg> {
     match action {
         MenuAction::NewFolderRoot => {
-            state.popup = Some(Popup::create_folder(col, None));
+            Popup::create_folder(state, col, None);
             Command::none()
         }
         MenuAction::NewFolder(folder_id) => {
-            state.popup = Some(Popup::create_folder(col, Some(folder_id)));
+            Popup::create_folder(state, col, Some(folder_id));
             Command::none()
         }
         MenuAction::DeleteFolder(folder_id) => {

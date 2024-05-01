@@ -122,7 +122,7 @@ impl UrlBarMsg {
                         Self::RequestSaved
                     });
                 } else {
-                    state.popup = Some(Popup::save_request(state.active_tab));
+                    Popup::save_request(state, state.active_tab);
                 }
             }
             UrlBarMsg::RequestSaved => {

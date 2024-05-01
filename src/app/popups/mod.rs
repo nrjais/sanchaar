@@ -27,7 +27,7 @@ impl PopupMsg {
             PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
             PopupMsg::CreateFolder(msg) => msg.update(state).map(PopupMsg::CreateFolder),
             PopupMsg::ClosePopup => {
-                state.popup = None;
+                Popup::close(state);
                 Command::none()
             }
         }
@@ -41,9 +41,9 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             create_collection::view(state, data).map(PopupMsg::CreateCollection),
             create_collection::done(data).map(PopupMsg::CreateCollection),
         ),
-        Popup::EnvironmentEditor(col) => (
+        Popup::EnvironmentEditor(data) => (
             environment_editor::title(),
-            environment_editor::view(state, *col).map(PopupMsg::EnvironmentEditor),
+            environment_editor::view(state, data).map(PopupMsg::EnvironmentEditor),
             environment_editor::done().map(PopupMsg::EnvironmentEditor),
         ),
         Popup::SaveRequest(data) => (

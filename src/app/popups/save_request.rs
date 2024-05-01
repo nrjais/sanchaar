@@ -143,6 +143,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
                 .on_input(Message::NameChanged)
                 .on_paste(Message::NameChanged),
         )
+        .align_items(iced::Alignment::Center)
         .spacing(4);
 
     let col_name = collection
@@ -157,6 +158,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
         .push(text("Location"))
         .push(horizontal_space())
         .push(text(col_name).size(12))
+        .align_items(iced::Alignment::Center)
         .spacing(4);
 
     let folder_selector = collection.map(|c| dir_selector(c, data.folder_id));

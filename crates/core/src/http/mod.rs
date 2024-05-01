@@ -5,6 +5,8 @@ use slotmap::SlotMap;
 use crate::http::collection::{Collection, RequestId, RequestRef};
 use crate::http::environment::Environments;
 
+use self::environment::EnvironmentKey;
+
 pub mod collection;
 pub mod environment;
 pub mod request;
@@ -119,5 +121,11 @@ impl Collections {
     pub fn remove(&mut self, col: CollectionKey) {
         self.dirty();
         self.entries.remove(col);
+    }
+
+    pub fn create_env(&mut self, col: CollectionKey, name: String) -> Option<EnvironmentKey> {
+        let collection = self.entries.get_mut(col)?;
+
+        Some(collection.environments.create(name))
     }
 }

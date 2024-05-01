@@ -32,6 +32,15 @@ impl Environments {
     pub fn entries(&self) -> impl Iterator<Item = (EnvironmentKey, &Environment)> {
         self.envs.iter()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.envs.is_empty()
+    }
+
+    pub(crate) fn create(&mut self, name: String) -> EnvironmentKey {
+        let env = Environment::new(name);
+        self.insert(env)
+    }
 }
 
 #[derive(Debug, Clone)]
