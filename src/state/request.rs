@@ -53,9 +53,7 @@ impl RawRequestBody {
             RequestBody::XML(xml) => RawRequestBody::XML(text_editor::Content::with_text(xml)),
             RequestBody::Text(text) => RawRequestBody::Text(text_editor::Content::with_text(text)),
             RequestBody::File(file) => RawRequestBody::File(file.clone()),
-            RequestBody::None => RawRequestBody::Json(text_editor::Content::with_text(
-                "Some very big\njson text\n",
-            )),
+            RequestBody::None => RawRequestBody::None,
         }
     }
 }
@@ -130,7 +128,7 @@ impl RequestPane {
             body: RawRequestBody::from_request_body(&request.body),
             query_params: to_key_val_list(request.query_params, false),
             path_params: to_key_val_list(request.path_params, true),
-            tab: ReqTabId::Body,
+            tab: ReqTabId::Params,
             body_cache: HashMap::new(),
         }
     }
