@@ -588,12 +588,12 @@ impl Update {
                         keyboard::Key::Named(key::Named::Backspace)
                             if modifiers.alt() && !modifiers.command() =>
                         {
-                            return content_action(ContentAction::DeletePreviousWord);
+                            return content_action(ContentAction::Delete(Motion::WordLeft));
                         }
                         keyboard::Key::Named(key::Named::Backspace)
                             if !modifiers.alt() && modifiers.command() =>
                         {
-                            return content_action(ContentAction::DeleteTillLineStart);
+                            return content_action(ContentAction::Delete(Motion::Home));
                         }
                         keyboard::Key::Named(key::Named::Backspace) => {
                             return edit(Edit::Backspace);
@@ -602,7 +602,7 @@ impl Update {
                         keyboard::Key::Named(key::Named::Delete)
                             if modifiers.alt() && !modifiers.command() =>
                         {
-                            return content_action(ContentAction::DeleteNextWord);
+                            return content_action(ContentAction::Delete(Motion::WordRight));
                         }
                         keyboard::Key::Named(key::Named::Delete) => {
                             return edit(Edit::Delete);

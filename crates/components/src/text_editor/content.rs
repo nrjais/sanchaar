@@ -65,9 +65,7 @@ pub enum ContentAction {
     Action(Action),
     Undo,
     Redo,
-    DeleteNextWord,
-    DeletePreviousWord,
-    DeleteTillLineStart,
+    Delete(Motion),
 }
 
 impl ContentAction {
@@ -75,7 +73,8 @@ impl ContentAction {
     pub fn is_edit(&self) -> bool {
         match self {
             Self::Action(Action::Edit(_)) => true,
-            Self::Undo => true,
+            Self::Delete(_) => true,
+            Self::Undo | Self::Redo => true,
             _ => false,
         }
     }
@@ -106,9 +105,7 @@ where
         match action {
             ContentAction::Action(Action::Edit(edit)) => track_action(internal, edit),
             ContentAction::Action(action) => internal.editor.perform(action),
-            ContentAction::DeleteNextWord => delete_action(Motion::WordRight, internal),
-            ContentAction::DeletePreviousWord => delete_action(Motion::WordLeft, internal),
-            ContentAction::DeleteTillLineStart => delete_action(Motion::Home, internal),
+            ContentAction::Delete(motion) => delete_action(motion, internal),
             ContentAction::Undo => internal.undo_stack.undo(&mut internal.editor),
             ContentAction::Redo => internal.undo_stack.redo(&mut internal.editor),
         }
