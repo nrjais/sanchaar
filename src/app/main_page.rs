@@ -52,7 +52,7 @@ fn method_color(method: Method) -> Color {
 
 pub fn view(state: &AppState) -> Element<MainPageMsg> {
     let mut tabs = state.tabs.iter().collect::<Vec<_>>();
-    tabs.sort_unstable_by_key(|(k, _v)| *k);
+    tabs.sort_unstable_by_key(|(_, v)| v.id);
 
     let tabs = tabs
         .into_iter()

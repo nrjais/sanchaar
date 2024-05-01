@@ -9,8 +9,13 @@ use core::http::CollectionRequest;
 
 use super::request::RequestPane;
 
+core::new_id_type!(
+    pub struct TabId;
+);
+
 #[derive(Debug)]
 pub struct Tab {
+    pub id: TabId,
     pub col_ref: Option<CollectionRequest>,
     pub request: RequestPane,
     pub response: ResponsePane,
@@ -28,6 +33,7 @@ impl Default for Tab {
 impl Tab {
     pub fn new(request: Request) -> Self {
         Self {
+            id: TabId::new(),
             col_ref: None,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
