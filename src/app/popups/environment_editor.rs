@@ -108,7 +108,7 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
     let environments = &data.environments;
 
     let Some(first) = environments.iter().map(|e| e.0).next() else {
-        return create_env_view(&data);
+        return create_env_view(data);
     };
 
     let env_tabs = environments.iter().map(|(key, env)| {

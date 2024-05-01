@@ -1,8 +1,8 @@
 use crate::{icon, icons};
-use iced::widget::{container, horizontal_rule, horizontal_space, rule, Column};
+use iced::widget::{horizontal_rule, horizontal_space, rule, Column};
 use iced::{
     widget::{button, Row, Text},
-    Border, Element, Shadow, Theme,
+    Element,
 };
 
 #[derive(Debug, Clone)]

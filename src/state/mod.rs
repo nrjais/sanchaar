@@ -11,11 +11,11 @@ pub use tab::*;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 
+pub mod environment;
 pub mod popups;
 pub mod request;
 pub mod response;
 pub mod tab;
-pub mod environment;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SplitState {
