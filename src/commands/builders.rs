@@ -59,7 +59,7 @@ pub fn save_request<M>(
     path: PathBuf,
     on_done: impl Fn(Option<Arc<anyhow::Error>>) -> M + 'static + MaybeSend,
 ) -> Command<M> {
-    let encoded = encode_request(&req.to_request());
+    let encoded = encode_request(req.to_request());
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => on_done(None),
         Err(e) => {
@@ -109,7 +109,7 @@ pub fn save_new_request<M>(
     };
 
     let req = sel_tab.request.to_request();
-    let encoded = encode_request(&req);
+    let encoded = encode_request(req);
 
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => msg(None),

@@ -61,11 +61,11 @@ pub struct EncodedKeyValue {
     pub disabled: bool,
 }
 
-impl From<&KeyValue> for EncodedKeyValue {
-    fn from(value: &KeyValue) -> Self {
+impl From<KeyValue> for EncodedKeyValue {
+    fn from(value: KeyValue) -> Self {
         EncodedKeyValue {
-            name: value.name.clone(),
-            value: value.value.clone(),
+            name: value.name,
+            value: value.value,
             disabled: value.disabled,
         }
     }
@@ -80,6 +80,15 @@ pub struct EncodedRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub enum EncodedRequestBody {
+    Form(Vec<EncodedKeyValue>),
+    Json(String),
+    XML(String),
+    Text(String),
+    File(Option<PathBuf>),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct HttpRequest {
     pub method: EncodedMethod,
     pub url: String,
@@ -89,35 +98,59 @@ pub struct HttpRequest {
     pub query: Vec<EncodedKeyValue>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub path_params: Vec<EncodedKeyValue>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<EncodedRequestBody>,
 }
 
-fn encode_key_values(kv: &KeyValList) -> Vec<EncodedKeyValue> {
-    kv.iter()
+fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
+    kv.into_iter()
         .filter(|v| !v.name.is_empty())
         .map(|v| v.into())
         .collect()
 }
 
-pub fn encode_request(req: &Request) -> EncodedRequest {
+fn encode_body(body: RequestBody) -> Option<EncodedRequestBody> {
+    match body {
+        RequestBody::Form(form) => Some(EncodedRequestBody::Form(encode_key_values(form))),
+        RequestBody::Json(data) => Some(EncodedRequestBody::Json(data)),
+        RequestBody::XML(data) => Some(EncodedRequestBody::XML(data)),
+        RequestBody::Text(data) => Some(EncodedRequestBody::Text(data)),
+        RequestBody::File(path) => Some(EncodedRequestBody::File(path)),
+        RequestBody::None => None,
+    }
+}
+
+pub fn encode_request(req: Request) -> EncodedRequest {
+    let Request {
+        method,
+        url,
+        headers,
+        body,
+        query_params,
+        path_params,
+        description,
+    } = req;
+
     EncodedRequest {
         http: HttpRequest {
-            method: req.method.into(),
-            url: req.url.clone(),
-            headers: encode_key_values(&req.headers),
-            query: encode_key_values(&req.query_params),
-            path_params: encode_key_values(&req.path_params),
+            method: method.into(),
+            url,
+            headers: encode_key_values(headers),
+            query: encode_key_values(query_params),
+            path_params: encode_key_values(path_params),
+            body: encode_body(body),
         },
-        description: req.description.clone(),
+        description,
         version: Version::V1,
     }
 }
 
-fn decode_key_values(kv: &[EncodedKeyValue]) -> KeyValList {
+fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
     let mut list = Vec::new();
     for v in kv {
         list.push(KeyValue {
-            name: v.name.clone(),
-            value: v.value.clone(),
+            name: v.name,
+            value: v.value,
             disabled: v.disabled,
         });
     }
@@ -125,15 +158,40 @@ fn decode_key_values(kv: &[EncodedKeyValue]) -> KeyValList {
     list
 }
 
-fn decode_request(req: &EncodedRequest) -> Request {
+fn decode_body(body: Option<EncodedRequestBody>) -> Option<RequestBody> {
+    let body = body?;
+    let decode = match body {
+        EncodedRequestBody::Form(form) => RequestBody::Form(decode_key_values(form)),
+        EncodedRequestBody::Json(data) => RequestBody::Json(data),
+        EncodedRequestBody::XML(data) => RequestBody::XML(data),
+        EncodedRequestBody::Text(data) => RequestBody::Text(data),
+        EncodedRequestBody::File(path) => RequestBody::File(path),
+    };
+
+    Some(decode)
+}
+
+fn decode_request(req: EncodedRequest) -> Request {
+    let EncodedRequest {
+        http, description, ..
+    } = req;
+    let HttpRequest {
+        method,
+        url,
+        headers,
+        body,
+        query,
+        path_params,
+    } = http;
+
     Request {
-        method: req.http.method.into(),
-        url: req.http.url.clone(),
-        headers: decode_key_values(&req.http.headers),
-        body: RequestBody::None,
-        query_params: decode_key_values(&req.http.query),
-        path_params: decode_key_values(&req.http.path_params),
-        description: req.description.clone(),
+        method: method.into(),
+        url,
+        headers: decode_key_values(headers),
+        body: decode_body(body).unwrap_or(RequestBody::None),
+        query_params: decode_key_values(query),
+        path_params: decode_key_values(path_params),
+        description,
     }
 }
 
@@ -141,7 +199,7 @@ pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
     let enc_req = load_from_file(&path)
         .map_err(|_| anyhow::format_err!("Failed to read request"))
         .await?;
-    Ok(decode_request(&enc_req))
+    Ok(decode_request(enc_req))
 }
 
 pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), anyhow::Error> {
