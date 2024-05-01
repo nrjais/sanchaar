@@ -1,9 +1,11 @@
 use crate::{icon, icons};
+use iced::widget::button::Status;
 use iced::widget::{horizontal_rule, horizontal_space, rule, Column};
 use iced::{
     widget::{button, Row, Text},
     Element,
 };
+use iced::{Background, Shadow};
 
 #[derive(Debug, Clone)]
 pub enum TabBarAction<T: Clone> {
@@ -36,10 +38,18 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .push(tab.icon)
             .push(tab.label)
             .push(
-                button(icon(icons::Close).size(20))
-                    .style(button::text)
+                button(icon(icons::Close).size(16).line_height(1.))
                     .padding([0, 4])
-                    .on_press(on_action(TabBarAction::CloseTab(tab.id.clone()))),
+                    .on_press(on_action(TabBarAction::CloseTab(tab.id.clone())))
+                    .style(|theme, status| match status {
+                        Status::Hovered => button::Style {
+                            background: Some(Background::Color(
+                                theme.extended_palette().secondary.strong.color,
+                            )),
+                            ..button::secondary(theme, status)
+                        },
+                        _ => button::text(theme, status),
+                    }),
             )
             .align_items(iced::Alignment::Center)
             .spacing(4);
@@ -47,10 +57,19 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
         tabs_row = tabs_row.push(
             button(label)
                 .padding([2, 4])
-                .style(if active {
-                    button::success
-                } else {
-                    button::secondary
+                .style(move |theme, _status| {
+                    if active {
+                        button::Style {
+                            shadow: Shadow {
+                                color: theme.extended_palette().primary.strong.color.into(),
+                                offset: [0., 2.].into(),
+                                blur_radius: 4.,
+                            },
+                            ..button::success(theme, Status::Active)
+                        }
+                    } else {
+                        button::secondary(theme, Status::Active)
+                    }
                 })
                 .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
         )
@@ -58,10 +77,13 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
     tabs_row = tabs_row
         .push(
-            button(icon(icons::Plus).size(24))
-                .style(button::text)
+            button(icon(icons::Plus).size(20).line_height(1.))
                 .padding([0, 4])
-                .on_press(on_action(TabBarAction::NewTab)),
+                .on_press(on_action(TabBarAction::NewTab))
+                .style(|theme, status| match status {
+                    Status::Hovered => button::secondary(theme, status),
+                    _ => button::text(theme, status),
+                }),
         )
         .push(horizontal_space());
 
