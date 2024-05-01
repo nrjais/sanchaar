@@ -15,6 +15,7 @@ pub mod popups;
 pub mod request;
 pub mod response;
 pub mod tab;
+pub mod environment;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SplitState {

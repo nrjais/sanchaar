@@ -115,13 +115,6 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
         self.on_change = Some(Box::new(f));
         self
     }
-
-    pub fn element(self) -> Element<'a, M>
-    where
-        M: 'a,
-    {
-        component(self)
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -206,5 +199,11 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         });
 
         scrollable(column(values).spacing(spacing).padding([0, 8, 0, 0])).into()
+    }
+}
+
+impl<'a, M: Clone + 'a> Into<Element<'a, M>> for KeyValEditor<'a, M> {
+    fn into(self) -> Element<'a, M> {
+        component(self)
     }
 }

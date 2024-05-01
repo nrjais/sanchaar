@@ -1,7 +1,6 @@
-use iced::advanced::graphics::core::Element;
 use iced::highlighter::Highlighter;
 use iced::widget::{component, Component};
-use iced::{highlighter, Font, Length, Renderer, Theme};
+use iced::{highlighter, Element, Font, Length, Renderer, Theme};
 use iced_core::text::Wrapping;
 
 use crate::text_editor::{self, text_editor, ContentAction};
@@ -20,10 +19,6 @@ pub struct CodeEditor<'a, M> {
 }
 
 impl<'a, M: 'a> CodeEditor<'a, M> {
-    pub fn element(self) -> Element<'a, M, Theme, Renderer> {
-        component(self)
-    }
-
     pub fn on_action<F>(mut self, f: F) -> CodeEditor<'a, M>
     where
         F: 'static + Fn(CodeEditorMsg) -> M,
@@ -82,7 +77,7 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
         self.on_action.as_ref().map(|on_action| on_action(event))
     }
 
-    fn view(&self, _state: &Self::State) -> Element<Self::Event, Theme, Renderer> {
+    fn view(&self, _state: &Self::State) -> Element<Self::Event> {
         text_editor(self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
@@ -96,5 +91,11 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
                 |highlight, _theme| highlight.to_format(),
             )
             .into()
+    }
+}
+
+impl<'a, M: 'a> Into<Element<'a, M>> for CodeEditor<'a, M> {
+    fn into(self) -> Element<'a, M, Theme, Renderer> {
+        component(self)
     }
 }

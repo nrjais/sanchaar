@@ -86,14 +86,12 @@ fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
         RawRequestBody::Json(content) => body_editor::view(content, ContentType::Json),
         RawRequestBody::XML(content) => body_editor::view(content, ContentType::XML),
         RawRequestBody::Text(content) => body_editor::view(content, ContentType::Text),
-        RawRequestBody::Form(values) => container(
-            key_value_editor(values)
-                .on_change(RequestPaneMsg::FormBodyEditAction)
-                .element(),
-        )
-        .height(Length::Fill)
-        .width(Length::Fill)
-        .into(),
+        RawRequestBody::Form(values) => {
+            container(key_value_editor(values).on_change(RequestPaneMsg::FormBodyEditAction))
+                .height(Length::Fill)
+                .width(Length::Fill)
+                .into()
+        }
         RawRequestBody::File(path) => {
             let location = path
                 .as_ref()
@@ -141,19 +139,13 @@ fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
 }
 
 fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
-    let query = key_value_editor(&request.query_params)
-        .on_change(RequestPaneMsg::Queries)
-        .element();
+    let query = key_value_editor(&request.query_params).on_change(RequestPaneMsg::Queries);
 
     let has_params = request.path_params.size() > 0;
     let path = has_params.then(|| {
         Column::new()
             .push("Path Params")
-            .push(
-                key_value_editor(&request.path_params)
-                    .on_change(RequestPaneMsg::PathParams)
-                    .element(),
-            )
+            .push(key_value_editor(&request.path_params).on_change(RequestPaneMsg::PathParams))
             .spacing(4)
     });
 
@@ -171,7 +163,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         ReqTabId::Params => params_view(request),
         ReqTabId::Headers => key_value_editor(&request.headers)
             .on_change(RequestPaneMsg::Headers)
-            .element(),
+            .into(),
         ReqTabId::Body => body_tab(&request.body),
     };
 

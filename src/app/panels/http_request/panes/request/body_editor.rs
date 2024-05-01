@@ -8,8 +8,7 @@ pub fn view(content: &text_editor::Content, content_type: ContentType) -> Elemen
     container(
         code_editor(content, content_type)
             .editable()
-            .on_action(RequestPaneMsg::BodyEditorAction)
-            .element(),
+            .on_action(RequestPaneMsg::BodyEditorAction),
     )
     .height(iced::Length::Fill)
     .width(iced::Length::Fill)

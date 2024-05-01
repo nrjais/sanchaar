@@ -41,7 +41,6 @@ pub fn vertical_button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     let tabs = tab_list(active, tabs, on_tab_change, suffix, true);
     Row::new()
         .push(Column::from_vec(tabs))
-        .push(Rule::vertical(2.))
         .width(iced::Length::Shrink)
         .height(iced::Length::Shrink)
         .spacing(4)

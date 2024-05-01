@@ -2,8 +2,10 @@ use crate::state::TabKey;
 use core::http::collection::FolderId;
 use core::http::environment::EnvironmentKey;
 use core::http::CollectionKey;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
+use super::environment::{environment_keyvals, Env};
 use super::AppState;
 
 #[derive(Debug)]
@@ -30,6 +32,7 @@ pub struct CreateFolderState {
 #[derive(Debug)]
 pub struct EnvironmentEditorState {
     pub col: CollectionKey,
+    pub environments: HashMap<EnvironmentKey, Env>,
     pub selected_env: Option<EnvironmentKey>,
     pub env_name: String,
 }
@@ -79,8 +82,12 @@ impl Popup {
     }
 
     pub fn environment_editor(state: &mut AppState, col: CollectionKey) {
+        let Some(envs) = state.collections.get_envs(col) else {
+            return;
+        };
         let popup = Self::EnvironmentEditor(EnvironmentEditorState {
             col,
+            environments: environment_keyvals(envs),
             selected_env: None,
             env_name: String::new(),
         });

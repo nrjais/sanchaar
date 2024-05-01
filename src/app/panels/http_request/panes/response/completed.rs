@@ -108,11 +108,7 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
 
     Column::new()
         .push(action_bar)
-        .push(
-            code_editor(content, ContentType::Json)
-                .on_action(CompletedMsg::CodeViewerMsg)
-                .element(),
-        )
+        .push(code_editor(content, ContentType::Json).on_action(CompletedMsg::CodeViewerMsg))
         .spacing(4)
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
