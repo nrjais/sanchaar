@@ -7,7 +7,7 @@ edition = "2021"
 members = ["crates/components", "crates/core"]
 
 [workspace.dependencies]
-iced = { path = "../iced", features = [
+iced = { git = "https://github.com/nrjais/iced", features = [
     "svg",
     "tokio",
     "web-colors",
@@ -17,12 +17,14 @@ iced = { path = "../iced", features = [
     "advanced",
     "lazy",
     "wgpu",
-] }
+], branch = "editor" }
 rfd = { version = "0.14.1", default-features = false, features = [
     "xdg-portal",
     "tokio",
 ] }
-iced_core = { path = "../iced/core", features = ["advanced"] }
+iced_core = { git = "https://github.com/nrjais/iced", features = [
+    "advanced",
+], branch = "editor" }
 tokio = { version = "1.36", features = ["fs", "macros", "io-util"] }
 strum = { version = "0.26", features = ["derive"] }
 reqwest = { version = "0.12", features = ["stream"] }
