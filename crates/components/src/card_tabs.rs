@@ -1,5 +1,5 @@
 use crate::{icon, icons};
-use iced::widget::{container, horizontal_space};
+use iced::widget::{container, horizontal_rule, horizontal_space, rule, Column};
 use iced::{
     widget::{button, Row, Text},
     Border, Element, Shadow, Theme,
@@ -58,7 +58,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
     tabs_row = tabs_row
         .push(
-            button(icon(icons::PlusBox).size(24))
+            button(icon(icons::Plus).size(24))
                 .style(button::text)
                 .padding([0, 4])
                 .on_press(on_action(TabBarAction::NewTab)),
@@ -69,21 +69,12 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
         tabs_row = tabs_row.push(suffix);
     }
 
-    container(tabs_row)
+    Column::new()
+        .push(tabs_row)
+        .push(horizontal_rule(2).style(|theme| rule::Style {
+            width: 2,
+            ..rule::default(theme)
+        }))
         .width(iced::Length::Fill)
-        .padding(1)
-        .style(|theme: &Theme| container::Style {
-            border: Border {
-                radius: 3.into(),
-                color: theme.extended_palette().background.weak.color,
-                width: 1.0,
-            },
-            shadow: Shadow {
-                color: theme.extended_palette().background.strong.color,
-                offset: iced::Vector::new(0.0, 2.0),
-                blur_radius: 2.0,
-            },
-            ..container::Style::default()
-        })
         .into()
 }
