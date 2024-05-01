@@ -38,7 +38,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .push(tab.icon)
             .push(tab.label)
             .push(
-                button(icon(icons::Close).size(16).line_height(1.))
+                button(icon(icons::Close).size(20).line_height(1.))
                     .padding([0, 4])
                     .on_press(on_action(TabBarAction::CloseTab(tab.id.clone())))
                     .style(|theme, status| match status {
@@ -51,6 +51,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                         _ => button::text(theme, status),
                     }),
             )
+            .padding([4, 2])
             .align_items(iced::Alignment::Center)
             .spacing(4);
 
@@ -77,7 +78,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
     tabs_row = tabs_row
         .push(
-            button(icon(icons::Plus).size(20).line_height(1.))
+            button(icon(icons::Plus).size(24).line_height(1.))
                 .padding([0, 4])
                 .on_press(on_action(TabBarAction::NewTab))
                 .style(|theme, status| match status {
