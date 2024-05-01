@@ -35,7 +35,7 @@ pub fn view(state: &AppState) -> iced::Element<AppMsg> {
 
     if let Some(ref popup) = state.popup {
         let popup = popups::view(state, popup).map(AppMsg::Popup);
-        modal(main_page, popup)
+        modal(main_page, popup, AppMsg::Popup(PopupMsg::Ignore))
     } else {
         main_page
     }

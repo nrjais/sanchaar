@@ -17,6 +17,7 @@ pub enum PopupMsg {
     SaveRequest(save_request::Message),
     CreateFolder(create_folder::Message),
     ClosePopup,
+    Ignore,
 }
 
 impl PopupMsg {
@@ -30,6 +31,7 @@ impl PopupMsg {
                 Popup::close(state);
                 Command::none()
             }
+            PopupMsg::Ignore => Command::none(),
         }
     }
 }

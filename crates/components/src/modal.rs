@@ -4,6 +4,7 @@ use iced::{Color, Element, Length};
 pub fn modal<'a, Message: Clone + 'a>(
     base: impl Into<Element<'a, Message>>,
     content: impl Into<Element<'a, Message>>,
+    on_press: Message,
 ) -> Element<'a, Message> {
     Stack::with_children([
         base.into(),
@@ -18,6 +19,8 @@ pub fn modal<'a, Message: Clone + 'a>(
                     ..container::Style::default()
                 }),
         )
+        .on_press(on_press.clone())
+        .on_right_press(on_press)
         .into(),
     ])
     .into()

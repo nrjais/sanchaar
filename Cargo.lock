@@ -1800,6 +1800,7 @@ name = "iced_core"
 version = "0.13.0-dev"
 dependencies = [
  "bitflags 2.5.0",
+ "bytes",
  "dark-light",
  "glam",
  "log",
@@ -1870,6 +1871,7 @@ dependencies = [
 name = "iced_runtime"
 version = "0.13.0-dev"
 dependencies = [
+ "bytes",
  "iced_core",
  "iced_futures",
  "raw-window-handle",
