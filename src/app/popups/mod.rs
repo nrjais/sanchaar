@@ -46,7 +46,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
         Popup::EnvironmentEditor(data) => (
             environment_editor::title(),
             environment_editor::view(state, data).map(PopupMsg::EnvironmentEditor),
-            environment_editor::done().map(PopupMsg::EnvironmentEditor),
+            environment_editor::done(data).map(PopupMsg::EnvironmentEditor),
         ),
         Popup::SaveRequest(data) => (
             save_request::title(),

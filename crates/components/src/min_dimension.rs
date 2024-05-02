@@ -6,29 +6,52 @@ use iced::advanced::widget::tree;
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::{event, mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Dimension {
+    Width,
+    Height,
+}
+
 pub fn min_width<'a, Message>(
     first_pass: impl Into<Element<'a, Message>>,
     second_pass: impl Into<Element<'a, Message>>,
     min_width: f32,
-) -> Element<'a, Message>
+) -> MinDimension<'a, Message>
 where
     Message: 'a,
 {
-    MinWidth {
+    MinDimension {
         first_pass: first_pass.into(),
         second_pass: second_pass.into(),
-        min_width,
+        min: min_width,
+        dimension: Dimension::Width,
     }
-    .into()
 }
 
-struct MinWidth<'a, Message> {
+pub fn min_height<'a, Message>(
+    first_pass: impl Into<Element<'a, Message>>,
+    second_pass: impl Into<Element<'a, Message>>,
+    min_height: f32,
+) -> MinDimension<'a, Message>
+where
+    Message: 'a,
+{
+    MinDimension {
+        first_pass: first_pass.into(),
+        second_pass: second_pass.into(),
+        min: min_height,
+        dimension: Dimension::Height,
+    }
+}
+
+pub struct MinDimension<'a, Message> {
     first_pass: Element<'a, Message>,
     second_pass: Element<'a, Message>,
-    min_width: f32,
+    min: f32,
+    dimension: Dimension,
 }
 
-impl<'a, Message> Widget<Message, Theme, Renderer> for MinWidth<'a, Message> {
+impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message> {
     fn size(&self) -> Size<Length> {
         self.second_pass.as_widget().size()
     }
@@ -51,12 +74,16 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinWidth<'a, Message> {
 
         let bounds = layout.bounds();
 
-        let size = Size::new(self.min_width.max(bounds.width), bounds.height);
-
-        let new_limits = layout::Limits::new(
-            Size::ZERO,
-            size.expand(Size::new(horizontal_expansion(), 1.0)),
-        );
+        let new_limits = if self.dimension == Dimension::Width {
+            let size = Size::new(self.min.max(bounds.width), bounds.height);
+            layout::Limits::new(
+                Size::ZERO,
+                size.expand(Size::new(horizontal_expansion(), 1.0)),
+            )
+        } else {
+            let size = Size::new(bounds.width, self.min.max(bounds.height));
+            layout::Limits::new(Size::ZERO, size.expand(Size::new(1.0, 1.0)))
+        };
 
         self.second_pass
             .as_widget()
@@ -148,15 +175,15 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinWidth<'a, Message> {
     }
 }
 
-impl<'a, Message> From<MinWidth<'a, Message>> for Element<'a, Message>
+impl<'a, Message> From<MinDimension<'a, Message>> for Element<'a, Message>
 where
     Message: 'a,
 {
-    fn from(double_pass: MinWidth<'a, Message>) -> Self {
+    fn from(double_pass: MinDimension<'a, Message>) -> Self {
         Element::new(double_pass)
     }
 }
 
-pub fn horizontal_expansion() -> f32 {
+fn horizontal_expansion() -> f32 {
     1.0
 }

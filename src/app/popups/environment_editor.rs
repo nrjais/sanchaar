@@ -1,12 +1,10 @@
 use std::borrow::Cow;
+use std::ops::Not;
 
-use iced::alignment::Horizontal;
-use iced::widget::{
-    button, container, horizontal_space, text, text_input, value, vertical_rule, Column, Row,
-};
-use iced::{Command, Element, Length};
+use iced::widget::{scrollable, text, text_input, value, Column, Row};
+use iced::{Command, Element};
 
-use components::{button_tab, key_value_editor, vertical_button_tabs};
+use components::{button_tab, key_value_editor, vertical_button_tabs, vertical_line};
 use core::http::environment::EnvironmentKey;
 
 use crate::state::environment::Env;
@@ -70,34 +68,22 @@ pub fn title<'a>() -> Cow<'a, str> {
     Cow::Borrowed("Environment Editor")
 }
 
-pub fn done() -> Option<Message> {
-    Some(Message::Done)
+pub fn done(data: &EnvironmentEditorState) -> Option<Message> {
+    let empty = data.environments.is_empty();
+    if empty {
+        data.env_name.is_empty().not().then_some(Message::CreateEnv)
+    } else {
+        Some(Message::Done)
+    }
 }
 
 fn create_env_view(data: &EnvironmentEditorState) -> Element<Message> {
-    let name = Row::new()
-        .push(text("Environment Name"))
-        .push(horizontal_space())
-        .push(
-            text_input("Name", &data.env_name)
-                .on_input(Message::NameChanged)
-                .on_paste(Message::NameChanged),
-        )
-        .align_items(iced::Alignment::Center)
-        .spacing(4);
-
     Column::new()
         .push(text("No environments found, Create one!"))
-        .push(name)
         .push(
-            container(
-                button("Add")
-                    .style(button::secondary)
-                    .padding([2, 4])
-                    .on_press(Message::CreateEnv),
-            )
-            .align_x(Horizontal::Right)
-            .width(Length::Fill),
+            text_input("Environment Name", &data.env_name)
+                .on_input(Message::NameChanged)
+                .on_paste(Message::NameChanged),
         )
         .spacing(8)
         .width(350)
@@ -111,6 +97,9 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
         return create_env_view(data);
     };
 
+    let selected = data.selected_env.unwrap_or(*first);
+    let env = environments.get(&selected).expect("Environment not found");
+
     let env_tabs = environments.iter().map(|(key, env)| {
         button_tab(*key, {
             let name = env.name.clone();
@@ -118,20 +107,26 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
         })
     });
 
-    let selected = data.selected_env.unwrap_or(*first);
-    let env = environments.get(&selected).expect("Environment not found");
-
-    Row::new()
-        .push(vertical_button_tabs(
+    let tab_bar = Row::new()
+        .push(scrollable(vertical_button_tabs(
             selected,
             env_tabs,
             Message::SelectEnv,
             None,
-        ))
-        .push(vertical_rule(2))
-        .push(key_value_editor(&env.variables).on_change(move |u| Message::EnvUpdate(selected, u)))
-        .height(Length::Shrink)
+        )))
+        .push(vertical_line(2));
+
+    let update_env = move |u| Message::EnvUpdate(selected, u);
+    let editor = Column::new()
+        .push(text("Variables"))
+        .push(key_value_editor(&env.variables).on_change(update_env))
+        .spacing(4);
+
+    Row::new()
+        .push(tab_bar)
+        .push(scrollable(editor))
         .spacing(8)
-        .width(400)
+        .height(400)
+        .width(450)
         .into()
 }

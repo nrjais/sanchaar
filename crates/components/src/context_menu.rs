@@ -5,7 +5,7 @@ use iced::{
     event, mouse, Command, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector,
 };
 
-use crate::min_width::min_width;
+use crate::min_dimension::min_width;
 
 #[derive(Debug, Clone)]
 pub struct MenuButton<'a, M: Clone + 'a> {
@@ -54,7 +54,7 @@ where
 
     ContextMenu {
         base: base.into(),
-        menu,
+        menu: menu.into(),
     }
     .into()
 }
