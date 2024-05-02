@@ -8,7 +8,8 @@ use tokio::fs;
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
 use crate::persistence::Version;
 
-const COLLECTION_ROOT_FILE: &str = "collection.toml";
+use super::environment::read_environments;
+use super::{COLLECTION_ROOT_FILE, ENVIRONMENTS, TOML_EXTENSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -129,10 +130,17 @@ pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
 
 pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error> {
     let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
+
     let collection: EncodedCollection = toml::from_str(&data)?;
     let entries = walk_entries(&path, true).await?;
+    let environments = read_environments(&path).await?;
 
-    Ok(Collection::new(collection.name, entries, path))
+    Ok(Collection::new(
+        collection.name,
+        entries,
+        path,
+        environments,
+    ))
 }
 
 async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entry>> {
@@ -141,6 +149,10 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
 
     while let Some(entry) = dir.next_entry().await? {
         if entry.file_type().await?.is_dir() {
+            if root && entry.file_name() == ENVIRONMENTS {
+                continue;
+            }
+
             let children = Box::pin(walk_entries(&entry.path(), false)).await?;
             entries.push(Entry::Folder(Folder {
                 id: FolderId::new(),
@@ -157,7 +169,7 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
             let name = entry.file_name();
             let name = name.to_string_lossy();
 
-            if !name.ends_with(".toml") || name.trim_end_matches(".toml").is_empty() {
+            if !name.ends_with(TOML_EXTENSION) || name.trim_end_matches(TOML_EXTENSION).is_empty() {
                 continue;
             }
 

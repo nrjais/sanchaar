@@ -13,7 +13,7 @@ use components::text_editor::{self, line_editor, Content, ContentAction};
 use components::{icon, icons, NerdIcon};
 use core::http::request::Method;
 
-use crate::commands::builders::{save_request, send_request_cmd, ResponseResult};
+use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
 use crate::state::popups::Popup;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::{AppState, TabKey};
@@ -119,7 +119,7 @@ impl UrlBarMsg {
                 let sel_tab = state.active_tab();
                 let req_ref = state.col_req_ref(state.active_tab);
                 if let Some(req_res) = req_ref {
-                    return save_request(&sel_tab.request, req_res.path.clone(), |_| {
+                    return save_request_cmd(&sel_tab.request, req_res.path.clone(), |_| {
                         Self::RequestSaved
                     });
                 } else {

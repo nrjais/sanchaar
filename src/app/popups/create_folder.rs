@@ -27,7 +27,7 @@ impl Message {
             }
             Message::CreateFolder(name) => {
                 let CreateFolderState { col, folder_id, .. } = *data;
-                builders::create_folder(state, col, folder_id, name, || Message::Done)
+                builders::create_folder_cmd(state, col, folder_id, name, || Message::Done)
             }
             Message::Done => {
                 state.popup = None;

@@ -1,3 +1,4 @@
+use core::persistence::environment::{encode_environments, save_environments};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -54,7 +55,7 @@ pub fn send_request_cmd<M>(
     })
 }
 
-pub fn save_request<M>(
+pub fn save_request_cmd<M>(
     req: &RequestPane,
     path: PathBuf,
     on_done: impl Fn(Option<Arc<anyhow::Error>>) -> M + 'static + MaybeSend,
@@ -69,7 +70,7 @@ pub fn save_request<M>(
     })
 }
 
-pub fn save_new_request<M>(
+pub fn save_new_request_cmd<M>(
     state: &mut AppState,
     name: String,
     tab: TabKey,
@@ -120,7 +121,7 @@ pub fn save_new_request<M>(
     })
 }
 
-pub(crate) fn create_collection<Message>(
+pub(crate) fn create_collection_cmd<Message>(
     state: &mut AppState,
     name: String,
     path: PathBuf,
@@ -140,7 +141,7 @@ pub(crate) fn create_collection<Message>(
     )
 }
 
-pub fn open_existing_collection<M>(
+pub fn open_collection_cmd<M>(
     on_done: impl Fn(Option<Collection>) -> M + 'static + MaybeSend,
 ) -> Command<M> {
     let fut = async {
@@ -191,7 +192,7 @@ pub(crate) fn delete_folder_cmd<M>(
     }
 }
 
-pub(crate) fn create_folder<Message>(
+pub(crate) fn create_folder_cmd<Message>(
     state: &mut AppState,
     col: CollectionKey,
     folder_id: Option<FolderId>,
@@ -205,4 +206,16 @@ pub(crate) fn create_folder<Message>(
     } else {
         Command::none()
     }
+}
+
+pub(crate) fn save_environments_cmd<Message>(
+    collection: &Collection,
+    done: impl Fn() -> Message + 'static + MaybeSend,
+) -> Command<Message> {
+    let encoded = encode_environments(&collection.environments);
+
+    Command::perform(
+        save_environments(collection.path.clone(), encoded),
+        move |_| done(),
+    )
 }

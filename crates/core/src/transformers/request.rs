@@ -4,7 +4,7 @@ use mime_guess::mime;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::RequestBuilder;
 
-use crate::http::request::{KeyValList, KeyValue, Method, Request, RequestBody};
+use crate::http::{request::{Method, Request, RequestBody}, KeyValList, KeyValue};
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()

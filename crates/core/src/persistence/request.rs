@@ -1,12 +1,14 @@
-use std::ops::Not;
 use std::path::PathBuf;
 
 use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
-use crate::http::request::{KeyValList, KeyValue, Method, Request, RequestBody};
+use crate::http::request::{Method, Request, RequestBody};
+use crate::http::{KeyValList, KeyValue};
 use crate::persistence::Version;
+
+use super::EncodedKeyValue;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -49,24 +51,6 @@ impl From<EncodedMethod> for Method {
             EncodedMethod::OPTIONS => Method::OPTIONS,
             EncodedMethod::CONNECT => Method::CONNECT,
             EncodedMethod::TRACE => Method::TRACE,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EncodedKeyValue {
-    pub name: String,
-    pub value: String,
-    #[serde(default, skip_serializing_if = "Not::not")]
-    pub disabled: bool,
-}
-
-impl From<KeyValue> for EncodedKeyValue {
-    fn from(value: KeyValue) -> Self {
-        EncodedKeyValue {
-            name: value.name,
-            value: value.value,
-            disabled: value.disabled,
         }
     }
 }

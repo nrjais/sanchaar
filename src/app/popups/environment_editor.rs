@@ -7,6 +7,7 @@ use iced::{Command, Element};
 use components::{button_tab, key_value_editor, vertical_button_tabs, vertical_line};
 use core::http::environment::EnvironmentKey;
 
+use crate::commands::builders;
 use crate::state::environment::Env;
 use crate::state::popups::{EnvironmentEditorState, Popup};
 use crate::state::AppState;
@@ -14,6 +15,7 @@ use crate::state::AppState;
 #[derive(Debug, Clone)]
 pub enum Message {
     Done,
+    SaveEnvs,
     SelectEnv(EnvironmentKey),
     NameChanged(String),
     CreateEnv,
@@ -32,6 +34,16 @@ impl Message {
             }
             Message::NameChanged(name) => {
                 data.env_name = name;
+            }
+            Message::SaveEnvs => {
+                let col = data.col;
+                if let Some(collection) = state.collections.get_mut(col) {
+                    let envs = data.environments.drain();
+                    for (key, env) in envs {
+                        collection.update_environment(key, env.into());
+                    }
+                    return builders::save_environments_cmd(collection, || Message::Done);
+                }
             }
             Message::Done => {
                 Popup::close(state);
@@ -73,7 +85,7 @@ pub fn done(data: &EnvironmentEditorState) -> Option<Message> {
     if empty {
         data.env_name.is_empty().not().then_some(Message::CreateEnv)
     } else {
-        Some(Message::Done)
+        Some(Message::SaveEnvs)
     }
 }
 

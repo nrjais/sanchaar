@@ -1,14 +1,7 @@
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct KeyValue {
-    pub disabled: bool,
-    pub name: String,
-    pub value: String,
-}
-
-pub type KeyValList = Vec<KeyValue>;
+use super::KeyValList;
 
 #[derive(Debug, Clone)]
 pub enum RequestBody {

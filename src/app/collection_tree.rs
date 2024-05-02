@@ -7,7 +7,7 @@ use components::{context_menu, horizontal_line, icon, icons, menu_item, NerdIcon
 use core::http::collection::{Collection, Entry, FolderId};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
-use crate::commands::builders::{self, open_existing_collection, open_request_cmd};
+use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
 use crate::state::popups::Popup;
 use crate::state::AppState;
 
@@ -46,7 +46,7 @@ impl CollectionTreeMsg {
                 Popup::create_collection(state);
             }
             CollectionTreeMsg::OpenCollection => {
-                return open_existing_collection(Self::OpenCollectionHandle);
+                return open_collection_cmd(Self::OpenCollectionHandle);
             }
             CollectionTreeMsg::OpenCollectionHandle(handle) => {
                 if let Some(handle) = handle {

@@ -15,6 +15,15 @@ slotmap::new_key_type! {
     pub struct CollectionKey;
 }
 
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct KeyValue {
+    pub disabled: bool,
+    pub name: String,
+    pub value: String,
+}
+
+pub type KeyValList = Vec<KeyValue>;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CollectionRequest(pub CollectionKey, pub RequestId);
 
@@ -79,7 +88,7 @@ impl Collections {
     pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
         let children = Vec::new();
         let path = path.join(&name);
-        let collection = Collection::new(name, children, path);
+        let collection = Collection::new(name, children, path, Environments::new());
 
         self.dirty();
         let key = self.entries.insert(collection);

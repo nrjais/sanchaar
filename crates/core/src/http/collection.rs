@@ -3,6 +3,8 @@ use std::{ops::Not, path::PathBuf};
 
 use crate::new_id_type;
 
+use super::environment::{Environment, EnvironmentKey};
+
 new_id_type! {
     pub struct RequestId;
     pub struct FolderId;
@@ -40,13 +42,18 @@ pub struct Collection {
 }
 
 impl Collection {
-    pub fn new(name: String, children: Vec<Entry>, path: PathBuf) -> Self {
+    pub fn new(
+        name: String,
+        children: Vec<Entry>,
+        path: PathBuf,
+        environments: Environments,
+    ) -> Self {
         Self {
             name,
             children,
             path,
+            environments,
             expanded: false,
-            environments: Environments::new(),
         }
     }
 
@@ -191,6 +198,10 @@ impl Collection {
             self.expanded = true;
             Some(path)
         }
+    }
+
+    pub fn update_environment(&mut self, key: EnvironmentKey, env: Environment) {
+        self.environments.update(key, env);
     }
 }
 

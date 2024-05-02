@@ -1,4 +1,4 @@
-use core::http::request::KeyValue;
+use core::http::KeyValue;
 
 use components::KeyValList;
 

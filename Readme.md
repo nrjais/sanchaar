@@ -1,17 +1,25 @@
 # Sanchaar - A Offline REST API client
+
 Sanchaar is a offline REST API client built using Iced in Rust. It is a simple tool to test REST APIs without the need of internet connection. It supports GET, POST, PUT, DELETE requests with path, query and header parameters.
 
 ## Screenshot
+
 ![Screenshot](./screenshots/app.png)
 
 ## Features
+
 - Send GET, POST, PUT, DELETE requests
 - Path, Query, Header params
 - Multiple requests in tabs
 - Save/Load requests from collections
 - Create/Open collection from local disk
 
+## Todo
+
+- [ ] Move requestst to `requests` dir instead of root
+
 ## Roadmap
+
 - [x] Path param support
 - [x] Query param support
 - [x] Header param support

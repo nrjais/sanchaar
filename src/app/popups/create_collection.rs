@@ -38,7 +38,7 @@ impl Message {
                 Command::none()
             }
             Message::CreateCollection(name, path) => {
-                builders::create_collection(state, name, path, |_| Message::Done)
+                builders::create_collection_cmd(state, name, path, |_| Message::Done)
             }
             Message::Done => {
                 state.popup = None;
