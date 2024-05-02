@@ -1,14 +1,19 @@
 use iced::advanced::text::Wrapping;
-use iced::widget::{column, container, scrollable, text};
-use iced::{widget::Row, Border, Element, Length, Theme};
+use iced::widget::{container, scrollable, text, Column};
+use iced::{widget::Row, Element, Length};
 
-use crate::colors;
+use crate::{colors, horizontal_line};
 
 pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a, M> {
-    let size = 16;
+    let size = 14;
     let spacing = 2;
-    let values = values.iter().map(|(key, val)| {
-        Row::new()
+    let mut values_col = Column::new()
+        .spacing(spacing)
+        .padding([4, 12, 4, 0])
+        .width(Length::Fill);
+
+    for (key, val) in values {
+        let row = Row::new()
             .push(
                 text(*key)
                     .size(size)
@@ -23,25 +28,14 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
                     .color(colors::DARK_GREY)
                     .width(Length::FillPortion(3)),
             )
-            .spacing(spacing)
-            .into()
-    });
+            .padding(spacing)
+            .spacing(spacing);
 
-    container(scrollable(
-        column(values)
-            .spacing(spacing)
-            .padding([8, 12, 8, 8])
-            .width(Length::Fill),
-    ))
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .style(|theme: &Theme| container::Style {
-        border: Border {
-            color: theme.extended_palette().secondary.strong.color,
-            width: 1.,
-            radius: 2.into(),
-        },
-        ..Default::default()
-    })
-    .into()
+        values_col = values_col.push(row).push(horizontal_line(1));
+    }
+
+    container(scrollable(values_col))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
