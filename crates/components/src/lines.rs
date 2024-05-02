@@ -6,3 +6,10 @@ pub fn horizontal_line<'a>(width: u16) -> Rule<'a, iced::Theme> {
         ..rule::default(t)
     })
 }
+
+pub fn vertical_line<'a>(height: u16) -> Rule<'a, iced::Theme> {
+    Rule::vertical(height as f32).style(move |t| rule::Style {
+        width: height,
+        ..rule::default(t)
+    })
+}

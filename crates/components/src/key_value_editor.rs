@@ -145,6 +145,8 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         let size = 14;
         let spacing = 2;
 
+        let border = Border::default();
+
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
             let enabled = checkbox("", !kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
@@ -168,37 +170,42 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                         .align_items(iced::Alignment::Center)
                         .spacing(8),
                 )
+                .style(container::rounded_box)
                 .padding([2, 8])
-                .style(|theme: &Theme| container::Style {
-                    border: Border {
-                        color: theme.extended_palette().secondary.strong.color,
-                        width: 1.,
-                        radius: 2.into(),
-                    },
-                    ..container::Style::default()
-                })
             });
 
+            let input_style = move |theme: &Theme, status: text_input::Status| text_input::Style {
+                border,
+                ..text_input::default(theme, status)
+            };
+
             let name = text_input("Key", &kv.name)
+                .style(input_style)
                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))
                 .on_paste(move |name| KeyValUpdateMsg::NameChanged(idx, name))
                 .size(size)
                 .width(iced::Length::FillPortion(2));
+
             let value = text_input("Value", &kv.value)
+                .style(input_style)
                 .on_input(move |value| KeyValUpdateMsg::ValueChanged(idx, value))
                 .on_paste(move |value| KeyValUpdateMsg::ValueChanged(idx, value))
                 .size(size)
                 .width(iced::Length::FillPortion(3));
 
-            Row::new()
-                .push(name)
-                .push(value)
-                .push_maybe(actions)
-                .spacing(spacing)
-                .into()
+            container(
+                Row::new()
+                    .push(name)
+                    .push(value)
+                    .push_maybe(actions)
+                    .spacing(spacing),
+            )
+            .style(container::bordered_box)
+            .padding(1)
+            .into()
         });
 
-        scrollable(column(values).spacing(spacing).padding([0, 8, 0, 0])).into()
+        scrollable(column(values).padding([0, 8, 0, 0])).into()
     }
 }
 
