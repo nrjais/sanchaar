@@ -156,14 +156,20 @@ fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
         .into()
 }
 
+fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
+    Column::new()
+        .push("Headers")
+        .push(key_value_editor(&request.headers).on_change(RequestPaneMsg::Headers))
+        .spacing(4)
+        .into()
+}
+
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let request = &state.active_tab().request;
 
     let tab_content = match request.tab {
         ReqTabId::Params => params_view(request),
-        ReqTabId::Headers => key_value_editor(&request.headers)
-            .on_change(RequestPaneMsg::Headers)
-            .into(),
+        ReqTabId::Headers => headers_view(request),
         ReqTabId::Body => body_tab(&request.body),
     };
 

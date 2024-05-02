@@ -1,6 +1,7 @@
-use iced::widget::{Button, Row};
+use iced::widget::{vertical_rule, Button, Row};
+use iced::Border;
 use iced::{
-    widget::{button, container, pick_list, row},
+    widget::{button, container, pick_list},
     Command, Element,
 };
 use log::info;
@@ -8,7 +9,7 @@ use reqwest::Url;
 use serde_json::Value;
 use strum::VariantArray;
 
-use components::text_editor::{line_editor, Content, ContentAction};
+use components::text_editor::{self, line_editor, Content, ContentAction};
 use components::{icon, icons, NerdIcon};
 use core::http::request::Method;
 
@@ -135,7 +136,10 @@ impl UrlBarMsg {
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
-    button(container(icon(ico)).padding([0, 10]))
+    button(container(icon(ico)).padding([0, 10])).style(|t, s| button::Style {
+        border: Border::rounded(0),
+        ..button::primary(t, s)
+    })
 }
 
 pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
@@ -143,13 +147,24 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     let request = &tab.request;
     let executing = tab.response.is_executing();
 
+    let border = Border::default();
+
     let method = pick_list(
         Method::VARIANTS,
         Some(request.method),
         UrlBarMsg::MethodChanged,
-    );
+    )
+    .style(move |theme, _| pick_list::Style {
+        border,
+        ..pick_list::default(theme, pick_list::Status::Active)
+    });
 
-    let url = line_editor(&request.url_content).on_action(UrlBarMsg::UrlChanged);
+    let url = line_editor(&request.url_content)
+        .style(move |t: &iced::Theme, _| text_editor::Style {
+            border,
+            ..text_editor::default(t, text_editor::Status::Active)
+        })
+        .on_action(UrlBarMsg::UrlChanged);
 
     let on_press = if executing {
         None
@@ -159,12 +174,24 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
 
     let buttons = Row::new()
         .push(icon_button(icons::Send).on_press_maybe(on_press))
-        .push(icon_button(icons::ContentSave).on_press(UrlBarMsg::SaveRequest))
-        .spacing(2);
+        .push(vertical_rule(1))
+        .push(icon_button(icons::ContentSave).on_press(UrlBarMsg::SaveRequest));
 
-    row!(method, url, buttons)
-        .height(iced::Length::Shrink)
-        .width(iced::Length::Fill)
-        .spacing(2)
-        .into()
+    container(
+        Row::new()
+            .push(method)
+            .push(url)
+            .push(buttons)
+            .height(iced::Length::Shrink)
+            .width(iced::Length::Fill),
+    )
+    .style(|theme| {
+        let base = container::bordered_box(theme);
+        container::Style {
+            border: base.border.with_width(2),
+            ..base
+        }
+    })
+    .padding(1)
+    .into()
 }
