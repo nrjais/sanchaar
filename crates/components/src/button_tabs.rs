@@ -1,3 +1,4 @@
+use iced::widget::button::Status;
 use iced::widget::{horizontal_space, vertical_space};
 use iced::{
     widget::{button, Column, Row, Rule, Text},
@@ -60,10 +61,12 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
 
         tabs_row.push(
             button((tab.label)())
-                .style(if active {
-                    button::primary
-                } else {
-                    button::text
+                .style(move |theme, _| {
+                    if active {
+                        button::secondary(theme, Status::Pressed)
+                    } else {
+                        button::text(theme, Status::Active)
+                    }
                 })
                 .padding([2, 6])
                 .on_press(on_tab_change(tab.id.clone()))

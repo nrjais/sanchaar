@@ -74,7 +74,7 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
 
     let button_style = |mode| {
         if cr.mode == mode {
-            button::success
+            button::primary
         } else {
             button::text
         }

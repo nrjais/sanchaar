@@ -60,6 +60,6 @@ impl Application for Sanchaar {
     }
 
     fn theme(&self) -> Self::Theme {
-        Theme::Dark
+        self.state.theme.clone()
     }
 }

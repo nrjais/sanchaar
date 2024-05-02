@@ -1,5 +1,6 @@
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
+use iced::Theme;
 use slotmap::SlotMap;
 
 use core::client::create_client;
@@ -37,6 +38,7 @@ pub struct AppState {
     // Collection tree and tabs split
     pub panes: pane_grid::State<SplitState>,
     pub popup: Option<Popup>,
+    pub theme: Theme,
 }
 
 impl AppState {
@@ -57,6 +59,7 @@ impl AppState {
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
             popup: None,
+            theme: Theme::Dark,
         }
     }
 

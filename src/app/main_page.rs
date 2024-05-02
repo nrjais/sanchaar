@@ -38,15 +38,16 @@ impl MainPageMsg {
 
 fn method_color(method: Method) -> Color {
     match method {
-        Method::GET => Color::from_rgb8(0, 0, 255),
-        Method::POST => Color::from_rgb8(0, 180, 0),
-        Method::PUT => Color::from_rgb8(255, 165, 0),
-        Method::DELETE => Color::from_rgb8(200, 0, 0),
-        Method::PATCH => Color::from_rgb8(128, 0, 128),
-        Method::HEAD => Color::from_rgb8(0, 0, 0),
-        Method::OPTIONS => Color::from_rgb8(0, 128, 128),
-        Method::CONNECT => Color::from_rgb8(255, 0, 255),
-        Method::TRACE => Color::from_rgb8(150, 150, 150),
+        // Method::GET => Color::from_rgb8(0, 0, 255),
+        // Method::POST => Color::from_rgb8(0, 180, 0),
+        // Method::PUT => Color::from_rgb8(255, 165, 0),
+        // Method::DELETE => Color::from_rgb8(200, 0, 0),
+        // Method::PATCH => Color::from_rgb8(128, 0, 128),
+        // Method::HEAD => Color::from_rgb8(0, 0, 0),
+        // Method::OPTIONS => Color::from_rgb8(0, 128, 128),
+        // Method::CONNECT => Color::from_rgb8(255, 0, 255),
+        // Method::TRACE => Color::from_rgb8(150, 150, 150),
+        _ => Color::from_rgb8(0, 0, 0),
     }
 }
 

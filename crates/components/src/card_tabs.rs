@@ -1,11 +1,11 @@
 use crate::{icon, icons};
 use iced::widget::button::Status;
 use iced::widget::{horizontal_rule, horizontal_space, rule, Column};
+use iced::Background;
 use iced::{
     widget::{button, Row, Text},
     Element,
 };
-use iced::{Background, Shadow};
 
 #[derive(Debug, Clone)]
 pub enum TabBarAction<T: Clone> {
@@ -57,19 +57,12 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
         tabs_row = tabs_row.push(
             button(label)
-                .padding([2, 4])
+                .padding(if active { [2, 4] } else { [0, 4] })
                 .style(move |theme, _status| {
                     if active {
-                        button::Style {
-                            shadow: Shadow {
-                                color: theme.extended_palette().primary.strong.color.into(),
-                                offset: [0., 2.].into(),
-                                blur_radius: 4.,
-                            },
-                            ..button::success(theme, Status::Active)
-                        }
-                    } else {
                         button::secondary(theme, Status::Active)
+                    } else {
+                        button::secondary(theme, Status::Disabled)
                     }
                 })
                 .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
