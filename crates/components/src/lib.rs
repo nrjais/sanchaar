@@ -11,7 +11,9 @@ mod modal;
 
 pub mod colors;
 pub mod text_editor;
+mod horizontal_line;
 
+pub use horizontal_line::horizontal_line;
 pub use bordered::*;
 pub use button_tabs::*;
 pub use card_tabs::*;

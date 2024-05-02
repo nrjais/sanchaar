@@ -1,6 +1,4 @@
-use iced::widget::{
-    horizontal_rule, horizontal_space, pick_list, text, text_input, Button, Column, Row,
-};
+use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column, Row};
 use iced::{
     widget::{button, container},
     Command, Element, Length,
@@ -63,15 +61,14 @@ impl ActionBarMsg {
     }
 }
 
-fn icon_button<'a>(ico: NerdIcon, size: u16) -> Button<'a, ActionBarMsg> {
-    button(container(icon(ico).size(size)).padding([0, 8]))
+fn icon_button<'a>(ico: NerdIcon) -> Button<'a, ActionBarMsg> {
+    button(container(icon(ico)).padding([0, 8]))
         .padding(0)
         .style(button::text)
 }
 
 pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     let tab = state.active_tab();
-    let size = 16;
 
     let req_ref = state.col_req_ref(state.active_tab);
 
@@ -81,45 +78,37 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
                 .on_input(ActionBarMsg::UpdateName)
                 .on_paste(ActionBarMsg::UpdateName)
                 .on_submit(ActionBarMsg::SubmitNameEdit)
-                .size(size - 2)
                 .padding(2)
                 .into(),
-            _ => text(&req_ref.name).size(size).into(),
+            _ => text(&req_ref.name).into(),
         };
 
         let edit_name = tab
             .editing_name
             .as_ref()
-            .map(|_| icon_button(icons::CheckBold, size).on_press(ActionBarMsg::SubmitNameEdit))
-            .unwrap_or_else(|| {
-                icon_button(icons::Pencil, size).on_press(ActionBarMsg::StartNameEdit)
-            });
+            .map(|_| icon_button(icons::CheckBold).on_press(ActionBarMsg::SubmitNameEdit))
+            .unwrap_or_else(|| icon_button(icons::Pencil).on_press(ActionBarMsg::StartNameEdit));
 
         Row::new()
             .push(name)
             .push(edit_name)
             .push(horizontal_space())
-            .push(environment_view(size, col_ref.0))
+            .push(environment_view(col_ref.0))
             .align_items(iced::Alignment::Center)
             .width(Length::Fill)
     });
 
-    Column::new()
-        .push_maybe(bar)
-        .push_maybe(req_ref.map(|_| horizontal_rule(4)))
-        .spacing(2)
-        .into()
+    Column::new().push_maybe(bar).spacing(2).into()
 }
 
-fn environment_view<'a>(size: u16, key: CollectionKey) -> Element<'a, ActionBarMsg> {
+fn environment_view<'a>(key: CollectionKey) -> Element<'a, ActionBarMsg> {
     let envs = ["Dev", "Staging", "Prod"];
     let picker = pick_list(envs, None::<&'static str>, |_| ActionBarMsg::RequestRenamed)
         .width(Length::Shrink)
-        .text_size(size)
         .padding([2, 4])
         .placeholder("No Environment");
 
-    let settings = icon_button(icons::Gear, size).on_press(ActionBarMsg::OpenEnvironments(key));
+    let settings = icon_button(icons::Gear).on_press(ActionBarMsg::OpenEnvironments(key));
 
     Row::new()
         .push(picker)

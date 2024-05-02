@@ -1,11 +1,9 @@
 use iced::alignment::Horizontal;
 use iced::widget::tooltip::Position;
-use iced::widget::{
-    button, column, container, horizontal_rule, row, text, tooltip, Button, Column, Row,
-};
+use iced::widget::{button, column, container, row, text, tooltip, Button, Column, Row};
 use iced::{Command, Element, Length};
 
-use components::{context_menu, icon, icons, menu_item, NerdIcon};
+use components::{context_menu, horizontal_line, icon, icons, menu_item, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
@@ -141,7 +139,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
             .align_x(Horizontal::Center)
             .width(Length::Fill),
         )
-        .push(horizontal_rule(4))
+        .push(horizontal_line(2))
         .push(column(it).spacing(4))
         .spacing(4)
         .width(Length::Fill)

@@ -1,9 +1,11 @@
 use iced::widget::button::Status;
 use iced::widget::{horizontal_space, vertical_space};
 use iced::{
-    widget::{button, Column, Row, Rule, Text},
+    widget::{button, Column, Row, Text},
     Element,
 };
+
+use crate::horizontal_line;
 
 pub struct ButtonTab<'a, T> {
     pub id: T,
@@ -26,10 +28,10 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     let tabs = tab_list(active, tabs, on_tab_change, suffix, false);
     Column::new()
         .push(Row::from_vec(tabs).width(iced::Length::Fill))
-        .push(Rule::horizontal(2.))
+        .push(horizontal_line(2))
         .width(iced::Length::Fill)
         .height(iced::Length::Shrink)
-        .spacing(2)
+        .align_items(iced::Alignment::Center)
         .into()
 }
 

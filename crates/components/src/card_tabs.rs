@@ -1,6 +1,6 @@
-use crate::{icon, icons};
+use crate::{horizontal_line, icon, icons};
 use iced::widget::button::Status;
-use iced::widget::{horizontal_rule, horizontal_space, rule, Column};
+use iced::widget::{horizontal_space, Column};
 use iced::Background;
 use iced::{
     widget::{button, Row, Text},
@@ -87,10 +87,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
     Column::new()
         .push(tabs_row)
-        .push(horizontal_rule(2).style(|theme| rule::Style {
-            width: 2,
-            ..rule::default(theme)
-        }))
+        .push(horizontal_line(2))
         .width(iced::Length::Fill)
         .into()
 }
