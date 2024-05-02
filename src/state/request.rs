@@ -4,7 +4,9 @@ use std::path::PathBuf;
 use body_types::*;
 use components;
 use components::{text_editor, KeyValList};
-use core::http::request::{KeyValue, Method, Request, RequestBody};
+use core::http::request::{Method, Request, RequestBody};
+
+use super::utils::{from_core_kv_list, to_core_kv_list};
 
 pub mod body_types {
     pub const FORM: &str = "URL Encoded";
@@ -37,7 +39,7 @@ pub enum RawRequestBody {
 impl RawRequestBody {
     fn to_request_body(&self) -> RequestBody {
         match self {
-            RawRequestBody::Form(form) => RequestBody::Form(from_key_val_list(form)),
+            RawRequestBody::Form(form) => RequestBody::Form(to_core_kv_list(form)),
             RawRequestBody::Json(json) => RequestBody::Json(json.text()),
             RawRequestBody::XML(xml) => RequestBody::XML(xml.text()),
             RawRequestBody::Text(text) => RequestBody::Text(text.text()),
@@ -48,7 +50,7 @@ impl RawRequestBody {
 
     fn from_request_body(body: &RequestBody) -> RawRequestBody {
         match body {
-            RequestBody::Form(form) => RawRequestBody::Form(to_key_val_list(form.clone(), false)),
+            RequestBody::Form(form) => RawRequestBody::Form(from_core_kv_list(form.clone(), false)),
             RequestBody::Json(json) => RawRequestBody::Json(text_editor::Content::with_text(json)),
             RequestBody::XML(xml) => RawRequestBody::XML(text_editor::Content::with_text(xml)),
             RequestBody::Text(text) => RawRequestBody::Text(text_editor::Content::with_text(text)),
@@ -111,10 +113,10 @@ impl RequestPane {
             description: self.description.clone(),
             method: self.method,
             url: self.url.clone(),
-            headers: from_key_val_list(&self.headers),
+            headers: to_core_kv_list(&self.headers),
             body: self.body.to_request_body(),
-            query_params: from_key_val_list(&self.query_params),
-            path_params: from_key_val_list(&self.path_params),
+            query_params: to_core_kv_list(&self.query_params),
+            path_params: to_core_kv_list(&self.path_params),
         }
     }
 
@@ -124,35 +126,12 @@ impl RequestPane {
             url_content: text_editor::Content::with_text(&request.url),
             url: request.url,
             method: request.method,
-            headers: to_key_val_list(request.headers, false),
+            headers: from_core_kv_list(request.headers, false),
             body: RawRequestBody::from_request_body(&request.body),
-            query_params: to_key_val_list(request.query_params, false),
-            path_params: to_key_val_list(request.path_params, true),
+            query_params: from_core_kv_list(request.query_params, false),
+            path_params: from_core_kv_list(request.path_params, true),
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),
         }
     }
-}
-
-fn to_key_val_list(values: Vec<KeyValue>, fixed: bool) -> KeyValList {
-    let values = values
-        .into_iter()
-        .map(|kv| components::KeyValue {
-            disabled: kv.disabled,
-            name: kv.name,
-            value: kv.value,
-        })
-        .collect();
-    KeyValList::from(values, fixed)
-}
-
-fn from_key_val_list(list: &KeyValList) -> Vec<KeyValue> {
-    list.values()
-        .iter()
-        .map(|kv| KeyValue {
-            disabled: kv.disabled,
-            name: kv.name.clone(),
-            value: kv.value.clone(),
-        })
-        .collect()
 }

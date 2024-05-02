@@ -1,5 +1,6 @@
 use slotmap::SlotMap;
-use std::collections::HashMap;
+
+use super::request::KeyValList;
 
 slotmap::new_key_type! {
     pub struct EnvironmentKey;
@@ -46,22 +47,21 @@ impl Environments {
 #[derive(Debug, Clone)]
 pub struct Environment {
     pub name: String,
-    pub variables: HashMap<String, String>,
+    pub variables: KeyValList,
 }
 
 impl Environment {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            variables: HashMap::new(),
+            variables: KeyValList::new(),
         }
     }
 
     pub fn get(&self, name: &str) -> Option<&str> {
-        self.variables.get(name).map(|s| s.as_str())
-    }
-
-    pub fn set(&mut self, name: String, value: String) {
-        self.variables.insert(name, value);
+        self.variables
+            .iter()
+            .find(|kv| kv.name == name)
+            .map(|kv| kv.value.as_str())
     }
 }
