@@ -6,11 +6,12 @@ use iced::{
 use tokio::fs;
 
 use components::{icon, icons, NerdIcon};
-use core::http::CollectionKey;
+use core::http::collection::{Collection, RequestRef};
+use core::http::{CollectionKey, CollectionRequest};
 use log::info;
 
 use crate::state::popups::Popup;
-use crate::state::AppState;
+use crate::state::{AppState, Tab};
 
 #[derive(Debug, Clone)]
 pub enum ActionBarMsg {
@@ -19,6 +20,7 @@ pub enum ActionBarMsg {
     StartNameEdit,
     OpenEnvironments(CollectionKey),
     RequestRenamed,
+    SelectEnvironment(String),
 }
 
 impl ActionBarMsg {
@@ -26,7 +28,7 @@ impl ActionBarMsg {
         match self {
             ActionBarMsg::StartNameEdit => {
                 let name = state
-                    .col_req_ref(state.active_tab)
+                    .get_req_ref(state.active_tab)
                     .map(|r| r.name.to_string());
 
                 if let Some(name) = name {
@@ -36,7 +38,7 @@ impl ActionBarMsg {
             }
             ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
-                let Some((col, name)) = tab.col_ref.zip(tab.editing_name.take()) else {
+                let Some((col, name)) = tab.collection_ref.zip(tab.editing_name.take()) else {
                     return Command::none();
                 };
                 let Some((old, new)) = state.collections.rename_request(col, name) else {
@@ -57,6 +59,14 @@ impl ActionBarMsg {
                 info!("Request renamed");
                 Command::none()
             }
+            ActionBarMsg::SelectEnvironment(name) => {
+                let mut env = None;
+                if let Some(col) = state.active_tab().collection_ref {
+                    env = state.collections.find_env_by_name(col.0, &name);
+                }
+                state.active_tab_mut().selected_env = env;
+                Command::none()
+            }
         }
     }
 }
@@ -70,9 +80,14 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, ActionBarMsg> {
 pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     let tab = state.active_tab();
 
-    let req_ref = state.col_req_ref(state.active_tab);
+    let collection = tab.collection_ref.and_then(
+        |r| -> Option<(&Collection, &RequestRef, CollectionRequest)> {
+            let col = state.collections.get(r.0)?;
+            Some((col, col.get_ref(r.1)?, r))
+        },
+    );
 
-    let bar = req_ref.zip(tab.col_ref).map(|(req_ref, col_ref)| {
+    let bar = collection.map(|(collection, request, col_ref)| {
         let name: Element<ActionBarMsg> = match &tab.editing_name {
             Some(name) => text_input("Request Name", name)
                 .on_input(ActionBarMsg::UpdateName)
@@ -80,7 +95,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
                 .on_submit(ActionBarMsg::SubmitNameEdit)
                 .padding(2)
                 .into(),
-            _ => text(&req_ref.name).into(),
+            _ => text(&request.name).into(),
         };
 
         let edit_name = tab
@@ -93,7 +108,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
             .push(name)
             .push(edit_name)
             .push(horizontal_space())
-            .push(environment_view(col_ref.0))
+            .push(environment_view(tab, collection, col_ref.0))
             .align_items(iced::Alignment::Center)
             .width(Length::Fill)
     });
@@ -101,12 +116,28 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     Column::new().push_maybe(bar).spacing(2).into()
 }
 
-fn environment_view<'a>(key: CollectionKey) -> Element<'a, ActionBarMsg> {
-    let envs = ["Dev", "Staging", "Prod"];
-    let picker = pick_list(envs, None::<&'static str>, |_| ActionBarMsg::RequestRenamed)
-        .width(Length::Shrink)
-        .padding([2, 4])
-        .placeholder("No Environment");
+fn environment_view<'a>(
+    tab: &'a Tab,
+    col: &'a Collection,
+    key: CollectionKey,
+) -> Element<'a, ActionBarMsg> {
+    let envs = col
+        .environments
+        .entries()
+        .map(|(_, env)| &env.name)
+        .collect::<Vec<_>>();
+
+    let selected = tab
+        .selected_env
+        .and_then(|key| col.environments.get(key))
+        .map(|env| &env.name);
+
+    let picker = pick_list(envs, selected, |name| {
+        ActionBarMsg::SelectEnvironment(name.to_owned())
+    })
+    .width(Length::Shrink)
+    .padding([2, 4])
+    .placeholder("No Environment");
 
     let settings = icon_button(icons::Gear).on_press(ActionBarMsg::OpenEnvironments(key));
 

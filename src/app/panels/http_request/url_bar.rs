@@ -117,7 +117,7 @@ impl UrlBarMsg {
             }
             UrlBarMsg::SaveRequest => {
                 let sel_tab = state.active_tab();
-                let req_ref = state.col_req_ref(state.active_tab);
+                let req_ref = state.get_req_ref(state.active_tab);
                 if let Some(req_res) = req_ref {
                     return save_request_cmd(&sel_tab.request, req_res.path.clone(), |_| {
                         Self::RequestSaved

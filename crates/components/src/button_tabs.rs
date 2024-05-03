@@ -68,7 +68,7 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
             button((tab.label)())
                 .style(move |theme, _| {
                     if active {
-                        button::secondary(theme, Status::Hovered)
+                        button::secondary(theme, Status::Active)
                     } else {
                         button::text(theme, Status::Active)
                     }

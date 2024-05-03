@@ -137,4 +137,8 @@ impl Collections {
 
         Some(collection.environments.create(name))
     }
+
+    pub fn find_env_by_name(&self, col: CollectionKey, name: &str) -> Option<EnvironmentKey> {
+        self.entries.get(col)?.environments.find_by_name(name)
+    }
 }

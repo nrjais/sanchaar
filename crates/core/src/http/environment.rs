@@ -50,6 +50,13 @@ impl Environments {
         let env = Environment::new(name);
         self.insert(env)
     }
+
+    pub(crate) fn find_by_name(&self, name: &str) -> Option<EnvironmentKey> {
+        self.envs
+            .iter()
+            .find(|(_, env)| env.name == name)
+            .map(|(id, _)| *id)
+    }
 }
 
 #[derive(Debug, Clone)]

@@ -4,6 +4,7 @@ use tokio::sync::oneshot;
 
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
+use core::http::environment::EnvironmentKey;
 use core::http::request::Request;
 use core::http::CollectionRequest;
 
@@ -16,12 +17,13 @@ core::new_id_type!(
 #[derive(Debug)]
 pub struct Tab {
     pub id: TabId,
-    pub col_ref: Option<CollectionRequest>,
+    pub collection_ref: Option<CollectionRequest>,
     pub request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
     pub editing_name: Option<String>,
     pub panes: pane_grid::State<SplitState>,
+    pub selected_env: Option<EnvironmentKey>,
 }
 
 impl Default for Tab {
@@ -34,7 +36,7 @@ impl Tab {
     pub fn new(request: Request) -> Self {
         Self {
             id: TabId::new(),
-            col_ref: None,
+            collection_ref: None,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
@@ -45,12 +47,13 @@ impl Tab {
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
             editing_name: None,
+            selected_env: None,
         }
     }
 
     pub(crate) fn with_ref(req: Request, req_ref: CollectionRequest) -> Tab {
         let mut tab = Tab::new(req);
-        tab.col_ref = Some(req_ref);
+        tab.collection_ref = Some(req_ref);
         tab
     }
 

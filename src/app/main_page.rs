@@ -60,7 +60,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
                     }),
                 text(
                     state
-                        .col_req_ref(key)
+                        .get_req_ref(key)
                         .map(|a| &a.name as &str)
                         .unwrap_or("Untitled"),
                 ),
