@@ -9,7 +9,7 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{COLLECTION_ROOT_FILE, ENVIRONMENTS, TOML_EXTENSION};
+use super::{COLLECTION_ROOT_FILE, ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -132,8 +132,8 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
 
     let collection: EncodedCollection = toml::from_str(&data)?;
-    let entries = walk_entries(&path, true).await?;
     let environments = read_environments(&path).await?;
+    let entries = find_all_requests(&path).await?;
 
     Ok(Collection::new(
         collection.name,
@@ -143,17 +143,23 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     ))
 }
 
-async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entry>> {
+async fn find_all_requests(path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
+    let requests = path.join(REQUESTS);
+    let exists = fs::try_exists(&requests).await?;
+    if !exists {
+        return Ok(Vec::new());
+    }
+
+    walk_entries(&requests).await
+}
+
+async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
     let mut entries = vec![];
     let mut dir = fs::read_dir(dir_path).await?;
 
     while let Some(entry) = dir.next_entry().await? {
         if entry.file_type().await?.is_dir() {
-            if root && entry.file_name() == ENVIRONMENTS {
-                continue;
-            }
-
-            let children = Box::pin(walk_entries(&entry.path(), false)).await?;
+            let children = Box::pin(walk_entries(&entry.path())).await?;
             entries.push(Entry::Folder(Folder {
                 id: FolderId::new(),
                 name: entry.file_name().to_string_lossy().to_string(),
@@ -162,10 +168,6 @@ async fn walk_entries(dir_path: &PathBuf, root: bool) -> anyhow::Result<Vec<Entr
                 expanded: false,
             }));
         } else {
-            if root && entry.file_name() == COLLECTION_ROOT_FILE {
-                continue;
-            }
-
             let name = entry.file_name();
             let name = name.to_string_lossy();
 
