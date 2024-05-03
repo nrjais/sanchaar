@@ -42,10 +42,10 @@ pub fn send_request_cmd<M>(
         return Command::none();
     };
 
-    let env = match sel_tab.collection_ref.zip(sel_tab.selected_env) {
-        Some((col, env)) => state.collections.get_env(col.0, env),
-        None => None,
-    };
+    let env = sel_tab
+        .collection_ref
+        .and_then(|c| state.collections.get_active_env(c.0))
+        .cloned();
 
     let Some(sel_tab) = state.get_tab_mut(tab) else {
         return Command::none();

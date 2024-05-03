@@ -77,9 +77,9 @@ impl Collections {
         Some(&self.entries.get(key)?.environments)
     }
 
-    pub fn get_env(&self, key: CollectionKey, env: EnvironmentKey) -> Option<Environment> {
+    pub fn get_active_env(&self, key: CollectionKey) -> Option<&Environment> {
         let envs = self.get_envs(key)?;
-        envs.get(env).cloned()
+        envs.get(self.entries.get(key)?.active_environment?)
     }
 
     pub fn rename_request(
@@ -143,7 +143,16 @@ impl Collections {
         Some(collection.environments.create(name))
     }
 
-    pub fn find_env_by_name(&self, col: CollectionKey, name: &str) -> Option<EnvironmentKey> {
-        self.entries.get(col)?.environments.find_by_name(name)
+    pub fn update_active_env_by_name(
+        &mut self,
+        col: CollectionKey,
+        name: &str,
+    ) -> Option<EnvironmentKey> {
+        let env = self.entries.get(col)?.environments.find_by_name(name);
+
+        if let Some(env) = env {
+            self.entries.get_mut(col)?.active_environment = Some(env);
+        }
+        env
     }
 }

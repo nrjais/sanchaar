@@ -39,6 +39,7 @@ pub struct Collection {
     pub children: Vec<Entry>,
     pub expanded: bool,
     pub environments: Environments,
+    pub active_environment: Option<EnvironmentKey>,
 }
 
 impl Collection {
@@ -48,12 +49,14 @@ impl Collection {
         path: PathBuf,
         environments: Environments,
     ) -> Self {
+        let active_environment = environments.entries().next().map(|e| e.0).copied();
         Self {
             name,
             children,
             path,
             environments,
             expanded: false,
+            active_environment,
         }
     }
 
@@ -114,6 +117,11 @@ impl Collection {
             None
         }
         recurse(self.children.iter(), id)
+    }
+
+    pub fn get_active_environment(&self) -> Option<&Environment> {
+        self.active_environment
+            .and_then(|key| self.environments.get(key))
     }
 
     pub fn rename_request(&mut self, id: RequestId, name: &str) -> Option<(PathBuf, PathBuf)> {
@@ -213,6 +221,7 @@ impl Default for Collection {
             path: PathBuf::new(),
             expanded: false,
             environments: Environments::new(),
+            active_environment: None,
         }
     }
 }

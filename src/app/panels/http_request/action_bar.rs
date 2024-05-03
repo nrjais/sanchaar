@@ -11,7 +11,7 @@ use core::http::{CollectionKey, CollectionRequest};
 use log::info;
 
 use crate::state::popups::Popup;
-use crate::state::{AppState, Tab};
+use crate::state::AppState;
 
 #[derive(Debug, Clone)]
 pub enum ActionBarMsg {
@@ -60,11 +60,9 @@ impl ActionBarMsg {
                 Command::none()
             }
             ActionBarMsg::SelectEnvironment(name) => {
-                let mut env = None;
                 if let Some(col) = state.active_tab().collection_ref {
-                    env = state.collections.find_env_by_name(col.0, &name);
+                    state.collections.update_active_env_by_name(col.0, &name);
                 }
-                state.active_tab_mut().selected_env = env;
                 Command::none()
             }
         }
@@ -108,7 +106,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
             .push(name)
             .push(edit_name)
             .push(horizontal_space())
-            .push(environment_view(tab, collection, col_ref.0))
+            .push(environment_view(collection, col_ref.0))
             .align_items(iced::Alignment::Center)
             .width(Length::Fill)
     });
@@ -116,21 +114,14 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     Column::new().push_maybe(bar).spacing(2).into()
 }
 
-fn environment_view<'a>(
-    tab: &'a Tab,
-    col: &'a Collection,
-    key: CollectionKey,
-) -> Element<'a, ActionBarMsg> {
+fn environment_view<'a>(col: &'a Collection, key: CollectionKey) -> Element<'a, ActionBarMsg> {
     let envs = col
         .environments
         .entries()
         .map(|(_, env)| &env.name)
         .collect::<Vec<_>>();
 
-    let selected = tab
-        .selected_env
-        .and_then(|key| col.environments.get(key))
-        .map(|env| &env.name);
+    let selected = col.get_active_environment().map(|env| &env.name);
 
     let picker = pick_list(envs, selected, |name| {
         ActionBarMsg::SelectEnvironment(name.to_owned())

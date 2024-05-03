@@ -4,7 +4,6 @@ use tokio::sync::oneshot;
 
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
-use core::http::environment::EnvironmentKey;
 use core::http::request::Request;
 use core::http::CollectionRequest;
 
@@ -23,7 +22,6 @@ pub struct Tab {
     pub tasks: Vec<oneshot::Sender<()>>,
     pub editing_name: Option<String>,
     pub panes: pane_grid::State<SplitState>,
-    pub selected_env: Option<EnvironmentKey>,
 }
 
 impl Default for Tab {
@@ -47,7 +45,6 @@ impl Tab {
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
             editing_name: None,
-            selected_env: None,
         }
     }
 
