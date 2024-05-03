@@ -52,7 +52,16 @@ fn open_popup(state: &mut AppState, popup: Popup) {
 
 impl Popup {
     pub fn close(state: &mut AppState) {
-        state.popup = None;
+        let Some(popup) = state.popup.take() else {
+            return;
+        };
+        state.popup = match popup {
+            Popup::EnvironmentEditor(mut data) if data.add_env_mode => {
+                data.add_env_mode = false;
+                Some(Popup::EnvironmentEditor(data))
+            }
+            _ => None,
+        };
     }
 
     pub fn save_request(state: &mut AppState, tab: TabKey) {
