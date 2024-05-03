@@ -5,7 +5,7 @@ use components::KeyValList;
 
 use super::utils::{from_core_kv_list, to_core_kv_list};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Env {
     pub name: String,
     pub variables: KeyValList,

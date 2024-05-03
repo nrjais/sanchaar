@@ -5,16 +5,37 @@ use iced::{
 };
 use std::ops::Not;
 
+use crate::text_editor::{self, line_editor, ContentAction};
+
 use super::{icon, icons};
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Default)]
 pub struct KeyValue {
     pub disabled: bool,
     pub name: String,
-    pub value: String,
+    value: text_editor::Content,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+impl KeyValue {
+    pub fn new(name: &str, value: &str, disabled: bool) -> Self {
+        Self {
+            name: name.to_owned(),
+            value: text_editor::Content::with_text(value),
+            disabled,
+        }
+    }
+
+    pub fn value(&self) -> String {
+        self.value.text()
+    }
+
+    pub fn is_value_empty(&self) -> bool {
+        let lines = self.value.line_count();
+        lines == 1 && self.value.line(0).map_or(true, |line| line.is_empty())
+    }
+}
+
+#[derive(Debug)]
 pub struct KeyValList {
     list: Vec<KeyValue>,
     pub fixed: bool,
@@ -51,7 +72,9 @@ impl KeyValList {
         match msg {
             KeyValUpdateMsg::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
             KeyValUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
-            KeyValUpdateMsg::ValueChanged(idx, value) => self.list[idx].value = value,
+            KeyValUpdateMsg::ValueChanged(idx, action) => {
+                self.list[idx].value.perform(action);
+            }
             KeyValUpdateMsg::Remove(idx) => {
                 self.list.remove(idx);
             }
@@ -62,7 +85,7 @@ impl KeyValList {
 
         let last = self.list.last();
         if let Some(last) = last {
-            if !last.name.is_empty() || !last.value.is_empty() {
+            if !last.name.is_empty() || !last.is_value_empty() {
                 self.list.push(KeyValue::default());
             }
         } else {
@@ -89,7 +112,7 @@ impl KeyValList {
         self.list.push(KeyValue {
             name: key,
             disabled: false,
-            value: String::new(),
+            value: text_editor::Content::default(),
         });
     }
 
@@ -117,11 +140,11 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum KeyValUpdateMsg {
     Toggled(usize, bool),
     NameChanged(usize, String),
-    ValueChanged(usize, String),
+    ValueChanged(usize, ContentAction),
     Remove(usize),
 }
 
@@ -145,9 +168,8 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         let size = 14;
         let spacing = 2;
 
-        let border = Border::default();
-
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
+            let border = Border::default();
             let enabled = checkbox("", !kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
                 .size(size)
@@ -186,12 +208,16 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 .size(size)
                 .width(iced::Length::FillPortion(2));
 
-            let value = text_input("Value", &kv.value)
-                .style(input_style)
-                .on_input(move |value| KeyValUpdateMsg::ValueChanged(idx, value))
-                .on_paste(move |value| KeyValUpdateMsg::ValueChanged(idx, value))
-                .size(size)
-                .width(iced::Length::FillPortion(3));
+            let value = container(
+                line_editor(&kv.value)
+                    .style(move |t, s| text_editor::Style {
+                        border,
+                        ..text_editor::default(t, s)
+                    })
+                    .on_action(move |a| KeyValUpdateMsg::ValueChanged(idx, a))
+                    .size(size),
+            )
+            .width(iced::Length::FillPortion(3));
 
             container(
                 Row::new()
