@@ -1,5 +1,5 @@
 use core::http::environment::{Environment, EnvironmentKey, Environments};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use components::KeyValList;
 
@@ -20,16 +20,16 @@ impl From<&Environment> for Env {
     }
 }
 
-impl Into<Environment> for Env {
-    fn into(self) -> Environment {
-        Environment {
-            name: self.name,
-            variables: to_core_kv_list(&self.variables),
+impl From<&Env> for Environment {
+    fn from(value: &Env) -> Self {
+        Self {
+            name: value.name.trim().to_owned(),
+            variables: to_core_kv_list(&value.variables),
         }
     }
 }
 
-pub fn environment_keyvals(envs: &Environments) -> HashMap<EnvironmentKey, Env> {
+pub fn environment_keyvals(envs: &Environments) -> BTreeMap<EnvironmentKey, Env> {
     envs.entries()
         .map(|(key, env)| (*key, Env::from(env)))
         .collect()

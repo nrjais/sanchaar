@@ -1,7 +1,9 @@
 use std::borrow::Cow;
 use std::ops::Not;
 
-use iced::widget::{scrollable, text, text_input, value, Column, Row};
+use iced::widget::{
+    button, horizontal_space, scrollable, text, text_input, value, vertical_space, Column, Row,
+};
 use iced::{Command, Element};
 
 use components::{button_tab, key_value_editor, vertical_button_tabs, vertical_line};
@@ -17,7 +19,9 @@ pub enum Message {
     Done,
     SaveEnvs,
     SelectEnv(EnvironmentKey),
+    DeleteEnv(EnvironmentKey),
     NameChanged(String),
+    AddNewEnvMode,
     CreateEnv,
     EnvUpdate(EnvironmentKey, components::KeyValUpdateMsg),
 }
@@ -38,9 +42,8 @@ impl Message {
             Message::SaveEnvs => {
                 let col = data.col;
                 if let Some(collection) = state.collections.get_mut(col) {
-                    let envs = data.environments.drain();
-                    for (key, env) in envs {
-                        collection.update_environment(key, env.into());
+                    for (key, env) in data.environments.iter() {
+                        collection.update_environment(*key, env.into());
                     }
                     return builders::save_environments_cmd(collection, || Message::Done);
                 }
@@ -61,7 +64,7 @@ impl Message {
                     .expect("Environment not found")
                     .get(key)
                     .expect("Environment not found");
-
+                data.add_env_mode = false;
                 data.environments.insert(key, Env::from(env));
             }
             Message::EnvUpdate(env, update) => {
@@ -70,6 +73,14 @@ impl Message {
                     .get_mut(&env)
                     .expect("Environment not found");
                 env.variables.update(update);
+            }
+            Message::AddNewEnvMode => {
+                data.add_env_mode = true;
+            }
+            Message::DeleteEnv(env) => {
+                data.environments.remove(&env);
+                // TODO: Remove environment file from collection
+                // state.collections.delete_env(data.col, env);
             }
         }
         Command::none()
@@ -82,7 +93,7 @@ pub fn title<'a>() -> Cow<'a, str> {
 
 pub fn done(data: &EnvironmentEditorState) -> Option<Message> {
     let empty = data.environments.is_empty();
-    if empty {
+    if empty || data.add_env_mode {
         data.env_name.is_empty().not().then_some(Message::CreateEnv)
     } else {
         Some(Message::SaveEnvs)
@@ -91,7 +102,7 @@ pub fn done(data: &EnvironmentEditorState) -> Option<Message> {
 
 fn create_env_view(data: &EnvironmentEditorState) -> Element<Message> {
     Column::new()
-        .push(text("No environments found, Create one!"))
+        .push(text("Add new environment!"))
         .push(
             text_input("Environment Name", &data.env_name)
                 .on_input(Message::NameChanged)
@@ -108,6 +119,9 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
     let Some(first) = environments.iter().map(|e| e.0).next() else {
         return create_env_view(data);
     };
+    if data.add_env_mode {
+        return create_env_view(data);
+    }
 
     let selected = data.selected_env.unwrap_or(*first);
     let env = environments.get(&selected).expect("Environment not found");
@@ -119,18 +133,42 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
         })
     });
 
+    let env_actions = Row::new()
+        .push(
+            button(text("Create Env").size(14))
+                .padding([4, 6])
+                .on_press(Message::AddNewEnvMode),
+        )
+        .align_items(iced::Alignment::Center);
+
     let tab_bar = Row::new()
-        .push(scrollable(vertical_button_tabs(
-            selected,
-            env_tabs,
-            Message::SelectEnv,
-            None,
-        )))
+        .push(
+            Column::new()
+                .push(scrollable(vertical_button_tabs(
+                    selected,
+                    env_tabs,
+                    Message::SelectEnv,
+                )))
+                .push(vertical_space())
+                .push(env_actions)
+                .align_items(iced::Alignment::Center),
+        )
         .push(vertical_line(2));
 
     let update_env = move |u| Message::EnvUpdate(selected, u);
     let editor = Column::new()
-        .push(text("Variables"))
+        .push(
+            Row::new()
+                .push(text("Variables"))
+                .push(horizontal_space())
+                .push(
+                    button("Delete")
+                        .padding([2, 4])
+                        .style(button::danger)
+                        .on_press(Message::DeleteEnv(selected)),
+                )
+                .padding([0, 8, 0, 0]),
+        )
         .push(key_value_editor(&env.variables).on_change(update_env))
         .spacing(4);
 

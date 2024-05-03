@@ -1,0 +1,6 @@
+name = "Staging"
+version = "V1"
+
+[[variables]]
+name = "Staging "
+value = "true"

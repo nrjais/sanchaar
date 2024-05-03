@@ -19,8 +19,8 @@ pub fn to_core_kv_list(list: &KeyValList) -> Vec<KeyValue> {
         .iter()
         .map(|kv| KeyValue {
             disabled: kv.disabled,
-            name: kv.name.clone(),
-            value: kv.value.clone(),
+            name: kv.name.trim().to_owned(),
+            value: kv.value.trim().to_owned(),
         })
         .collect()
 }

@@ -41,11 +41,14 @@ pub fn vertical_button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     active: T,
     tabs: impl Iterator<Item = ButtonTab<'a, T>>,
     on_tab_change: impl Fn(T) -> M,
-    suffix: Option<Element<'a, M>>,
 ) -> Row<'a, M> {
-    let tabs = tab_list(active, tabs, on_tab_change, suffix, true);
+    let tabs = tab_list(active, tabs, on_tab_change, None, true);
     Row::new()
-        .push(Column::from_vec(tabs).spacing(4))
+        .push(
+            Column::from_vec(tabs)
+                .spacing(4)
+                .align_items(iced::Alignment::Center),
+        )
         .width(iced::Length::Shrink)
         .height(iced::Length::Shrink)
 }
