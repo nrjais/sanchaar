@@ -26,7 +26,7 @@ pub enum RequestPaneMsg {
 
 impl RequestPaneMsg {
     pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
-        let request = &mut state.active_tab_mut().request;
+        let request = &mut state.active_tab_mut().request_mut();
         match self {
             Self::TabSelected(tab) => {
                 request.tab = tab;
@@ -165,7 +165,7 @@ fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
 }
 
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
-    let request = &state.active_tab().request;
+    let request = &state.active_tab().request();
 
     let tab_content = match request.tab {
         ReqTabId::Params => params_view(request),

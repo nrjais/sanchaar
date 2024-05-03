@@ -9,6 +9,7 @@ use core::http::request::Request;
 use core::http::{CollectionRequest, Collections};
 pub use tab::*;
 
+use crate::commands::BackgroundTasks;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 
@@ -40,6 +41,7 @@ pub struct AppState {
     pub panes: pane_grid::State<SplitState>,
     pub popup: Option<Popup>,
     pub theme: Theme,
+    pub background_tasks: Vec<BackgroundTasks>,
 }
 
 impl AppState {
@@ -61,6 +63,7 @@ impl AppState {
             }),
             popup: None,
             theme: Theme::Dark,
+            background_tasks: Vec::new(),
         }
     }
 

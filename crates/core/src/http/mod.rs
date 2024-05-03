@@ -48,7 +48,7 @@ pub struct CollectionRequest(pub CollectionKey, pub RequestId);
 
 #[derive(Debug, Default)]
 pub struct Collections {
-    pub entries: SlotMap<CollectionKey, Collection>,
+    entries: SlotMap<CollectionKey, Collection>,
     pub dirty: bool,
 }
 
@@ -68,6 +68,10 @@ impl Collections {
         self.entries.get(key).map(f)
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = (CollectionKey, &Collection)> {
+        self.entries.iter()
+    }
+
     pub fn get_ref(&self, cr: CollectionRequest) -> Option<&RequestRef> {
         self.entries.get(cr.0).and_then(|c| c.get_ref(cr.1))
     }
@@ -75,6 +79,7 @@ impl Collections {
     pub fn get(&self, key: CollectionKey) -> Option<&Collection> {
         self.entries.get(key)
     }
+
     pub fn get_mut(&mut self, key: CollectionKey) -> Option<&mut Collection> {
         self.dirty();
         self.entries.get_mut(key)

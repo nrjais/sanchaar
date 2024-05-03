@@ -100,7 +100,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
-    let it = state.collections.entries.iter().map(|(key, collection)| {
+    let it = state.collections.iter().map(|(key, collection)| {
         expandable(
             key,
             &collection.name,

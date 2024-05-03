@@ -8,7 +8,7 @@ use crate::app::panels::PanelMsg;
 
 use crate::app::{collection_tree, panels};
 use crate::state::{AppState, TabKey};
-use components::{card_tab, card_tabs, TabBarAction};
+use components::{card_tab, card_tabs, colors, TabBarAction};
 use core::http::request::Method;
 
 #[derive(Debug, Clone)]
@@ -37,7 +37,8 @@ impl MainPageMsg {
 }
 
 fn method_color(_method: Method) -> Color {
-    Color::from_rgb8(0, 0, 0)
+    colors::CYAN
+    // Color::from_rgb8(0, 0, 0)
 }
 
 pub fn view(state: &AppState) -> Element<MainPageMsg> {
@@ -47,10 +48,11 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
     let tabs = tabs
         .into_iter()
         .map(|(key, tab)| {
+            let dirty_flag = tab.is_request_dirty().then_some("").unwrap_or("");
             card_tab(
                 key,
-                text(tab.request.method.to_string())
-                    .color(method_color(tab.request.method))
+                text(format!("{}{}", dirty_flag, tab.request().method))
+                    .color(method_color(tab.request().method))
                     .shaping(Advanced)
                     .size(12)
                     .height(Length::Shrink)

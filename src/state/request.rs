@@ -79,8 +79,6 @@ impl RawRequestBody {
 
 #[derive(Debug)]
 pub struct RequestPane {
-    pub description: String,
-    pub url: String,
     pub url_content: text_editor::Content,
     pub method: Method,
     pub headers: KeyValList,
@@ -111,9 +109,9 @@ impl RequestPane {
 
     pub fn to_request(&self) -> Request {
         Request {
-            description: self.description.clone(),
+            description: "Http request".to_string(),
             method: self.method,
-            url: self.url.clone(),
+            url: self.url_content.text(),
             headers: to_core_kv_list(&self.headers),
             body: self.body.to_request_body(),
             query_params: to_core_kv_list(&self.query_params),
@@ -123,9 +121,7 @@ impl RequestPane {
 
     pub fn from(request: Request) -> RequestPane {
         RequestPane {
-            description: request.description,
             url_content: text_editor::Content::with_text(&request.url),
-            url: request.url,
             method: request.method,
             headers: from_core_kv_list(request.headers, false),
             body: RawRequestBody::from_request_body(&request.body),

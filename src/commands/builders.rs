@@ -15,14 +15,14 @@ use core::http::{
     request::Request,
     CollectionKey, CollectionRequest,
 };
-use core::persistence::collections::{encode_collection, open_collection, save_collection};
+use core::persistence::collections::{self, encode_collection, open_collection, save_collection};
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
-use crate::state::{AppState, TabKey};
+use crate::state::{AppState, RequestDirtyState, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum ResponseResult {
@@ -53,7 +53,7 @@ pub fn send_request_cmd<M>(
 
     sel_tab.response.state = ResponseState::Executing;
 
-    let req_fut = transform_request(client.clone(), sel_tab.request.to_request(), env)
+    let req_fut = transform_request(client.clone(), sel_tab.request().to_request(), env)
         .and_then(|req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
@@ -120,7 +120,7 @@ pub fn save_new_request_cmd<M>(
         return Command::none();
     };
 
-    let req = sel_tab.request.to_request();
+    let req = sel_tab.request().to_request();
     let encoded = encode_request(req);
 
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
@@ -229,4 +229,63 @@ pub(crate) fn save_environments_cmd<Message>(
         save_environments(collection.path.clone(), encoded),
         move |_| done(),
     )
+}
+
+pub async fn load_collections_cmd() -> Vec<Collection> {
+    collections::load().await.unwrap_or_else(|e| {
+        println!("Error loading http: {:?}", e);
+        vec![]
+    })
+}
+
+pub(crate) fn check_dirty_requests_cmd<M>(
+    state: &mut AppState,
+    on_done: impl Fn(Vec<TabKey>) -> M + 'static + MaybeSend,
+) -> (Command<M>, bool) {
+    let mut to_check = Vec::new();
+    for (key, tab) in state.tabs.iter_mut() {
+        if tab.request_dirty_state != RequestDirtyState::MaybeDirty {
+            continue;
+        }
+
+        let Some(col) = tab.collection_ref.as_ref() else {
+            tab.request_dirty_state = RequestDirtyState::Clean;
+            continue;
+        };
+
+        let Some(request_ref) = state.collections.get_ref(*col) else {
+            tab.request_dirty_state = RequestDirtyState::Clean;
+            continue;
+        };
+
+        let req = tab.request().to_request();
+
+        to_check.push((key, req, request_ref.path.clone()));
+    }
+
+    if to_check.is_empty() {
+        return (Command::none(), false);
+    }
+
+    async fn exec(to_check: Vec<(TabKey, Request, PathBuf)>) -> Result<Vec<TabKey>, anyhow::Error> {
+        let mut dirty = Vec::new();
+        for (key, req, path) in to_check {
+            let file_request = read_request(path).await?;
+            if req != file_request {
+                dirty.push(key);
+            }
+        }
+
+        Ok(dirty)
+    }
+
+    let cmd = Command::perform(exec(to_check), move |res| match res {
+        Ok(dirty) => on_done(dirty),
+        Err(e) => {
+            println!("Error checking dirty requests: {:?}", e);
+            on_done(vec![])
+        }
+    });
+
+    (cmd, true)
 }

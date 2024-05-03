@@ -10,18 +10,26 @@ use core::http::CollectionRequest;
 use super::request::RequestPane;
 
 core::new_id_type!(
-    pub struct TabId;
+    pub struct TabOpenId;
 );
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RequestDirtyState {
+    Clean,
+    MaybeDirty,
+    Dirty,
+}
 
 #[derive(Debug)]
 pub struct Tab {
-    pub id: TabId,
+    pub id: TabOpenId,
     pub collection_ref: Option<CollectionRequest>,
-    pub request: RequestPane,
+    request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
     pub editing_name: Option<String>,
     pub panes: pane_grid::State<SplitState>,
+    pub request_dirty_state: RequestDirtyState,
 }
 
 impl Default for Tab {
@@ -33,7 +41,7 @@ impl Default for Tab {
 impl Tab {
     pub fn new(request: Request) -> Self {
         Self {
-            id: TabId::new(),
+            id: TabOpenId::new(),
             collection_ref: None,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
@@ -45,7 +53,23 @@ impl Tab {
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
             editing_name: None,
+            request_dirty_state: RequestDirtyState::Clean,
         }
+    }
+
+    pub fn is_request_dirty(&self) -> bool {
+        matches!(self.request_dirty_state, RequestDirtyState::Dirty)
+    }
+
+    pub fn request(&self) -> &RequestPane {
+        &self.request
+    }
+
+    pub fn request_mut(&mut self) -> &mut RequestPane {
+        if self.request_dirty_state == RequestDirtyState::Clean {
+            self.request_dirty_state = RequestDirtyState::MaybeDirty;
+        }
+        &mut self.request
     }
 
     pub(crate) fn with_ref(req: Request, req_ref: CollectionRequest) -> Tab {
@@ -62,6 +86,10 @@ impl Tab {
 
     pub fn add_task(&mut self, task: oneshot::Sender<()>) {
         self.tasks.push(task);
+    }
+
+    pub(crate) fn mark_request_dirty(&mut self) {
+        self.request_dirty_state = RequestDirtyState::Dirty;
     }
 }
 

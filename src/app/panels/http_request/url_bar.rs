@@ -84,26 +84,25 @@ impl UrlBarMsg {
     pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
             UrlBarMsg::MethodChanged(method) => {
-                state.active_tab_mut().request.method = method;
+                state.active_tab_mut().request_mut().method = method;
             }
             UrlBarMsg::UrlChanged(action) => {
                 let active_tab = state.active_tab_mut();
-                active_tab.request.url_content.perform(action);
+                active_tab.request_mut().url_content.perform(action);
 
-                let url = active_tab.request.url_content.text();
+                let url = active_tab.request().url_content.text();
                 if let Some(params) = parse_path_params(&url) {
                     active_tab
-                        .request
+                        .request_mut()
                         .path_params
                         .retain(|key| params.contains(key.name()));
 
                     for param in params {
-                        if !active_tab.request.path_params.contains_key(&param) {
-                            active_tab.request.path_params.insert(param);
+                        if !active_tab.request().path_params.contains_key(&param) {
+                            active_tab.request_mut().path_params.insert(param);
                         }
                     }
                 }
-                active_tab.request.url = url;
             }
             UrlBarMsg::SendRequest => {
                 let active_tab = state.active_tab_mut();
@@ -119,7 +118,7 @@ impl UrlBarMsg {
                 let sel_tab = state.active_tab();
                 let req_ref = state.get_req_ref(state.active_tab);
                 if let Some(req_res) = req_ref {
-                    return save_request_cmd(&sel_tab.request, req_res.path.clone(), |_| {
+                    return save_request_cmd(sel_tab.request(), req_res.path.clone(), |_| {
                         Self::RequestSaved
                     });
                 } else {
@@ -144,7 +143,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
 
 pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     let tab = state.active_tab();
-    let request = &tab.request;
+    let request = tab.request();
     let executing = tab.response.is_executing();
 
     let border = Border::default();

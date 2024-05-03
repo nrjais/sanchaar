@@ -3,12 +3,12 @@ use iced::Command;
 use components::modal;
 use popups::PopupMsg;
 
-use crate::app::main_page::MainPageMsg;
+use crate::app::content_section::MainPageMsg;
 use crate::commands;
 use crate::{commands::CommandMsg, AppState};
 
 mod collection_tree;
-mod main_page;
+mod content_section;
 mod panels;
 mod popups;
 
@@ -31,7 +31,7 @@ impl AppMsg {
 }
 
 pub fn view(state: &AppState) -> iced::Element<AppMsg> {
-    let main_page = main_page::view(state).map(AppMsg::MainPage);
+    let main_page = content_section::view(state).map(AppMsg::MainPage);
 
     if let Some(ref popup) = state.popup {
         let popup = popups::view(state, popup).map(AppMsg::Popup);

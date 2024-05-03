@@ -72,7 +72,6 @@ pub fn done(data: &SaveRequestState) -> Option<Message> {
 pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {
     let collections = state
         .collections
-        .entries
         .iter()
         .map(|(k, c)| {
             let name = c.name.as_str();
