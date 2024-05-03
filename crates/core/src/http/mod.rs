@@ -5,7 +5,7 @@ use slotmap::SlotMap;
 use crate::http::collection::{Collection, RequestId, RequestRef};
 use crate::http::environment::Environments;
 
-use self::environment::EnvironmentKey;
+use self::environment::{Environment, EnvironmentKey};
 
 pub mod collection;
 pub mod environment;
@@ -75,6 +75,11 @@ impl Collections {
 
     pub fn get_envs(&self, key: CollectionKey) -> Option<&Environments> {
         Some(&self.entries.get(key)?.environments)
+    }
+
+    pub fn get_env(&self, key: CollectionKey, env: EnvironmentKey) -> Option<Environment> {
+        let envs = self.get_envs(key)?;
+        envs.get(env).cloned()
     }
 
     pub fn rename_request(

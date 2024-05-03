@@ -7,4 +7,4 @@ url = "https://echo.nrjais.com"
 
 [[http.query]]
 name = "test"
-value = "query"
+value = "{{test}}"

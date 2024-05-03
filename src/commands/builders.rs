@@ -37,12 +37,23 @@ pub fn send_request_cmd<M>(
     on_result: impl Fn(ResponseResult) -> M + 'static + MaybeSend,
 ) -> Command<M> {
     let client = state.client.clone();
+
+    let Some(sel_tab) = state.get_tab(tab) else {
+        return Command::none();
+    };
+
+    let env = match sel_tab.collection_ref.zip(sel_tab.selected_env) {
+        Some((col, env)) => state.collections.get_env(col.0, env),
+        None => None,
+    };
+
     let Some(sel_tab) = state.get_tab_mut(tab) else {
         return Command::none();
     };
 
     sel_tab.response.state = ResponseState::Executing;
-    let req_fut = transform_request(client.clone(), sel_tab.request.to_request())
+
+    let req_fut = transform_request(client.clone(), sel_tab.request.to_request(), env)
         .and_then(|req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);

@@ -1,20 +1,25 @@
 use anyhow::Context;
 use mime::{APPLICATION_JSON, TEXT_PLAIN, TEXT_XML};
-use mime_guess::mime;
+use mime_guess::{mime, Mime};
+use regex::Regex;
 use reqwest::header::CONTENT_TYPE;
 use reqwest::RequestBuilder;
 
-use crate::http::{request::{Method, Request, RequestBody}, KeyValList, KeyValue};
+use crate::http::{
+    environment::Environment,
+    request::{Method, Request, RequestBody},
+    KeyValList, KeyValue,
+};
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
 }
 
-fn enabled_params(params: &KeyValList) -> Vec<(&String, &String)> {
+fn enabled_params(params: KeyValList, env: Option<&Environment>) -> Vec<(String, String)> {
     params
-        .iter()
+        .into_iter()
         .filter(|param| param_enabled(param))
-        .map(|param| (&param.name, &param.value))
+        .map(|param| (param.name, replace_env_vars(&param.value, env)))
         .collect()
 }
 
@@ -32,50 +37,102 @@ fn req_method(method: Method) -> reqwest::Method {
     }
 }
 
-fn req_headers(mut builder: RequestBuilder, headers: &KeyValList) -> RequestBuilder {
-    let iter = headers.iter().filter(|p| param_enabled(p));
+fn req_headers(
+    mut builder: RequestBuilder,
+    headers: KeyValList,
+    env: Option<&Environment>,
+) -> RequestBuilder {
+    let iter = headers.into_iter().filter(|p| param_enabled(p));
     for header in iter {
-        builder = builder.header(&header.name, &header.value);
+        builder = builder.header(header.name, replace_env_vars(&header.value, env));
     }
     builder
 }
 
-fn req_params(builder: RequestBuilder, params: &KeyValList) -> RequestBuilder {
-    let params = enabled_params(params);
+fn req_params(
+    builder: RequestBuilder,
+    params: KeyValList,
+    env: Option<&Environment>,
+) -> RequestBuilder {
+    let params = enabled_params(params, env);
     builder.query(&params)
 }
 
 pub async fn transform_request(
     client: reqwest::Client,
     req: Request,
+    env: Option<Environment>,
 ) -> anyhow::Result<reqwest::Request> {
-    let url = replace_path_params(&req.url, &req.path_params);
+    let env = env.as_ref();
 
-    let mut builder = client.request(req_method(req.method), url);
+    let Request {
+        method,
+        url,
+        path_params,
+        headers,
+        query_params,
+        body,
+        ..
+    } = req;
 
-    builder = req_headers(builder, &req.headers);
-    builder = req_params(builder, &req.query_params);
-    builder = req_body(builder, req.body).await;
+    let url = replace_path_params(url, path_params, env);
+
+    let mut builder = client.request(req_method(method), url);
+
+    builder = req_headers(builder, headers, env);
+    builder = req_params(builder, query_params, env);
+    builder = req_body(builder, body, env).await;
 
     builder.build().context("Failed to build request")
 }
 
-fn replace_path_params(url: &str, params: &KeyValList) -> String {
-    let mut url = url.to_string();
-    for param in params {
-        url = url.replace(&format!(":{}", param.name), &param.value);
-    }
-    url
+fn replace_env_vars(source: &str, env: Option<&Environment>) -> String {
+    let Some(env) = env else {
+        return source.to_string();
+    };
+    let replaced = Regex::new(r"\{\{([a-zA-Z0-9]+)\}\}").unwrap().replace_all(
+        source,
+        |cap: &regex::Captures| -> String {
+            let name = &cap[1];
+            env.get(name).unwrap_or(name).to_string()
+        },
+    );
+    replaced.to_string()
 }
 
-async fn req_body(builder: RequestBuilder, body: RequestBody) -> RequestBuilder {
+fn replace_path_params(url: String, params: KeyValList, env: Option<&Environment>) -> String {
+    let url = replace_env_vars(&url, env);
+    let replaced = Regex::new(r":([a-zA-Z0-9]+)").unwrap().replace_all(
+        &url,
+        |cap: &regex::Captures| -> String {
+            let name = &cap[1];
+            let value = params
+                .iter()
+                .find(|param| param.name == name)
+                .map(|param| replace_env_vars(&param.value, env))
+                .unwrap_or_else(|| name.to_owned());
+            value
+        },
+    );
+    replaced.to_string()
+}
+
+async fn req_body(
+    builder: RequestBuilder,
+    body: RequestBody,
+    env: Option<&Environment>,
+) -> RequestBuilder {
+    let body_header = |builder: RequestBuilder, data, content_type: Mime| {
+        builder
+            .body(replace_env_vars(data, env))
+            .header(CONTENT_TYPE, content_type.as_ref())
+    };
+
     match body {
-        RequestBody::Text(text) => builder.body(text).header(CONTENT_TYPE, TEXT_PLAIN.as_ref()),
-        RequestBody::Json(json) => builder
-            .body(json)
-            .header(CONTENT_TYPE, APPLICATION_JSON.as_ref()),
-        RequestBody::XML(xml) => builder.body(xml).header(CONTENT_TYPE, TEXT_XML.as_ref()),
-        RequestBody::Form(form) => builder.form(&enabled_params(&form)),
+        RequestBody::Text(text) => body_header(builder, &text, TEXT_PLAIN),
+        RequestBody::Json(json) => body_header(builder, &json, APPLICATION_JSON),
+        RequestBody::XML(xml) => body_header(builder, &xml, TEXT_XML),
+        RequestBody::Form(form) => builder.form(&enabled_params(form, env)),
         RequestBody::File(Some(file)) => {
             let content_type = mime_guess::from_path(&file)
                 .first_or_octet_stream()

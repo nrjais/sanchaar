@@ -16,3 +16,4 @@ directories = { workspace = true }
 reqwest = { workspace = true }
 mime_guess = { workspace = true }
 strum = { workspace = true }
+regex = { workspace = true }
