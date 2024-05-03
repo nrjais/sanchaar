@@ -95,7 +95,7 @@ impl UrlBarMsg {
                     active_tab
                         .request
                         .path_params
-                        .retain(|key| params.contains(&key.name));
+                        .retain(|key| params.contains(key.name()));
 
                     for param in params {
                         if !active_tab.request.path_params.contains_key(&param) {

@@ -1,6 +1,6 @@
 use humansize::{format_size, BINARY};
 use iced::widget::{button, container, text, Column, Row};
-use iced::{clipboard, Alignment, Color, Command, Element};
+use iced::{clipboard, Alignment, Border, Color, Command, Element, Theme};
 
 use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
@@ -70,34 +70,40 @@ fn status_color(status: reqwest::StatusCode) -> Color {
 }
 
 fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
-    let content = cr.selected_content();
-
-    let button_style = |mode| {
-        if cr.mode == mode {
-            button::primary
+    fn button_style(theme: &Theme, _status: button::Status, selected: bool) -> button::Style {
+        if selected {
+            button::secondary(theme, button::Status::Active)
         } else {
-            button::text
+            button::text(theme, button::Status::Active)
         }
-    };
+    }
 
+    let mode = cr.mode;
     let size = 14;
     let actions = Row::new()
         .push(
             button(text("Preview").size(size))
                 .padding([2, 4])
                 .on_press(CompletedMsg::SetBodyMode(BodyMode::Pretty))
-                .style(button_style(BodyMode::Pretty)),
+                .style(move |t, s| button_style(t, s, BodyMode::Pretty == mode)),
         )
         .push(
             button(text("Raw").size(size))
                 .padding([2, 4])
                 .on_press(CompletedMsg::SetBodyMode(BodyMode::Raw))
-                .style(button_style(BodyMode::Raw)),
+                .style(move |t, s| button_style(t, s, BodyMode::Raw == mode)),
         )
         .spacing(2);
 
     let action_bar = Row::new()
-        .push(container(actions).style(container::rounded_box))
+        .push(container(actions).style(|theme: &Theme| {
+            container::Style {
+                border: Border::default()
+                    .with_width(1)
+                    .with_color(theme.extended_palette().background.weak.color),
+                ..container::transparent(theme)
+            }
+        }))
         .push(
             button(text("Copy").size(size))
                 .padding([2, 4])
@@ -106,6 +112,7 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         )
         .spacing(8);
 
+    let content = cr.selected_content();
     Column::new()
         .push(action_bar)
         .push(code_editor(content, ContentType::Json).on_action(CompletedMsg::CodeViewerMsg))

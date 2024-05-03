@@ -1,8 +1,9 @@
-use iced::widget::{column, scrollable};
+use iced::widget::{column, horizontal_space, scrollable, text};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
 };
+use iced::{Background, Length};
 use std::ops::Not;
 
 use crate::text_editor::{self, line_editor, ContentAction};
@@ -12,7 +13,7 @@ use super::{icon, icons};
 #[derive(Debug, Default)]
 pub struct KeyValue {
     pub disabled: bool,
-    pub name: String,
+    name: String,
     value: text_editor::Content,
 }
 
@@ -25,6 +26,10 @@ impl KeyValue {
         }
     }
 
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
     pub fn value(&self) -> String {
         self.value.text()
     }
@@ -32,6 +37,10 @@ impl KeyValue {
     pub fn is_value_empty(&self) -> bool {
         let lines = self.value.line_count();
         lines == 1 && self.value.line(0).map_or(true, |line| line.is_empty())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.name.is_empty() && self.is_value_empty()
     }
 }
 
@@ -85,7 +94,7 @@ impl KeyValList {
 
         let last = self.list.last();
         if let Some(last) = last {
-            if !last.name.is_empty() || !last.is_value_empty() {
+            if !last.is_empty() {
                 self.list.push(KeyValue::default());
             }
         } else {
@@ -201,12 +210,12 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 ..text_input::default(theme, status)
             };
 
-            let name = text_input("Key", &kv.name)
+            let name = text_input("", &kv.name)
                 .style(input_style)
                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))
                 .on_paste(move |name| KeyValUpdateMsg::NameChanged(idx, name))
                 .size(size)
-                .width(iced::Length::FillPortion(2));
+                .width(Length::FillPortion(2));
 
             let value = container(
                 line_editor(&kv.value)
@@ -217,7 +226,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     .on_action(move |a| KeyValUpdateMsg::ValueChanged(idx, a))
                     .size(size),
             )
-            .width(iced::Length::FillPortion(3));
+            .width(Length::FillPortion(3));
 
             container(
                 Row::new()
@@ -231,7 +240,26 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
             .into()
         });
 
-        scrollable(column(values).padding([0, 8, 0, 0])).into()
+        let header = container(
+            Row::new()
+                .push(text("Key").size(size).width(Length::FillPortion(2)))
+                .push(text("Value").size(size).width(Length::FillPortion(3)))
+                .push_maybe(self.values.fixed.not().then(|| horizontal_space()))
+                .spacing(4)
+                .padding([2, 4]),
+        )
+        .style(|t: &Theme| container::Style {
+            background: Some(Background::Color(
+                t.extended_palette().background.weak.color,
+            )),
+            border: Border::default()
+                .with_width(1)
+                .with_color(t.extended_palette().background.strong.color),
+            ..container::transparent(t)
+        })
+        .into();
+
+        scrollable(column([header]).extend(values).padding([0, 8, 0, 0])).into()
     }
 }
 
