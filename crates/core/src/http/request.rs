@@ -3,7 +3,7 @@ use strum::{Display, EnumString, VariantArray};
 
 use super::KeyValList;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RequestBody {
     Form(KeyValList),
     Json(String),
@@ -27,7 +27,7 @@ pub enum Method {
     TRACE,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
     pub description: String,
     pub method: Method,

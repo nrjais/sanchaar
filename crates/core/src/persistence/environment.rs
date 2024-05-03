@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::http::environment::{Environment, Environments};
+use crate::http::KeyValList;
 
 use super::{EncodedKeyValue, Version};
 use super::{ENVIRONMENTS, TOML_EXTENSION};
@@ -19,7 +20,7 @@ impl Into<Environment> for EncodedEnvironment {
     fn into(self) -> Environment {
         Environment {
             name: self.name,
-            variables: self.variables.into_iter().map(Into::into).collect(),
+            variables: KeyValList::from(self.variables.into_iter().map(Into::into).collect()),
         }
     }
 }

@@ -139,7 +139,7 @@ fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
         });
     }
 
-    list
+    KeyValList::from(list)
 }
 
 fn decode_body(body: Option<EncodedRequestBody>) -> Option<RequestBody> {

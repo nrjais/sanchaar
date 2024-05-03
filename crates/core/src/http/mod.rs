@@ -15,14 +15,33 @@ slotmap::new_key_type! {
     pub struct CollectionKey;
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Eq)]
 pub struct KeyValue {
     pub disabled: bool,
     pub name: String,
     pub value: String,
 }
 
-pub type KeyValList = Vec<KeyValue>;
+#[derive(Debug, Clone, PartialEq, Default, Eq)]
+pub struct KeyValList(Vec<KeyValue>);
+
+impl KeyValList {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn from(vals: Vec<KeyValue>) -> Self {
+        Self(vals)
+    }
+
+    pub fn into_iter(self) -> impl Iterator<Item = KeyValue> {
+        self.0.into_iter()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &KeyValue> {
+        self.0.iter()
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CollectionRequest(pub CollectionKey, pub RequestId);

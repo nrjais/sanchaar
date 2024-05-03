@@ -108,6 +108,7 @@ impl RequestPane {
         let old_body = std::mem::replace(&mut self.body, new_body);
         self.body_cache.insert(old_body.as_str(), old_body);
     }
+
     pub fn to_request(&self) -> Request {
         Request {
             description: self.description.clone(),
