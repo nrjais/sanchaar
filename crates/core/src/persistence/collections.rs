@@ -9,7 +9,7 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{COLLECTION_ROOT_FILE, ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
+use super::{COLLECTION_ROOT_FILE, REQUESTS, TOML_EXTENSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
