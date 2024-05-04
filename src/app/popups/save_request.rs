@@ -104,9 +104,9 @@ pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Elemen
             &collection
                 .folder(folder)
                 .expect("folder not found")
-                .children
+                .entries
         }
-        _ => &collection.children,
+        _ => &collection.entries,
     };
 
     let entries: Vec<Element<Message>> = children

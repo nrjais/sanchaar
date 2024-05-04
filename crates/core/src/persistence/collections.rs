@@ -154,16 +154,16 @@ async fn find_all_requests(path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
 }
 
 async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
-    let mut entries = vec![];
+    let mut all_entries = vec![];
     let mut dir = fs::read_dir(dir_path).await?;
 
     while let Some(entry) = dir.next_entry().await? {
         if entry.file_type().await?.is_dir() {
-            let children = Box::pin(walk_entries(&entry.path())).await?;
-            entries.push(Entry::Folder(Folder {
+            let entries = Box::pin(walk_entries(&entry.path())).await?;
+            all_entries.push(Entry::Folder(Folder {
                 id: FolderId::new(),
                 name: entry.file_name().to_string_lossy().to_string(),
-                children,
+                entries,
                 path: entry.path(),
                 expanded: false,
             }));
@@ -175,14 +175,14 @@ async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
                 continue;
             }
 
-            entries.push(Entry::Item(RequestRef {
+            all_entries.push(Entry::Item(RequestRef {
                 name: name.trim_end_matches(".toml").to_string(),
                 path: entry.path(),
                 id: RequestId::new(),
             }));
         }
     }
-    Ok(entries)
+    Ok(all_entries)
 }
 
 pub fn encode_collection(collection: &Collection) -> EncodedCollection {

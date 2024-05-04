@@ -98,7 +98,7 @@ pub fn save_new_request_cmd<M>(
                 return Command::none();
             };
             let path = folder.path.join(format!("{}.toml", &name));
-            folder.children.push(Entry::Item(RequestRef {
+            folder.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
                 path: path.clone(),
@@ -107,7 +107,7 @@ pub fn save_new_request_cmd<M>(
         }
         None => {
             let path = collection.path.join(format!("{}.toml", &name));
-            collection.children.push(Entry::Item(RequestRef {
+            collection.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
                 path: path.clone(),

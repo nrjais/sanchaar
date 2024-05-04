@@ -104,7 +104,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         expandable(
             key,
             &collection.name,
-            &collection.children,
+            &collection.entries,
             collection.expanded,
             CollectionTreeMsg::ToggleExpandCollection(key),
             None,
@@ -162,7 +162,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
         Entry::Folder(folder) => expandable(
             col,
             &folder.name,
-            &folder.children,
+            &folder.entries,
             folder.expanded,
             CollectionTreeMsg::ToggleFolder(col, folder.id),
             Some(folder.id),

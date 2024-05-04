@@ -14,7 +14,7 @@ new_id_type! {
 pub struct Folder {
     pub id: FolderId,
     pub name: String,
-    pub children: Vec<Entry>,
+    pub entries: Vec<Entry>,
     pub path: PathBuf,
     pub expanded: bool,
 }
@@ -36,7 +36,7 @@ pub enum Entry {
 pub struct Collection {
     pub name: String,
     pub path: PathBuf,
-    pub children: Vec<Entry>,
+    pub entries: Vec<Entry>,
     pub expanded: bool,
     pub environments: Environments,
     pub active_environment: Option<EnvironmentKey>,
@@ -45,14 +45,14 @@ pub struct Collection {
 impl Collection {
     pub fn new(
         name: String,
-        children: Vec<Entry>,
+        entries: Vec<Entry>,
         path: PathBuf,
         environments: Environments,
     ) -> Self {
         let active_environment = environments.entries().next().map(|e| e.0).copied();
         Self {
             name,
-            children,
+            entries,
             path,
             environments,
             expanded: false,
@@ -62,13 +62,13 @@ impl Collection {
 
     fn iter_mut(&mut self) -> IterMut {
         IterMut {
-            stack: self.children.iter_mut().collect::<Vec<_>>(),
+            stack: self.entries.iter_mut().collect::<Vec<_>>(),
         }
     }
 
     fn iter(&self) -> Iter {
         Iter {
-            stack: self.children.iter().collect::<Vec<_>>(),
+            stack: self.entries.iter().collect::<Vec<_>>(),
         }
     }
 
@@ -90,14 +90,14 @@ impl Collection {
                 if let Entry::Folder(folder) = entry {
                     if folder.id == id {
                         return Some(folder);
-                    } else if let Some(folder) = recurse(&mut folder.children.iter_mut(), id) {
+                    } else if let Some(folder) = recurse(&mut folder.entries.iter_mut(), id) {
                         return Some(folder);
                     }
                 }
             }
             None
         }
-        recurse(&mut self.children.iter_mut(), id)
+        recurse(&mut self.entries.iter_mut(), id)
     }
 
     pub fn folder(&self, id: FolderId) -> Option<&Folder> {
@@ -109,14 +109,14 @@ impl Collection {
                 if let Entry::Folder(folder) = entry {
                     if folder.id == id {
                         return Some(folder);
-                    } else if let Some(folder) = recurse(folder.children.iter(), id) {
+                    } else if let Some(folder) = recurse(folder.entries.iter(), id) {
                         return Some(folder);
                     }
                 }
             }
             None
         }
-        recurse(self.children.iter(), id)
+        recurse(self.entries.iter(), id)
     }
 
     pub fn get_active_environment(&self) -> Option<&Environment> {
@@ -161,7 +161,7 @@ impl Collection {
                         path = Some(folder.path.clone());
                         break;
                     } else {
-                        return recurse(&mut folder.children, id);
+                        return recurse(&mut folder.entries, id);
                     }
                 }
             }
@@ -170,7 +170,7 @@ impl Collection {
             }
             path
         }
-        recurse(&mut self.children, folder_id)
+        recurse(&mut self.entries, folder_id)
     }
 
     pub(crate) fn create_folder(
@@ -184,7 +184,7 @@ impl Collection {
                 Entry::Folder(Folder {
                     name,
                     id: FolderId::new(),
-                    children: Vec::new(),
+                    entries: Vec::new(),
                     expanded: true,
                     path: path.clone(),
                 }),
@@ -197,12 +197,12 @@ impl Collection {
             folder.expanded = true;
 
             let (entry, path) = create_entry(name, &folder.path);
-            folder.children.push(entry);
+            folder.entries.push(entry);
 
             Some(path)
         } else {
             let (entry, path) = create_entry(name, &self.path);
-            self.children.push(entry);
+            self.entries.push(entry);
             self.expanded = true;
             Some(path)
         }
@@ -217,7 +217,7 @@ impl Default for Collection {
     fn default() -> Self {
         Self {
             name: "New Collection".to_string(),
-            children: vec![],
+            entries: vec![],
             path: PathBuf::new(),
             expanded: false,
             environments: Environments::new(),
@@ -238,8 +238,8 @@ impl<'a> Iterator for IterMut<'a> {
             let node = self.stack.pop()?;
 
             match node {
-                Entry::Folder(Folder { children, .. }) => {
-                    self.stack.extend(children.iter_mut());
+                Entry::Folder(Folder { entries, .. }) => {
+                    self.stack.extend(entries.iter_mut());
                 }
                 Entry::Item(_) => return Some(node),
             };
@@ -257,8 +257,8 @@ impl<'a> Iterator for Iter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let node = self.stack.pop()?;
         return match node {
-            Entry::Folder(Folder { children, .. }) => {
-                self.stack.extend(children.iter());
+            Entry::Folder(Folder { entries, .. }) => {
+                self.stack.extend(entries.iter());
                 Some(node)
             }
             Entry::Item(_) => Some(node),
