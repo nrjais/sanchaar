@@ -314,10 +314,17 @@ fn context_button_request<'a>(
     let collection_request = CollectionRequest(col, item.id);
 
     let base = button(
-        row([icon(icons::API).into(), text(&item.name).into()])
-            .align_items(iced::Alignment::Center)
-            .width(Length::Shrink)
-            .spacing(6),
+        row([
+            icon(icons::API)
+                .style(|t| text::Style {
+                    color: Some(t.extended_palette().success.strong.color),
+                })
+                .into(),
+            text(&item.name).into(),
+        ])
+        .align_items(iced::Alignment::Center)
+        .width(Length::Shrink)
+        .spacing(6),
     )
     .style(button::text)
     .padding(0)
