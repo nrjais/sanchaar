@@ -81,11 +81,8 @@ impl Popup {
         open_popup(state, popup);
     }
 
-    pub fn popup_name(state: &mut AppState, action: PopupNameAction) {
-        let popup = Self::PopupName(PopupNameState {
-            name: String::new(),
-            action,
-        });
+    pub fn popup_name(state: &mut AppState, name: String, action: PopupNameAction) {
+        let popup = Self::PopupName(PopupNameState { name, action });
         open_popup(state, popup);
     }
 

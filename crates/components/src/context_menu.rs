@@ -13,7 +13,7 @@ pub struct MenuButton<'a, M: Clone + 'a> {
     message: M,
 }
 
-pub fn menu_item<'a, M: Clone + 'a>(content: &'a str, message: M) -> MenuButton<'a, M> {
+pub fn menu_item<'a, M: Clone + 'a>(content: &'static str, message: M) -> MenuButton<'a, M> {
     MenuButton { content, message }
 }
 

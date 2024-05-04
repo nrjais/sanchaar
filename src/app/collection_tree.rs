@@ -21,7 +21,7 @@ pub enum CollectionTreeMsg {
     OpenCollectionHandle(Option<Collection>),
     RequestLoaded(CollectionRequest, Option<Request>),
     ContextMenu(CollectionKey, MenuAction),
-    ActionComplete(MenuAction),
+    ActionComplete,
 }
 
 impl CollectionTreeMsg {
@@ -61,7 +61,7 @@ impl CollectionTreeMsg {
             CollectionTreeMsg::ContextMenu(col, action) => {
                 return handle_context_menu(state, col, action);
             }
-            CollectionTreeMsg::ActionComplete(_) => {}
+            CollectionTreeMsg::ActionComplete => {}
         }
         Command::none()
     }
@@ -74,38 +74,56 @@ fn handle_context_menu(
 ) -> Command<CollectionTreeMsg> {
     match action {
         MenuAction::NewFolderRoot => {
-            Popup::popup_name(state, PopupNameAction::CreateFolder(col, None));
+            Popup::popup_name(
+                state,
+                String::new(),
+                PopupNameAction::CreateFolder(col, None),
+            );
             Command::none()
         }
         MenuAction::NewFolder(folder_id) => {
-            Popup::popup_name(state, PopupNameAction::CreateFolder(col, Some(folder_id)));
+            Popup::popup_name(
+                state,
+                String::new(),
+                PopupNameAction::CreateFolder(col, Some(folder_id)),
+            );
             Command::none()
         }
         MenuAction::DeleteFolder(folder_id) => {
             builders::delete_folder_cmd(state, col, folder_id, move || {
-                CollectionTreeMsg::ActionComplete(action)
+                CollectionTreeMsg::ActionComplete
             })
         }
         MenuAction::RemoveCollection => {
             state.collections.remove(col);
             Command::none()
         }
-        MenuAction::RenameFolder(folder_id) => {
-            Popup::popup_name(state, PopupNameAction::RenameFolder(col, folder_id));
+        MenuAction::RenameFolder(name, folder_id) => {
+            Popup::popup_name(
+                state,
+                name.to_owned(),
+                PopupNameAction::RenameFolder(col, folder_id),
+            );
             Command::none()
         }
-        MenuAction::RenameCollection => {
-            Popup::popup_name(state, PopupNameAction::RenameCollection(col));
+        MenuAction::RenameCollection(name) => {
+            Popup::popup_name(
+                state,
+                name.to_owned(),
+                PopupNameAction::RenameCollection(col),
+            );
             Command::none()
         }
-        MenuAction::RenameRequest(req) => {
-            Popup::popup_name(state, PopupNameAction::RenameRequest(col, req));
+        MenuAction::RenameRequest(name, req) => {
+            Popup::popup_name(
+                state,
+                name.to_owned(),
+                PopupNameAction::RenameRequest(col, req),
+            );
             Command::none()
         }
         MenuAction::DeleteRequest(req) => {
-            builders::delete_request_cmd(state, col, req, move || {
-                CollectionTreeMsg::ActionComplete(action)
-            })
+            builders::delete_request_cmd(state, col, req, move || CollectionTreeMsg::ActionComplete)
         }
     }
 }
@@ -210,20 +228,21 @@ fn expandable<'a>(
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum MenuAction {
     NewFolder(FolderId),
-    RenameFolder(FolderId),
+    RenameFolder(String, FolderId),
     DeleteFolder(FolderId),
-    RenameRequest(RequestId),
+    RenameRequest(String, RequestId),
     DeleteRequest(RequestId),
     NewFolderRoot,
+    RenameCollection(String),
     RemoveCollection,
-    RenameCollection,
 }
 
 fn context_button_folder<'a>(
     base: impl Into<Element<'a, CollectionTreeMsg>>,
+    name: String,
     col: CollectionKey,
     folder_id: FolderId,
 ) -> Element<'a, CollectionTreeMsg> {
@@ -232,7 +251,7 @@ fn context_button_folder<'a>(
         vec![
             menu_item(
                 "Rename",
-                CollectionTreeMsg::ContextMenu(col, MenuAction::RenameFolder(folder_id)),
+                CollectionTreeMsg::ContextMenu(col, MenuAction::RenameFolder(name, folder_id)),
             ),
             menu_item(
                 "Add Folder",
@@ -267,7 +286,10 @@ fn context_button_request<'a>(
         vec![
             menu_item(
                 "Rename",
-                CollectionTreeMsg::ContextMenu(col, MenuAction::RenameRequest(request_id)),
+                CollectionTreeMsg::ContextMenu(
+                    col,
+                    MenuAction::RenameRequest(item.name.to_owned(), request_id),
+                ),
             ),
             menu_item(
                 "Delete",
@@ -280,6 +302,7 @@ fn context_button_request<'a>(
 
 fn context_button_collection<'a>(
     base: impl Into<Element<'a, CollectionTreeMsg>>,
+    name: String,
     col: CollectionKey,
 ) -> Element<'a, CollectionTreeMsg> {
     context_menu(
@@ -287,7 +310,7 @@ fn context_button_collection<'a>(
         vec![
             menu_item(
                 "Rename",
-                CollectionTreeMsg::ContextMenu(col, MenuAction::RemoveCollection),
+                CollectionTreeMsg::ContextMenu(col, MenuAction::RenameCollection(name)),
             ),
             menu_item(
                 "Add Folder",
@@ -319,8 +342,8 @@ fn expandable_button(
     .padding(0);
 
     if let Some(folder_id) = folder_id {
-        context_button_folder(base, col, folder_id)
+        context_button_folder(base, name.to_owned(), col, folder_id)
     } else {
-        context_button_collection(base, col)
+        context_button_collection(base, name.to_owned(), col)
     }
 }
