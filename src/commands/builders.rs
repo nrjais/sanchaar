@@ -76,7 +76,7 @@ pub fn save_request_cmd<M>(
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => on_done(None),
         Err(e) => {
-            println!("Error saving request: {:?}", e);
+            log::error!("Error saving request: {:?}", e);
             on_done(Some(Arc::new(e)))
         }
     })
@@ -127,7 +127,7 @@ pub fn save_new_request_cmd<M>(
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => msg(None),
         Err(e) => {
-            println!("Error saving request: {:?}", e);
+            log::error!("Error saving request: {:?}", e);
             msg(Some(e))
         }
     })
@@ -146,7 +146,7 @@ pub(crate) fn create_collection_cmd<Message>(
         move |r| match r {
             Ok(_) => msg(None),
             Err(e) => {
-                println!("Error saving collection: {:?}", e);
+                log::error!("Error saving collection: {:?}", e);
                 msg(Some(e))
             }
         },
@@ -184,7 +184,7 @@ pub fn open_request_cmd<M>(
     Command::perform(read_request(req.path.clone()), move |res| match res {
         Ok(req) => on_done(Some(req)),
         Err(e) => {
-            println!("Error opening request: {:?}", e);
+            log::error!("Error opening request: {:?}", e);
             on_done(None)
         }
     })
@@ -234,7 +234,7 @@ pub(crate) fn save_environments_cmd<Message>(
 
 pub async fn load_collections_cmd() -> Vec<Collection> {
     collections::load().await.unwrap_or_else(|e| {
-        println!("Error loading http: {:?}", e);
+        log::error!("Error loading http: {:?}", e);
         vec![]
     })
 }
@@ -250,7 +250,6 @@ pub(crate) fn check_dirty_requests_cmd<M>(
             RequestDirtyState::RevalidateDirty(at) if at < Instant::now() => continue,
             _ => (),
         }
-        dbg!("validating", &tab.request_dirty_state);
         let Some(col) = tab.collection_ref.as_ref() else {
             tab.request_dirty_state = RequestDirtyState::Clean;
             continue;
@@ -289,7 +288,7 @@ pub(crate) fn check_dirty_requests_cmd<M>(
     Command::perform(exec(to_check), move |res| match res {
         Ok(dirty) => on_done(dirty),
         Err(e) => {
-            println!("Error checking dirty requests: {:?}", e);
+            log::error!("Error checking dirty requests: {:?}", e);
             on_done(vec![])
         }
     })
@@ -307,7 +306,7 @@ pub(crate) fn rename_collection_cmd<Message>(
 
     Command::perform(fs::rename(old, new), move |res| {
         if let Err(e) = res {
-            println!("Error renaming collection: {:?}", e);
+            log::error!("Error renaming collection: {:?}", e);
         }
         done()
     })
@@ -326,7 +325,7 @@ pub(crate) fn rename_folder_cmd<Message>(
 
     Command::perform(fs::rename(old, new), move |res| {
         if let Err(e) = res {
-            println!("Error renaming folder: {:?}", e);
+            log::error!("Error renaming folder: {:?}", e);
         }
         done()
     })
@@ -344,7 +343,7 @@ pub(crate) fn rename_request_cmd<Message>(
 
     Command::perform(fs::rename(old, new), move |res| {
         if let Err(e) = res {
-            println!("Error renaming request: {:?}", e);
+            log::error!("Error renaming request: {:?}", e);
         }
         done()
     })

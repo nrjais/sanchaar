@@ -18,7 +18,6 @@ pub mod icons {
     pub const CloseBox: NerdIcon = NerdIcon('󰅗');
     pub const PlusBox: NerdIcon = NerdIcon('󰐖');
     pub const Plus: NerdIcon = NerdIcon('');
-    pub const FolderOpen: NerdIcon = NerdIcon('');
     pub const Delete: NerdIcon = NerdIcon('󰆴');
     pub const CheckBold: NerdIcon = NerdIcon('󰸞');
     pub const Pencil: NerdIcon = NerdIcon('󰏫');
@@ -31,4 +30,6 @@ pub mod icons {
     pub const DotsCircle: NerdIcon = NerdIcon('󱥸');
     pub const Close: NerdIcon = NerdIcon('󰅖');
     pub const API: NerdIcon = NerdIcon('󱂛');
+    pub const Folder: NerdIcon = NerdIcon('󰉋');
+    pub const FolderOpen: NerdIcon = NerdIcon('󰝰');
 }

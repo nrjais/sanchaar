@@ -28,7 +28,7 @@ pub struct CollectionsState {
 }
 
 fn project_dirs() -> Option<ProjectDirs> {
-    ProjectDirs::from("com", "nrjais", env!("CARGO_PKG_NAME"))
+    ProjectDirs::from("com", "nrjais", "sanchaar")
 }
 
 fn collections_file() -> Option<PathBuf> {
@@ -64,14 +64,13 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
 }
 
 async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
-    let collections_file = collections_file()?;
-
-    let data = match fs::read_to_string(&collections_file).await {
+    let collections_path = collections_file()?;
+    let data = match fs::read_to_string(&collections_path).await {
         Ok(data) => data,
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
                 return Some(
-                    create_collections_state(collections_file)
+                    create_collections_state(collections_path)
                         .await
                         .inspect_err(|e| {
                             println!("Error creating collections state: {:?}", e);

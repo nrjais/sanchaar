@@ -1,8 +1,6 @@
-use iced::Command;
-use log::info;
-
 use core::http::collection::Collection;
 use core::persistence::collections;
+use iced::Command;
 use std::time::Instant;
 
 use crate::{
@@ -61,7 +59,7 @@ fn schedule_task(state: &mut AppState, task: BackgroundTask, delay: u64) -> bool
 #[derive(Debug, Clone)]
 pub enum CommandMsg {
     CollectionsLoaded(Vec<Collection>),
-    Completed(String),
+    Completed(BackgroundTask),
     UpdateDirtyTabs(Vec<(TabKey, RequestDirtyState)>),
 }
 
@@ -69,11 +67,11 @@ impl CommandMsg {
     pub fn update(self, state: &mut AppState) -> Command<Self> {
         match self {
             CommandMsg::CollectionsLoaded(collection) => {
-                task_done(state, BackgroundTask::SaveCollections);
                 state.collections.insert_all(collection);
+                task_done(state, BackgroundTask::SaveCollections);
             }
-            CommandMsg::Completed(msg) => {
-                info!("Command completed: {}", msg);
+            CommandMsg::Completed(task) => {
+                task_done(state, task);
             }
             CommandMsg::UpdateDirtyTabs(status) => {
                 task_done(state, BackgroundTask::CheckDirtyRequests);
@@ -90,14 +88,18 @@ impl CommandMsg {
 
 fn save_open_collections(state: &mut AppState) -> Command<CommandMsg> {
     let task = BackgroundTask::SaveCollections;
-    if !state.collections.dirty || !schedule_task(state, task, 0) {
+    let schedule = state.collections.dirty && schedule_task(state, task, 0);
+    if !schedule {
         return Command::none();
     }
 
     let collections = state.collections.get_collections_for_save();
     Command::perform(collections::save(collections), |result| match result {
-        Ok(_) => CommandMsg::Completed("Collections saved".to_string()),
-        Err(e) => CommandMsg::Completed(format!("Error saving collections: {:?}", e)),
+        Ok(_) => CommandMsg::Completed(BackgroundTask::SaveCollections),
+        Err(e) => {
+            log::error!("Error saving collections: {:?}", e);
+            CommandMsg::Completed(BackgroundTask::SaveCollections)
+        }
     })
 }
 

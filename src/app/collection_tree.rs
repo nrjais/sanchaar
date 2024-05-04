@@ -215,7 +215,7 @@ fn expandable<'a>(
             .push(expandable_button(
                 name,
                 on_expand_toggle,
-                icons::TriangleDown,
+                icons::FolderOpen,
                 col,
                 folder_id,
             ))
@@ -224,7 +224,7 @@ fn expandable<'a>(
             .width(Length::Fill)
             .into()
     } else {
-        expandable_button(name, on_expand_toggle, icons::TriangleRight, col, folder_id).into()
+        expandable_button(name, on_expand_toggle, icons::Folder, col, folder_id).into()
     }
 }
 
