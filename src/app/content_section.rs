@@ -2,7 +2,7 @@ use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{container, pane_grid, scrollable, text, Column, PaneGrid};
+use iced::widget::{container, pane_grid, text, Column, PaneGrid};
 use iced::{Color, Command, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
@@ -70,12 +70,8 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
 fn side_bar(state: &AppState) -> Element<MainPageMsg> {
     bordered_right(
         BORDER_WIDTH,
-        container(
-            scrollable(collection_tree::view(state).map(MainPageMsg::CollectionTree))
-                .height(Length::Fill)
-                .width(Length::FillPortion(1)),
-        )
-        .padding([0, 4, 0, 0]),
+        container(collection_tree::view(state).map(MainPageMsg::CollectionTree))
+            .padding([0, 4, 0, 0]),
     )
 }
 

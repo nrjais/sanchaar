@@ -1,6 +1,9 @@
 use iced::alignment::Horizontal;
+use iced::widget::scrollable::Direction;
 use iced::widget::tooltip::Position;
-use iced::widget::{button, column, container, row, text, tooltip, Button, Column, Row};
+use iced::widget::{
+    button, column, container, row, text, tooltip, Button, Column, Row, Scrollable,
+};
 use iced::{Command, Element, Length};
 
 use components::{context_menu, horizontal_line, icon, icons, menu_item, NerdIcon};
@@ -132,6 +135,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
     button(container(icon(ico).size(20)).padding([0, 8]))
         .padding(0)
         .style(button::secondary)
+        .width(Length::Shrink)
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
@@ -175,7 +179,20 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
             .width(Length::Fill),
         )
         .push(horizontal_line(2))
-        .push(column(it).spacing(4))
+        .push(
+            Scrollable::with_direction(
+                column(it)
+                    .width(Length::Shrink)
+                    .height(Length::Shrink)
+                    .spacing(4)
+                    .padding([0, 12, 12, 0]),
+                Direction::Both {
+                    vertical: Default::default(),
+                    horizontal: Default::default(),
+                },
+            )
+            .height(Length::Fill),
+        )
         .spacing(4)
         .width(Length::Fill)
         .into()
@@ -197,7 +214,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
     column(it)
         .spacing(2)
         .padding([0, 0, 0, 12])
-        .width(Length::Fill)
+        .width(Length::Shrink)
         .into()
 }
 
@@ -221,10 +238,35 @@ fn expandable<'a>(
             ))
             .push(children)
             .spacing(2)
-            .width(Length::Fill)
+            .width(Length::Shrink)
             .into()
     } else {
         expandable_button(name, on_expand_toggle, icons::Folder, col, folder_id).into()
+    }
+}
+
+fn expandable_button(
+    name: &str,
+    on_expand_toggle: CollectionTreeMsg,
+    arrow: NerdIcon,
+    col: CollectionKey,
+    folder_id: Option<FolderId>,
+) -> impl Into<Element<CollectionTreeMsg>> {
+    let base = button(
+        row([icon(arrow).into(), text(name).into()])
+            .align_items(iced::Alignment::Center)
+            .width(Length::Shrink)
+            .spacing(4),
+    )
+    .style(button::text)
+    .on_press(on_expand_toggle)
+    .width(Length::Shrink)
+    .padding(0);
+
+    if let Some(folder_id) = folder_id {
+        context_button_folder(base, name.to_owned(), col, folder_id)
+    } else {
+        context_button_collection(base, name.to_owned(), col)
     }
 }
 
@@ -269,16 +311,18 @@ fn context_button_request<'a>(
     item: &'a RequestRef,
     col: CollectionKey,
 ) -> Element<'a, CollectionTreeMsg> {
+    let collection_request = CollectionRequest(col, item.id);
+
     let base = button(
         row([icon(icons::API).into(), text(&item.name).into()])
             .align_items(iced::Alignment::Center)
+            .width(Length::Shrink)
             .spacing(6),
     )
     .style(button::text)
     .padding(0)
-    .on_press(CollectionTreeMsg::OpenRequest(CollectionRequest(
-        col, item.id,
-    )));
+    .width(Length::Shrink)
+    .on_press(CollectionTreeMsg::OpenRequest(collection_request));
 
     let request_id = item.id;
     context_menu(
@@ -322,28 +366,4 @@ fn context_button_collection<'a>(
             ),
         ],
     )
-}
-
-fn expandable_button(
-    name: &str,
-    on_expand_toggle: CollectionTreeMsg,
-    arrow: NerdIcon,
-    col: CollectionKey,
-    folder_id: Option<FolderId>,
-) -> impl Into<Element<CollectionTreeMsg>> {
-    let base = button(
-        row([icon(arrow).into(), text(name).into()])
-            .align_items(iced::Alignment::Center)
-            .spacing(4),
-    )
-    .style(button::text)
-    .on_press(on_expand_toggle)
-    .width(Length::Fill)
-    .padding(0);
-
-    if let Some(folder_id) = folder_id {
-        context_button_folder(base, name.to_owned(), col, folder_id)
-    } else {
-        context_button_collection(base, name.to_owned(), col)
-    }
 }
