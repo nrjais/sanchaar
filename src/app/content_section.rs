@@ -1,21 +1,25 @@
 use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
+use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{scrollable, text, vertical_rule, Column, Row};
+use iced::widget::{container, pane_grid, scrollable, text, Column, PaneGrid};
 use iced::{Color, Command, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
 
 use crate::app::{collection_tree, panels};
-use crate::state::{AppState, TabKey};
-use components::{card_tab, card_tabs, colors, TabBarAction};
+use crate::state::{AppState, SplitState, TabKey};
+use components::{bordered_left, bordered_right, card_tab, card_tabs, colors, TabBarAction};
 use core::http::request::Method;
+
+const BORDER_WIDTH: u16 = 1;
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {
     TabBarAction(TabBarAction<TabKey>),
     Panel(PanelMsg),
     CollectionTree(CollectionTreeMsg),
+    SplitResize(ResizeEvent),
 }
 
 impl MainPageMsg {
@@ -32,6 +36,13 @@ impl MainPageMsg {
             }
             Self::Panel(msg) => msg.update(state).map(Self::Panel),
             Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
+            Self::SplitResize(ResizeEvent { split, ratio }) => {
+                // Only allow resizing if the ratio is min 0.15 and max 0.3
+                if ratio > 0.1 && ratio < 0.3 {
+                    state.panes.resize(split, ratio);
+                }
+                Command::none()
+            }
         }
     }
 }
@@ -42,6 +53,33 @@ fn method_color(_method: Method) -> Color {
 }
 
 pub fn view(state: &AppState) -> Element<MainPageMsg> {
+    let panes = PaneGrid::new(&state.panes, move |_, pane, _| {
+        let pane = match pane {
+            SplitState::First => side_bar(state),
+            SplitState::Second => tabs_view(state),
+        };
+        pane_grid::Content::new(pane)
+    })
+    .height(iced::Length::Fill)
+    .width(iced::Length::Fill)
+    .on_resize(8, MainPageMsg::SplitResize);
+
+    container(panes).padding(8).into()
+}
+
+fn side_bar(state: &AppState) -> Element<MainPageMsg> {
+    bordered_right(
+        BORDER_WIDTH,
+        container(
+            scrollable(collection_tree::view(state).map(MainPageMsg::CollectionTree))
+                .height(Length::Fill)
+                .width(Length::FillPortion(1)),
+        )
+        .padding([0, 4, 0, 0]),
+    )
+}
+
+fn tabs_view(state: &AppState) -> Element<MainPageMsg> {
     let mut tabs = state.tabs.iter().collect::<Vec<_>>();
     tabs.sort_unstable_by_key(|(_, v)| v.id);
 
@@ -70,7 +108,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
         })
         .collect();
 
-    let content = Column::new()
+    let tabs = Column::new()
         .push(card_tabs(
             state.active_tab,
             tabs,
@@ -79,18 +117,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
         ))
         .push(panels::view(state).map(MainPageMsg::Panel))
         .spacing(8)
-        .align_items(iced::Alignment::Center)
-        .width(Length::FillPortion(5));
+        .align_items(iced::Alignment::Center);
 
-    let tree = scrollable(collection_tree::view(state).map(MainPageMsg::CollectionTree))
-        .height(Length::Fill)
-        .width(Length::FillPortion(1));
-
-    Row::new()
-        .push(tree)
-        .push(vertical_rule(4))
-        .push(content)
-        .spacing(4)
-        .padding(4)
-        .into()
+    bordered_left(BORDER_WIDTH, container(tabs).padding([0, 0, 0, 4]))
 }

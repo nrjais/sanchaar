@@ -37,7 +37,6 @@ pub struct AppState {
     pub tabs: SlotMap<TabKey, Tab>,
     pub collections: Collections,
     pub client: reqwest::Client,
-    // Collection tree and tabs split
     pub panes: pane_grid::State<SplitState>,
     pub popup: Option<Popup>,
     pub theme: Theme,
@@ -57,7 +56,7 @@ impl AppState {
             collections: Collections::default(),
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
-                ratio: 0.2,
+                ratio: 0.15,
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),

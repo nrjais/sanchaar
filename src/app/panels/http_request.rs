@@ -11,6 +11,8 @@ pub mod action_bar;
 pub mod panes;
 pub mod url_bar;
 
+const BORDER_WIDTH: u16 = 1;
+
 #[derive(Debug, Clone)]
 pub enum HttpMsg {
     Req(request::RequestPaneMsg),
@@ -48,11 +50,11 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
         let pane = match pane {
             SplitState::First => {
                 let request_view = request::view(state).map(HttpMsg::Req);
-                bordered_right(2, container(request_view).padding([0, 4, 0, 0]))
+                bordered_right(BORDER_WIDTH, container(request_view).padding([0, 4, 0, 0]))
             }
             SplitState::Second => {
                 let response_view = response::view(state).map(HttpMsg::Res);
-                bordered_left(2, container(response_view).padding([0, 0, 0, 4]))
+                bordered_left(BORDER_WIDTH, container(response_view).padding([0, 0, 0, 4]))
             }
         };
 
@@ -60,7 +62,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     })
     .height(iced::Length::Fill)
     .width(iced::Length::Fill)
-    .on_resize(10, HttpMsg::SplitResize);
+    .on_resize(8, HttpMsg::SplitResize);
 
     let req_res = container(req_res).padding([4, 0, 0, 0]).into();
     column([action_bar, url_bar, req_res])
