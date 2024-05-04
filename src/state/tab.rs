@@ -6,7 +6,6 @@ use crate::state::response::ResponsePane;
 use crate::state::SplitState;
 use core::http::request::Request;
 use core::http::CollectionRequest;
-use std::time::Duration;
 
 use super::request::RequestPane;
 
@@ -18,8 +17,7 @@ core::new_id_type!(
 pub enum RequestDirtyState {
     Clean,
     CheckIfDirty,
-    RevalidateDirty(std::time::Instant),
-    Dirty(std::time::Instant),
+    Dirty,
 }
 
 #[derive(Debug)]
@@ -60,10 +58,7 @@ impl Tab {
     }
 
     pub fn is_request_dirty(&self) -> bool {
-        matches!(
-            self.request_dirty_state,
-            RequestDirtyState::Dirty(_) | RequestDirtyState::RevalidateDirty(_)
-        )
+        self.request_dirty_state == RequestDirtyState::Dirty
     }
 
     pub fn request(&self) -> &RequestPane {
@@ -73,12 +68,13 @@ impl Tab {
     pub fn request_mut(&mut self) -> &mut RequestPane {
         if self.request_dirty_state == RequestDirtyState::Clean {
             self.request_dirty_state = RequestDirtyState::CheckIfDirty;
-        } else if let RequestDirtyState::Dirty(at) = self.request_dirty_state {
-            self.request_dirty_state =
-                RequestDirtyState::RevalidateDirty(at + Duration::from_secs(5));
         }
 
         &mut self.request
+    }
+
+    pub fn check_dirty(&mut self) {
+        self.request_dirty_state = RequestDirtyState::CheckIfDirty;
     }
 
     pub(crate) fn with_ref(req: Request, req_ref: CollectionRequest) -> Tab {

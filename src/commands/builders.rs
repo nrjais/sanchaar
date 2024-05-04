@@ -1,7 +1,6 @@
 use core::persistence::environment::{encode_environments, save_environments};
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::Instant;
 
 use iced::advanced::graphics::futures::MaybeSend;
 use iced::futures::TryFutureExt;
@@ -245,10 +244,8 @@ pub(crate) fn check_dirty_requests_cmd<M>(
 ) -> Command<M> {
     let mut to_check = Vec::new();
     for (key, tab) in state.tabs.iter_mut() {
-        match tab.request_dirty_state {
-            RequestDirtyState::Clean | RequestDirtyState::Dirty(_) => continue,
-            RequestDirtyState::RevalidateDirty(at) if at < Instant::now() => continue,
-            _ => (),
+        if RequestDirtyState::CheckIfDirty != tab.request_dirty_state {
+            continue;
         }
         let Some(col) = tab.collection_ref.as_ref() else {
             tab.request_dirty_state = RequestDirtyState::Clean;
@@ -265,10 +262,6 @@ pub(crate) fn check_dirty_requests_cmd<M>(
         to_check.push((key, req, request_ref.path.clone()));
     }
 
-    if to_check.is_empty() {
-        return Command::none();
-    }
-
     async fn exec(
         to_check: Vec<(TabKey, Request, PathBuf)>,
     ) -> Result<Vec<(TabKey, RequestDirtyState)>, anyhow::Error> {
@@ -276,7 +269,7 @@ pub(crate) fn check_dirty_requests_cmd<M>(
         for (key, req, path) in to_check {
             let file_request = read_request(path).await?;
             if req != file_request {
-                status.push((key, RequestDirtyState::Dirty(Instant::now())));
+                status.push((key, RequestDirtyState::Dirty));
             } else {
                 status.push((key, RequestDirtyState::Clean));
             }

@@ -126,6 +126,7 @@ impl UrlBarMsg {
                 }
             }
             UrlBarMsg::RequestSaved => {
+                state.active_tab_mut().check_dirty();
                 info!("Request saved");
             }
             UrlBarMsg::RequestResult(tab, res) => update_response(state, tab, res),

@@ -105,7 +105,7 @@ fn save_open_collections(state: &mut AppState) -> Command<CommandMsg> {
 
 fn check_dirty_requests(state: &mut AppState) -> Command<CommandMsg> {
     let task = BackgroundTask::CheckDirtyRequests;
-    if !schedule_task(state, task, 5) {
+    if !schedule_task(state, task, 2) {
         return Command::none();
     }
 
