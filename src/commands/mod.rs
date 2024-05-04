@@ -40,11 +40,11 @@ fn task_done(state: &mut AppState, task: BackgroundTask) {
     }
 }
 
-fn schedule_task(state: &mut AppState, task: BackgroundTask) -> bool {
+fn schedule_task(state: &mut AppState, task: BackgroundTask, delay: u64) -> bool {
     let job = state.background_tasks.iter().find(|t| t.task == task);
 
     let sch = match job {
-        Some(job) => job.started.elapsed().as_secs() > 5 && job.done,
+        Some(job) => job.started.elapsed().as_secs() > delay && job.done,
         None => true,
     };
     if sch {
@@ -90,7 +90,7 @@ impl CommandMsg {
 
 fn save_open_collections(state: &mut AppState) -> Command<CommandMsg> {
     let task = BackgroundTask::SaveCollections;
-    if !state.collections.dirty || !schedule_task(state, task) {
+    if !state.collections.dirty || !schedule_task(state, task, 0) {
         return Command::none();
     }
 
@@ -103,7 +103,7 @@ fn save_open_collections(state: &mut AppState) -> Command<CommandMsg> {
 
 fn check_dirty_requests(state: &mut AppState) -> Command<CommandMsg> {
     let task = BackgroundTask::CheckDirtyRequests;
-    if !schedule_task(state, task) {
+    if !schedule_task(state, task, 5) {
         return Command::none();
     }
 
