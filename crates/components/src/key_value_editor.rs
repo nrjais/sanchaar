@@ -242,7 +242,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
 
         let header = container(
             Row::new()
-                .push(text("Key").size(size).width(Length::FillPortion(2)))
+                .push(text("Name").size(size).width(Length::FillPortion(2)))
                 .push(text("Value").size(size).width(Length::FillPortion(3)))
                 .push_maybe(self.values.fixed.not().then(|| horizontal_space()))
                 .spacing(4)

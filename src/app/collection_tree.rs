@@ -376,7 +376,7 @@ fn context_button_collection<'a>(
                 CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolder(None)),
             ),
             menu_item(
-                "Remove",
+                "Close",
                 CollectionTreeMsg::ContextMenu(col, MenuAction::RemoveCollection),
             ),
         ],
