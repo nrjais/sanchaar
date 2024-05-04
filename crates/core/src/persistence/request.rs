@@ -88,7 +88,7 @@ pub struct HttpRequest {
 
 fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
     kv.into_iter()
-        .filter(|v| !v.name.is_empty())
+        .filter(|v| !v.name.is_empty() || !v.value.is_empty())
         .map(|v| v.into())
         .collect()
 }

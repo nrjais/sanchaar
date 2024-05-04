@@ -1,6 +1,7 @@
 use core::persistence::environment::{encode_environments, save_environments};
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Instant;
 
 use iced::advanced::graphics::futures::MaybeSend;
 use iced::futures::TryFutureExt;
@@ -240,14 +241,16 @@ pub async fn load_collections_cmd() -> Vec<Collection> {
 
 pub(crate) fn check_dirty_requests_cmd<M>(
     state: &mut AppState,
-    on_done: impl Fn(Vec<TabKey>) -> M + 'static + MaybeSend,
-) -> (Command<M>, bool) {
+    on_done: impl Fn(Vec<(TabKey, RequestDirtyState)>) -> M + 'static + MaybeSend,
+) -> Command<M> {
     let mut to_check = Vec::new();
     for (key, tab) in state.tabs.iter_mut() {
-        if tab.request_dirty_state != RequestDirtyState::MaybeDirty {
-            continue;
+        match tab.request_dirty_state {
+            RequestDirtyState::Clean | RequestDirtyState::Dirty(_) => continue,
+            RequestDirtyState::RevalidateDirty(at) if at < Instant::now() => continue,
+            _ => (),
         }
-
+        dbg!("validating", &tab.request_dirty_state);
         let Some(col) = tab.collection_ref.as_ref() else {
             tab.request_dirty_state = RequestDirtyState::Clean;
             continue;
@@ -264,28 +267,30 @@ pub(crate) fn check_dirty_requests_cmd<M>(
     }
 
     if to_check.is_empty() {
-        return (Command::none(), false);
+        return Command::none();
     }
 
-    async fn exec(to_check: Vec<(TabKey, Request, PathBuf)>) -> Result<Vec<TabKey>, anyhow::Error> {
-        let mut dirty = Vec::new();
+    async fn exec(
+        to_check: Vec<(TabKey, Request, PathBuf)>,
+    ) -> Result<Vec<(TabKey, RequestDirtyState)>, anyhow::Error> {
+        let mut status = Vec::new();
         for (key, req, path) in to_check {
             let file_request = read_request(path).await?;
             if req != file_request {
-                dirty.push(key);
+                status.push((key, RequestDirtyState::Dirty(Instant::now())));
+            } else {
+                status.push((key, RequestDirtyState::Clean));
             }
         }
 
-        Ok(dirty)
+        Ok(status)
     }
 
-    let cmd = Command::perform(exec(to_check), move |res| match res {
+    Command::perform(exec(to_check), move |res| match res {
         Ok(dirty) => on_done(dirty),
         Err(e) => {
             println!("Error checking dirty requests: {:?}", e);
             on_done(vec![])
         }
-    });
-
-    (cmd, true)
+    })
 }

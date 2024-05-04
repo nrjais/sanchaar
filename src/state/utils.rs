@@ -19,6 +19,7 @@ pub fn to_core_kv_list(list: &KeyValList) -> http::KeyValList {
             name: kv.name().trim().to_owned(),
             value: kv.value().trim().to_owned(),
         })
+        .filter(|kv| !kv.name.is_empty() || !kv.value.is_empty())
         .collect();
     http::KeyValList::from(vals)
 }
