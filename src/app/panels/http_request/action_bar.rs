@@ -1,15 +1,14 @@
+use components::{icon, icons, NerdIcon};
+use core::http::collection::{Collection, RequestRef};
+use core::http::{CollectionKey, CollectionRequest};
 use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column, Row};
 use iced::{
     widget::{button, container},
     Command, Element, Length,
 };
-use tokio::fs;
-
-use components::{icon, icons, NerdIcon};
-use core::http::collection::{Collection, RequestRef};
-use core::http::{CollectionKey, CollectionRequest};
 use log::info;
 
+use crate::commands::builders;
 use crate::state::popups::Popup;
 use crate::state::AppState;
 
@@ -41,11 +40,7 @@ impl ActionBarMsg {
                 let Some((col, name)) = tab.collection_ref.zip(tab.editing_name.take()) else {
                     return Command::none();
                 };
-                let Some((old, new)) = state.collections.rename_request(col, name) else {
-                    return Command::none();
-                };
-
-                Command::perform(fs::rename(old, new), move |_| ActionBarMsg::RequestRenamed)
+                builders::rename_request_cmd(state, col, name, move || ActionBarMsg::RequestRenamed)
             }
             ActionBarMsg::UpdateName(name) => {
                 state.active_tab_mut().editing_name.replace(name);

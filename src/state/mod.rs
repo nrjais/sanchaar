@@ -9,7 +9,7 @@ use core::http::request::Request;
 use core::http::{CollectionRequest, Collections};
 pub use tab::*;
 
-use crate::commands::{BackgroundTask, JobState};
+use crate::commands::JobState;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 

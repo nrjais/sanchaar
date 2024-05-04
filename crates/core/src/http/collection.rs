@@ -1,4 +1,4 @@
-use crate::http::environment::Environments;
+use crate::{http::environment::Environments, persistence::REQUESTS};
 use std::{ops::Not, path::PathBuf};
 
 use crate::new_id_type;
@@ -139,6 +139,21 @@ impl Collection {
         None
     }
 
+    pub fn rename_folder(&mut self, id: FolderId, name: &str) -> Option<(PathBuf, PathBuf)> {
+        for entry in self.iter_mut() {
+            if let Entry::Folder(item) = entry {
+                if item.id == id {
+                    let old_path = item.path.clone();
+                    let new_path = item.path.with_file_name(name);
+                    item.name = name.to_string();
+                    item.path = new_path.clone();
+                    return Some((old_path, new_path));
+                }
+            }
+        }
+        None
+    }
+
     pub fn get_ref(&self, id: RequestId) -> Option<&RequestRef> {
         for entry in self.iter() {
             if let Entry::Item(item) = entry {
@@ -201,7 +216,8 @@ impl Collection {
 
             Some(path)
         } else {
-            let (entry, path) = create_entry(name, &self.path);
+            let requests_path = self.path.join(REQUESTS);
+            let (entry, path) = create_entry(name, &requests_path);
             self.entries.push(entry);
             self.expanded = true;
             Some(path)
@@ -210,6 +226,34 @@ impl Collection {
 
     pub fn update_environment(&mut self, key: EnvironmentKey, env: Environment) {
         self.environments.update(key, env);
+    }
+
+    pub(crate) fn rename(&mut self, new: &str) -> Option<(PathBuf, PathBuf)> {
+        self.name = new.to_string();
+        let new_path = self.path.with_file_name(new);
+        let old_path = self.path.clone();
+        Some((old_path, new_path))
+    }
+
+    pub(crate) fn delete_request(&mut self, req: RequestId) -> Option<PathBuf> {
+        fn recurse<'a>(entries: &mut Vec<Entry>, id: RequestId) -> Option<PathBuf> {
+            let mut path = None;
+
+            let iter = entries.iter_mut();
+            for entry in iter {
+                if let Entry::Item(request) = entry {
+                    if request.id == id {
+                        path = Some(request.path.clone());
+                        break;
+                    }
+                }
+            }
+            if path.is_some() {
+                entries.retain(|e| matches!(e, Entry::Item(r) if r.id == id).not());
+            }
+            path
+        }
+        recurse(&mut self.entries, req)
     }
 }
 

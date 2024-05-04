@@ -7,10 +7,10 @@ pub mod collections;
 pub mod environment;
 pub mod request;
 
-const TOML_EXTENSION: &str = ".toml";
-const COLLECTION_ROOT_FILE: &str = "collection.toml";
-const ENVIRONMENTS: &str = "environments";
-const REQUESTS: &str = "requests";
+pub const TOML_EXTENSION: &str = ".toml";
+pub const COLLECTION_ROOT_FILE: &str = "collection.toml";
+pub const ENVIRONMENTS: &str = "environments";
+pub const REQUESTS: &str = "requests";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncodedKeyValue {

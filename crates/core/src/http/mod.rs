@@ -5,6 +5,7 @@ use slotmap::SlotMap;
 use crate::http::collection::{Collection, RequestId, RequestRef};
 use crate::http::environment::Environments;
 
+use self::collection::FolderId;
 use self::environment::{Environment, EnvironmentKey};
 
 pub mod collection;
@@ -57,8 +58,7 @@ impl Collections {
     where
         F: FnOnce(&mut Collection) -> R,
     {
-        self.dirty();
-        self.entries.get_mut(key).map(f)
+        self.get_mut(key).map(f)
     }
 
     pub fn with_collection<F, R>(&self, key: CollectionKey, f: F) -> Option<R>
@@ -106,12 +106,29 @@ impl Collections {
         envs.get(self.entries.get(key)?.active_environment?)
     }
 
+    pub fn rename_collection(
+        &mut self,
+        col: CollectionKey,
+        new: String,
+    ) -> Option<(PathBuf, PathBuf)> {
+        self.get_mut(col)?.rename(&new)
+    }
+
     pub fn rename_request(
         &mut self,
         req: CollectionRequest,
         new: String,
     ) -> Option<(PathBuf, PathBuf)> {
-        self.entries.get_mut(req.0)?.rename_request(req.1, &new)
+        self.get_mut(req.0)?.rename_request(req.1, &new)
+    }
+
+    pub fn rename_folder(
+        &mut self,
+        col: CollectionKey,
+        id: FolderId,
+        new: String,
+    ) -> Option<(PathBuf, PathBuf)> {
+        self.get_mut(col)?.rename_folder(id, &new)
     }
 
     pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
@@ -162,7 +179,7 @@ impl Collections {
     }
 
     pub fn create_env(&mut self, col: CollectionKey, name: String) -> Option<EnvironmentKey> {
-        let collection = self.entries.get_mut(col)?;
+        let collection = self.get_mut(col)?;
 
         Some(collection.environments.create(name))
     }
@@ -175,8 +192,12 @@ impl Collections {
         let env = self.entries.get(col)?.environments.find_by_name(name);
 
         if let Some(env) = env {
-            self.entries.get_mut(col)?.active_environment = Some(env);
+            self.get_mut(col)?.active_environment = Some(env);
         }
         env
+    }
+
+    pub fn delete_request(&mut self, col: CollectionKey, req: RequestId) -> Option<PathBuf> {
+        self.get_mut(col)?.delete_request(req)
     }
 }

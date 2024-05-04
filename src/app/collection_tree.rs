@@ -4,11 +4,11 @@ use iced::widget::{button, column, container, row, text, tooltip, Button, Column
 use iced::{Command, Element, Length};
 
 use components::{context_menu, horizontal_line, icon, icons, menu_item, NerdIcon};
-use core::http::collection::{Collection, Entry, FolderId};
+use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
 use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
-use crate::state::popups::Popup;
+use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::AppState;
 
 #[derive(Debug, Clone)]
@@ -74,11 +74,11 @@ fn handle_context_menu(
 ) -> Command<CollectionTreeMsg> {
     match action {
         MenuAction::NewFolderRoot => {
-            Popup::create_folder(state, col, None);
+            Popup::popup_name(state, PopupNameAction::CreateFolder(col, None));
             Command::none()
         }
         MenuAction::NewFolder(folder_id) => {
-            Popup::create_folder(state, col, Some(folder_id));
+            Popup::popup_name(state, PopupNameAction::CreateFolder(col, Some(folder_id)));
             Command::none()
         }
         MenuAction::DeleteFolder(folder_id) => {
@@ -89,6 +89,23 @@ fn handle_context_menu(
         MenuAction::RemoveCollection => {
             state.collections.remove(col);
             Command::none()
+        }
+        MenuAction::RenameFolder(folder_id) => {
+            Popup::popup_name(state, PopupNameAction::RenameFolder(col, folder_id));
+            Command::none()
+        }
+        MenuAction::RenameCollection => {
+            Popup::popup_name(state, PopupNameAction::RenameCollection(col));
+            Command::none()
+        }
+        MenuAction::RenameRequest(req) => {
+            Popup::popup_name(state, PopupNameAction::RenameRequest(col, req));
+            Command::none()
+        }
+        MenuAction::DeleteRequest(req) => {
+            builders::delete_request_cmd(state, col, req, move || {
+                CollectionTreeMsg::ActionComplete(action)
+            })
         }
     }
 }
@@ -148,17 +165,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
 
 fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeMsg> {
     let it = entries.iter().map(|entry| match entry {
-        Entry::Item(item) => button(
-            row([icon(icons::API).into(), text(&item.name).into()])
-                .align_items(iced::Alignment::Center)
-                .spacing(6),
-        )
-        .style(button::text)
-        .padding(0)
-        .on_press(CollectionTreeMsg::OpenRequest(CollectionRequest(
-            col, item.id,
-        )))
-        .into(),
+        Entry::Item(item) => context_button_request(item, col),
         Entry::Folder(folder) => expandable(
             col,
             &folder.name,
@@ -206,9 +213,13 @@ fn expandable<'a>(
 #[derive(Debug, Clone, Copy)]
 pub enum MenuAction {
     NewFolder(FolderId),
+    RenameFolder(FolderId),
     DeleteFolder(FolderId),
+    RenameRequest(RequestId),
+    DeleteRequest(RequestId),
     NewFolderRoot,
     RemoveCollection,
+    RenameCollection,
 }
 
 fn context_button_folder<'a>(
@@ -220,15 +231,51 @@ fn context_button_folder<'a>(
         base,
         vec![
             menu_item(
-                "New Folder",
+                "Rename",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::RenameFolder(folder_id)),
+            ),
+            menu_item(
+                "Add Folder",
                 CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolder(folder_id)),
             ),
             menu_item(
-                "Delete Folder",
+                "Delete",
                 CollectionTreeMsg::ContextMenu(col, MenuAction::DeleteFolder(folder_id)),
             ),
         ],
     )
+}
+
+fn context_button_request<'a>(
+    item: &'a RequestRef,
+    col: CollectionKey,
+) -> Element<'a, CollectionTreeMsg> {
+    let base = button(
+        row([icon(icons::API).into(), text(&item.name).into()])
+            .align_items(iced::Alignment::Center)
+            .spacing(6),
+    )
+    .style(button::text)
+    .padding(0)
+    .on_press(CollectionTreeMsg::OpenRequest(CollectionRequest(
+        col, item.id,
+    )));
+
+    let request_id = item.id;
+    context_menu(
+        base,
+        vec![
+            menu_item(
+                "Rename",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::RenameRequest(request_id)),
+            ),
+            menu_item(
+                "Delete",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::DeleteRequest(request_id)),
+            ),
+        ],
+    )
+    .into()
 }
 
 fn context_button_collection<'a>(
@@ -239,12 +286,16 @@ fn context_button_collection<'a>(
         base,
         vec![
             menu_item(
-                "Remove",
+                "Rename",
                 CollectionTreeMsg::ContextMenu(col, MenuAction::RemoveCollection),
             ),
             menu_item(
-                "New Folder",
+                "Add Folder",
                 CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolderRoot),
+            ),
+            menu_item(
+                "Remove",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::RemoveCollection),
             ),
         ],
     )

@@ -294,3 +294,71 @@ pub(crate) fn check_dirty_requests_cmd<M>(
         }
     })
 }
+
+pub(crate) fn rename_collection_cmd<Message>(
+    state: &mut AppState,
+    col: CollectionKey,
+    name: String,
+    done: impl Fn() -> Message + 'static + MaybeSend,
+) -> Command<Message> {
+    let Some((old, new)) = state.collections.rename_collection(col, name) else {
+        return Command::none();
+    };
+
+    Command::perform(fs::rename(old, new), move |res| {
+        if let Err(e) = res {
+            println!("Error renaming collection: {:?}", e);
+        }
+        done()
+    })
+}
+
+pub(crate) fn rename_folder_cmd<Message>(
+    state: &mut AppState,
+    col: CollectionKey,
+    folder_id: FolderId,
+    name: String,
+    done: impl Fn() -> Message + 'static + MaybeSend,
+) -> Command<Message> {
+    let Some((old, new)) = state.collections.rename_folder(col, folder_id, name) else {
+        return Command::none();
+    };
+
+    Command::perform(fs::rename(old, new), move |res| {
+        if let Err(e) = res {
+            println!("Error renaming folder: {:?}", e);
+        }
+        done()
+    })
+}
+
+pub(crate) fn rename_request_cmd<Message>(
+    state: &mut AppState,
+    col: CollectionRequest,
+    name: String,
+    done: impl Fn() -> Message + 'static + MaybeSend,
+) -> Command<Message> {
+    let Some((old, new)) = state.collections.rename_request(col, name) else {
+        return Command::none();
+    };
+
+    Command::perform(fs::rename(old, new), move |res| {
+        if let Err(e) = res {
+            println!("Error renaming request: {:?}", e);
+        }
+        done()
+    })
+}
+
+pub(crate) fn delete_request_cmd<M>(
+    state: &mut AppState,
+    col: CollectionKey,
+    req: RequestId,
+    action: impl Fn() -> M + 'static + MaybeSend,
+) -> Command<M> {
+    let Some(path) = state.collections.delete_request(col, req) else {
+        return Command::none();
+    };
+
+    Command::perform(fs::remove_file(path), move |_| action())
+}

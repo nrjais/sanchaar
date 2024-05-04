@@ -1,5 +1,5 @@
 use crate::state::TabKey;
-use core::http::collection::FolderId;
+use core::http::collection::{FolderId, RequestId};
 use core::http::environment::EnvironmentKey;
 use core::http::CollectionKey;
 use std::collections::BTreeMap;
@@ -23,10 +23,17 @@ pub struct SaveRequestState {
 }
 
 #[derive(Debug)]
-pub struct CreateFolderState {
+pub enum PopupNameAction {
+    RenameCollection(CollectionKey),
+    RenameFolder(CollectionKey, FolderId),
+    RenameRequest(CollectionKey, RequestId),
+    CreateFolder(CollectionKey, Option<FolderId>),
+}
+
+#[derive(Debug)]
+pub struct PopupNameState {
     pub name: String,
-    pub col: CollectionKey,
-    pub folder_id: Option<FolderId>,
+    pub action: PopupNameAction,
 }
 
 #[derive(Debug)]
@@ -43,7 +50,7 @@ pub enum Popup {
     CreateCollection(CreateCollectionState),
     EnvironmentEditor(EnvironmentEditorState),
     SaveRequest(SaveRequestState),
-    CreateFolder(CreateFolderState),
+    PopupName(PopupNameState),
 }
 
 fn open_popup(state: &mut AppState, popup: Popup) {
@@ -74,11 +81,10 @@ impl Popup {
         open_popup(state, popup);
     }
 
-    pub fn create_folder(state: &mut AppState, col: CollectionKey, folder_id: Option<FolderId>) {
-        let popup = Self::CreateFolder(CreateFolderState {
+    pub fn popup_name(state: &mut AppState, action: PopupNameAction) {
+        let popup = Self::PopupName(PopupNameState {
             name: String::new(),
-            col,
-            folder_id,
+            action,
         });
         open_popup(state, popup);
     }
