@@ -97,7 +97,6 @@ impl UndoStack {
         let actions = &self.stack[self.current_index..];
         let mut insert = false;
 
-        // TODO: Restore selection before redo action
         for action in actions.iter() {
             if insert && !matches!(action.edit, Edit::Insert(_)) {
                 break;

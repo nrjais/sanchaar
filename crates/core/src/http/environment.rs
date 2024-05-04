@@ -57,6 +57,10 @@ impl Environments {
             .find(|(_, env)| env.name == name)
             .map(|(id, _)| *id)
     }
+
+    pub(crate) fn remove(&mut self, key: EnvironmentKey) -> Option<Environment> {
+        self.envs.remove(&key)
+    }
 }
 
 #[derive(Debug, Clone)]

@@ -1,4 +1,6 @@
+use core::http::environment::EnvironmentKey;
 use core::persistence::environment::{encode_environments, save_environments};
+use core::persistence::{ENVIRONMENTS, TOML_EXTENSION};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -220,15 +222,34 @@ pub(crate) fn create_folder_cmd<Message>(
 }
 
 pub(crate) fn save_environments_cmd<Message>(
-    collection: &Collection,
+    collection: &mut Collection,
+    deletions: &[EnvironmentKey],
     done: impl Fn() -> Message + 'static + MaybeSend,
 ) -> Command<Message> {
     let encoded = encode_environments(&collection.environments);
+    let mut delete_path = Vec::new();
 
-    Command::perform(
-        save_environments(collection.path.clone(), encoded),
-        move |_| done(),
-    )
+    for key in deletions {
+        let env = collection.delete_environment(*key);
+        if let Some(env) = env {
+            delete_path.push(
+                collection
+                    .path
+                    .join(ENVIRONMENTS)
+                    .join(format!("{}{}", env.name, TOML_EXTENSION)),
+            );
+        }
+    }
+
+    let delete_fut = async {
+        for path in delete_path {
+            fs::remove_file(path).await?;
+        }
+        Ok(())
+    };
+    let fut = save_environments(collection.path.clone(), encoded).and_then(|_| delete_fut);
+
+    Command::perform(fut, move |_| done())
 }
 
 pub async fn load_collections_cmd() -> Vec<Collection> {

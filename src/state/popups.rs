@@ -40,6 +40,7 @@ pub struct PopupNameState {
 pub struct EnvironmentEditorState {
     pub col: CollectionKey,
     pub environments: BTreeMap<EnvironmentKey, Env>,
+    pub deleted: Vec<EnvironmentKey>,
     pub selected_env: Option<EnvironmentKey>,
     pub env_name: String,
     pub add_env_mode: bool,
@@ -101,6 +102,7 @@ impl Popup {
         let popup = Self::EnvironmentEditor(EnvironmentEditorState {
             col,
             environments: environment_keyvals(envs),
+            deleted: Vec::new(),
             selected_env: None,
             env_name: String::new(),
             add_env_mode: false,

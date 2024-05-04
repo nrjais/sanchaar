@@ -45,7 +45,9 @@ impl Message {
                     for (key, env) in data.environments.iter() {
                         collection.update_environment(*key, env.into());
                     }
-                    return builders::save_environments_cmd(collection, || Message::Done);
+                    return builders::save_environments_cmd(collection, &data.deleted, || {
+                        Message::Done
+                    });
                 }
             }
             Message::Done => {
@@ -79,8 +81,7 @@ impl Message {
             }
             Message::DeleteEnv(env) => {
                 data.environments.remove(&env);
-                // TODO: Remove environment file from collection
-                // state.collections.delete_env(data.col, env);
+                data.deleted.push(env);
             }
         }
         Command::none()

@@ -255,6 +255,10 @@ impl Collection {
         }
         recurse(&mut self.entries, req)
     }
+
+    pub fn delete_environment(&mut self, key: EnvironmentKey) -> Option<Environment> {
+        self.environments.remove(key)
+    }
 }
 
 impl Default for Collection {
