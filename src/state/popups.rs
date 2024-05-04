@@ -28,6 +28,7 @@ pub enum PopupNameAction {
     RenameFolder(CollectionKey, FolderId),
     RenameRequest(CollectionKey, RequestId),
     CreateFolder(CollectionKey, Option<FolderId>),
+    NewRequest(CollectionKey, Option<FolderId>),
 }
 
 #[derive(Debug)]

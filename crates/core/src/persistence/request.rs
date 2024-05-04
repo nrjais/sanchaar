@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
+use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
 use crate::http::request::{Method, Request, RequestBody};
@@ -187,7 +188,11 @@ pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
 }
 
 pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), anyhow::Error> {
-    let file = tokio::fs::File::create(path).await?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).await?;
+    }
+
+    let file = fs::File::create(path).await?;
     let mut writer = BufWriter::new(file);
     let encoded = toml::to_string_pretty(&req)?;
 
@@ -197,7 +202,7 @@ pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), 
 }
 
 pub async fn load_from_file(path: &PathBuf) -> Result<EncodedRequest, Box<dyn std::error::Error>> {
-    let file = tokio::fs::File::open(path).await?;
+    let file = fs::File::open(path).await?;
     let mut reader = tokio::io::BufReader::new(file);
     let mut buffer = String::new();
 

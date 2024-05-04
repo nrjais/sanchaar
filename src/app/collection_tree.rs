@@ -76,11 +76,11 @@ fn handle_context_menu(
     action: MenuAction,
 ) -> Command<CollectionTreeMsg> {
     match action {
-        MenuAction::NewFolderRoot => {
+        MenuAction::NewRequest(folder_id) => {
             Popup::popup_name(
                 state,
                 String::new(),
-                PopupNameAction::CreateFolder(col, None),
+                PopupNameAction::NewRequest(col, folder_id),
             );
             Command::none()
         }
@@ -88,7 +88,7 @@ fn handle_context_menu(
             Popup::popup_name(
                 state,
                 String::new(),
-                PopupNameAction::CreateFolder(col, Some(folder_id)),
+                PopupNameAction::CreateFolder(col, folder_id),
             );
             Command::none()
         }
@@ -272,12 +272,12 @@ fn expandable_button(
 
 #[derive(Debug, Clone)]
 pub enum MenuAction {
-    NewFolder(FolderId),
+    NewFolder(Option<FolderId>),
     RenameFolder(String, FolderId),
     DeleteFolder(FolderId),
     RenameRequest(String, RequestId),
     DeleteRequest(RequestId),
-    NewFolderRoot,
+    NewRequest(Option<FolderId>),
     RenameCollection(String),
     RemoveCollection,
 }
@@ -296,8 +296,12 @@ fn context_button_folder<'a>(
                 CollectionTreeMsg::ContextMenu(col, MenuAction::RenameFolder(name, folder_id)),
             ),
             menu_item(
-                "Add Folder",
-                CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolder(folder_id)),
+                "New Request",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::NewRequest(Some(folder_id))),
+            ),
+            menu_item(
+                "New Folder",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolder(Some(folder_id))),
             ),
             menu_item(
                 "Delete",
@@ -364,8 +368,12 @@ fn context_button_collection<'a>(
                 CollectionTreeMsg::ContextMenu(col, MenuAction::RenameCollection(name)),
             ),
             menu_item(
-                "Add Folder",
-                CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolderRoot),
+                "New Request",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::NewRequest(None)),
+            ),
+            menu_item(
+                "New Folder",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::NewFolder(None)),
             ),
             menu_item(
                 "Remove",

@@ -1,10 +1,14 @@
+use core::http::request::Request;
 use core::http::CollectionRequest;
 use std::borrow::Cow;
 
 use iced::widget::{horizontal_space, text, text_input, Column, Row};
 use iced::{Command, Element};
 
-use crate::commands::builders;
+use crate::commands::builders::{
+    create_folder_cmd, create_new_request_cmd, rename_collection_cmd, rename_folder_cmd,
+    rename_request_cmd,
+};
 use crate::state::popups::{Popup, PopupNameAction, PopupNameState};
 use crate::state::AppState;
 
@@ -28,16 +32,19 @@ impl Message {
             }
             Message::Rename(name) => match data.action {
                 PopupNameAction::RenameCollection(col) => {
-                    builders::rename_collection_cmd(state, col, name, || Message::Done)
+                    rename_collection_cmd(state, col, name, || Message::Done)
                 }
                 PopupNameAction::RenameFolder(col, folder_id) => {
-                    builders::rename_folder_cmd(state, col, folder_id, name, || Message::Done)
+                    rename_folder_cmd(state, col, folder_id, name, || Message::Done)
                 }
                 PopupNameAction::CreateFolder(col, folder_id) => {
-                    builders::create_folder_cmd(state, col, folder_id, name, || Message::Done)
+                    create_folder_cmd(state, col, folder_id, name, || Message::Done)
                 }
                 PopupNameAction::RenameRequest(col, req) => {
-                    builders::rename_request_cmd(state, CollectionRequest(col, req), name, || {
+                    rename_request_cmd(state, CollectionRequest(col, req), name, || Message::Done)
+                }
+                PopupNameAction::NewRequest(col, folder) => {
+                    create_new_request_cmd(state, col, folder, name, Request::default(), |_| {
                         Message::Done
                     })
                 }

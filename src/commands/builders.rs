@@ -1,6 +1,6 @@
 use core::http::environment::EnvironmentKey;
 use core::persistence::environment::{encode_environments, save_environments};
-use core::persistence::{ENVIRONMENTS, TOML_EXTENSION};
+use core::persistence::{ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -83,7 +83,7 @@ pub fn save_request_cmd<M>(
     })
 }
 
-pub fn save_new_request_cmd<M>(
+pub fn save_tab_request_cmd<M>(
     state: &mut AppState,
     name: String,
     tab: TabKey,
@@ -91,9 +91,26 @@ pub fn save_new_request_cmd<M>(
     fol: Option<FolderId>,
     msg: impl Fn(Option<anyhow::Error>) -> M + 'static + MaybeSend,
 ) -> Command<M> {
+    let Some(sel_tab) = state.get_tab(tab) else {
+        return Command::none();
+    };
+    let req = sel_tab.request().to_request();
+
+    create_new_request_cmd(state, col, fol, name, req, msg)
+}
+
+pub fn create_new_request_cmd<M>(
+    state: &mut AppState,
+    col: CollectionKey,
+    fol: Option<FolderId>,
+    name: String,
+    req: Request,
+    msg: impl Fn(Option<anyhow::Error>) -> M + 'static + MaybeSend,
+) -> Command<M> {
     let Some(collection) = state.collections.get_mut(col) else {
         return Command::none();
     };
+
     let path = match fol {
         Some(fol) => {
             let Some(folder) = collection.folder_mut(fol) else {
@@ -108,7 +125,10 @@ pub fn save_new_request_cmd<M>(
             path
         }
         None => {
-            let path = collection.path.join(format!("{}.toml", &name));
+            let path = collection
+                .path
+                .join(REQUESTS)
+                .join(format!("{}.toml", &name));
             collection.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -118,11 +138,6 @@ pub fn save_new_request_cmd<M>(
         }
     };
 
-    let Some(sel_tab) = state.get_tab(tab) else {
-        return Command::none();
-    };
-
-    let req = sel_tab.request().to_request();
     let encoded = encode_request(req);
 
     Command::perform(save_req_to_file(path, encoded), move |r| match r {
@@ -215,7 +230,7 @@ pub(crate) fn create_folder_cmd<Message>(
     let path = state.collections.create_folder_in(name, col, folder_id);
 
     if let Some(path) = path {
-        Command::perform(fs::create_dir(path), move |_| done())
+        Command::perform(fs::create_dir_all(path), move |_| done())
     } else {
         Command::none()
     }

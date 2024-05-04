@@ -7,7 +7,7 @@ use crate::state::AppState;
 
 mod create_collection;
 mod environment_editor;
-mod rename_popup;
+mod name_popup;
 mod save_request;
 
 #[derive(Clone, Debug)]
@@ -15,7 +15,7 @@ pub enum PopupMsg {
     CreateCollection(create_collection::Message),
     EnvironmentEditor(environment_editor::Message),
     SaveRequest(save_request::Message),
-    RenamePopup(rename_popup::Message),
+    RenamePopup(name_popup::Message),
     ClosePopup,
     Ignore,
 }
@@ -54,9 +54,9 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             save_request::done(data).map(PopupMsg::SaveRequest),
         ),
         Popup::PopupName(data) => (
-            rename_popup::title(),
-            rename_popup::view(state, data).map(PopupMsg::RenamePopup),
-            rename_popup::done(data).map(PopupMsg::RenamePopup),
+            name_popup::title(),
+            name_popup::view(state, data).map(PopupMsg::RenamePopup),
+            name_popup::done(data).map(PopupMsg::RenamePopup),
         ),
     };
 

@@ -9,7 +9,7 @@ use iced::{Command, Element, Length};
 use core::http::collection::{Collection, Entry, Folder, FolderId};
 use core::http::CollectionKey;
 
-use crate::commands::builders::save_new_request_cmd;
+use crate::commands::builders::save_tab_request_cmd;
 use crate::state::popups::{Popup, SaveRequestState};
 use crate::state::AppState;
 
@@ -32,7 +32,7 @@ impl Message {
                 let name = data.name.clone();
                 let tab = data.tab;
                 let folder = data.folder_id;
-                save_new_request_cmd(state, name, tab, col, folder, |_| Message::Close)
+                save_tab_request_cmd(state, name, tab, col, folder, |_| Message::Close)
             }
             Message::NameChanged(name) => {
                 data.name = name;
