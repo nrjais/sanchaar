@@ -1,14 +1,18 @@
+use std::path::PathBuf;
+
 use anyhow::Context;
 use mime::{APPLICATION_JSON, TEXT_PLAIN, TEXT_XML};
 use mime_guess::{mime, Mime};
 use regex::Regex;
-use reqwest::header::CONTENT_TYPE;
+use reqwest::multipart::Part;
 use reqwest::RequestBuilder;
+use reqwest::{header::CONTENT_TYPE, multipart::Form};
+use tokio::fs::File;
 
 use crate::http::{
     environment::Environment,
     request::{Auth, Method, Request, RequestBody},
-    KeyValList, KeyValue,
+    KeyFileList, KeyValList, KeyValue,
 };
 
 fn param_enabled(param: &KeyValue) -> bool {
@@ -20,6 +24,14 @@ fn enabled_params(params: KeyValList, env: Option<&Environment>) -> Vec<(String,
         .into_iter()
         .filter(|param| param_enabled(param))
         .map(|param| (param.name, replace_env_vars(&param.value, env)))
+        .collect()
+}
+
+fn enabled_files(files: KeyFileList, _env: Option<&Environment>) -> Vec<(String, PathBuf)> {
+    files
+        .into_iter()
+        .filter(|file| !file.name.is_empty())
+        .filter_map(|file| file.path.map(|path| (file.name, path)))
         .collect()
 }
 
@@ -134,20 +146,57 @@ async fn req_body(
         RequestBody::Json(json) => body_header(builder, &json, APPLICATION_JSON),
         RequestBody::XML(xml) => body_header(builder, &xml, TEXT_XML),
         RequestBody::Form(form) => builder.form(&enabled_params(form, env)),
-        RequestBody::File(Some(file)) => {
-            let content_type = mime_guess::from_path(&file)
-                .first_or_octet_stream()
-                .to_string();
-
-            let file = tokio::fs::OpenOptions::new()
-                .read(true)
-                .open(file)
-                .await
-                .expect("Failed to open file");
-            builder.body(file).header(CONTENT_TYPE, content_type)
-        }
+        RequestBody::File(Some(file)) => file_body(file, builder).await,
         RequestBody::None | RequestBody::File(None) => builder,
+        RequestBody::Multipart { params, files } => multipart(builder, params, files, env).await,
     }
+}
+
+async fn multipart(
+    builder: RequestBuilder,
+    params: KeyValList,
+    files: KeyFileList,
+    env: Option<&Environment>,
+) -> RequestBuilder {
+    let params = enabled_params(params, env);
+    let files = enabled_files(files, env);
+    let mut form = Form::new();
+
+    for (name, value) in params {
+        form = form.text(name, value);
+    }
+
+    for (name, path) in files {
+        let (content_type, file) = open_file(&path).await;
+        let filename = path.file_name().unwrap().to_string_lossy().to_string();
+
+        let part = Part::stream(file)
+            .file_name(filename)
+            .mime_str(&content_type)
+            .unwrap();
+
+        form = form.part(name, part);
+    }
+
+    builder.multipart(form)
+}
+
+async fn file_body(file: PathBuf, builder: RequestBuilder) -> RequestBuilder {
+    let (content_type, file) = open_file(&file).await;
+    builder.body(file).header(CONTENT_TYPE, content_type)
+}
+
+async fn open_file(file: &PathBuf) -> (String, File) {
+    let content_type = mime_guess::from_path(&file)
+        .first_or_octet_stream()
+        .to_string();
+
+    let file = tokio::fs::OpenOptions::new()
+        .read(true)
+        .open(file)
+        .await
+        .expect("Failed to open file");
+    (content_type, file)
 }
 
 fn req_auth(builder: RequestBuilder, auth: Auth, env: Option<&Environment>) -> RequestBuilder {

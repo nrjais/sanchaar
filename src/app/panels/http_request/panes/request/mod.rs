@@ -6,8 +6,8 @@ use iced::{widget::text, Command, Length};
 use crate::commands::dialog::open_file_dialog;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
-use components::CodeEditorMsg;
 use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
+use components::{CodeEditorMsg, FilePickerUpdateMsg};
 
 use self::auth_editor::{auth_view, AuthEditorMsg};
 use self::body_view::body_tab;
@@ -25,6 +25,8 @@ pub enum RequestPaneMsg {
     BodyEditorAction(CodeEditorMsg),
     AuthEditorAction(AuthEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
+    MultipartParamsAction(KeyValUpdateMsg),
+    MultipartFilesAction(FilePickerUpdateMsg),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
     OpenFilePicker,
@@ -55,6 +57,16 @@ impl RequestPaneMsg {
             Self::FormBodyEditAction(edit) => {
                 if let RawRequestBody::Form(form) = &mut request.body {
                     form.update(edit);
+                }
+            }
+            Self::MultipartParamsAction(action) => {
+                if let RawRequestBody::Multipart(params, _) = &mut request.body {
+                    params.update(action);
+                }
+            }
+            Self::MultipartFilesAction(action) => {
+                if let RawRequestBody::Multipart(_, files) = &mut request.body {
+                    files.update(action);
                 }
             }
             Self::ChangeBodyFile(path) => {
@@ -113,8 +125,8 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         [
             button_tab(ReqTabId::Params, || text("Params")),
             button_tab(ReqTabId::Auth, || text("Auth")),
-            button_tab(ReqTabId::Headers, || text("Headers")),
             button_tab(ReqTabId::Body, || text("Body")),
+            button_tab(ReqTabId::Headers, || text("Headers")),
         ]
         .into_iter(),
         RequestPaneMsg::TabSelected,

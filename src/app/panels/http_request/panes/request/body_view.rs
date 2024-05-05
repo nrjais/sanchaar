@@ -91,12 +91,12 @@ fn multipart_editor<'a>(
 ) -> Element<'a, RequestPaneMsg> {
     let params = Column::new()
         .push("Params")
-        .push(key_value_editor(values).on_change(RequestPaneMsg::FormBodyEditAction))
+        .push(key_value_editor(values).on_change(RequestPaneMsg::MultipartParamsAction))
         .spacing(4);
 
     let file_picker = Column::new()
         .push("Files")
-        .push(multi_file_picker(files))
+        .push(multi_file_picker(files).on_change(RequestPaneMsg::MultipartFilesAction))
         .spacing(4);
 
     Column::new()

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::ops::Not;
+use std::{ops::Not, path::PathBuf};
 
 use crate::http::KeyValue;
 
@@ -16,6 +16,15 @@ pub const REQUESTS: &str = "requests";
 pub struct EncodedKeyValue {
     pub name: String,
     pub value: String,
+    #[serde(default, skip_serializing_if = "Not::not")]
+    pub disabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EncodedKeyFile {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<PathBuf>,
     #[serde(default, skip_serializing_if = "Not::not")]
     pub disabled: bool,
 }

@@ -1,11 +1,15 @@
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
 
-use super::KeyValList;
+use super::{KeyFileList, KeyValList};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RequestBody {
     Form(KeyValList),
+    Multipart {
+        params: KeyValList,
+        files: KeyFileList,
+    },
     Json(String),
     XML(String),
     Text(String),

@@ -44,6 +44,34 @@ impl KeyValList {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Default, Eq)]
+pub struct KeyFile {
+    pub name: String,
+    pub path: Option<PathBuf>,
+    pub disabled: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Default, Eq)]
+pub struct KeyFileList(Vec<KeyFile>);
+
+impl KeyFileList {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn from(vals: Vec<KeyFile>) -> Self {
+        Self(vals)
+    }
+
+    pub fn into_iter(self) -> impl Iterator<Item = KeyFile> {
+        self.0.into_iter()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &KeyFile> {
+        self.0.iter()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CollectionRequest(pub CollectionKey, pub RequestId);
 

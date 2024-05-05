@@ -14,14 +14,14 @@ use super::{icon, icons};
 pub struct KeyFile {
     pub disabled: bool,
     pub name: String,
-    pub value: Option<PathBuf>,
+    pub path: Option<PathBuf>,
 }
 
 impl KeyFile {
-    pub fn new(name: &str, value: PathBuf, disabled: bool) -> Self {
+    pub fn new(name: &str, path: Option<PathBuf>, disabled: bool) -> Self {
         Self {
             name: name.to_owned(),
-            value: Some(value),
+            path,
             disabled,
         }
     }
@@ -74,7 +74,7 @@ impl KeyFileList {
             FilePickerUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
             FilePickerUpdateMsg::ValueChanged(idx, file) => {
                 if let Some(file) = file {
-                    self.list[idx].value = Some(file);
+                    self.list[idx].path = Some(file);
                 }
             }
             FilePickerUpdateMsg::Remove(idx) => {
@@ -115,7 +115,7 @@ impl KeyFileList {
         self.list.push(KeyFile {
             name: key,
             disabled: false,
-            value: None,
+            path: None,
         });
     }
 
@@ -219,7 +219,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                 .width(Length::FillPortion(2));
 
             let path = kv
-                .value
+                .path
                 .as_ref()
                 .and_then(|p| p.to_str())
                 .unwrap_or("Select a file");

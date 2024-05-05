@@ -6,10 +6,10 @@ use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
 use crate::http::request::{Auth, Method, Request, RequestBody};
-use crate::http::{KeyValList, KeyValue};
+use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
 use crate::persistence::Version;
 
-use super::EncodedKeyValue;
+use super::{EncodedKeyFile, EncodedKeyValue};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -67,6 +67,10 @@ pub struct EncodedRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum EncodedRequestBody {
     Form(Vec<EncodedKeyValue>),
+    Multipart {
+        params: Vec<EncodedKeyValue>,
+        files: Vec<EncodedKeyFile>,
+    },
     Json(String),
     XML(String),
     Text(String),
@@ -102,6 +106,18 @@ fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
         .collect()
 }
 
+fn encode_key_files(files: KeyFileList) -> Vec<EncodedKeyFile> {
+    files
+        .into_iter()
+        .filter(|v| !v.name.is_empty())
+        .map(|v| EncodedKeyFile {
+            name: v.name,
+            path: v.path,
+            disabled: v.disabled,
+        })
+        .collect()
+}
+
 fn encode_body(body: RequestBody) -> Option<EncodedRequestBody> {
     match body {
         RequestBody::Form(form) => Some(EncodedRequestBody::Form(encode_key_values(form))),
@@ -109,6 +125,10 @@ fn encode_body(body: RequestBody) -> Option<EncodedRequestBody> {
         RequestBody::XML(data) => Some(EncodedRequestBody::XML(data)),
         RequestBody::Text(data) => Some(EncodedRequestBody::Text(data)),
         RequestBody::File(path) => Some(EncodedRequestBody::File(path)),
+        RequestBody::Multipart { params, files } => Some(EncodedRequestBody::Multipart {
+            params: encode_key_values(params),
+            files: encode_key_files(files),
+        }),
         RequestBody::None => None,
     }
 }
@@ -161,6 +181,19 @@ fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
     KeyValList::from(list)
 }
 
+fn decode_key_files(files: Vec<EncodedKeyFile>) -> KeyFileList {
+    let mut list = Vec::new();
+    for v in files {
+        list.push(KeyFile {
+            name: v.name,
+            path: v.path,
+            disabled: v.disabled,
+        });
+    }
+
+    KeyFileList::from(list)
+}
+
 fn decode_body(body: Option<EncodedRequestBody>) -> Option<RequestBody> {
     let body = body?;
     let decode = match body {
@@ -169,11 +202,14 @@ fn decode_body(body: Option<EncodedRequestBody>) -> Option<RequestBody> {
         EncodedRequestBody::XML(data) => RequestBody::XML(data),
         EncodedRequestBody::Text(data) => RequestBody::Text(data),
         EncodedRequestBody::File(path) => RequestBody::File(path),
+        EncodedRequestBody::Multipart { params, files } => RequestBody::Multipart {
+            params: decode_key_values(params),
+            files: decode_key_files(files),
+        },
     };
 
     Some(decode)
 }
-
 
 fn decode_auth(auth: Option<EncodedAuthType>) -> Auth {
     match auth {
@@ -208,7 +244,6 @@ fn decode_request(req: EncodedRequest) -> Request {
         description,
     }
 }
-
 
 pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
     let enc_req = load_from_file(&path)

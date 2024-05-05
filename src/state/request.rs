@@ -6,12 +6,12 @@ use components::{self, KeyFileList};
 use components::{text_editor, KeyValList};
 use core::http::request::{Auth, Method, Request, RequestBody};
 
-use super::utils::{from_core_kv_list, to_core_kv_list};
+use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
 
 pub mod body_types {
     pub const FORM: &str = "URL Encoded";
     pub const MULTIPART: &str = "Multipart";
-    pub const JSON: &str = "Json";
+    pub const JSON: &str = "JSON";
     pub const XML: &str = "XML";
     pub const TEXT: &str = "Text";
     pub const FILE: &str = "File";
@@ -60,15 +60,15 @@ impl RawAuthType {
         }
     }
 
-    fn from_auth(auth: &Auth) -> RawAuthType {
+    fn from_auth(auth: Auth) -> RawAuthType {
         match auth {
             Auth::None => RawAuthType::None,
             Auth::Basic { username, password } => RawAuthType::Basic {
-                username: text_editor::Content::with_text(username),
-                password: text_editor::Content::with_text(password),
+                username: text_editor::Content::with_text(&username),
+                password: text_editor::Content::with_text(&password),
             },
             Auth::Bearer { token } => RawAuthType::Bearer {
-                token: text_editor::Content::with_text(token),
+                token: text_editor::Content::with_text(&token),
             },
         }
     }
@@ -108,18 +108,25 @@ impl RawRequestBody {
             RawRequestBody::XML(xml) => RequestBody::XML(xml.text()),
             RawRequestBody::Text(text) => RequestBody::Text(text.text()),
             RawRequestBody::File(file) => RequestBody::File(file.clone()),
-            RawRequestBody::Multipart(_, _) => RequestBody::None,
+            RawRequestBody::Multipart(params, files) => RequestBody::Multipart {
+                params: to_core_kv_list(params),
+                files: to_core_kf_list(files),
+            },
             RawRequestBody::None => RequestBody::None,
         }
     }
 
-    fn from_request_body(body: &RequestBody) -> RawRequestBody {
+    fn from_request_body(body: RequestBody) -> RawRequestBody {
         match body {
-            RequestBody::Form(form) => RawRequestBody::Form(from_core_kv_list(form.clone(), false)),
-            RequestBody::Json(json) => RawRequestBody::Json(text_editor::Content::with_text(json)),
-            RequestBody::XML(xml) => RawRequestBody::XML(text_editor::Content::with_text(xml)),
-            RequestBody::Text(text) => RawRequestBody::Text(text_editor::Content::with_text(text)),
+            RequestBody::Form(form) => RawRequestBody::Form(from_core_kv_list(form, false)),
+            RequestBody::Json(json) => RawRequestBody::Json(text_editor::Content::with_text(&json)),
+            RequestBody::XML(xml) => RawRequestBody::XML(text_editor::Content::with_text(&xml)),
+            RequestBody::Text(text) => RawRequestBody::Text(text_editor::Content::with_text(&text)),
             RequestBody::File(file) => RawRequestBody::File(file.clone()),
+            RequestBody::Multipart { params, files } => RawRequestBody::Multipart(
+                from_core_kv_list(params, false),
+                from_core_kf_list(files),
+            ),
             RequestBody::None => RawRequestBody::None,
         }
     }
@@ -206,8 +213,8 @@ impl RequestPane {
             url_content: text_editor::Content::with_text(&request.url),
             method: request.method,
             headers: from_core_kv_list(request.headers, false),
-            body: RawRequestBody::from_request_body(&request.body),
-            auth: RawAuthType::from_auth(&request.auth),
+            body: RawRequestBody::from_request_body(request.body),
+            auth: RawAuthType::from_auth(request.auth),
             query_params: from_core_kv_list(request.query_params, false),
             path_params: from_core_kv_list(request.path_params, true),
             tab: ReqTabId::Params,
