@@ -2,7 +2,7 @@ use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
 use iced::widget::tooltip::Position;
 use iced::widget::{
-    button, column, container, row, text, tooltip, Button, Column, Row, Scrollable,
+    button, column, container, row, text, tooltip, Button, Column, Row, Scrollable
 };
 use iced::{Command, Element, Length};
 
@@ -193,7 +193,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
             )
             .height(Length::Fill),
         )
-        .spacing(4)
+        .spacing(7)
         .width(Length::Fill)
         .into()
 }

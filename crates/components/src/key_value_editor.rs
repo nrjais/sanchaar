@@ -1,4 +1,5 @@
-use iced::widget::{column, horizontal_space, scrollable, text};
+use iced::widget::tooltip::Position;
+use iced::widget::{column, scrollable, text, tooltip};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
@@ -193,11 +194,17 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     None
                 });
 
+            let tt = |msg: &'static str| {
+                container(text(msg))
+                    .padding([2, 4])
+                    .style(container::bordered_box)
+            };
+
             let actions = self.values.fixed.not().then(|| {
                 container(
                     Row::new()
-                        .push(enabled)
-                        .push(remove)
+                        .push(tooltip(enabled, tt("Enabled"), Position::Bottom))
+                        .push(tooltip(remove, tt("Delete"), Position::Bottom))
                         .align_items(iced::Alignment::Center)
                         .spacing(8),
                 )
@@ -244,7 +251,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
             Row::new()
                 .push(text("Name").size(size).width(Length::FillPortion(2)))
                 .push(text("Value").size(size).width(Length::FillPortion(3)))
-                .push_maybe(self.values.fixed.not().then(|| horizontal_space()))
+                .push(text("Actions").size(size).width(Length::Shrink))
                 .spacing(4)
                 .padding([2, 4]),
         )
