@@ -431,6 +431,9 @@ where
                 shell.publish(on_edit_act(action));
             }
             Update::Scroll(lines) => {
+                if self.single_line {
+                    return event::Status::Ignored;
+                }
                 let lines = lines + state.partial_scroll;
                 state.partial_scroll = lines.fract();
 
