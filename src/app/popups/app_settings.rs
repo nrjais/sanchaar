@@ -63,14 +63,12 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a AppSettingsState) -> Eleme
 }
 
 fn general_tab(state: &AppState) -> Element<Message> {
+    let size = 14;
     let theme = Row::new()
         .push(text("Theme"))
         .push(horizontal_space())
-        .push(pick_list(
-            Theme::ALL,
-            Some(&state.theme),
-            Message::ChangeTheme,
-        ));
+        .push(pick_list(Theme::ALL, Some(&state.theme), Message::ChangeTheme).text_size(size))
+        .align_items(iced::Alignment::Center);
 
     Column::new().push(theme).spacing(8).into()
 }
