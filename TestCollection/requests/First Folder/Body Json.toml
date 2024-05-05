@@ -20,7 +20,7 @@ name = "another"
 value = "second"
 
 [http.body]
-Json = """
+json = """
 {
 \"test\": \"hello\"
 }

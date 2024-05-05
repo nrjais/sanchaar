@@ -10,3 +10,11 @@ https://echo.nrjais.com/{{test}}
 [[http.query]]
 name = "test"
 value = "{{test}}"
+
+[[http.body.multipart.params]]
+name = "multipart"
+value = "text value"
+
+[[http.body.multipart.files]]
+name = "file"
+path = "/Users/neeraj/projects/sanchaar/TestCollection/collection.toml"

@@ -65,6 +65,7 @@ pub struct EncodedRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum EncodedRequestBody {
     Form(Vec<EncodedKeyValue>),
     Multipart {
