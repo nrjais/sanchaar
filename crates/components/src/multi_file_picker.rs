@@ -72,7 +72,7 @@ impl KeyFileList {
         match msg {
             FilePickerUpdateMsg::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
             FilePickerUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
-            FilePickerUpdateMsg::ValueChanged(idx, file) => {
+            FilePickerUpdateMsg::FilePicked(idx, file) => {
                 if let Some(file) = file {
                     self.list[idx].path = Some(file);
                 }
@@ -131,6 +131,7 @@ impl KeyFileList {
 pub struct MultiFilePicker<'a, M> {
     values: &'a KeyFileList,
     on_change: Option<Box<dyn Fn(FilePickerUpdateMsg) -> M + 'a>>,
+    on_file_picker: Box<dyn Fn(usize) -> M + 'a>,
 }
 
 impl<'a, M: Clone> MultiFilePicker<'a, M> {
@@ -147,15 +148,19 @@ impl<'a, M: Clone> MultiFilePicker<'a, M> {
 pub enum FilePickerUpdateMsg {
     Toggled(usize, bool),
     NameChanged(usize, String),
-    ValueChanged(usize, Option<PathBuf>),
+    FilePicked(usize, Option<PathBuf>),
     Remove(usize),
     OpenFilePicker(usize),
 }
 
-pub fn multi_file_picker<M>(values: &KeyFileList) -> MultiFilePicker<'_, M> {
+pub fn multi_file_picker<M: Clone>(
+    values: &KeyFileList,
+    on_file_picker: impl Fn(usize) -> M + 'static,
+) -> MultiFilePicker<'_, M> {
     MultiFilePicker {
         values,
         on_change: None,
+        on_file_picker: Box::new(on_file_picker),
     }
 }
 
@@ -165,7 +170,12 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
     type Event = FilePickerUpdateMsg;
 
     fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
-        self.on_change.as_ref().map(|f| f(event))
+        match event {
+            FilePickerUpdateMsg::OpenFilePicker(idx) => {
+                return Some((self.on_file_picker)(idx));
+            }
+            _ => self.on_change.as_ref().map(|f| f(event)),
+        }
     }
 
     fn view(&self, _state: &Self::State) -> Element<Self::Event> {
@@ -226,12 +236,15 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
 
             let value = container(
                 Row::new()
-                    .push(
+                    .push(tooltip(
                         button(icon(icons::FolderOpen).size(size))
                             .on_press(FilePickerUpdateMsg::OpenFilePicker(idx))
                             .style(button::primary)
                             .padding([2, 6]),
-                    )
+                        tt("File picker"),
+                        Position::Bottom,
+                    ))
+                    // TODO: Ellipsis long file path, show tooltip on hover
                     .push(text(path).size(size))
                     .height(Length::Fill)
                     .spacing(spacing)

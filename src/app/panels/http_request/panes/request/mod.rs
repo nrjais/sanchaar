@@ -27,6 +27,7 @@ pub enum RequestPaneMsg {
     FormBodyEditAction(KeyValUpdateMsg),
     MultipartParamsAction(KeyValUpdateMsg),
     MultipartFilesAction(FilePickerUpdateMsg),
+    MulitpartOpenFilePicker(usize),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
     OpenFilePicker,
@@ -71,6 +72,12 @@ impl RequestPaneMsg {
             }
             Self::ChangeBodyFile(path) => {
                 request.body = RawRequestBody::File(path);
+            }
+            Self::MulitpartOpenFilePicker(idx) => {
+                return open_file_dialog("Select File", move |handle| {
+                    let path = handle.map(|p| p.path().to_path_buf());
+                    RequestPaneMsg::MultipartFilesAction(FilePickerUpdateMsg::FilePicked(idx, path))
+                });
             }
             Self::ChangeBodyType(ct) => request.change_body_type(ct),
             Self::AuthEditorAction(action) => action.update(request),

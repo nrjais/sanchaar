@@ -25,11 +25,11 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
 - [x] Path param support
 - [x] Query param support
 - [x] Header param support
-- [ ] Body support
+- [x] Body support
   - [x] JSON
   - [x] Form
   - [x] XML
-  - [ ] Multipart
+  - [x] Multipart
 - [x] Request cancellation
 - [ ] Authentication
   - [x] Basic
@@ -79,7 +79,7 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Run tests by path
   - [ ] Run all collection tests
 - [ ] Settings
-  - [ ] Theme
+  - [x] Theme
   - [ ] Proxy
   - [ ] SSL
   - [ ] Timeout
