@@ -186,6 +186,7 @@ async fn file_body(file: PathBuf, builder: RequestBuilder) -> RequestBuilder {
     builder.body(file).header(CONTENT_TYPE, content_type)
 }
 
+// TODO: Something wrong with file opening, files are not sent in multipart and file upload
 async fn open_file(file: &PathBuf) -> (String, File) {
     let content_type = mime_guess::from_path(&file)
         .first_or_octet_stream()
