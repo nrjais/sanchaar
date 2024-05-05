@@ -6,7 +6,7 @@ use iced::widget::{
 };
 use iced::{Command, Element, Length};
 
-use components::{button_tab, key_value_editor, vertical_button_tabs, vertical_line};
+use components::{button_tab, icon, icons, key_value_editor, vertical_button_tabs, vertical_line};
 use core::http::environment::EnvironmentKey;
 
 use crate::commands::builders;
@@ -136,8 +136,8 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
 
     let env_actions = Row::new()
         .push(
-            button(text("Create Env").size(14))
-                .padding([4, 6])
+            button(icon(icons::Plus))
+                .padding([2, 12])
                 .on_press(Message::AddNewEnvMode),
         )
         .align_items(iced::Alignment::Center);
@@ -163,8 +163,8 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
                 .push(text("Variables"))
                 .push(horizontal_space())
                 .push(
-                    button("Delete")
-                        .padding([2, 4])
+                    button(icon(icons::Delete))
+                        .padding([2, 8])
                         .style(button::danger)
                         .on_press(Message::DeleteEnv(selected)),
                 )
