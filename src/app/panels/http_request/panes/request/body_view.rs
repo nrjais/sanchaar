@@ -4,7 +4,7 @@ use components::{
     icon, icons, key_value_editor, multi_file_picker, ContentType, KeyFileList, KeyValList,
 };
 use iced::{
-    widget::{button, container, horizontal_space, pick_list, text, Column, Row},
+    widget::{button, container, horizontal_space, pick_list, scrollable, text, Column, Row},
     Element, Length,
 };
 use std::path::PathBuf;
@@ -69,7 +69,7 @@ fn file(path: &Option<PathBuf>) -> Element<RequestPaneMsg> {
 }
 
 fn form(values: &KeyValList) -> Element<RequestPaneMsg> {
-    container(key_value_editor(values).on_change(RequestPaneMsg::FormBodyEditAction))
+    scrollable(key_value_editor(values).on_change(RequestPaneMsg::FormBodyEditAction))
         .height(Length::Fill)
         .width(Length::Fill)
         .into()
@@ -92,6 +92,7 @@ fn multipart_editor<'a>(
     let params = Column::new()
         .push("Params")
         .push(key_value_editor(values).on_change(RequestPaneMsg::MultipartParamsAction))
+        .width(Length::Fill)
         .spacing(4);
 
     let file_picker = Column::new()
@@ -100,13 +101,10 @@ fn multipart_editor<'a>(
             multi_file_picker(files, RequestPaneMsg::MulitpartOpenFilePicker)
                 .on_change(RequestPaneMsg::MultipartFilesAction),
         )
+        .width(Length::Fill)
         .spacing(4);
 
-    Column::new()
-        .push(params)
-        .push(file_picker)
-        .spacing(8)
+    scrollable(Column::new().push(params).push(file_picker).spacing(8))
         .height(Length::Fill)
-        .width(Length::Fill)
         .into()
 }

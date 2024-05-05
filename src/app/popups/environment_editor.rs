@@ -4,7 +4,7 @@ use std::ops::Not;
 use iced::widget::{
     button, horizontal_space, scrollable, text, text_input, value, vertical_space, Column, Row,
 };
-use iced::{Command, Element};
+use iced::{Command, Element, Length};
 
 use components::{button_tab, key_value_editor, vertical_button_tabs, vertical_line};
 use core::http::environment::EnvironmentKey;
@@ -170,12 +170,14 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
                 )
                 .padding([0, 8, 0, 0]),
         )
-        .push(key_value_editor(&env.variables).on_change(update_env))
+        .push(
+            scrollable(key_value_editor(&env.variables).on_change(update_env)).width(Length::Fill),
+        )
         .spacing(4);
 
     Row::new()
         .push(tab_bar)
-        .push(scrollable(editor))
+        .push(editor)
         .spacing(8)
         .height(400)
         .width(450)

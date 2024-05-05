@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use iced::widget::Column;
+use iced::widget::{scrollable, Column};
 use iced::{widget::text, Command, Length};
 
 use crate::commands::dialog::open_file_dialog;
@@ -92,20 +92,24 @@ impl RequestPaneMsg {
 }
 
 fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
-    let query = key_value_editor(&request.query_params).on_change(RequestPaneMsg::Queries);
-
     let has_params = request.path_params.size() > 0;
     let path = has_params.then(|| {
         Column::new()
             .push("Path Params")
             .push(key_value_editor(&request.path_params).on_change(RequestPaneMsg::PathParams))
+            .width(Length::Fill)
             .spacing(4)
     });
 
-    Column::new()
-        .push(Column::new().push("Query Params").push(query).spacing(4))
-        .push_maybe(path)
-        .spacing(8)
+    let query = Column::new()
+        .push("Query Params")
+        .push(key_value_editor(&request.query_params).on_change(RequestPaneMsg::Queries))
+        .spacing(4)
+        .width(Length::Fill);
+
+    scrollable(Column::new().push(query).push_maybe(path).spacing(8))
+        .height(Length::Fill)
+        .width(Length::Fill)
         .into()
 }
 

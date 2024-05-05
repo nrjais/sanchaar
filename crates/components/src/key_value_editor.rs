@@ -1,5 +1,5 @@
 use iced::widget::tooltip::Position;
-use iced::widget::{column, scrollable, text, tooltip};
+use iced::widget::{column, text, tooltip};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
@@ -266,7 +266,11 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         })
         .into();
 
-        scrollable(column([header]).extend(values).padding([0, 8, 0, 0])).into()
+        column([header])
+            .extend(values)
+            .padding([0, 8, 0, 0])
+            .width(Length::Fill)
+            .into()
     }
 }
 
