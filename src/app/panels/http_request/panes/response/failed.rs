@@ -1,23 +1,22 @@
-use crate::app::panels::http_request::panes::response::executing::center_x;
+use std::sync::Arc;
+
 use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
 use components::{icon, icons};
-use iced::widget::{container, text, Column};
+use iced::widget::{container, text, Column, Row};
 
 use crate::state::AppState;
 
-pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
-    let error_icon = center_x(icon(icons::Error).size(60.0), 10);
+pub fn view(_state: &AppState, e: Arc<anyhow::Error>) -> iced::Element<'_, ResponsePaneMsg> {
+    let error_icon = icon(icons::Error).size(60.0);
 
-    let col = Column::new()
-        .push(error_icon)
-        .push(text("Failed to send request."))
-        .height(iced::Length::Shrink)
-        .width(iced::Length::Shrink);
+    let error_msg = Row::new()
+        .push(text("Error: "))
+        .push(text(e.root_cause().to_string()))
+        .align_items(iced::Alignment::Center);
 
-    container(col)
-        .width(iced::Length::Fill)
-        .height(iced::Length::Fill)
-        .center_x()
-        .center_y()
+    Column::new()
+        .push(container(error_icon).padding(10))
+        .push(error_msg)
+        .align_items(iced::Alignment::Center)
         .into()
 }

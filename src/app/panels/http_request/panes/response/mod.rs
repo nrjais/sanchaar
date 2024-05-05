@@ -37,7 +37,7 @@ pub(crate) fn view(state: &crate::state::AppState) -> Element<ResponsePaneMsg> {
         ResponseState::Completed(ref result) => {
             completed::view(state, result).map(ResponsePaneMsg::Completed)
         }
-        ResponseState::Failed(_) => failed::view(state),
+        ResponseState::Failed(ref e) => failed::view(state, e.clone()),
     };
 
     container(res)

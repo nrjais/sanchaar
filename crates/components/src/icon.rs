@@ -24,7 +24,7 @@ pub mod icons {
     pub const Gear: NerdIcon = NerdIcon('󰒓');
     pub const Import: NerdIcon = NerdIcon('󰋺');
     pub const FileCancel: NerdIcon = NerdIcon('󰷆');
-    pub const Error: NerdIcon = NerdIcon('');
+    pub const Error: NerdIcon = NerdIcon('');
     pub const Send: NerdIcon = NerdIcon('󰒊');
     pub const SendUp: NerdIcon = NerdIcon('');
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');

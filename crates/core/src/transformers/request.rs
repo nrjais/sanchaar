@@ -7,7 +7,7 @@ use reqwest::RequestBuilder;
 
 use crate::http::{
     environment::Environment,
-    request::{Method, Request, RequestBody},
+    request::{Auth, Method, Request, RequestBody},
     KeyValList, KeyValue,
 };
 
@@ -72,6 +72,7 @@ pub async fn transform_request(
         headers,
         query_params,
         body,
+        auth,
         ..
     } = req;
 
@@ -81,11 +82,11 @@ pub async fn transform_request(
 
     builder = req_headers(builder, headers, env);
     builder = req_params(builder, query_params, env);
+    builder = req_auth(builder, auth, env);
     builder = req_body(builder, body, env).await;
 
     builder.build().context("Failed to build request")
 }
-
 fn replace_env_vars(source: &str, env: Option<&Environment>) -> String {
     let Some(env) = env else {
         return source.to_string();
@@ -146,5 +147,20 @@ async fn req_body(
             builder.body(file).header(CONTENT_TYPE, content_type)
         }
         RequestBody::None | RequestBody::File(None) => builder,
+    }
+}
+
+fn req_auth(builder: RequestBuilder, auth: Auth, env: Option<&Environment>) -> RequestBuilder {
+    match auth {
+        Auth::None => builder,
+        Auth::Basic { username, password } => {
+            let username = replace_env_vars(&username, env);
+            let password = replace_env_vars(&password, env);
+            builder.basic_auth(username, Some(password))
+        }
+        Auth::Bearer { token } => {
+            let token = replace_env_vars(&token, env);
+            builder.bearer_auth(token)
+        }
     }
 }

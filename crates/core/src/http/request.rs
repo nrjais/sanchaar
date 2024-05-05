@@ -13,6 +13,13 @@ pub enum RequestBody {
     None,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Auth {
+    None,
+    Basic { username: String, password: String },
+    Bearer { token: String },
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumString, VariantArray, Display, Default)]
 pub enum Method {
     #[default]
@@ -36,6 +43,7 @@ pub struct Request {
     pub body: RequestBody,
     pub query_params: KeyValList,
     pub path_params: KeyValList,
+    pub auth: Auth,
 }
 
 impl Default for Request {
@@ -48,6 +56,7 @@ impl Default for Request {
             body: RequestBody::None,
             query_params: KeyValList::new(),
             path_params: KeyValList::new(),
+            auth: Auth::None,
         }
     }
 }

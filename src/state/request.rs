@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use body_types::*;
 use components;
 use components::{text_editor, KeyValList};
-use core::http::request::{Method, Request, RequestBody};
+use core::http::request::{Auth, Method, Request, RequestBody};
 
 use super::utils::{from_core_kv_list, to_core_kv_list};
 
@@ -17,23 +17,85 @@ pub mod body_types {
     pub const NONE: &str = "None";
 }
 
+pub mod auth_types {
+    pub const NONE: &str = "None";
+    pub const BASIC: &str = "Basic";
+    pub const BEARER: &str = "Bearer";
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {
     #[default]
     Params,
     Body,
+    Auth,
     Headers,
 }
 
 #[derive(Debug, Default)]
+pub enum RawAuthType {
+    #[default]
+    None,
+    Basic {
+        username: text_editor::Content,
+        password: text_editor::Content,
+    },
+    Bearer {
+        token: text_editor::Content,
+    },
+}
+
+impl RawAuthType {
+    fn to_auth(&self) -> Auth {
+        match self {
+            RawAuthType::None => Auth::None,
+            RawAuthType::Basic { username, password } => Auth::Basic {
+                username: username.text().trim().to_string(),
+                password: password.text().trim().to_string(),
+            },
+            RawAuthType::Bearer { token } => Auth::Bearer {
+                token: token.text().trim().to_string(),
+            },
+        }
+    }
+
+    fn from_auth(auth: &Auth) -> RawAuthType {
+        match auth {
+            Auth::None => RawAuthType::None,
+            Auth::Basic { username, password } => RawAuthType::Basic {
+                username: text_editor::Content::with_text(username),
+                password: text_editor::Content::with_text(password),
+            },
+            Auth::Bearer { token } => RawAuthType::Bearer {
+                token: text_editor::Content::with_text(token),
+            },
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        use auth_types::*;
+        match self {
+            RawAuthType::Basic { .. } => BASIC,
+            RawAuthType::Bearer { .. } => BEARER,
+            RawAuthType::None => NONE,
+        }
+    }
+
+    pub fn all_variants() -> &'static [&'static str] {
+        use auth_types::*;
+        &[NONE, BASIC, BEARER]
+    }
+}
+
+#[derive(Debug, Default)]
 pub enum RawRequestBody {
+    #[default]
+    None,
     Form(KeyValList),
     Json(text_editor::Content),
     XML(text_editor::Content),
     Text(text_editor::Content),
     File(Option<PathBuf>),
-    #[default]
-    None,
 }
 
 impl RawRequestBody {
@@ -85,6 +147,7 @@ pub struct RequestPane {
     pub body: RawRequestBody,
     pub query_params: KeyValList,
     pub path_params: KeyValList,
+    pub auth: RawAuthType,
     pub tab: ReqTabId,
     pub body_cache: HashMap<&'static str, RawRequestBody>,
 }
@@ -107,6 +170,20 @@ impl RequestPane {
         self.body_cache.insert(old_body.as_str(), old_body);
     }
 
+    pub fn change_auth_type(&mut self, auth_type: &str) {
+        self.auth = match auth_type {
+            auth_types::NONE => RawAuthType::None,
+            auth_types::BASIC => RawAuthType::Basic {
+                username: text_editor::Content::new(),
+                password: text_editor::Content::new(),
+            },
+            auth_types::BEARER => RawAuthType::Bearer {
+                token: text_editor::Content::new(),
+            },
+            _ => RawAuthType::None,
+        };
+    }
+
     pub fn to_request(&self) -> Request {
         Request {
             description: "Http request".to_string(),
@@ -114,6 +191,7 @@ impl RequestPane {
             url: self.url_content.text(),
             headers: to_core_kv_list(&self.headers),
             body: self.body.to_request_body(),
+            auth: self.auth.to_auth(),
             query_params: to_core_kv_list(&self.query_params),
             path_params: to_core_kv_list(&self.path_params),
         }
@@ -125,6 +203,7 @@ impl RequestPane {
             method: request.method,
             headers: from_core_kv_list(request.headers, false),
             body: RawRequestBody::from_request_body(&request.body),
+            auth: RawAuthType::from_auth(&request.auth),
             query_params: from_core_kv_list(request.query_params, false),
             path_params: from_core_kv_list(request.path_params, true),
             tab: ReqTabId::Params,

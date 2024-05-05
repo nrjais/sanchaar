@@ -9,6 +9,9 @@ use crate::state::{request::ReqTabId, AppState};
 use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
 use components::{icon, icons, CodeEditorMsg, ContentType};
 
+use self::auth_editor::{auth_view, AuthEditorMsg};
+
+mod auth_editor;
 mod body_editor;
 
 #[derive(Debug, Clone)]
@@ -18,6 +21,7 @@ pub enum RequestPaneMsg {
     Queries(KeyValUpdateMsg),
     PathParams(KeyValUpdateMsg),
     BodyEditorAction(CodeEditorMsg),
+    AuthEditorAction(AuthEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
@@ -26,7 +30,7 @@ pub enum RequestPaneMsg {
 
 impl RequestPaneMsg {
     pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
-        let request = &mut state.active_tab_mut().request_mut();
+        let request = state.active_tab_mut().request_mut();
         match self {
             Self::TabSelected(tab) => {
                 request.tab = tab;
@@ -54,7 +58,8 @@ impl RequestPaneMsg {
             Self::ChangeBodyFile(path) => {
                 request.body = RawRequestBody::File(path);
             }
-            Self::ChangeBodyType(content_type) => request.change_body_type(content_type),
+            Self::ChangeBodyType(ct) => request.change_body_type(ct),
+            Self::AuthEditorAction(action) => action.update(request),
             Self::OpenFilePicker => {
                 return open_file_dialog("Select File", |path| {
                     RequestPaneMsg::ChangeBodyFile(path.map(|p| p.path().to_path_buf()))
@@ -170,6 +175,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let tab_content = match request.tab {
         ReqTabId::Params => params_view(request),
         ReqTabId::Headers => headers_view(request),
+        ReqTabId::Auth => auth_view(request).map(RequestPaneMsg::AuthEditorAction),
         ReqTabId::Body => body_tab(&request.body),
     };
 
@@ -177,6 +183,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         request.tab,
         [
             button_tab(ReqTabId::Params, || text("Params")),
+            button_tab(ReqTabId::Auth, || text("Auth")),
             button_tab(ReqTabId::Headers, || text("Headers")),
             button_tab(ReqTabId::Body, || text("Body")),
         ]

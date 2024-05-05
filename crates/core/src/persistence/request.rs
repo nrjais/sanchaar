@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
-use crate::http::request::{Method, Request, RequestBody};
+use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyValList, KeyValue};
 use crate::persistence::Version;
 
@@ -74,6 +74,12 @@ pub enum EncodedRequestBody {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub enum EncodedAuthType {
+    Basic { username: String, password: String },
+    Bearer { token: String },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct HttpRequest {
     pub method: EncodedMethod,
     pub url: String,
@@ -85,6 +91,8 @@ pub struct HttpRequest {
     pub path_params: Vec<EncodedKeyValue>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub body: Option<EncodedRequestBody>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth: Option<EncodedAuthType>,
 }
 
 fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
@@ -105,6 +113,14 @@ fn encode_body(body: RequestBody) -> Option<EncodedRequestBody> {
     }
 }
 
+fn encode_auth(auth: Auth) -> Option<EncodedAuthType> {
+    match auth {
+        Auth::None => None,
+        Auth::Basic { username, password } => Some(EncodedAuthType::Basic { username, password }),
+        Auth::Bearer { token } => Some(EncodedAuthType::Bearer { token }),
+    }
+}
+
 pub fn encode_request(req: Request) -> EncodedRequest {
     let Request {
         method,
@@ -113,6 +129,7 @@ pub fn encode_request(req: Request) -> EncodedRequest {
         body,
         query_params,
         path_params,
+        auth,
         description,
     } = req;
 
@@ -124,6 +141,7 @@ pub fn encode_request(req: Request) -> EncodedRequest {
             query: encode_key_values(query_params),
             path_params: encode_key_values(path_params),
             body: encode_body(body),
+            auth: encode_auth(auth),
         },
         description,
         version: Version::V1,
@@ -156,6 +174,15 @@ fn decode_body(body: Option<EncodedRequestBody>) -> Option<RequestBody> {
     Some(decode)
 }
 
+
+fn decode_auth(auth: Option<EncodedAuthType>) -> Auth {
+    match auth {
+        None => Auth::None,
+        Some(EncodedAuthType::Basic { username, password }) => Auth::Basic { username, password },
+        Some(EncodedAuthType::Bearer { token }) => Auth::Bearer { token },
+    }
+}
+
 fn decode_request(req: EncodedRequest) -> Request {
     let EncodedRequest {
         http, description, ..
@@ -167,6 +194,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         body,
         query,
         path_params,
+        auth,
     } = http;
 
     Request {
@@ -176,9 +204,11 @@ fn decode_request(req: EncodedRequest) -> Request {
         body: decode_body(body).unwrap_or(RequestBody::None),
         query_params: decode_key_values(query),
         path_params: decode_key_values(path_params),
+        auth: decode_auth(auth),
         description,
     }
 }
+
 
 pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
     let enc_req = load_from_file(&path)
