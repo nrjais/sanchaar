@@ -22,6 +22,7 @@ pub mod icons {
     pub const CheckBold: NerdIcon = NerdIcon('󰸞');
     pub const Pencil: NerdIcon = NerdIcon('󰏫');
     pub const Gear: NerdIcon = NerdIcon('󰒓');
+    pub const Import: NerdIcon = NerdIcon('󰋺');
     pub const FileCancel: NerdIcon = NerdIcon('󰷆');
     pub const Error: NerdIcon = NerdIcon('');
     pub const Send: NerdIcon = NerdIcon('󰒊');

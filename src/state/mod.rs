@@ -61,7 +61,7 @@ impl AppState {
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
             popup: None,
-            theme: Theme::Dark,
+            theme: Theme::Oxocarbon,
             background_tasks: Vec::new(),
         }
     }

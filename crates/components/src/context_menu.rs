@@ -55,6 +55,7 @@ where
     ContextMenu {
         base: base.into(),
         menu: menu.into(),
+        button: mouse::Button::Right,
     }
     .into()
 }
@@ -62,6 +63,7 @@ where
 struct ContextMenu<'a, Message> {
     base: Element<'a, Message>,
     menu: Element<'a, Message>,
+    button: mouse::Button,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -165,10 +167,13 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
     ) -> event::Status {
         let state = tree.state.downcast_mut::<State>();
 
-        if let Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Right)) = &event {
-            if let Some(position) = cursor.position_over(layout.bounds()) {
-                *state = State::Open(position);
+        match &event {
+            Event::Mouse(mouse::Event::ButtonPressed(b)) if *b == self.button => {
+                if let Some(position) = cursor.position_over(layout.bounds()) {
+                    *state = State::Open(position);
+                }
             }
+            _ => (),
         }
 
         self.base.as_widget_mut().on_event(

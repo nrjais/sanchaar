@@ -5,6 +5,7 @@ use iced::{Alignment, Border, Command, Element};
 use crate::state::popups::Popup;
 use crate::state::AppState;
 
+mod app_settings;
 mod create_collection;
 mod environment_editor;
 mod name_popup;
@@ -16,6 +17,7 @@ pub enum PopupMsg {
     EnvironmentEditor(environment_editor::Message),
     SaveRequest(save_request::Message),
     RenamePopup(name_popup::Message),
+    AppSettings(app_settings::Message),
     ClosePopup,
     Ignore,
 }
@@ -27,6 +29,7 @@ impl PopupMsg {
             PopupMsg::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
             PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
             PopupMsg::RenamePopup(msg) => msg.update(state).map(PopupMsg::RenamePopup),
+            PopupMsg::AppSettings(msg) => msg.update(state).map(PopupMsg::AppSettings),
             PopupMsg::ClosePopup => {
                 Popup::close(state);
                 Command::none()
@@ -57,6 +60,11 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             name_popup::title(),
             name_popup::view(state, data).map(PopupMsg::RenamePopup),
             name_popup::done(data).map(PopupMsg::RenamePopup),
+        ),
+        Popup::AppSettings(data) => (
+            app_settings::title(),
+            app_settings::view(state, data).map(PopupMsg::AppSettings),
+            app_settings::done(data).map(PopupMsg::AppSettings),
         ),
     };
 

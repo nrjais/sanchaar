@@ -2,7 +2,7 @@ use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
 use iced::widget::tooltip::Position;
 use iced::widget::{
-    button, column, container, row, text, tooltip, Button, Column, Row, Scrollable
+    button, column, container, row, text, tooltip, Button, Column, Row, Scrollable,
 };
 use iced::{Command, Element, Length};
 
@@ -25,6 +25,7 @@ pub enum CollectionTreeMsg {
     RequestLoaded(CollectionRequest, Option<Request>),
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
+    OpenSettings,
 }
 
 impl CollectionTreeMsg {
@@ -65,6 +66,9 @@ impl CollectionTreeMsg {
                 return handle_context_menu(state, col, action);
             }
             CollectionTreeMsg::ActionComplete => {}
+            CollectionTreeMsg::OpenSettings =>  {
+                Popup::app_settings(state);
+            },
         }
         Command::none()
     }
@@ -166,12 +170,21 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         Position::Bottom,
     );
 
+    let settings = tooltip(
+        icon_button(icons::Gear).on_press(CollectionTreeMsg::OpenSettings),
+        container(text("Settings"))
+            .padding([2, 4])
+            .style(container::rounded_box),
+        Position::Bottom,
+    );
+
     Column::new()
         .push(
             container(
                 Row::new()
                     .push(create_col)
                     .push(open_col)
+                    .push(settings)
                     .width(Length::Shrink)
                     .spacing(4),
             )

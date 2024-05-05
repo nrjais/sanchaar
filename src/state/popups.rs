@@ -47,12 +47,23 @@ pub struct EnvironmentEditorState {
     pub add_env_mode: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AppSettingTabs {
+    General,
+}
+
+#[derive(Debug)]
+pub struct AppSettingsState {
+    pub active_tab: AppSettingTabs,
+}
+
 #[derive(Debug)]
 pub enum Popup {
     CreateCollection(CreateCollectionState),
     EnvironmentEditor(EnvironmentEditorState),
     SaveRequest(SaveRequestState),
     PopupName(PopupNameState),
+    AppSettings(AppSettingsState),
 }
 
 fn open_popup(state: &mut AppState, popup: Popup) {
@@ -107,6 +118,13 @@ impl Popup {
             selected_env: None,
             env_name: String::new(),
             add_env_mode: false,
+        });
+        open_popup(state, popup);
+    }
+
+    pub(crate) fn app_settings(state: &mut AppState) {
+        let popup = Self::AppSettings(AppSettingsState {
+            active_tab: AppSettingTabs::General,
         });
         open_popup(state, popup);
     }

@@ -1,0 +1,76 @@
+use std::borrow::Cow;
+
+use components::{button_tab, button_tabs};
+use iced::widget::{horizontal_space, pick_list, text, Column, Row};
+use iced::{Command, Element, Theme};
+
+use crate::state::popups::{AppSettingTabs, AppSettingsState, Popup};
+use crate::state::AppState;
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    TabChange(AppSettingTabs),
+    ChangeTheme(Theme),
+    Done,
+}
+
+impl Message {
+    pub fn update(self, state: &mut AppState) -> Command<Message> {
+        let Some(Popup::AppSettings(data)) = state.popup.as_mut() else {
+            return Command::none();
+        };
+
+        match self {
+            Message::Done => {
+                state.popup = None;
+            }
+            Message::TabChange(tab) => {
+                data.active_tab = tab;
+            }
+            Message::ChangeTheme(theme) => {
+                state.theme = theme;
+            }
+        }
+        Command::none()
+    }
+}
+
+pub fn title<'a>() -> Cow<'a, str> {
+    Cow::Borrowed("Settings")
+}
+
+pub fn done(_data: &AppSettingsState) -> Option<Message> {
+    Some(Message::Done)
+}
+
+pub(crate) fn view<'a>(state: &'a AppState, data: &'a AppSettingsState) -> Element<'a, Message> {
+    let tab_bar = button_tabs(
+        data.active_tab,
+        [button_tab(AppSettingTabs::General, move || text("General"))].into_iter(),
+        Message::TabChange,
+        None,
+    );
+    let content = match data.active_tab {
+        AppSettingTabs::General => general_tab(state),
+    };
+
+    Column::new()
+        .push(tab_bar)
+        .push(content)
+        .spacing(16)
+        .width(400)
+        .into()
+}
+
+fn general_tab(state: &AppState) -> Element<Message> {
+    let theme = Row::new()
+        .push(text("Theme"))
+        .push(horizontal_space())
+        .push(pick_list(
+            Theme::ALL,
+            Some(&state.theme),
+            Message::ChangeTheme,
+        ));
+
+    Column::new().push(theme).spacing(8).into()
+}
