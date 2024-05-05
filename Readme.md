@@ -1,5 +1,5 @@
 <div align="center">
-<img src="assets/sanchaar.jpeg" alt="logo" width="200" style="border-radius: 25px"/>
+<img src="assets/512x512.png" alt="logo" width="150" style="border-radius: 25px"/>
 
 # Sanchaar - A Offline REST API client
 
