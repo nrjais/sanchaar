@@ -1,18 +1,20 @@
 use std::path::PathBuf;
 
-use iced::widget::{button, container, horizontal_space, pick_list, Column, Row};
+use iced::widget::Column;
 use iced::{widget::text, Command, Length};
 
 use crate::commands::dialog::open_file_dialog;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
+use components::CodeEditorMsg;
 use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
-use components::{icon, icons, CodeEditorMsg, ContentType};
 
 use self::auth_editor::{auth_view, AuthEditorMsg};
+use self::body_view::body_tab;
 
 mod auth_editor;
 mod body_editor;
+mod body_view;
 
 #[derive(Debug, Clone)]
 pub enum RequestPaneMsg {
@@ -68,79 +70,6 @@ impl RequestPaneMsg {
         };
         Command::none()
     }
-}
-
-fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
-    let size = 14;
-    let header = Row::new()
-        .push(text(format!("Content Type: {}", body.as_str())).size(size))
-        .push(horizontal_space())
-        .push(
-            pick_list(
-                RawRequestBody::all_variants(),
-                Some(body.as_str()),
-                RequestPaneMsg::ChangeBodyType,
-            )
-            .text_size(size)
-            .padding([2, 4]),
-        )
-        .height(Length::Shrink)
-        .align_items(iced::Alignment::Center);
-
-    let body = match body {
-        RawRequestBody::Json(content) => body_editor::view(content, ContentType::Json),
-        RawRequestBody::XML(content) => body_editor::view(content, ContentType::XML),
-        RawRequestBody::Text(content) => body_editor::view(content, ContentType::Text),
-        RawRequestBody::Form(values) => {
-            container(key_value_editor(values).on_change(RequestPaneMsg::FormBodyEditAction))
-                .height(Length::Fill)
-                .width(Length::Fill)
-                .into()
-        }
-        RawRequestBody::File(path) => {
-            let location = path
-                .as_ref()
-                .map(|p| p.to_str().unwrap_or("Invalid File Path"))
-                .unwrap_or("No File Selected");
-
-            Column::new()
-                .push(text(location))
-                .push(
-                    button(text("Select File"))
-                        .padding([4, 12])
-                        .on_press(RequestPaneMsg::OpenFilePicker)
-                        .style(button::secondary),
-                )
-                .align_items(iced::Alignment::Center)
-                .spacing(8)
-                .into()
-        }
-        RawRequestBody::None => {
-            let empty_icon = container(icon(icons::FileCancel).size(80.0)).padding(10);
-
-            container(
-                Column::new()
-                    .push(empty_icon)
-                    .push(text("No Body Content"))
-                    .align_items(iced::Alignment::Center)
-                    .height(Length::Shrink)
-                    .width(Length::Shrink),
-            )
-            .into()
-        }
-    };
-
-    Column::new()
-        .push(header)
-        .push(
-            container(body)
-                .height(Length::Fill)
-                .width(Length::Fill)
-                .center_x()
-                .center_y(),
-        )
-        .spacing(4)
-        .into()
 }
 
 fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use body_types::*;
-use components;
+use components::{self, KeyFileList};
 use components::{text_editor, KeyValList};
 use core::http::request::{Auth, Method, Request, RequestBody};
 
@@ -10,6 +10,7 @@ use super::utils::{from_core_kv_list, to_core_kv_list};
 
 pub mod body_types {
     pub const FORM: &str = "URL Encoded";
+    pub const MULTIPART: &str = "Multipart";
     pub const JSON: &str = "Json";
     pub const XML: &str = "XML";
     pub const TEXT: &str = "Text";
@@ -92,6 +93,7 @@ pub enum RawRequestBody {
     #[default]
     None,
     Form(KeyValList),
+    Multipart(KeyValList, KeyFileList),
     Json(text_editor::Content),
     XML(text_editor::Content),
     Text(text_editor::Content),
@@ -106,6 +108,7 @@ impl RawRequestBody {
             RawRequestBody::XML(xml) => RequestBody::XML(xml.text()),
             RawRequestBody::Text(text) => RequestBody::Text(text.text()),
             RawRequestBody::File(file) => RequestBody::File(file.clone()),
+            RawRequestBody::Multipart(_, _) => RequestBody::None,
             RawRequestBody::None => RequestBody::None,
         }
     }
@@ -131,11 +134,12 @@ impl RawRequestBody {
             RawRequestBody::Text(_) => TEXT,
             RawRequestBody::File(_) => FILE,
             RawRequestBody::None => NONE,
+            RawRequestBody::Multipart(_, _) => MULTIPART,
         }
     }
 
     pub fn all_variants() -> &'static [&'static str] {
-        &[FORM, JSON, XML, TEXT, FILE, NONE]
+        &[FORM, MULTIPART, JSON, XML, TEXT, FILE, NONE]
     }
 }
 
@@ -163,7 +167,7 @@ impl RequestPane {
                 XML => RawRequestBody::XML(Default::default()),
                 TEXT => RawRequestBody::Text(Default::default()),
                 FILE => RawRequestBody::File(Default::default()),
-                NONE => RawRequestBody::None,
+                MULTIPART => RawRequestBody::Multipart(KeyValList::new(), KeyFileList::new()),
                 _ => RawRequestBody::None,
             });
         let old_body = std::mem::replace(&mut self.body, new_body);
