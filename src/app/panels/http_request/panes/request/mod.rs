@@ -114,11 +114,16 @@ fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
 }
 
 fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
-    Column::new()
-        .push("Headers")
-        .push(key_value_editor(&request.headers).on_change(RequestPaneMsg::Headers))
-        .spacing(4)
-        .into()
+    scrollable(
+        Column::new()
+            .push("Headers")
+            .push(key_value_editor(&request.headers).on_change(RequestPaneMsg::Headers))
+            .width(Length::Fill)
+            .spacing(4),
+    )
+    .height(Length::Fill)
+    .width(Length::Fill)
+    .into()
 }
 
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
