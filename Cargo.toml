@@ -3,8 +3,6 @@ name = "Sanchaar"
 description = "A fast offline REST API Client"
 version = "0.1.0-prerelease.1"
 edition = "2021"
-repository = "https://github.com/nrjais/sanchaar"
-authors = ["Neeraj Jaiswal <me@nrjais.com>"]
 
 [package.metadata.bundle]
 name = "Sanchaar"
@@ -23,12 +21,6 @@ icon = [
     "assets/512x512.png",
     "assets/512x512@2x.png",
 ]
-
-[package.metadata.wix]
-upgrade-guid = "2C50FBFA-6F0A-4713-A809-402C092E112B"
-path-guid = "9B08627A-B062-486E-8CB9-0B767C1D7E8F"
-license = false
-eula = false
 
 [workspace]
 members = ["crates/components", "crates/core"]
@@ -65,21 +57,6 @@ directories = "5.0.1"
 log = "0.4.21"
 regex = "1.10.4"
 
-# Config for 'cargo dist'
-[workspace.metadata.dist]
-# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.14.0"
-# CI backends to support
-ci = "github"
-# The installers to generate for each app
-installers = ["shell", "msi"]
-# Target platforms to build apps for (Rust target-triple syntax)
-targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-pc-windows-msvc"]
-# Publish jobs to run in CI
-pr-run-mode = "skip"
-# Whether to install an updater program
-install-updater = true
-
 
 [dependencies]
 components = { path = "crates/components" }
@@ -101,8 +78,3 @@ incremental = true
 
 [profile.dev.package."*"]
 opt-level = 3
-
-# The profile that 'cargo dist' will build with
-[profile.dist]
-inherits = "release"
-lto = "thin"
