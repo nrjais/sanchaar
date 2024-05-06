@@ -185,7 +185,6 @@ where
     }
 
     /// Sets the style class of the [`TextEditor`].
-    #[cfg(feature = "advanced")]
     #[must_use]
     pub fn class(mut self, class: impl Into<Theme::Class<'a>>) -> Self {
         self.class = class.into();
