@@ -2,7 +2,7 @@ name: Release Bundle
 on:
   push:
     tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
 
 permissions:
   contents: write
@@ -76,5 +76,6 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          prerelease: ${{ env.VERSION =~ rc }}
           files: |
             ${{ env.ASSET }}
