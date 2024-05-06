@@ -27,10 +27,8 @@ members = ["crates/components", "crates/core"]
 
 [workspace.dependencies]
 iced = { git = "https://github.com/nrjais/iced", features = [
-    "svg",
     "tokio",
     "web-colors",
-    "image",
     "highlighter",
     "debug",
     "advanced",
