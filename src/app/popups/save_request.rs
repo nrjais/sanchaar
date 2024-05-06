@@ -100,12 +100,7 @@ pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Elem
 
 pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Element<Message> {
     let children = match folder {
-        Some(folder) => {
-            &collection
-                .folder(folder)
-                .expect("folder not found")
-                .entries
-        }
+        Some(folder) => &collection.folder(folder).expect("folder not found").entries,
         _ => &collection.entries,
     };
 

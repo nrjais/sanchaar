@@ -82,7 +82,7 @@ fn tabs_view(state: &AppState) -> Element<MainPageMsg> {
     let tabs = tabs
         .into_iter()
         .map(|(key, tab)| {
-            let dirty_flag = tab.is_request_dirty().then_some("").unwrap_or("");
+            let dirty_flag = if tab.is_request_dirty() { "" } else { "" };
             card_tab(
                 key,
                 text(format!("{}{}", dirty_flag, tab.request().method))

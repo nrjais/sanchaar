@@ -66,9 +66,9 @@ impl CollectionTreeMsg {
                 return handle_context_menu(state, col, action);
             }
             CollectionTreeMsg::ActionComplete => {}
-            CollectionTreeMsg::OpenSettings =>  {
+            CollectionTreeMsg::OpenSettings => {
                 Popup::app_settings(state);
-            },
+            }
         }
         Command::none()
     }
@@ -324,10 +324,7 @@ fn context_button_folder<'a>(
     )
 }
 
-fn context_button_request<'a>(
-    item: &'a RequestRef,
-    col: CollectionKey,
-) -> Element<'a, CollectionTreeMsg> {
+fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, CollectionTreeMsg> {
     let collection_request = CollectionRequest(col, item.id);
 
     let base = button(
@@ -365,7 +362,6 @@ fn context_button_request<'a>(
             ),
         ],
     )
-    .into()
 }
 
 fn context_button_collection<'a>(

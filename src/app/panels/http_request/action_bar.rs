@@ -109,7 +109,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
     Column::new().push_maybe(bar).spacing(2).into()
 }
 
-fn environment_view<'a>(col: &'a Collection, key: CollectionKey) -> Element<'a, ActionBarMsg> {
+fn environment_view(col: &Collection, key: CollectionKey) -> Element<'_, ActionBarMsg> {
     let envs = col
         .environments
         .entries()
