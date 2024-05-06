@@ -1,12 +1,9 @@
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
-use iced::widget::tooltip::Position;
-use iced::widget::{
-    button, column, container, row, text, tooltip, Button, Column, Row, Scrollable,
-};
+use iced::widget::{button, column, container, row, text, Button, Column, Row, Scrollable};
 use iced::{Command, Element, Length};
 
-use components::{context_menu, horizontal_line, icon, icons, menu_item, NerdIcon};
+use components::{context_menu, horizontal_line, icon, icons, menu_item, tooltip, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
@@ -154,37 +151,17 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         )
     });
 
-    let create_col = tooltip(
-        icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection),
-        container(text("Create Collection"))
-            .padding([2, 4])
-            .style(container::rounded_box),
-        Position::Bottom,
-    );
-
-    let open_col = tooltip(
-        icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection),
-        container(text("Open Collection"))
-            .padding([2, 4])
-            .style(container::rounded_box),
-        Position::Bottom,
-    );
-
-    let settings = tooltip(
-        icon_button(icons::Gear).on_press(CollectionTreeMsg::OpenSettings),
-        container(text("Settings"))
-            .padding([2, 4])
-            .style(container::rounded_box),
-        Position::Bottom,
-    );
+    let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
+    let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
+    let settings = icon_button(icons::Gear).on_press(CollectionTreeMsg::OpenSettings);
 
     Column::new()
         .push(
             container(
                 Row::new()
-                    .push(create_col)
-                    .push(open_col)
-                    .push(settings)
+                    .push(tooltip("Create Collection", create_col))
+                    .push(tooltip("Open Collection", open_col))
+                    .push(tooltip("Settings", settings))
                     .width(Length::Shrink)
                     .spacing(4),
             )

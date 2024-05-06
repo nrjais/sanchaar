@@ -1,5 +1,4 @@
-use iced::widget::tooltip::Position;
-use iced::widget::{column, text, tooltip};
+use iced::widget::{column, text};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
@@ -8,6 +7,7 @@ use iced::{Background, Length};
 use std::ops::Not;
 
 use crate::text_editor::{self, line_editor, ContentAction};
+use crate::tooltip;
 
 use super::{icon, icons};
 
@@ -194,17 +194,11 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     None
                 });
 
-            let tt = |msg: &'static str| {
-                container(text(msg))
-                    .padding([2, 4])
-                    .style(container::bordered_box)
-            };
-
             let actions = self.values.fixed.not().then(|| {
                 container(
                     Row::new()
-                        .push(tooltip(enabled, tt("Enabled"), Position::Bottom))
-                        .push(tooltip(remove, tt("Delete"), Position::Bottom))
+                        .push(tooltip("Enabled", enabled))
+                        .push(tooltip("Delete", remove))
                         .align_items(iced::Alignment::Center)
                         .spacing(8),
                 )
