@@ -1,7 +1,7 @@
 [package]
 name = "Sanchaar"
 description = "A fast offline REST API Client"
-version = "0.1.0"
+version = "0.1.0-prerelease.1"
 edition = "2021"
 repository = "https://github.com/nrjais/sanchaar"
 authors = ["Neeraj Jaiswal <me@nrjais.com>"]
