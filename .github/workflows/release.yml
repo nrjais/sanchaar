@@ -2,7 +2,7 @@ name: Release Bundle
 on:
   push:
     tags:
-      - '*.*.*'
+      - "*.*.*"
 
 permissions:
   contents: write
@@ -34,6 +34,10 @@ jobs:
         with:
           toolchain: nightly
           targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.os }}-rust-${{ matrix.target }}
 
       - name: Add win target
         if: "${{ matrix.os == 'windows-latest' }}"
