@@ -52,9 +52,9 @@ jobs:
         if: "${{ matrix.os == 'windows-latest' }}"
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Add Mac Arm target
+      - name: Add Mac target
         if: "${{ matrix.os == 'macos-latest' }}"
-        run: rustup target add {{ matrix.target }}
+        run: rustup target add ${{ matrix.target }}
 
       - name: Add Cargo Bundle
         if: "${{ matrix.os == 'macos-latest' }}"
