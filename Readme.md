@@ -32,12 +32,13 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [x] Text
   - [x] Raw File
   - [x] Multipart (Files not supported with GET method)
-    - [ ] Multiple files against same key
 - [x] Request cancellation
 - [ ] Authentication
   - [x] Basic
   - [x] Bearer
   - [ ] OAuth
+  - [ ] OAuth2
+  - [ ] AWS
   - [ ] Digest Auth
 - [x] Tab view for multiple requests
 - [x] File persistence
