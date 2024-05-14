@@ -1,0 +1,18 @@
+[package]
+name = "js"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+# reqwest = { workspace = true }
+rustyscript = { git = "https://github.com/nrjais/rustyscript", rev = "ebd69056286662fe293f2a589cfeb426e2b22dd6", features = [
+  "url",
+  "crypto",
+  "url_import",
+  "console",
+  "deno_fetch",
+] }

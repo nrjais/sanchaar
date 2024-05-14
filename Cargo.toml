@@ -23,7 +23,7 @@ icon = [
 ]
 
 [workspace]
-members = ["crates/components", "crates/core"]
+members = ["crates/*"]
 
 [workspace.dependencies]
 iced = { git = "https://github.com/nrjais/iced", features = [
