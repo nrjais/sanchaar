@@ -199,7 +199,7 @@ impl RequestPane {
         Request {
             description: "Http request".to_string(),
             method: self.method,
-            url: self.url_content.text(),
+            url: self.url_content.text().trim().to_string(),
             headers: to_core_kv_list(&self.headers),
             body: self.body.to_request_body(),
             auth: self.auth.to_auth(),

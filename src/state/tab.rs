@@ -67,7 +67,7 @@ impl Tab {
 
     pub fn request_mut(&mut self) -> &mut RequestPane {
         if self.request_dirty_state == RequestDirtyState::Clean {
-            self.request_dirty_state = RequestDirtyState::CheckIfDirty;
+            self.check_dirty();
         }
 
         &mut self.request

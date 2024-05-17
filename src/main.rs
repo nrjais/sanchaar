@@ -17,6 +17,13 @@ pub mod state;
 pub const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
 
 fn main() -> iced::Result {
+    // tokio::runtime::Builder::new_multi_thread()
+    //     .enable_all()
+    //     .build()
+    //     .unwrap()
+    //     .block_on(async {
+    //         js::main().await.unwrap();
+    //     });
     Sanchaar::run(Settings {
         antialiasing: true,
         window: window::Settings {

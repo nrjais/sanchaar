@@ -21,6 +21,7 @@ dependencies = [
  "core",
  "humansize",
  "iced",
+ "js",
  "log",
  "reqwest 0.12.4",
  "rfd",
@@ -4394,8 +4395,9 @@ dependencies = [
 [[package]]
 name = "rustyscript"
 version = "0.4.3"
-source = "git+https://github.com/nrjais/rustyscript?rev=ebd69056286662fe293f2a589cfeb426e2b22dd6#ebd69056286662fe293f2a589cfeb426e2b22dd6"
+source = "git+https://github.com/nrjais/rustyscript?rev=95d7194f835bddc33a45567ca5004536c8bf839d#95d7194f835bddc33a45567ca5004536c8bf839d"
 dependencies = [
+ "async-trait",
  "deno_ast",
  "deno_console",
  "deno_core",

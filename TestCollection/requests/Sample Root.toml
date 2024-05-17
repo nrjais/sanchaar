@@ -2,7 +2,7 @@ description = "Http request"
 version = "V1"
 
 [http]
-method = "GET"
+method = "POST"
 url = """
 https://echo.nrjais.com/{{test}}
 """
