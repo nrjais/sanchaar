@@ -1,4 +1,4 @@
-use iced::widget::{button, container, text, Column};
+use iced::widget::{button, center, container, text, Column};
 use iced::Length;
 
 use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
@@ -10,10 +10,9 @@ pub fn center_x<'a>(
     padding: u16,
 ) -> iced::Element<'a, ResponsePaneMsg> {
     container(el)
-        .width(Length::Fill)
         .height(Length::Shrink)
         .padding(padding)
-        .center_x()
+        .center_x(Length::Fill)
         .into()
 }
 
@@ -34,10 +33,5 @@ pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
         .height(Length::Shrink)
         .width(Length::Shrink);
 
-    container(col)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
-        .into()
+    center(col).into()
 }

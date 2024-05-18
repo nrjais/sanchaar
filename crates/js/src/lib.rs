@@ -3,20 +3,13 @@ use std::time::Duration;
 use anyhow::Ok;
 use rustyscript::{Module, Runtime, RuntimeOptions};
 
-pub async fn main() -> anyhow::Result<()> {
+pub async fn runjs(code: &str) -> anyhow::Result<()> {
     let mut runtime = Runtime::new(RuntimeOptions {
-        // default_entrypoint: Some("load".to_string()),
-        timeout: Duration::from_millis(50),
+        timeout: Duration::from_millis(5000),
         ..Default::default()
     })?;
 
-    let module = Module::new("test.js", "console.log('Hello from Rust!'); var test=5");
-
-    let handle = runtime.load_module(&module).await?;
-
-    let res: usize = runtime.get_value(&handle, "test").await?;
-
-    println!("Result: {:?}", res);
-
+    let module = Module::new("script.js", code);
+    let _ = runtime.load_module(&module).await?;
     Ok(())
 }

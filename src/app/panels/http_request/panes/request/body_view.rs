@@ -4,7 +4,9 @@ use components::{
     icon, icons, key_value_editor, multi_file_picker, ContentType, KeyFileList, KeyValList,
 };
 use iced::{
-    widget::{button, container, horizontal_space, pick_list, scrollable, text, Column, Row},
+    widget::{
+        button, center, container, horizontal_space, pick_list, scrollable, text, Column, Row,
+    },
     Element, Length,
 };
 use std::path::PathBuf;
@@ -38,13 +40,7 @@ pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
 
     Column::new()
         .push(header)
-        .push(
-            container(body)
-                .height(Length::Fill)
-                .width(Length::Fill)
-                .center_x()
-                .center_y(),
-        )
+        .push(center(body))
         .spacing(8)
         .into()
 }

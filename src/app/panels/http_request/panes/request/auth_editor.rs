@@ -3,7 +3,7 @@ use components::{
     text_editor::{line_editor, ContentAction},
 };
 use iced::{
-    widget::{container, horizontal_space, pick_list, text, Column, Row},
+    widget::{center, container, horizontal_space, pick_list, text, Column, Row},
     Element, Length,
 };
 
@@ -72,14 +72,7 @@ pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
 
     Column::new()
         .push(header)
-        .push(
-            container(body)
-                .height(Length::Fill)
-                .width(Length::Fill)
-                .center_x()
-                .center_y()
-                .padding(8),
-        )
+        .push(center(body).padding(8))
         .spacing(4)
         .into()
 }

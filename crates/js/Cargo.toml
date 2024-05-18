@@ -8,8 +8,8 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
-# reqwest = { workspace = true }
-rustyscript = { git = "https://github.com/nrjais/rustyscript", rev = "95d7194f835bddc33a45567ca5004536c8bf839d", features = [
+reqwest = { workspace = true }
+rustyscript = { git = "https://github.com/nrjais/rustyscript", rev = "62c99dcf3ead4bc3eb0d9c33f8a66191eccf0dda", features = [
   "url",
   "crypto",
   "url_import",

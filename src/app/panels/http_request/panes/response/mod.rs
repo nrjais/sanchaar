@@ -1,5 +1,5 @@
 use crate::state::response::ResponseState;
-use iced::{widget::container, Command, Element};
+use iced::{widget::center, Command, Element};
 
 mod completed;
 mod executing;
@@ -40,10 +40,5 @@ pub(crate) fn view(state: &crate::state::AppState) -> Element<ResponsePaneMsg> {
         ResponseState::Failed(ref e) => failed::view(state, e.clone()),
     };
 
-    container(res)
-        .width(iced::Length::Fill)
-        .height(iced::Length::Fill)
-        .center_x()
-        .center_y()
-        .into()
+    center(res).into()
 }
