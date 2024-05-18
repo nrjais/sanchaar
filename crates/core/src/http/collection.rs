@@ -39,6 +39,7 @@ pub struct Collection {
     pub entries: Vec<Entry>,
     pub expanded: bool,
     pub environments: Environments,
+    pub scripts: Vec<PathBuf>,
     pub active_environment: Option<EnvironmentKey>,
 }
 
@@ -46,6 +47,7 @@ impl Collection {
     pub fn new(
         name: String,
         entries: Vec<Entry>,
+        scripts: Vec<PathBuf>,
         path: PathBuf,
         environments: Environments,
     ) -> Self {
@@ -55,6 +57,7 @@ impl Collection {
             entries,
             path,
             environments,
+            scripts,
             expanded: false,
             active_environment,
         }
@@ -269,6 +272,7 @@ impl Default for Collection {
             path: PathBuf::new(),
             expanded: false,
             environments: Environments::new(),
+            scripts: Vec::new(),
             active_environment: None,
         }
     }

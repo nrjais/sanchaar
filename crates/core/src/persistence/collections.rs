@@ -9,7 +9,7 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{COLLECTION_ROOT_FILE, REQUESTS, TOML_EXTENSION};
+use super::{COLLECTION_ROOT_FILE, REQUESTS, SCRIPTS, TOML_EXTENSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -133,13 +133,44 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     let collection: EncodedCollection = toml::from_str(&data)?;
     let environments = read_environments(&path).await?;
     let entries = find_all_requests(&path).await?;
+    let scripts = find_all_scripts(&path).await?;
 
     Ok(Collection::new(
         collection.name,
         entries,
+        scripts,
         path,
         environments,
     ))
+}
+
+pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {
+    let path = col.join(SCRIPTS);
+    let exists = fs::try_exists(&path).await?;
+    if !exists {
+        return Ok(Vec::new());
+    }
+
+    let mut files = fs::read_dir(path).await?;
+
+    let mut scripts = Vec::new();
+
+    while let Some(file) = files.next_entry().await? {
+        if !file.file_type().await?.is_file() {
+            continue;
+        }
+
+        let path = file.path();
+
+        let ext = path.extension().and_then(|ext| ext.to_str());
+        if ext != Some("js") && ext != Some("ts") {
+            continue;
+        }
+
+        scripts.push(path);
+    }
+
+    Ok(scripts)
 }
 
 async fn find_all_requests(path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
@@ -197,5 +228,12 @@ pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> an
     fs::create_dir_all(&path).await?;
     fs::write(path.join(COLLECTION_ROOT_FILE), data).await?;
 
+    Ok(())
+}
+
+pub async fn save_script(path: PathBuf, name: &str, content: &str) -> anyhow::Result<()> {
+    let path = path.join(SCRIPTS).join(name);
+    fs::create_dir_all(&path).await?;
+    fs::write(path, content).await?;
     Ok(())
 }
