@@ -1,10 +1,25 @@
 use iced::{
-    widget::{text, Text},
-    Renderer, Theme,
+    widget::{button, container, text, Button, Text},
+    Length, Renderer, Theme,
 };
 
 pub fn icon<'a>(icon: NerdIcon) -> Text<'a, Theme, Renderer> {
     text(icon.0).shaping(text::Shaping::Advanced)
+}
+
+pub fn icon_button<'a, M: 'a>(
+    ico: NerdIcon,
+    size: Option<u16>,
+    padding: Option<u16>,
+) -> Button<'a, M> {
+    let ico = match size {
+        Some(size) => icon(ico).size(size),
+        None => icon(ico),
+    };
+
+    button(container(ico).padding(padding.map(|h| [0, h]).unwrap_or([0, 0])))
+        .padding(0)
+        .width(Length::Shrink)
 }
 
 pub struct NerdIcon(char);

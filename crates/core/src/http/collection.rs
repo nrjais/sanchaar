@@ -32,6 +32,18 @@ pub enum Entry {
     Folder(Folder),
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Script {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+impl std::fmt::Display for Script {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection {
     pub name: String,
@@ -39,7 +51,7 @@ pub struct Collection {
     pub entries: Vec<Entry>,
     pub expanded: bool,
     pub environments: Environments,
-    pub scripts: Vec<PathBuf>,
+    pub scripts: Vec<Script>,
     pub active_environment: Option<EnvironmentKey>,
 }
 
@@ -47,7 +59,7 @@ impl Collection {
     pub fn new(
         name: String,
         entries: Vec<Entry>,
-        scripts: Vec<PathBuf>,
+        scripts: Vec<Script>,
         path: PathBuf,
         environments: Environments,
     ) -> Self {

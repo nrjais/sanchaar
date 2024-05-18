@@ -1,11 +1,8 @@
-use components::{icon, icons, NerdIcon};
+use components::{icons, NerdIcon};
 use core::http::collection::{Collection, RequestRef};
 use core::http::{CollectionKey, CollectionRequest};
 use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column, Row};
-use iced::{
-    widget::{button, container},
-    Command, Element, Length,
-};
+use iced::{widget::button, Command, Element, Length};
 use log::info;
 
 use crate::commands::builders;
@@ -65,9 +62,7 @@ impl ActionBarMsg {
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, ActionBarMsg> {
-    button(container(icon(ico)).padding([0, 8]))
-        .padding(0)
-        .style(button::text)
+    components::icon_button(ico, None, Some(8)).style(button::text)
 }
 
 pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {

@@ -5,7 +5,7 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef};
+use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
 use crate::persistence::Version;
 
 use super::environment::read_environments;
@@ -144,7 +144,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     ))
 }
 
-pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {
+pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<Script>> {
     let path = col.join(SCRIPTS);
     let exists = fs::try_exists(&path).await?;
     if !exists {
@@ -167,7 +167,13 @@ pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<PathBuf>> {
             continue;
         }
 
-        scripts.push(path);
+        match path.file_name() {
+            Some(name) => scripts.push(Script {
+                name: name.to_string_lossy().to_string(),
+                path,
+            }),
+            None => continue,
+        }
     }
 
     Ok(scripts)

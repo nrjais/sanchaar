@@ -1,12 +1,13 @@
+use core::http::collection;
 use std::path::PathBuf;
 
-use iced::widget::{scrollable, Column};
+use iced::widget::{button, pick_list, scrollable, Column, Row};
 use iced::{widget::text, Command, Length};
 
 use crate::commands::dialog::open_file_dialog;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
-use components::{button_tab, button_tabs, key_value_editor, KeyValUpdateMsg};
+use components::{button_tab, button_tabs, icon_button, icons, key_value_editor, KeyValUpdateMsg};
 use components::{CodeEditorMsg, FilePickerUpdateMsg};
 
 use self::auth_editor::{auth_view, AuthEditorMsg};
@@ -30,6 +31,7 @@ pub enum RequestPaneMsg {
     MulitpartOpenFilePicker(usize),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
+    ChangePreRequestScript(Option<collection::Script>),
     OpenFilePicker,
 }
 
@@ -48,6 +50,9 @@ impl RequestPaneMsg {
             }
             Self::PathParams(msg) => {
                 request.path_params.update(msg);
+            }
+            Self::ChangePreRequestScript(script) => {
+                request.pre_request = script;
             }
             Self::BodyEditorAction(action) => match &mut request.body {
                 RawRequestBody::Json(content)
@@ -126,14 +131,52 @@ fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
     .into()
 }
 
+fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
+    let tab = state.active_tab();
+    let scripts = tab
+        .collection_key()
+        .and_then(|k| state.collections.get(k))
+        .map(|c| &c.scripts)
+        .cloned()
+        .unwrap_or_default();
+    let selected = tab.request().pre_request.as_ref();
+
+    Column::new()
+        .push("Pre-Request Script")
+        .push(
+            Row::new()
+                .push(
+                    pick_list(scripts, selected, |s| {
+                        RequestPaneMsg::ChangePreRequestScript(Some(s))
+                    })
+                    .placeholder("Select Script")
+                    .width(Length::Fill)
+                    .padding([2, 6])
+                    .text_size(16),
+                )
+                .push(
+                    icon_button(icons::Close, Some(20), Some(8))
+                        .on_press_maybe(
+                            selected.map(|_| RequestPaneMsg::ChangePreRequestScript(None)),
+                        )
+                        .style(button::secondary),
+                )
+                .spacing(4),
+        )
+        .width(Length::Fill)
+        .spacing(4)
+        .into()
+}
+
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
-    let request = &state.active_tab().request();
+    let request = state.active_tab().request();
 
     let tab_content = match request.tab {
         ReqTabId::Params => params_view(request),
         ReqTabId::Headers => headers_view(request),
         ReqTabId::Auth => auth_view(request).map(RequestPaneMsg::AuthEditorAction),
         ReqTabId::Body => body_tab(&request.body),
+        ReqTabId::PreRequest => script_view(state),
     };
 
     let tabs = button_tabs(
@@ -143,6 +186,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
             button_tab(ReqTabId::Auth, || text("Auth")),
             button_tab(ReqTabId::Body, || text("Body")),
             button_tab(ReqTabId::Headers, || text("Headers")),
+            button_tab(ReqTabId::PreRequest, || text("Script")),
         ]
         .into_iter(),
         RequestPaneMsg::TabSelected,

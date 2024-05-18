@@ -5,7 +5,7 @@ use tokio::sync::oneshot;
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
 use core::http::request::Request;
-use core::http::CollectionRequest;
+use core::http::{CollectionKey, CollectionRequest};
 
 use super::request::RequestPane;
 
@@ -91,6 +91,10 @@ impl Tab {
 
     pub fn add_task(&mut self, task: oneshot::Sender<()>) {
         self.tasks.push(task);
+    }
+
+    pub fn collection_key(&self) -> Option<CollectionKey> {
+        self.collection_ref.as_ref().map(|r| r.0)
     }
 }
 

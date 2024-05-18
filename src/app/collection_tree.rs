@@ -133,10 +133,7 @@ fn handle_context_menu(
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
-    button(container(icon(ico).size(20)).padding([0, 8]))
-        .padding(0)
-        .style(button::secondary)
-        .width(Length::Shrink)
+    components::icon_button(ico, Some(20), Some(8)).style(button::secondary)
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {

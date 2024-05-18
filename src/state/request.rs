@@ -1,3 +1,4 @@
+use core::http::collection::Script;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -31,6 +32,7 @@ pub enum ReqTabId {
     Body,
     Auth,
     Headers,
+    PreRequest,
 }
 
 #[derive(Debug, Default)]
@@ -161,6 +163,7 @@ pub struct RequestPane {
     pub auth: RawAuthType,
     pub tab: ReqTabId,
     pub body_cache: HashMap<&'static str, RawRequestBody>,
+    pub pre_request: Option<Script>,
 }
 
 impl RequestPane {
@@ -219,6 +222,7 @@ impl RequestPane {
             path_params: from_core_kv_list(request.path_params, true),
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),
+            pre_request: None,
         }
     }
 }
