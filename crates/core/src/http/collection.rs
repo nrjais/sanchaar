@@ -1,9 +1,10 @@
-use crate::{http::environment::Environments, persistence::REQUESTS};
-use std::{ops::Not, path::PathBuf};
-
-use crate::new_id_type;
-
 use super::environment::{Environment, EnvironmentKey};
+use crate::new_id_type;
+use crate::{
+    http::environment::Environments,
+    persistence::{JS_EXTENSION, REQUESTS, SCRIPTS},
+};
+use std::{ops::Not, path::PathBuf};
 
 new_id_type! {
     pub struct RequestId;
@@ -273,6 +274,18 @@ impl Collection {
 
     pub fn delete_environment(&mut self, key: EnvironmentKey) -> Option<Environment> {
         self.environments.remove(key)
+    }
+
+    pub(crate) fn create_script(&mut self, name: String) -> Option<PathBuf> {
+        let name = format!("{name}{JS_EXTENSION}");
+        let path = self.path.join(SCRIPTS).join(&name);
+
+        self.scripts.push(Script {
+            name,
+            path: path.clone(),
+        });
+
+        Some(path)
     }
 }
 

@@ -6,8 +6,8 @@ use iced::widget::{horizontal_space, text, text_input, Column, Row};
 use iced::{Command, Element};
 
 use crate::commands::builders::{
-    create_folder_cmd, create_new_request_cmd, rename_collection_cmd, rename_folder_cmd,
-    rename_request_cmd,
+    create_folder_cmd, create_new_request_cmd, create_script_cmd, rename_collection_cmd,
+    rename_folder_cmd, rename_request_cmd,
 };
 use crate::state::popups::{Popup, PopupNameAction, PopupNameState};
 use crate::state::AppState;
@@ -47,6 +47,9 @@ impl Message {
                     create_new_request_cmd(state, col, folder, name, Request::default(), |_| {
                         Message::Done
                     })
+                }
+                PopupNameAction::NewScript(col) => {
+                    create_script_cmd(state, col, name, || Message::Done)
                 }
             },
             Message::Done => {

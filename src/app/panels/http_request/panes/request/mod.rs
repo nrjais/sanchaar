@@ -1,13 +1,16 @@
-use core::http::collection;
+use core::http::{collection, CollectionKey};
 use std::path::PathBuf;
 
-use iced::widget::{button, pick_list, scrollable, Column, Row};
+use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
 use iced::{widget::text, Command, Length};
 
 use crate::commands::dialog::open_file_dialog;
+use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{request::ReqTabId, AppState};
-use components::{button_tab, button_tabs, icon_button, icons, key_value_editor, KeyValUpdateMsg};
+use components::{
+    button_tab, button_tabs, icon_button, icons, key_value_editor, tooltip, KeyValUpdateMsg,
+};
 use components::{CodeEditorMsg, FilePickerUpdateMsg};
 
 use self::auth_editor::{auth_view, AuthEditorMsg};
@@ -33,6 +36,7 @@ pub enum RequestPaneMsg {
     ChangeBodyType(&'static str),
     ChangePreRequestScript(Option<collection::Script>),
     OpenFilePicker,
+    CreateScript(CollectionKey),
 }
 
 impl RequestPaneMsg {
@@ -91,6 +95,9 @@ impl RequestPaneMsg {
                     RequestPaneMsg::ChangeBodyFile(path.map(|p| p.path().to_path_buf()))
                 });
             }
+            Self::CreateScript(col) => {
+                Popup::popup_name(state, String::new(), PopupNameAction::NewScript(col));
+            }
         };
         Command::none()
     }
@@ -133,16 +140,31 @@ fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
 
 fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let tab = state.active_tab();
-    let scripts = tab
-        .collection_key()
-        .and_then(|k| state.collections.get(k))
+    let Some(collection_key) = tab.collection_key() else {
+        return Column::new().into();
+    };
+
+    let scripts = state
+        .collections
+        .get(collection_key)
         .map(|c| &c.scripts)
         .cloned()
         .unwrap_or_default();
+
     let selected = tab.request().pre_request.as_ref();
 
     Column::new()
-        .push("Pre-Request Script")
+        .push(
+            Row::new()
+                .push(text("Pre-Request Script"))
+                .push(horizontal_space())
+                .push(tooltip(
+                    "New Script",
+                    icon_button(icons::Plus, None, Some(4))
+                        .on_press(RequestPaneMsg::CreateScript(collection_key))
+                        .style(button::secondary),
+                )),
+        )
         .push(
             Row::new()
                 .push(
@@ -155,7 +177,7 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
                     .text_size(16),
                 )
                 .push(
-                    icon_button(icons::Close, Some(20), Some(8))
+                    icon_button(icons::Close, Some(20), Some(6))
                         .on_press_maybe(
                             selected.map(|_| RequestPaneMsg::ChangePreRequestScript(None)),
                         )
@@ -164,7 +186,7 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
                 .spacing(4),
         )
         .width(Length::Fill)
-        .spacing(4)
+        .spacing(8)
         .into()
 }
 

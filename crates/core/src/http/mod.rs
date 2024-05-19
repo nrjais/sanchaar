@@ -228,4 +228,8 @@ impl Collections {
     pub fn delete_request(&mut self, col: CollectionKey, req: RequestId) -> Option<PathBuf> {
         self.get_mut(col)?.delete_request(req)
     }
+
+    pub fn create_script_in(&mut self, col: CollectionKey, name: String) -> Option<PathBuf> {
+        self.get_mut(col)?.create_script(name)
+    }
 }

@@ -236,6 +236,28 @@ pub(crate) fn create_folder_cmd<Message>(
     }
 }
 
+pub(crate) fn create_script_cmd<Message>(
+    state: &mut AppState,
+    col: CollectionKey,
+    name: String,
+    done: impl Fn() -> Message + 'static + MaybeSend,
+) -> Command<Message> {
+    let Some(path) = state.collections.create_script_in(col, name) else {
+        return Command::none();
+    };
+
+    let fut = || async {
+        let parent = path.parent();
+        if let Some(parent) = parent {
+            fs::create_dir_all(parent).await?;
+        }
+        fs::File::create(path).await?;
+        anyhow::Ok(())
+    };
+
+    Command::perform(fut(), move |_| done())
+}
+
 pub(crate) fn save_environments_cmd<Message>(
     collection: &mut Collection,
     deletions: &[EnvironmentKey],
