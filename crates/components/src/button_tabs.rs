@@ -1,10 +1,10 @@
 use iced::widget::button::Status;
 use iced::widget::{horizontal_space, vertical_space};
-use iced::Length;
 use iced::{
     widget::{button, Column, Row, Text},
     Element,
 };
+use iced::{Border, Length};
 
 use crate::horizontal_line;
 use crate::min_dimension::min_width;
@@ -67,10 +67,15 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
         let tab_button = |width: Length| {
             button((tab.label)())
                 .style(move |theme, _| {
-                    if active {
+                    let style = if active {
                         button::primary(theme, Status::Active)
                     } else {
                         button::text(theme, Status::Active)
+                    };
+
+                    button::Style {
+                        border: Border::default(),
+                        ..style
                     }
                 })
                 .width(width)
