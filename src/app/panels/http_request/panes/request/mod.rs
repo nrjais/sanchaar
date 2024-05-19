@@ -192,6 +192,7 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
 
 pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let request = state.active_tab().request();
+    let col = state.active_tab().collection_key();
 
     let tab_content = match request.tab {
         ReqTabId::Params => params_view(request),
@@ -208,9 +209,12 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
             button_tab(ReqTabId::Auth, || text("Auth")),
             button_tab(ReqTabId::Body, || text("Body")),
             button_tab(ReqTabId::Headers, || text("Headers")),
-            button_tab(ReqTabId::PreRequest, || text("Script")),
         ]
-        .into_iter(),
+        .into_iter()
+        .chain(
+            col.map(|_| button_tab(ReqTabId::PreRequest, || text("Script")))
+                .into_iter(),
+        ),
         RequestPaneMsg::TabSelected,
         None,
     );
