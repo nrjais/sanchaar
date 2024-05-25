@@ -3,9 +3,7 @@ version = "V1"
 
 [http]
 method = "POST"
-url = """
-https://echo.nrjais.com/{{test}}
-"""
+url = "https://echo.nrjais.com/{{test}}"
 
 [[http.query]]
 name = "test"

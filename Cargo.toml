@@ -35,13 +35,20 @@ iced = { git = "https://github.com/nrjais/iced", features = [
     "lazy",
     "wgpu",
 ], branch = "editor" }
-rfd = { version = "0.14.1", default-features = false, features = [
-    "xdg-portal",
-    "tokio",
+rustyscript = { git = "https://github.com/nrjais/rustyscript", rev = "8454db0d9a05f857b6b182e1c33a36005e4714ee", features = [
+    "url",
+    "crypto",
+    "url_import",
+    "console",
+    "deno_fetch",
 ] }
 iced_core = { git = "https://github.com/nrjais/iced", features = [
     "advanced",
 ], branch = "editor" }
+rfd = { version = "0.14.1", default-features = false, features = [
+    "xdg-portal",
+    "tokio",
+] }
 tokio = { version = "1.36", features = ["fs", "macros", "io-util"] }
 strum = { version = "0.26", features = ["derive"] }
 reqwest = { version = "0.12", features = ["stream", "multipart"] }
