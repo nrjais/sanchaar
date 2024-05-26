@@ -883,6 +883,7 @@ dependencies = [
  "anyhow",
  "directories",
  "iced",
+ "js",
  "mime_guess",
  "regex",
  "reqwest 0.12.4",

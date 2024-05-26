@@ -38,27 +38,39 @@ pub fn send_request_cmd<M>(
     tab: TabKey,
     on_result: impl Fn(ResponseResult) -> M + 'static + MaybeSend,
 ) -> Command<M> {
-    let client = state.client.clone();
-
     let Some(sel_tab) = state.get_tab(tab) else {
         return Command::none();
     };
 
-    let env = sel_tab
-        .collection_ref
-        .and_then(|c| state.collections.get_active_env(c.0))
-        .cloned();
+    let (env, script_path) = match sel_tab.collection_ref {
+        Some(col) => {
+            let env = state.collections.get_active_env(col.0).cloned();
+            let script_path = sel_tab
+                .request()
+                .pre_request
+                .as_ref()
+                .and_then(|s| state.collections.get_script_path(col.0, s));
+
+            (env, script_path)
+        }
+        None => (None, None),
+    };
+
+    let client = state.client.clone();
+    let req_fut = transform_request(
+        client.clone(),
+        sel_tab.request().to_request(),
+        script_path,
+        env,
+    )
+    .and_then(move |req| send_request(client, req));
+
+    let (cancel_tx, req_fut) = cancellable_task(req_fut);
 
     let Some(sel_tab) = state.get_tab_mut(tab) else {
         return Command::none();
     };
-
     sel_tab.response.state = ResponseState::Executing;
-
-    let req_fut = transform_request(client.clone(), sel_tab.request().to_request(), env)
-        .and_then(|req| send_request(client, req));
-
-    let (cancel_tx, req_fut) = cancellable_task(req_fut);
     sel_tab.add_task(cancel_tx);
 
     Command::perform(req_fut, move |r| match r {

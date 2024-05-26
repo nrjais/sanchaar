@@ -232,4 +232,8 @@ impl Collections {
     pub fn create_script_in(&mut self, col: CollectionKey, name: String) -> Option<PathBuf> {
         self.get_mut(col)?.create_script(name)
     }
+
+    pub fn get_script_path(&self, col: CollectionKey, s: &str) -> Option<PathBuf> {
+        self.entries.get(col)?.get_script_path(s)
+    }
 }

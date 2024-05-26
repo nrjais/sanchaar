@@ -287,6 +287,13 @@ impl Collection {
 
         Some(path)
     }
+
+    pub(crate) fn get_script_path(&self, s: &str) -> Option<PathBuf> {
+        self.scripts
+            .iter()
+            .find(|script| script.name == s)
+            .map(|script| script.path.clone())
+    }
 }
 
 impl Default for Collection {
