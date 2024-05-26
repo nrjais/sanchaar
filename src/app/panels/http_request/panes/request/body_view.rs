@@ -12,9 +12,8 @@ use iced::{
 use std::path::PathBuf;
 
 pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
-    let size = 14;
     let header = Row::new()
-        .push(text(format!("Content Type: {}", body.as_str())).size(size))
+        .push(text(format!("Content Type: {}", body.as_str())))
         .push(horizontal_space())
         .push(
             pick_list(
@@ -22,8 +21,7 @@ pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
                 Some(body.as_str()),
                 RequestPaneMsg::ChangeBodyType,
             )
-            .text_size(size)
-            .padding([2, 4]),
+            .padding([2, 6]),
         )
         .height(Length::Shrink)
         .align_items(iced::Alignment::Center);

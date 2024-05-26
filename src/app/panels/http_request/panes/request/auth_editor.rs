@@ -52,9 +52,8 @@ fn field_row<'a>(
 
 pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
     let auth = &request.auth;
-    let size = 14;
     let header = Row::new()
-        .push(text(format!("Auth Method: {}", auth.as_str())).size(size))
+        .push(text(format!("Auth Method: {}", auth.as_str())))
         .push(horizontal_space())
         .push(
             pick_list(
@@ -62,8 +61,7 @@ pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
                 Some(auth.as_str()),
                 AuthEditorMsg::ChangeAuthType,
             )
-            .text_size(size)
-            .padding([2, 4]),
+            .padding([2, 8]),
         )
         .height(Length::Shrink)
         .align_items(iced::Alignment::Center);

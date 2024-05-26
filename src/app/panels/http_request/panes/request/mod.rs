@@ -154,37 +154,38 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
     let selected = tab.request().pre_request.as_ref();
 
     Column::new()
+        .push(text("Pre-Request Script"))
         .push(
-            Row::new()
-                .push(text("Pre-Request Script"))
-                .push(horizontal_space())
-                .push(tooltip(
-                    "New Script",
-                    icon_button(icons::Plus, None, Some(4))
-                        .on_press(RequestPaneMsg::CreateScript(collection_key))
-                        .style(button::secondary),
-                )),
+            pick_list(
+                scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
+                selected,
+                |s| RequestPaneMsg::ChangePreRequestScript(Some(s)),
+            )
+            .placeholder("Select Script")
+            .width(Length::Fill)
+            .padding([2, 8])
+            .text_size(16),
         )
         .push(
             Row::new()
-                .push(
-                    pick_list(
-                        scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
-                        selected,
-                        |s| RequestPaneMsg::ChangePreRequestScript(Some(s)),
-                    )
-                    .placeholder("Select Script")
-                    .width(Length::Fill)
-                    .padding([2, 6])
-                    .text_size(16),
-                )
-                .push(
-                    icon_button(icons::Close, Some(20), Some(6))
+                .push(horizontal_space())
+                .push(tooltip(
+                    "New Script",
+                    icon_button(icons::Plus, Some(20), Some(12))
+                        .on_press(RequestPaneMsg::CreateScript(collection_key))
+                        .style(button::secondary),
+                ))
+                .push(tooltip(
+                    "Remove Script",
+                    icon_button(icons::Close, Some(20), Some(12))
                         .on_press_maybe(
                             selected.map(|_| RequestPaneMsg::ChangePreRequestScript(None)),
                         )
                         .style(button::secondary),
-                )
+                ))
+                .push(horizontal_space())
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center)
                 .spacing(4),
         )
         .width(Length::Fill)
@@ -213,9 +214,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
             button_tab(ReqTabId::Headers, || text("Headers")),
         ]
         .into_iter()
-        .chain(
-            col.map(|_| button_tab(ReqTabId::PreRequest, || text("Script"))),
-        ),
+        .chain(col.map(|_| button_tab(ReqTabId::PreRequest, || text("Script")))),
         RequestPaneMsg::TabSelected,
         None,
     );

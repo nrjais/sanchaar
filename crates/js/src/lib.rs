@@ -14,14 +14,21 @@ async fn runjs(code: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub enum RequestBody {
+    Json(serde_json::Value),
+    Text(String),
+    Binary(Vec<u8>),
+}
+
 pub struct Request {
     pub method: String,
     pub url: String,
     pub path_params: Vec<(String, String)>,
     pub headers: Vec<(String, String)>,
     pub query_params: Vec<(String, String)>,
-    pub body: String,
     pub auth: Option<(String, String)>,
+    pub body: RequestBody,
+    pub body_raw: Option<String>,
 }
 
 pub struct RequestScriptCtx {
