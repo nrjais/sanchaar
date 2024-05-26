@@ -1,4 +1,4 @@
-use core::http::{collection, CollectionKey};
+use core::http::CollectionKey;
 use std::path::PathBuf;
 
 use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
@@ -34,7 +34,7 @@ pub enum RequestPaneMsg {
     MulitpartOpenFilePicker(usize),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
-    ChangePreRequestScript(Option<collection::Script>),
+    ChangePreRequestScript(Option<String>),
     OpenFilePicker,
     CreateScript(CollectionKey),
 }
@@ -168,9 +168,11 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         .push(
             Row::new()
                 .push(
-                    pick_list(scripts, selected, |s| {
-                        RequestPaneMsg::ChangePreRequestScript(Some(s))
-                    })
+                    pick_list(
+                        scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
+                        selected,
+                        |s| RequestPaneMsg::ChangePreRequestScript(Some(s)),
+                    )
                     .placeholder("Select Script")
                     .width(Length::Fill)
                     .padding([2, 6])
@@ -212,8 +214,7 @@ pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         ]
         .into_iter()
         .chain(
-            col.map(|_| button_tab(ReqTabId::PreRequest, || text("Script")))
-                .into_iter(),
+            col.map(|_| button_tab(ReqTabId::PreRequest, || text("Script"))),
         ),
         RequestPaneMsg::TabSelected,
         None,

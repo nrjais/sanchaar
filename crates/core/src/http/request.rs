@@ -48,6 +48,7 @@ pub struct Request {
     pub query_params: KeyValList,
     pub path_params: KeyValList,
     pub auth: Auth,
+    pub pre_request: Option<String>,
 }
 
 impl Default for Request {
@@ -61,6 +62,7 @@ impl Default for Request {
             query_params: KeyValList::new(),
             path_params: KeyValList::new(),
             auth: Auth::None,
+            pre_request: None,
         }
     }
 }

@@ -1,4 +1,3 @@
-use core::http::collection::Script;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -163,7 +162,7 @@ pub struct RequestPane {
     pub auth: RawAuthType,
     pub tab: ReqTabId,
     pub body_cache: HashMap<&'static str, RawRequestBody>,
-    pub pre_request: Option<Script>,
+    pub pre_request: Option<String>,
 }
 
 impl RequestPane {
@@ -208,6 +207,7 @@ impl RequestPane {
             auth: self.auth.to_auth(),
             query_params: to_core_kv_list(&self.query_params),
             path_params: to_core_kv_list(&self.path_params),
+            pre_request: self.pre_request.clone(),
         }
     }
 
@@ -222,7 +222,7 @@ impl RequestPane {
             path_params: from_core_kv_list(request.path_params, true),
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),
-            pre_request: None,
+            pre_request: request.pre_request,
         }
     }
 }

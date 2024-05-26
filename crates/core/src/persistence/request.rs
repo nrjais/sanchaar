@@ -98,6 +98,8 @@ pub struct HttpRequest {
     pub body: Option<EncodedRequestBody>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub auth: Option<EncodedAuthType>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pre_request: Option<String>,
 }
 
 fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
@@ -152,6 +154,7 @@ pub fn encode_request(req: Request) -> EncodedRequest {
         path_params,
         auth,
         description,
+        pre_request,
     } = req;
 
     EncodedRequest {
@@ -163,6 +166,7 @@ pub fn encode_request(req: Request) -> EncodedRequest {
             path_params: encode_key_values(path_params),
             body: encode_body(body),
             auth: encode_auth(auth),
+            pre_request,
         },
         description,
         version: Version::V1,
@@ -232,6 +236,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         query,
         path_params,
         auth,
+        pre_request,
     } = http;
 
     Request {
@@ -243,6 +248,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         path_params: decode_key_values(path_params),
         auth: decode_auth(auth),
         description,
+        pre_request,
     }
 }
 

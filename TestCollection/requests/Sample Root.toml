@@ -4,6 +4,7 @@ version = "V1"
 [http]
 method = "POST"
 url = "https://echo.nrjais.com/{{test}}"
+pre_request = "test_pre.js"
 
 [[http.query]]
 name = "test"

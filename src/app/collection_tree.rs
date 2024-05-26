@@ -19,7 +19,7 @@ pub enum CollectionTreeMsg {
     CreateCollection,
     OpenCollection,
     OpenCollectionHandle(Option<Collection>),
-    RequestLoaded(CollectionRequest, Option<Request>),
+    RequestLoaded(CollectionRequest, Box<Option<Request>>),
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
     OpenSettings,
@@ -40,7 +40,9 @@ impl CollectionTreeMsg {
             }
             CollectionTreeMsg::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
-                    return open_request_cmd(state, col, move |res| Self::RequestLoaded(col, res));
+                    return open_request_cmd(state, col, move |res| {
+                        Self::RequestLoaded(col, Box::new(res))
+                    });
                 };
             }
             CollectionTreeMsg::CreateCollection => {
@@ -55,7 +57,7 @@ impl CollectionTreeMsg {
                 }
             }
             CollectionTreeMsg::RequestLoaded(col, req) => {
-                if let Some(req) = req {
+                if let Some(req) = *req {
                     state.open_request(col, req);
                 }
             }
