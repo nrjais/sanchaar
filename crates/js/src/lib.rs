@@ -43,16 +43,16 @@ pub async fn execute_sript(script: String) -> anyhow::Result<()> {
         let rt = tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
-            .unwrap();
+            .expect("Failed to build runtime");
 
         rt.block_on(async {
             let _ = runjs(&script).await;
-            sx.send(()).await.unwrap();
+            sx.send(()).await.expect("Failed to send on channel");
         });
     });
 
     rx.recv().await;
-    thread.join().unwrap();
+    thread.join().expect("Failed to join thread");
 
     Ok(())
 }

@@ -116,11 +116,11 @@ impl AppState {
 
     pub fn close_tab(&mut self, tab: TabKey) {
         self.tabs.remove(tab);
-        if self.tabs.is_empty() {
-            self.active_tab = self.tabs.insert(Default::default());
-        } else if self.active_tab == tab {
-            self.active_tab = self.tabs.keys().next().unwrap();
-        }
+        self.active_tab = self
+            .tabs
+            .keys()
+            .next()
+            .unwrap_or_else(|| self.tabs.insert(Default::default()));
     }
 
     pub(crate) fn get_req_ref(&self, tab: TabKey) -> Option<&RequestRef> {

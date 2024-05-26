@@ -229,7 +229,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
 }
 
 pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> anyhow::Result<()> {
-    let data = toml::to_string_pretty(&collection).unwrap();
+    let data = toml::to_string_pretty(&collection).expect("Failed to encode collection");
 
     fs::create_dir_all(&path).await?;
     fs::write(path.join(COLLECTION_ROOT_FILE), data).await?;

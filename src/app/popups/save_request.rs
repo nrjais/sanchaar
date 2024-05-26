@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::ffi::OsStr;
+use std::ops::Not;
 
 use iced::widget::{
     button, container, horizontal_space, scrollable, text, text_input, Column, Row,
@@ -62,10 +63,10 @@ pub fn title<'a>() -> Cow<'a, str> {
 }
 
 pub fn done(data: &SaveRequestState) -> Option<Message> {
-    if data.name.is_empty() || data.col.is_none() {
-        None
+    if let Some(col) = data.col {
+        data.name.is_empty().not().then_some(Message::Done(col))
     } else {
-        Some(Message::Done(data.col.unwrap()))
+        None
     }
 }
 
