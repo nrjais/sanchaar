@@ -3,13 +3,20 @@ use std::time::Duration;
 use anyhow::Ok;
 use rustyscript::{Module, Runtime, RuntimeOptions};
 
-async fn runjs(code: &str) -> anyhow::Result<()> {
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
+async fn runjs(code: &str, state: Request) -> anyhow::Result<()> {
     let mut runtime = Runtime::new(RuntimeOptions {
         timeout: Duration::from_millis(5000),
         ..Default::default()
     })?;
+    runtime
+        .put(Version(VERSION.to_string()))
+        .expect("Failed to put state");
 
-    let module = Module::new("script.js", code);
+    runtime.put(state).expect("Failed to put state");
+
+    let module = Module::new("sanchaar_pre_request.ts", code);
     let _ = runtime.load_module(&module).await?;
     Ok(())
 }
@@ -17,7 +24,8 @@ async fn runjs(code: &str) -> anyhow::Result<()> {
 pub enum RequestBody {
     Json(serde_json::Value),
     Text(String),
-    Binary(Vec<u8>),
+    Form(Vec<(String, String)>),
+    None,
 }
 
 pub struct Request {
@@ -26,18 +34,19 @@ pub struct Request {
     pub path_params: Vec<(String, String)>,
     pub headers: Vec<(String, String)>,
     pub query_params: Vec<(String, String)>,
-    pub auth: Option<(String, String)>,
     pub body: RequestBody,
     pub body_raw: Option<String>,
 }
 
 pub struct RequestScriptCtx {
-    pub req: Request,
+    pub request: Request,
     pub script: String,
 }
 
-pub async fn execute_sript(script: String) -> anyhow::Result<()> {
+pub async fn execute_sript(ctx: RequestScriptCtx) -> anyhow::Result<()> {
     let (sx, mut rx) = tokio::sync::mpsc::channel(1);
+
+    let RequestScriptCtx { script, request } = ctx;
 
     let thread = std::thread::spawn(move || {
         let rt = tokio::runtime::Builder::new_current_thread()
@@ -46,7 +55,7 @@ pub async fn execute_sript(script: String) -> anyhow::Result<()> {
             .expect("Failed to build runtime");
 
         rt.block_on(async {
-            let _ = runjs(&script).await;
+            let _ = runjs(&script, request).await;
             sx.send(()).await.expect("Failed to send on channel");
         });
     });

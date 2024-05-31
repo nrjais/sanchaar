@@ -5,11 +5,11 @@ use super::{KeyFileList, KeyValList};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RequestBody {
-    Form(KeyValList),
     Multipart {
         params: KeyValList,
         files: KeyFileList,
     },
+    Form(KeyValList),
     Json(String),
     XML(String),
     Text(String),

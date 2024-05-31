@@ -8,8 +8,8 @@ pub mod environment;
 pub mod request;
 
 pub const TOML_EXTENSION: &str = ".toml";
-pub const JS_EXTENSION: &str = ".js";
-pub const TS_EXTENSION: &str = ".ts";
+pub const JS_EXTENSION: &str = "js";
+pub const TS_EXTENSION: &str = "ts";
 pub const COLLECTION_ROOT_FILE: &str = "collection.toml";
 pub const ENVIRONMENTS: &str = "environments";
 pub const SCRIPTS: &str = "scripts";

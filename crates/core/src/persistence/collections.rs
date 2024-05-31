@@ -9,7 +9,7 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{COLLECTION_ROOT_FILE, REQUESTS, SCRIPTS, TOML_EXTENSION};
+use super::{COLLECTION_ROOT_FILE, JS_EXTENSION, REQUESTS, SCRIPTS, TOML_EXTENSION, TS_EXTENSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -163,7 +163,7 @@ pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<Script>> {
         let path = file.path();
 
         let ext = path.extension().and_then(|ext| ext.to_str());
-        if ext != Some("js") && ext != Some("ts") {
+        if ext != Some(JS_EXTENSION) && ext != Some(TS_EXTENSION) {
             continue;
         }
 

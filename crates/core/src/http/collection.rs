@@ -2,7 +2,7 @@ use super::environment::{Environment, EnvironmentKey};
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
-    persistence::{JS_EXTENSION, REQUESTS, SCRIPTS},
+    persistence::{TS_EXTENSION, REQUESTS, SCRIPTS},
 };
 use std::{ops::Not, path::PathBuf};
 
@@ -277,7 +277,7 @@ impl Collection {
     }
 
     pub(crate) fn create_script(&mut self, name: String) -> Option<PathBuf> {
-        let name = format!("{name}{JS_EXTENSION}");
+        let name = format!("{name}.{TS_EXTENSION}");
         let path = self.path.join(SCRIPTS).join(&name);
 
         self.scripts.push(Script {
