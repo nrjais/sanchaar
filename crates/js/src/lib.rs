@@ -10,9 +10,6 @@ async fn runjs(code: &str, state: Request) -> anyhow::Result<()> {
         timeout: Duration::from_millis(5000),
         ..Default::default()
     })?;
-    runtime
-        .put(Version(VERSION.to_string()))
-        .expect("Failed to put state");
 
     runtime.put(state).expect("Failed to put state");
 
