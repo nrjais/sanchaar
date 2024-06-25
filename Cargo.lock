@@ -2791,6 +2791,7 @@ name = "js"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "deno_core",
  "reqwest 0.12.4",
  "rustyscript",
  "serde",

@@ -35,13 +35,6 @@ iced = { git = "https://github.com/nrjais/iced", features = [
     "lazy",
     "wgpu",
 ], branch = "editor" }
-rustyscript = { git = "https://github.com/nrjais/rustyscript", rev = "4bf9ace29aa6f670cacfec7beaa4f69bfe409c1b", features = [
-    "url",
-    "crypto",
-    "url_import",
-    "console",
-    "deno_fetch",
-] }
 iced_core = { git = "https://github.com/nrjais/iced", features = [
     "advanced",
 ], branch = "editor" }

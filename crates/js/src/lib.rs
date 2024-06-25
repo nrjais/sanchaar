@@ -1,6 +1,10 @@
+pub mod request;
+
 use std::time::Duration;
 
 use anyhow::Ok;
+pub use request::Request;
+pub use request::RequestBody;
 use rustyscript::{Module, Runtime, RuntimeOptions};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
@@ -16,23 +20,6 @@ async fn runjs(code: &str, state: Request) -> anyhow::Result<()> {
     let module = Module::new("sanchaar_pre_request.ts", code);
     let _ = runtime.load_module(&module).await?;
     Ok(())
-}
-
-pub enum RequestBody {
-    Json(serde_json::Value),
-    Text(String),
-    Form(Vec<(String, String)>),
-    None,
-}
-
-pub struct Request {
-    pub method: String,
-    pub url: String,
-    pub path_params: Vec<(String, String)>,
-    pub headers: Vec<(String, String)>,
-    pub query_params: Vec<(String, String)>,
-    pub body: RequestBody,
-    pub body_raw: Option<String>,
 }
 
 pub struct RequestScriptCtx {

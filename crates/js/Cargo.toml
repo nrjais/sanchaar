@@ -9,4 +9,11 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
-rustyscript = { workspace = true }
+deno_core = "0.283.0"
+rustyscript = { git = "https://github.com/nrjais/rustyscript", rev = "4bf9ace29aa6f670cacfec7beaa4f69bfe409c1b", features = [
+    "url",
+    "crypto",
+    "url_import",
+    "console",
+    "deno_fetch",
+] }
