@@ -2,7 +2,7 @@ use iced::advanced::widget::{operation, tree, Operation};
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::widget::{button, column, container, text};
 use iced::{
-    event, mouse, Command, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector,
+    event, mouse, Element, Event, Length, Point, Rectangle, Renderer, Size, Task, Theme, Vector,
 };
 
 use crate::min_dimension::min_width;
@@ -143,7 +143,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         tree: &mut iced::advanced::widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn widget::Operation<Message>,
+        operation: &mut dyn Operation<()>,
     ) {
         let state = tree.state.downcast_mut::<State>();
 
@@ -231,7 +231,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
     }
 }
 
-pub fn close<Message: 'static>(f: fn(bool) -> Message) -> Command<Message> {
+pub fn close<Message: Send + 'static>(f: fn(bool) -> Message) -> Task<Message> {
     struct Close<T> {
         any_closed: bool,
         f: fn(bool) -> T,
@@ -261,7 +261,7 @@ pub fn close<Message: 'static>(f: fn(bool) -> Message) -> Command<Message> {
         }
     }
 
-    Command::widget(Close {
+    Task::widget(Close {
         any_closed: false,
         f,
     })
@@ -335,7 +335,7 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
         &mut self,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn widget::Operation<Message>,
+        operation: &mut dyn Operation<()>,
     ) {
         self.content
             .as_widget_mut()

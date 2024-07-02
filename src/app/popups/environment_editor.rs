@@ -4,7 +4,7 @@ use std::ops::Not;
 use iced::widget::{
     button, horizontal_space, scrollable, text, text_input, value, vertical_space, Column, Row,
 };
-use iced::{Command, Element, Length};
+use iced::{Task, Element, Length};
 
 use components::{button_tab, icon, icons, key_value_editor, vertical_button_tabs, vertical_line};
 use core::http::environment::EnvironmentKey;
@@ -27,9 +27,9 @@ pub enum Message {
 }
 
 impl Message {
-    pub fn update(self, state: &mut AppState) -> Command<Message> {
+    pub fn update(self, state: &mut AppState) -> Task<Message> {
         let Some(Popup::EnvironmentEditor(data)) = state.popup.as_mut() else {
-            return Command::none();
+            return Task::none();
         };
 
         match self {
@@ -84,7 +84,7 @@ impl Message {
                 data.deleted.push(env);
             }
         }
-        Command::none()
+        Task::none()
     }
 }
 

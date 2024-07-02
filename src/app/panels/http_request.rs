@@ -1,7 +1,7 @@
 use components::{bordered_left, bordered_right};
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::{column, pane_grid, PaneGrid};
-use iced::{widget::container, Command, Element};
+use iced::{widget::container, Task, Element};
 
 use crate::state::{AppState, SplitState};
 
@@ -23,7 +23,7 @@ pub enum HttpMsg {
 }
 
 impl HttpMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
+    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             HttpMsg::Req(msg) => msg.update(state).map(HttpMsg::Req),
             HttpMsg::Res(msg) => msg.update(state).map(HttpMsg::Res),
@@ -34,7 +34,7 @@ impl HttpMsg {
                 if ratio > 0.25 && ratio < 0.75 {
                     state.active_tab_mut().panes.resize(split, ratio);
                 }
-                Command::none()
+                Task::none()
             }
         }
     }

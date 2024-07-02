@@ -3,7 +3,7 @@ use core::http::CollectionRequest;
 use std::borrow::Cow;
 
 use iced::widget::{horizontal_space, text, text_input, Column, Row};
-use iced::{Command, Element};
+use iced::{Task, Element};
 
 use crate::commands::builders::{
     create_folder_cmd, create_new_request_cmd, create_script_cmd, rename_collection_cmd,
@@ -20,15 +20,15 @@ pub enum Message {
 }
 
 impl Message {
-    pub fn update(self, state: &mut AppState) -> Command<Message> {
+    pub fn update(self, state: &mut AppState) -> Task<Message> {
         let Some(Popup::PopupName(data)) = state.popup.as_mut() else {
-            return Command::none();
+            return Task::none();
         };
 
         match self {
             Message::NameChanged(name) => {
                 data.name = name;
-                Command::none()
+                Task::none()
             }
             Message::Rename(name) => match data.action {
                 PopupNameAction::RenameCollection(col) => {
@@ -54,7 +54,7 @@ impl Message {
             },
             Message::Done => {
                 state.popup = None;
-                Command::none()
+                Task::none()
             }
         }
     }

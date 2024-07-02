@@ -1,9 +1,8 @@
 use std::borrow::Cow;
 
-use iced::advanced::Application;
 use iced::{
     window::{self, Position},
-    Command, Element, Point, Renderer, Settings, Size, Theme,
+    Element, Point, Size, Task, Theme,
 };
 
 use app::AppMsg;
@@ -17,48 +16,32 @@ pub mod state;
 pub const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
 
 fn main() -> iced::Result {
-    Sanchaar::run(Settings {
-        antialiasing: true,
-        window: window::Settings {
+    iced::application(title, update, view)
+        .theme(theme)
+        .load(init_command)
+        .antialiasing(true)
+        .font(Cow::from(HACK_REG_BYTES))
+        .window(window::Settings {
             size: Size::new(1024.0, 768.0),
             position: Position::Specific(Point::ORIGIN),
             min_size: Some(Size::new(800.0, 600.0)),
             ..Default::default()
-        },
-        fonts: Vec::from([Cow::from(HACK_REG_BYTES)]),
-        ..Settings::default()
-    })
+        })
+        .run()
 }
 
-#[derive(Debug, Default)]
-pub struct Sanchaar {
-    state: AppState,
+fn title(_state: &AppState) -> String {
+    String::from("Sanchaar")
 }
 
-impl Application for Sanchaar {
-    type Executor = iced::executor::Default;
-    type Message = AppMsg;
-    type Theme = Theme;
-    type Renderer = Renderer;
-    type Flags = ();
+fn update(state: &mut AppState, message: AppMsg) -> Task<AppMsg> {
+    message.update(state)
+}
 
-    fn new(_flags: Self::Flags) -> (Sanchaar, Command<AppMsg>) {
-        (Sanchaar::default(), init_command())
-    }
+fn view(state: &AppState) -> Element<AppMsg> {
+    app::view(state)
+}
 
-    fn title(&self) -> String {
-        String::from("Sanchaar")
-    }
-
-    fn update(&mut self, message: AppMsg) -> Command<AppMsg> {
-        message.update(&mut self.state)
-    }
-
-    fn view(&self) -> Element<AppMsg> {
-        app::view(&self.state)
-    }
-
-    fn theme(&self) -> Self::Theme {
-        self.state.theme.clone()
-    }
+fn theme(state: &AppState) -> Theme {
+    state.theme.clone()
 }

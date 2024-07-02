@@ -2,7 +2,7 @@ use components::{icons, NerdIcon};
 use core::http::collection::{Collection, RequestRef};
 use core::http::{CollectionKey, CollectionRequest};
 use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column, Row};
-use iced::{widget::button, Command, Element, Length};
+use iced::{widget::button, Task, Element, Length};
 use log::info;
 
 use crate::commands::builders;
@@ -20,7 +20,7 @@ pub enum ActionBarMsg {
 }
 
 impl ActionBarMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
+    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             ActionBarMsg::StartNameEdit => {
                 let name = state
@@ -30,32 +30,32 @@ impl ActionBarMsg {
                 if let Some(name) = name {
                     state.active_tab_mut().editing_name.replace(name);
                 }
-                Command::none()
+                Task::none()
             }
             ActionBarMsg::SubmitNameEdit => {
                 let tab = state.active_tab_mut();
                 let Some((col, name)) = tab.collection_ref.zip(tab.editing_name.take()) else {
-                    return Command::none();
+                    return Task::none();
                 };
                 builders::rename_request_cmd(state, col, name, move || ActionBarMsg::RequestRenamed)
             }
             ActionBarMsg::UpdateName(name) => {
                 state.active_tab_mut().editing_name.replace(name);
-                Command::none()
+                Task::none()
             }
             ActionBarMsg::OpenEnvironments(col) => {
                 Popup::environment_editor(state, col);
-                Command::none()
+                Task::none()
             }
             ActionBarMsg::RequestRenamed => {
                 info!("Request renamed");
-                Command::none()
+                Task::none()
             }
             ActionBarMsg::SelectEnvironment(name) => {
                 if let Some(col) = state.active_tab().collection_ref {
                     state.collections.update_active_env_by_name(col.0, &name);
                 }
-                Command::none()
+                Task::none()
             }
         }
     }

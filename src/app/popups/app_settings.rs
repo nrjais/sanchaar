@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use components::{button_tab, button_tabs};
 use iced::widget::{horizontal_space, pick_list, text, Column, Row};
-use iced::{Command, Element, Theme};
+use iced::{Task, Element, Theme};
 
 use crate::state::popups::{AppSettingTabs, AppSettingsState, Popup};
 use crate::state::AppState;
@@ -15,9 +15,9 @@ pub enum Message {
 }
 
 impl Message {
-    pub fn update(self, state: &mut AppState) -> Command<Message> {
+    pub fn update(self, state: &mut AppState) -> Task<Message> {
         let Some(Popup::AppSettings(data)) = state.popup.as_mut() else {
-            return Command::none();
+            return Task::none();
         };
 
         match self {
@@ -31,7 +31,7 @@ impl Message {
                 state.theme = theme;
             }
         }
-        Command::none()
+        Task::none()
     }
 }
 

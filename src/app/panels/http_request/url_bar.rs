@@ -2,7 +2,7 @@ use iced::widget::{vertical_rule, Button, Row};
 use iced::Border;
 use iced::{
     widget::{button, container, pick_list},
-    Command, Element,
+    Task, Element,
 };
 use log::info;
 use reqwest::Url;
@@ -81,7 +81,7 @@ fn update_response(state: &mut AppState, tab: TabKey, result: ResponseResult) {
 }
 
 impl UrlBarMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
+    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             UrlBarMsg::MethodChanged(method) => {
                 state.active_tab_mut().request_mut().method = method;
@@ -131,7 +131,7 @@ impl UrlBarMsg {
             }
             UrlBarMsg::RequestResult(tab, res) => update_response(state, tab, res),
         }
-        Command::none()
+        Task::none()
     }
 }
 

@@ -61,7 +61,7 @@ regex = "1.10.4"
 [dependencies]
 components = { path = "crates/components" }
 core = { path = "crates/core" }
-js = { path = "crates/js" }
+# js = { path = "crates/js" }
 iced = { workspace = true }
 tokio = { workspace = true }
 strum = { workspace = true }

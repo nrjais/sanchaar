@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
-use iced::{Command, Element};
+use iced::{Task, Element};
 use rfd::FileHandle;
 
 use crate::commands::builders;
@@ -22,27 +22,27 @@ pub enum Message {
 }
 
 impl Message {
-    pub fn update(self, state: &mut AppState) -> Command<Message> {
+    pub fn update(self, state: &mut AppState) -> Task<Message> {
         let Some(CreateCollection(data)) = state.popup.as_mut() else {
-            return Command::none();
+            return Task::none();
         };
 
         match self {
             Message::NameChanged(name) => {
                 data.name = name;
-                Command::none()
+                Task::none()
             }
             Message::OpenDialog => open_folder_dialog("Select location", Message::FolderSelected),
             Message::FolderSelected(handle) => {
                 data.path = handle.map(|h| h.path().to_owned());
-                Command::none()
+                Task::none()
             }
             Message::CreateCollection(name, path) => {
                 builders::create_collection_cmd(state, name, path, |_| Message::Done)
             }
             Message::Done => {
                 state.popup = None;
-                Command::none()
+                Task::none()
             }
         }
     }

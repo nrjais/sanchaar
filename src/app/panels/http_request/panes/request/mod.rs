@@ -2,7 +2,7 @@ use core::http::CollectionKey;
 use std::path::PathBuf;
 
 use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
-use iced::{widget::text, Command, Length};
+use iced::{widget::text, Task, Length};
 
 use crate::commands::dialog::open_file_dialog;
 use crate::state::popups::{Popup, PopupNameAction};
@@ -40,7 +40,7 @@ pub enum RequestPaneMsg {
 }
 
 impl RequestPaneMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
+    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
         let request = state.active_tab_mut().request_mut();
         match self {
             Self::TabSelected(tab) => {
@@ -99,7 +99,7 @@ impl RequestPaneMsg {
                 Popup::popup_name(state, String::new(), PopupNameAction::NewScript(col));
             }
         };
-        Command::none()
+        Task::none()
     }
 }
 

@@ -1,7 +1,7 @@
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
 use iced::widget::{button, column, container, row, text, Button, Column, Row, Scrollable};
-use iced::{Command, Element, Length};
+use iced::{Task, Element, Length};
 
 use components::{context_menu, horizontal_line, icon, icons, menu_item, tooltip, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
@@ -26,7 +26,7 @@ pub enum CollectionTreeMsg {
 }
 
 impl CollectionTreeMsg {
-    pub fn update(self, state: &mut AppState) -> Command<Self> {
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             CollectionTreeMsg::ToggleExpandCollection(key) => {
                 state
@@ -69,7 +69,7 @@ impl CollectionTreeMsg {
                 Popup::app_settings(state);
             }
         }
-        Command::none()
+        Task::none()
     }
 }
 
@@ -77,7 +77,7 @@ fn handle_context_menu(
     state: &mut AppState,
     col: CollectionKey,
     action: MenuAction,
-) -> Command<CollectionTreeMsg> {
+) -> Task<CollectionTreeMsg> {
     match action {
         MenuAction::NewRequest(folder_id) => {
             Popup::popup_name(
@@ -85,7 +85,7 @@ fn handle_context_menu(
                 String::new(),
                 PopupNameAction::NewRequest(col, folder_id),
             );
-            Command::none()
+            Task::none()
         }
         MenuAction::NewFolder(folder_id) => {
             Popup::popup_name(
@@ -93,7 +93,7 @@ fn handle_context_menu(
                 String::new(),
                 PopupNameAction::CreateFolder(col, folder_id),
             );
-            Command::none()
+            Task::none()
         }
         MenuAction::DeleteFolder(folder_id) => {
             builders::delete_folder_cmd(state, col, folder_id, move || {
@@ -102,7 +102,7 @@ fn handle_context_menu(
         }
         MenuAction::RemoveCollection => {
             state.collections.remove(col);
-            Command::none()
+            Task::none()
         }
         MenuAction::RenameFolder(name, folder_id) => {
             Popup::popup_name(
@@ -110,7 +110,7 @@ fn handle_context_menu(
                 name.to_owned(),
                 PopupNameAction::RenameFolder(col, folder_id),
             );
-            Command::none()
+            Task::none()
         }
         MenuAction::RenameCollection(name) => {
             Popup::popup_name(
@@ -118,7 +118,7 @@ fn handle_context_menu(
                 name.to_owned(),
                 PopupNameAction::RenameCollection(col),
             );
-            Command::none()
+            Task::none()
         }
         MenuAction::RenameRequest(name, req) => {
             Popup::popup_name(
@@ -126,7 +126,7 @@ fn handle_context_menu(
                 name.to_owned(),
                 PopupNameAction::RenameRequest(col, req),
             );
-            Command::none()
+            Task::none()
         }
         MenuAction::DeleteRequest(req) => {
             builders::delete_request_cmd(state, col, req, move || CollectionTreeMsg::ActionComplete)

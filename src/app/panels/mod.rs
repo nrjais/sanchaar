@@ -1,5 +1,5 @@
 use iced::widget::container;
-use iced::Command;
+use iced::Task;
 
 use crate::state::AppState;
 
@@ -11,7 +11,7 @@ pub enum PanelMsg {
 }
 
 impl PanelMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Command<Self> {
+    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             PanelMsg::Http(msg) => msg.update(state).map(PanelMsg::Http),
         }

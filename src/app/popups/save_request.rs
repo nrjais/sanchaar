@@ -5,7 +5,7 @@ use std::ops::Not;
 use iced::widget::{
     button, container, horizontal_space, scrollable, text, text_input, Column, Row,
 };
-use iced::{Command, Element, Length};
+use iced::{Task, Element, Length};
 
 use core::http::collection::{Collection, Entry, Folder, FolderId};
 use core::http::CollectionKey;
@@ -24,9 +24,9 @@ pub enum Message {
 }
 
 impl Message {
-    pub fn update(self, state: &mut AppState) -> Command<Message> {
+    pub fn update(self, state: &mut AppState) -> Task<Message> {
         let Some(Popup::SaveRequest(ref mut data)) = state.popup else {
-            return Command::none();
+            return Task::none();
         };
         match self {
             Message::Done(col) => {
@@ -37,22 +37,22 @@ impl Message {
             }
             Message::NameChanged(name) => {
                 data.name = name;
-                Command::none()
+                Task::none()
             }
             Message::SelectDir(folder) => {
                 data.folder_id = Some(folder);
-                Command::none()
+                Task::none()
             }
             Message::SelectCollection(col) => {
                 if data.col != Some(col) {
                     data.col = Some(col);
                     data.folder_id = None;
                 }
-                Command::none()
+                Task::none()
             }
             Message::Close => {
                 state.popup = None;
-                Command::none()
+                Task::none()
             }
         }
     }

@@ -7,8 +7,6 @@ pub use request::Request;
 pub use request::RequestBody;
 use rustyscript::{Module, Runtime, RuntimeOptions};
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-
 async fn runjs(code: &str, state: Request) -> anyhow::Result<()> {
     let mut runtime = Runtime::new(RuntimeOptions {
         timeout: Duration::from_millis(5000),

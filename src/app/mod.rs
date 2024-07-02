@@ -1,11 +1,11 @@
-use iced::Command;
+use iced::Task;
 
 use components::modal;
 use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;
 use crate::commands;
-use crate::{commands::CommandMsg, AppState};
+use crate::{commands::TaskMsg, AppState};
 
 mod collection_tree;
 mod content_section;
@@ -14,19 +14,19 @@ mod popups;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {
-    Command(CommandMsg),
+    Command(TaskMsg),
     MainPage(MainPageMsg),
     Popup(PopupMsg),
 }
 
 impl AppMsg {
-    pub fn update(self, state: &mut AppState) -> Command<AppMsg> {
+    pub fn update(self, state: &mut AppState) -> Task<AppMsg> {
         let cmd = match self {
             AppMsg::Command(msg) => msg.update(state).map(AppMsg::Command),
             AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
             AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
         };
-        Command::batch([cmd, commands::background(state).map(AppMsg::Command)])
+        Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
     }
 }
 

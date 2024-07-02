@@ -1,6 +1,6 @@
 use iced::widget::container::Style;
 use iced::widget::{button, container, horizontal_space, text, Column, Row};
-use iced::{Alignment, Border, Command, Element};
+use iced::{Alignment, Border, Task, Element};
 
 use crate::state::popups::Popup;
 use crate::state::AppState;
@@ -23,7 +23,7 @@ pub enum PopupMsg {
 }
 
 impl PopupMsg {
-    pub fn update(self, state: &mut AppState) -> Command<PopupMsg> {
+    pub fn update(self, state: &mut AppState) -> Task<PopupMsg> {
         match self {
             PopupMsg::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
             PopupMsg::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
@@ -32,9 +32,9 @@ impl PopupMsg {
             PopupMsg::AppSettings(msg) => msg.update(state).map(PopupMsg::AppSettings),
             PopupMsg::ClosePopup => {
                 Popup::close(state);
-                Command::none()
+                Task::none()
             }
-            PopupMsg::Ignore => Command::none(),
+            PopupMsg::Ignore => Task::none(),
         }
     }
 }

@@ -3,7 +3,7 @@ use iced::font::Weight;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::text::Shaping::Advanced;
 use iced::widget::{container, pane_grid, text, Column, PaneGrid};
-use iced::{Color, Command, Element, Font, Length};
+use iced::{Color, Task, Element, Font, Length};
 
 use crate::app::panels::PanelMsg;
 
@@ -23,7 +23,7 @@ pub enum MainPageMsg {
 }
 
 impl MainPageMsg {
-    pub fn update(self, state: &mut AppState) -> Command<Self> {
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             Self::TabBarAction(action) => {
                 use TabBarAction::*;
@@ -32,7 +32,7 @@ impl MainPageMsg {
                     NewTab => state.active_tab = state.tabs.insert(Default::default()),
                     CloseTab(key) => state.close_tab(key),
                 }
-                Command::none()
+                Task::none()
             }
             Self::Panel(msg) => msg.update(state).map(Self::Panel),
             Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
@@ -41,7 +41,7 @@ impl MainPageMsg {
                 if ratio > 0.1 && ratio < 0.3 {
                     state.panes.resize(split, ratio);
                 }
-                Command::none()
+                Task::none()
             }
         }
     }

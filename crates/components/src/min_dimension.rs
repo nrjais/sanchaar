@@ -5,6 +5,7 @@
 use iced::advanced::widget::tree;
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::{event, mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
+use iced_core::widget::Operation;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Dimension {
@@ -126,7 +127,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
         tree: &mut iced::advanced::widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
-        operation: &mut dyn widget::Operation<Message>,
+        operation: &mut dyn Operation<()>,
     ) {
         self.second_pass
             .as_widget()

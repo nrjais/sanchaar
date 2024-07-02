@@ -1,6 +1,6 @@
 use humansize::{format_size, BINARY};
 use iced::widget::{button, container, text, Column, Row};
-use iced::{clipboard, Alignment, Border, Color, Command, Element, Theme};
+use iced::{clipboard, Alignment, Border, Color, Task, Element, Theme};
 
 use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
@@ -18,7 +18,7 @@ pub enum CompletedMsg {
 }
 
 impl CompletedMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Command<CompletedMsg> {
+    pub(crate) fn update(self, state: &mut AppState) -> Task<CompletedMsg> {
         let active_tab = state.active_tab_mut();
         match self {
             Self::TabChanged(tab) => {
@@ -40,7 +40,7 @@ impl CompletedMsg {
                 }
             }
         }
-        Command::none()
+        Task::none()
     }
 }
 

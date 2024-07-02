@@ -1,6 +1,6 @@
 use core::http::collection::Collection;
 use core::persistence::collections;
-use iced::Command;
+use iced::Task;
 use std::time::Instant;
 
 use crate::{
@@ -57,23 +57,23 @@ fn schedule_task(state: &mut AppState, task: BackgroundTask, delay: u64) -> bool
 }
 
 #[derive(Debug, Clone)]
-pub enum CommandMsg {
+pub enum TaskMsg {
     CollectionsLoaded(Vec<Collection>),
     Completed(BackgroundTask),
     UpdateDirtyTabs(Vec<(TabKey, RequestDirtyState)>),
 }
 
-impl CommandMsg {
-    pub fn update(self, state: &mut AppState) -> Command<Self> {
+impl TaskMsg {
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
-            CommandMsg::CollectionsLoaded(collection) => {
+            TaskMsg::CollectionsLoaded(collection) => {
                 state.collections.insert_all(collection);
                 task_done(state, BackgroundTask::SaveCollections);
             }
-            CommandMsg::Completed(task) => {
+            TaskMsg::Completed(task) => {
                 task_done(state, task);
             }
-            CommandMsg::UpdateDirtyTabs(status) => {
+            TaskMsg::UpdateDirtyTabs(status) => {
                 task_done(state, BackgroundTask::CheckDirtyRequests);
                 for (key, status) in status {
                     if let Some(tab) = state.tabs.get_mut(key) {
@@ -82,40 +82,40 @@ impl CommandMsg {
                 }
             }
         };
-        Command::none()
+        Task::none()
     }
 }
 
-fn save_open_collections(state: &mut AppState) -> Command<CommandMsg> {
+fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveCollections;
     let schedule = state.collections.dirty && schedule_task(state, task, 0);
     if !schedule {
-        return Command::none();
+        return Task::none();
     }
 
     let collections = state.collections.get_collections_for_save();
-    Command::perform(collections::save(collections), |result| match result {
-        Ok(_) => CommandMsg::Completed(BackgroundTask::SaveCollections),
+    Task::perform(collections::save(collections), |result| match result {
+        Ok(_) => TaskMsg::Completed(BackgroundTask::SaveCollections),
         Err(e) => {
             log::error!("Error saving collections: {:?}", e);
-            CommandMsg::Completed(BackgroundTask::SaveCollections)
+            TaskMsg::Completed(BackgroundTask::SaveCollections)
         }
     })
 }
 
-fn check_dirty_requests(state: &mut AppState) -> Command<CommandMsg> {
+fn check_dirty_requests(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::CheckDirtyRequests;
     if !schedule_task(state, task, 2) {
-        return Command::none();
+        return Task::none();
     }
 
-    check_dirty_requests_cmd(state, CommandMsg::UpdateDirtyTabs)
+    check_dirty_requests_cmd(state, TaskMsg::UpdateDirtyTabs)
 }
 
-pub fn background(state: &mut AppState) -> Command<CommandMsg> {
-    Command::batch([save_open_collections(state), check_dirty_requests(state)])
+pub fn background(state: &mut AppState) -> Task<TaskMsg> {
+    Task::batch([save_open_collections(state), check_dirty_requests(state)])
 }
 
-pub fn init_command() -> Command<AppMsg> {
-    Command::perform(load_collections_cmd(), CommandMsg::CollectionsLoaded).map(AppMsg::Command)
+pub fn init_command() -> Task<AppMsg> {
+    Task::perform(load_collections_cmd(), TaskMsg::CollectionsLoaded).map(AppMsg::Command)
 }

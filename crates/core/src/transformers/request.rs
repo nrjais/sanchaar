@@ -7,15 +7,13 @@ use regex::Regex;
 use reqwest::multipart::Part;
 use reqwest::RequestBuilder;
 use reqwest::{header::CONTENT_TYPE, multipart::Form};
-use tokio::fs::{self, File};
+use tokio::fs::File;
 
 use crate::http::{
     environment::Environment,
     request::{Auth, Method, Request, RequestBody},
     KeyFileList, KeyValList, KeyValue,
 };
-
-use super::script;
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
@@ -71,23 +69,11 @@ fn req_params(
     let params = enabled_params(params, env);
     builder.query(&params)
 }
-
-pub async fn run_script(script_path: Option<PathBuf>, req: Request) -> anyhow::Result<Request> {
-    let Some(path) = script_path else {
-        return Ok(req);
-    };
-    let script = fs::read_to_string(path).await?;
-    script::execute_sript(script, req).await
-}
-
 pub async fn transform_request(
     client: reqwest::Client,
     req: Request,
-    script_path: Option<PathBuf>,
     env: Option<Environment>,
 ) -> anyhow::Result<reqwest::Request> {
-    let req = run_script(script_path, req).await?;
-
     let Request {
         method,
         url,
