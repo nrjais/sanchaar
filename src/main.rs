@@ -16,7 +16,7 @@ pub mod state;
 pub const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
 
 fn main() -> iced::Result {
-    iced::application(title, update, view)
+    iced::application("Sanchaar", update, view)
         .theme(theme)
         .load(init_command)
         .antialiasing(true)
@@ -28,10 +28,6 @@ fn main() -> iced::Result {
             ..Default::default()
         })
         .run()
-}
-
-fn title(_state: &AppState) -> String {
-    String::from("Sanchaar")
 }
 
 fn update(state: &mut AppState, message: AppMsg) -> Task<AppMsg> {
