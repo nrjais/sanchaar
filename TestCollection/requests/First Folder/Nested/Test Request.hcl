@@ -1,0 +1,6 @@
+description = "Http request"
+version = "V1"
+http = {
+  "method" = "GET"
+  "url" = "https://echo.nrjais.com"
+}

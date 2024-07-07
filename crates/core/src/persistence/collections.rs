@@ -9,7 +9,10 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{COLLECTION_ROOT_FILE, JS_EXTENSION, REQUESTS, SCRIPTS, TOML_EXTENSION, TS_EXTENSION};
+use super::{
+    to_hcl_pretty, COLLECTION_ROOT_FILE, COLLECTION_ROOT_FILE_RON, HCL_EXTENSION, JS_EXTENSION,
+    REQUESTS, SCRIPTS, TS_EXTENSION,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -35,6 +38,12 @@ fn collections_file() -> Option<PathBuf> {
     let dirs = project_dirs()?;
     let data_dir = dirs.data_dir();
     Some(data_dir.join("collections.toml"))
+}
+
+fn collections_file_ron() -> Option<PathBuf> {
+    let dirs = project_dirs()?;
+    let data_dir = dirs.data_dir();
+    Some(data_dir.join("collections.hcl"))
 }
 
 async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<CollectionsState> {
@@ -113,7 +122,7 @@ pub async fn load() -> anyhow::Result<Vec<Collection>> {
 }
 
 pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
-    let collections_file = collections_file().context("Failed to find collections file")?;
+    let collections_file = collections_file_ron().context("Failed to find collections file")?;
     let state = CollectionsState {
         open: collection
             .into_iter()
@@ -121,7 +130,7 @@ pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
             .collect(),
     };
 
-    let data = toml::to_string_pretty(&state)?;
+    let data = to_hcl_pretty(&state)?;
     fs::write(collections_file, data).await?;
 
     Ok(())
@@ -207,12 +216,13 @@ async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
             let name = entry.file_name();
             let name = name.to_string_lossy();
 
-            if !name.ends_with(TOML_EXTENSION) || name.trim_end_matches(TOML_EXTENSION).is_empty() {
+            let ext = format!(".{}", HCL_EXTENSION);
+            if !name.ends_with(&ext) || name.trim_end_matches(&ext).is_empty() {
                 continue;
             }
 
             all_entries.push(Entry::Item(RequestRef {
-                name: name.trim_end_matches(".toml").to_string(),
+                name: name.trim_end_matches(&ext).to_string(),
                 path: entry.path(),
                 id: RequestId::new(),
             }));
@@ -229,10 +239,10 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
 }
 
 pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> anyhow::Result<()> {
-    let data = toml::to_string_pretty(&collection).expect("Failed to encode collection");
+    let data = to_hcl_pretty(&collection).expect("Failed to encode collection");
 
     fs::create_dir_all(&path).await?;
-    fs::write(path.join(COLLECTION_ROOT_FILE), data).await?;
+    fs::write(path.join(COLLECTION_ROOT_FILE_RON), data).await?;
 
     Ok(())
 }

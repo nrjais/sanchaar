@@ -35,12 +35,21 @@ impl KeyValList {
         Self(vals)
     }
 
-    pub fn into_iter(self) -> impl Iterator<Item = KeyValue> {
-        self.0.into_iter()
-    }
-
     pub fn iter(&self) -> impl Iterator<Item = &KeyValue> {
         self.0.iter()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.len() == 0
+    }
+}
+
+impl IntoIterator for KeyValList {
+    type Item = KeyValue;
+    type IntoIter = std::vec::IntoIter<KeyValue>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
@@ -63,12 +72,17 @@ impl KeyFileList {
         Self(vals)
     }
 
-    pub fn into_iter(self) -> impl Iterator<Item = KeyFile> {
-        self.0.into_iter()
-    }
-
     pub fn iter(&self) -> impl Iterator<Item = &KeyFile> {
         self.0.iter()
+    }
+}
+
+impl IntoIterator for KeyFileList {
+    type Item = KeyFile;
+    type IntoIter = std::vec::IntoIter<KeyFile>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 

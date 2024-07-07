@@ -7,7 +7,7 @@ pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
     container(base).width(Length::Fill).height(Length::Fill)
 }
 
-pub fn tooltip<'a, M: 'a>(msg: &'static str, base: impl Into<Element<'a, M>>) -> Tooltip<'a, M> {
+pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tooltip<'a, M> {
     iced::widget::tooltip(
         base,
         container(text(msg))

@@ -239,7 +239,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                             .padding([2, 6]),
                     ))
                     // TODO: Ellipsis long file path, show tooltip on hover
-                    .push(text(path).size(size))
+                    .push(tooltip(path, text(path).size(size)))
                     .height(Length::Fill)
                     .spacing(spacing)
                     .align_items(iced::Alignment::Center),

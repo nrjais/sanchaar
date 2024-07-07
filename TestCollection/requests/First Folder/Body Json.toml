@@ -9,6 +9,11 @@ url = "https://echo.nrjais.com"
 name = "header"
 value = "sample"
 
+[[http.headers]]
+name = "header-another"
+value = "sample"
+disabled = true
+
 [[http.query]]
 name = "param"
 value = "first"
@@ -16,6 +21,7 @@ value = "first"
 [[http.query]]
 name = "another"
 value = "second"
+disabled = true
 
 [http.body]
 json = """

@@ -1,5 +1,9 @@
 use std::path::PathBuf;
 
+use anyhow::Context;
+use hcl::expr::{Heredoc, TemplateExpr};
+use hcl::structure::BodyBuilder;
+use hcl::{Block, Body, Expression, Value};
 use iced::futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -9,7 +13,7 @@ use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
 use crate::persistence::Version;
 
-use super::{EncodedKeyFile, EncodedKeyValue};
+use super::{to_hcl_pretty, EncodedKeyFile, EncodedKeyValue, HCL_EXTENSION};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -58,10 +62,10 @@ impl From<EncodedMethod> for Method {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncodedRequest {
-    pub http: HttpRequest,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub description: String,
     pub version: Version,
+    pub http: HttpRequest,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -89,62 +93,20 @@ pub struct HttpRequest {
     pub method: EncodedMethod,
     pub url: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub headers: Vec<EncodedKeyValue>,
+    pub path_params: Vec<EncodedKeyValue>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub query: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub path_params: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub body: Option<EncodedRequestBody>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub auth: Option<EncodedAuthType>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub headers: Vec<EncodedKeyValue>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body: Option<EncodedRequestBody>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pre_request: Option<String>,
 }
 
-fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
-    kv.into_iter()
-        .filter(|v| !v.name.is_empty() || !v.value.is_empty())
-        .map(|v| v.into())
-        .collect()
-}
-
-fn encode_key_files(files: KeyFileList) -> Vec<EncodedKeyFile> {
-    files
-        .into_iter()
-        .filter(|v| !v.name.is_empty())
-        .map(|v| EncodedKeyFile {
-            name: v.name,
-            path: v.path,
-            disabled: v.disabled,
-        })
-        .collect()
-}
-
-fn encode_body(body: RequestBody) -> Option<EncodedRequestBody> {
-    match body {
-        RequestBody::Form(form) => Some(EncodedRequestBody::Form(encode_key_values(form))),
-        RequestBody::Json(data) => Some(EncodedRequestBody::Json(data)),
-        RequestBody::XML(data) => Some(EncodedRequestBody::XML(data)),
-        RequestBody::Text(data) => Some(EncodedRequestBody::Text(data)),
-        RequestBody::File(path) => Some(EncodedRequestBody::File(path)),
-        RequestBody::Multipart { params, files } => Some(EncodedRequestBody::Multipart {
-            params: encode_key_values(params),
-            files: encode_key_files(files),
-        }),
-        RequestBody::None => None,
-    }
-}
-
-fn encode_auth(auth: Auth) -> Option<EncodedAuthType> {
-    match auth {
-        Auth::None => None,
-        Auth::Basic { username, password } => Some(EncodedAuthType::Basic { username, password }),
-        Auth::Bearer { token } => Some(EncodedAuthType::Bearer { token }),
-    }
-}
-
-pub fn encode_request(req: Request) -> EncodedRequest {
+pub fn encode_request(req: Request) -> Body {
     let Request {
         method,
         url,
@@ -157,20 +119,126 @@ pub fn encode_request(req: Request) -> EncodedRequest {
         pre_request,
     } = req;
 
-    EncodedRequest {
-        http: HttpRequest {
-            method: method.into(),
-            url,
-            headers: encode_key_values(headers),
-            query: encode_key_values(query_params),
-            path_params: encode_key_values(path_params),
-            body: encode_body(body),
-            auth: encode_auth(auth),
-            pre_request,
-        },
-        description,
-        version: Version::V1,
+    let mut builder = Body::builder()
+        .add_block(
+            Block::builder("sanchaar")
+                .add_attribute(("version", Version::V1.to_string()))
+                .add_attribute(("description", description))
+                .build(),
+        )
+        .add_attribute(("method", method.to_string()))
+        .add_attribute(("url", url));
+
+    builder = add_auth_block(builder, auth);
+    builder = add_kv_block(builder, "params", path_params);
+    builder = add_kv_block(builder, "queries", query_params);
+    builder = add_kv_block(builder, "headers", headers);
+    builder = add_body_block(builder, body);
+
+    if let Some(pre_request) = pre_request {
+        builder = builder.add_attribute(("pre_request", pre_request));
     }
+
+    builder.build()
+}
+
+fn add_body_block(builder: BodyBuilder, body: RequestBody) -> BodyBuilder {
+    let block = Block::builder("body");
+    let block = match body {
+        RequestBody::None => return builder,
+        RequestBody::Form(form) => block.add_block(build_block("urlencoded", form)),
+        RequestBody::Json(data) => block.add_attribute(("json", multiline_text(data))),
+        RequestBody::XML(data) => block.add_attribute(("xml", multiline_text(data))),
+        RequestBody::Text(data) => block.add_attribute(("text", multiline_text(data))),
+        RequestBody::File(path) => block.add_attribute(("file", path_expr(path))),
+        RequestBody::Multipart { params, files } => block
+            .add_block(build_block("form", params))
+            .add_block(build_block_files("files", files)),
+    };
+
+    builder.add_block(block.build())
+}
+
+fn multiline_text(data: String) -> Expression {
+    // Find the longest running sequence of only underscores in line
+    let max_running = data
+        .chars()
+        .fold(0, |acc, c| if c == '_' { acc + 1 } else { 0 });
+
+    let delimiter = "_".repeat(max_running + 1);
+
+    let template = TemplateExpr::Heredoc(Heredoc::new(delimiter.into(), data));
+    Expression::TemplateExpr(Box::new(template))
+}
+
+fn path_expr(path: Option<PathBuf>) -> Expression {
+    path.unwrap_or_default()
+        .to_string_lossy()
+        .to_string()
+        .into()
+}
+
+fn add_auth_block(body: BodyBuilder, auth: Auth) -> BodyBuilder {
+    let block = match auth {
+        Auth::None => return body,
+        Auth::Basic { username, password } => Block::builder("auth")
+            .add_label("basic")
+            .add_attribute(("username", username))
+            .add_attribute(("password", password))
+            .build(),
+        Auth::Bearer { token } => Block::builder("auth")
+            .add_label("bearer")
+            .add_attribute(("token", token))
+            .build(),
+    };
+
+    body.add_block(block)
+}
+
+fn add_kv_block(body: BodyBuilder, name: &'static str, kv: KeyValList) -> BodyBuilder {
+    let mut body = body;
+    if !kv.is_empty() {
+        body = body.add_block(build_block(name, kv));
+    }
+    body
+}
+
+fn build_block(name: &str, kv: impl IntoIterator<Item = KeyValue>) -> Block {
+    let mut block = Block::builder(name);
+    for param in kv {
+        let value = Expression::String(param.value);
+        let value = match param.disabled {
+            true => Expression::Object({
+                let mut obj = hcl::Object::new();
+                obj.insert("disabled".into(), Expression::Bool(true));
+                obj.insert("value".into(), value);
+                obj
+            }),
+            false => value,
+        };
+
+        block = block.add_attribute((param.name, value));
+    }
+    block.build()
+}
+
+fn build_block_files(name: &str, kv: impl IntoIterator<Item = KeyFile>) -> Block {
+    let mut block = Block::builder(name);
+    for param in kv {
+        let path = path_expr(param.path);
+        let value = match param.disabled {
+            true => Expression::Object({
+                let mut obj = hcl::Object::new();
+                obj.insert("disabled".into(), Expression::Bool(true));
+                obj.insert("path".into(), path);
+                obj
+            }),
+            false => path,
+        };
+        block = block.add_attribute((param.name, value));
+    }
+
+    block.build()
 }
 
 fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
@@ -259,14 +327,15 @@ pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
     Ok(decode_request(enc_req))
 }
 
-pub async fn save_req_to_file(path: PathBuf, req: EncodedRequest) -> Result<(), anyhow::Error> {
+pub async fn save_req_to_file(path: PathBuf, req: hcl::Body) -> Result<(), anyhow::Error> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).await?;
     }
 
+    let path = path.with_extension(HCL_EXTENSION);
     let file = fs::File::create(path).await?;
     let mut writer = BufWriter::new(file);
-    let encoded = toml::to_string_pretty(&req)?;
+    let encoded = to_hcl_pretty(&req)?;
 
     writer.write_all(encoded.as_bytes()).await?;
     writer.flush().await?;
