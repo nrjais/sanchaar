@@ -22,7 +22,7 @@ fn param_enabled(param: &KeyValue) -> bool {
 fn enabled_params(params: KeyValList, env: Option<&Environment>) -> Vec<(String, String)> {
     params
         .into_iter()
-        .filter(|param| param_enabled(param))
+        .filter(param_enabled)
         .map(|param| (param.name, replace_env_vars(&param.value, env)))
         .collect()
 }
@@ -54,7 +54,7 @@ fn req_headers(
     headers: KeyValList,
     env: Option<&Environment>,
 ) -> RequestBuilder {
-    let iter = headers.into_iter().filter(|p| param_enabled(p));
+    let iter = headers.into_iter().filter(param_enabled);
     for header in iter {
         builder = builder.header(header.name, replace_env_vars(&header.value, env));
     }
@@ -187,7 +187,7 @@ async fn file_body(file: PathBuf, builder: RequestBuilder) -> RequestBuilder {
 
 // Files are only sent with non GET requests
 async fn open_file(file: &PathBuf) -> (String, File) {
-    let content_type = mime_guess::from_path(&file)
+    let content_type = mime_guess::from_path(file)
         .first_or_octet_stream()
         .to_string();
 

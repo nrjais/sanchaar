@@ -1,6 +1,6 @@
 use core::http::environment::EnvironmentKey;
 use core::persistence::environment::{encode_environments, save_environments};
-use core::persistence::{ENVIRONMENTS, REQUESTS, HCL_EXTENSION, TOML_EXTENSION};
+use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS, TOML_EXTENSION};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -71,7 +71,7 @@ pub fn save_request_cmd<M: 'static + MaybeSend>(
     path: PathBuf,
     on_done: impl Fn(Option<Arc<anyhow::Error>>) -> M + 'static + MaybeSend,
 ) -> Task<M> {
-    let encoded = encode_request(req.to_request());
+    let encoded = encode_request(req.to_request()).expect("Failed to encode request");
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => on_done(None),
         Err(e) => {
@@ -136,7 +136,7 @@ pub fn create_new_request_cmd<M: 'static + MaybeSend>(
         }
     };
 
-    let encoded = encode_request(req);
+    let encoded = encode_request(req).expect("Failed to encode request");
 
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => msg(None),
@@ -198,7 +198,8 @@ pub fn open_request_cmd<M: 'static + MaybeSend>(
     Task::perform(read_request(req.path.clone()), move |res| match res {
         Ok(req) => on_done(Some(req)),
         Err(e) => {
-            log::error!("Error opening request: {:?}", e);
+            log::error!("Error opening request: {:?}", &e);
+            println!("Error opening request: {:?}", &e);
             on_done(None)
         }
     })

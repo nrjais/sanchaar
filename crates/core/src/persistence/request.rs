@@ -1,10 +1,9 @@
 use std::path::PathBuf;
 
-use anyhow::Context;
 use hcl::expr::{Heredoc, TemplateExpr};
 use hcl::structure::BodyBuilder;
-use hcl::{Block, Body, Expression, Value};
-use iced::futures::TryFutureExt;
+use hcl::value::to_value;
+use hcl::{Block, Body, Expression};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
@@ -28,22 +27,6 @@ pub enum EncodedMethod {
     TRACE,
 }
 
-impl From<Method> for EncodedMethod {
-    fn from(value: Method) -> Self {
-        match value {
-            Method::GET => EncodedMethod::GET,
-            Method::POST => EncodedMethod::POST,
-            Method::PUT => EncodedMethod::PUT,
-            Method::DELETE => EncodedMethod::DELETE,
-            Method::PATCH => EncodedMethod::PATCH,
-            Method::HEAD => EncodedMethod::HEAD,
-            Method::OPTIONS => EncodedMethod::OPTIONS,
-            Method::CONNECT => EncodedMethod::CONNECT,
-            Method::TRACE => EncodedMethod::TRACE,
-        }
-    }
-}
-
 impl From<EncodedMethod> for Method {
     fn from(val: EncodedMethod) -> Self {
         match val {
@@ -64,8 +47,19 @@ impl From<EncodedMethod> for Method {
 pub struct EncodedRequest {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub description: String,
+    #[serde(default)]
     pub version: Version,
-    pub http: HttpRequest,
+    pub method: EncodedMethod,
+    pub url: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub params: Vec<EncodedKeyValue>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub queries: Vec<EncodedKeyValue>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub headers: Vec<EncodedKeyValue>,
+    pub auth: Option<EncodedAuthType>,
+    pub body: Option<EncodedRequestBody>,
+    pub pre_request: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -88,25 +82,7 @@ pub enum EncodedAuthType {
     Bearer { token: String },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct HttpRequest {
-    pub method: EncodedMethod,
-    pub url: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub path_params: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub query: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub auth: Option<EncodedAuthType>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub headers: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub body: Option<EncodedRequestBody>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pre_request: Option<String>,
-}
-
-pub fn encode_request(req: Request) -> Body {
+pub fn encode_request(req: Request) -> hcl::Result<Body> {
     let Request {
         method,
         url,
@@ -120,43 +96,44 @@ pub fn encode_request(req: Request) -> Body {
     } = req;
 
     let mut builder = Body::builder()
-        .add_block(
-            Block::builder("sanchaar")
-                .add_attribute(("version", Version::V1.to_string()))
-                .add_attribute(("description", description))
-                .build(),
-        )
-        .add_attribute(("method", method.to_string()))
-        .add_attribute(("url", url));
+        .add_attribute(("version", Version::V1.to_string()))
+        .add_attribute(("description", description))
+        .add_attribute(("url", url))
+        .add_attribute(("method", method.to_string()));
 
-    builder = add_auth_block(builder, auth);
-    builder = add_kv_block(builder, "params", path_params);
-    builder = add_kv_block(builder, "queries", query_params);
-    builder = add_kv_block(builder, "headers", headers);
-    builder = add_body_block(builder, body);
+    builder = add_auth_block(builder, auth)?;
+    builder = add_kv_block(builder, "params", path_params)?;
+    builder = add_kv_block(builder, "queries", query_params)?;
+    builder = add_kv_block(builder, "headers", headers)?;
+    builder = add_body_block(builder, body)?;
 
     if let Some(pre_request) = pre_request {
         builder = builder.add_attribute(("pre_request", pre_request));
     }
 
-    builder.build()
+    Ok(builder.build())
 }
 
-fn add_body_block(builder: BodyBuilder, body: RequestBody) -> BodyBuilder {
+fn add_body_block(builder: BodyBuilder, body: RequestBody) -> hcl::Result<BodyBuilder> {
     let block = Block::builder("body");
     let block = match body {
-        RequestBody::None => return builder,
-        RequestBody::Form(form) => block.add_block(build_block("urlencoded", form)),
+        RequestBody::None => return Ok(builder),
+        RequestBody::Form(form) => {
+            block.add_attribute(("form", to_value(encode_key_values(form))?))
+        }
         RequestBody::Json(data) => block.add_attribute(("json", multiline_text(data))),
         RequestBody::XML(data) => block.add_attribute(("xml", multiline_text(data))),
         RequestBody::Text(data) => block.add_attribute(("text", multiline_text(data))),
         RequestBody::File(path) => block.add_attribute(("file", path_expr(path))),
-        RequestBody::Multipart { params, files } => block
-            .add_block(build_block("form", params))
-            .add_block(build_block_files("files", files)),
+        RequestBody::Multipart { params, files } => block.add_block(
+            Block::builder("multipart")
+                .add_attribute(("params", to_value(encode_key_values(params))?))
+                .add_attribute(("files", to_value(encode_key_files(files))?))
+                .build(),
+        ),
     };
 
-    builder.add_block(block.build())
+    Ok(builder.add_block(block.build()))
 }
 
 fn multiline_text(data: String) -> Expression {
@@ -178,67 +155,45 @@ fn path_expr(path: Option<PathBuf>) -> Expression {
         .into()
 }
 
-fn add_auth_block(body: BodyBuilder, auth: Auth) -> BodyBuilder {
-    let block = match auth {
-        Auth::None => return body,
-        Auth::Basic { username, password } => Block::builder("auth")
-            .add_label("basic")
-            .add_attribute(("username", username))
-            .add_attribute(("password", password))
-            .build(),
-        Auth::Bearer { token } => Block::builder("auth")
-            .add_label("bearer")
-            .add_attribute(("token", token))
-            .build(),
-    };
-
-    body.add_block(block)
+fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
+    kv.into_iter().map(|v| v.into()).collect()
 }
 
-fn add_kv_block(body: BodyBuilder, name: &'static str, kv: KeyValList) -> BodyBuilder {
+fn encode_key_files(files: KeyFileList) -> Vec<EncodedKeyFile> {
+    files
+        .into_iter()
+        .filter(|v| !v.name.is_empty())
+        .map(|v| EncodedKeyFile {
+            name: v.name,
+            path: v.path,
+            disabled: v.disabled,
+        })
+        .collect()
+}
+
+fn encode_auth(auth: Auth) -> Option<EncodedAuthType> {
+    let en = match auth {
+        Auth::None => return None,
+        Auth::Basic { username, password } => EncodedAuthType::Basic { username, password },
+        Auth::Bearer { token } => EncodedAuthType::Bearer { token },
+    };
+    Some(en)
+}
+
+fn add_auth_block(body: BodyBuilder, auth: Auth) -> hcl::Result<BodyBuilder> {
+    let encoded = encode_auth(auth);
+    match encoded {
+        Some(auth) => Ok(body.add_attribute(("auth", to_value(auth)?))),
+        None => Ok(body),
+    }
+}
+
+fn add_kv_block(body: BodyBuilder, name: &'static str, kv: KeyValList) -> hcl::Result<BodyBuilder> {
     let mut body = body;
     if !kv.is_empty() {
-        body = body.add_block(build_block(name, kv));
+        body = body.add_attribute((name, to_value(encode_key_values(kv))?));
     }
-    body
-}
-
-fn build_block(name: &str, kv: impl IntoIterator<Item = KeyValue>) -> Block {
-    let mut block = Block::builder(name);
-    for param in kv {
-        let value = Expression::String(param.value);
-        let value = match param.disabled {
-            true => Expression::Object({
-                let mut obj = hcl::Object::new();
-                obj.insert("disabled".into(), Expression::Bool(true));
-                obj.insert("value".into(), value);
-                obj
-            }),
-            false => value,
-        };
-
-        block = block.add_attribute((param.name, value));
-    }
-    block.build()
-}
-
-fn build_block_files(name: &str, kv: impl IntoIterator<Item = KeyFile>) -> Block {
-    let mut block = Block::builder(name);
-    for param in kv {
-        let path = path_expr(param.path);
-        let value = match param.disabled {
-            true => Expression::Object({
-                let mut obj = hcl::Object::new();
-                obj.insert("disabled".into(), Expression::Bool(true));
-                obj.insert("path".into(), path);
-                obj
-            }),
-            false => path,
-        };
-        block = block.add_attribute((param.name, value));
-    }
-
-    block.build()
+    Ok(body)
 }
 
 fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
@@ -294,18 +249,17 @@ fn decode_auth(auth: Option<EncodedAuthType>) -> Auth {
 
 fn decode_request(req: EncodedRequest) -> Request {
     let EncodedRequest {
-        http, description, ..
-    } = req;
-    let HttpRequest {
+        description,
         method,
         url,
         headers,
         body,
-        query,
-        path_params,
+        queries: query,
+        params: path_params,
         auth,
         pre_request,
-    } = http;
+        ..
+    } = req;
 
     Request {
         method: method.into(),
@@ -321,10 +275,8 @@ fn decode_request(req: EncodedRequest) -> Request {
 }
 
 pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
-    let enc_req = load_from_file(&path)
-        .map_err(|_| anyhow::format_err!("Failed to read request"))
-        .await?;
-    Ok(decode_request(enc_req))
+    let request = load_from_file(&path).await?;
+    Ok(decode_request(request))
 }
 
 pub async fn save_req_to_file(path: PathBuf, req: hcl::Body) -> Result<(), anyhow::Error> {
@@ -332,7 +284,6 @@ pub async fn save_req_to_file(path: PathBuf, req: hcl::Body) -> Result<(), anyho
         fs::create_dir_all(parent).await?;
     }
 
-    let path = path.with_extension(HCL_EXTENSION);
     let file = fs::File::create(path).await?;
     let mut writer = BufWriter::new(file);
     let encoded = to_hcl_pretty(&req)?;
@@ -342,13 +293,13 @@ pub async fn save_req_to_file(path: PathBuf, req: hcl::Body) -> Result<(), anyho
     Ok(())
 }
 
-pub async fn load_from_file(path: &PathBuf) -> Result<EncodedRequest, Box<dyn std::error::Error>> {
+pub async fn load_from_file(path: &PathBuf) -> anyhow::Result<EncodedRequest> {
     let file = fs::File::open(path).await?;
     let mut reader = tokio::io::BufReader::new(file);
     let mut buffer = String::new();
 
     reader.read_to_string(&mut buffer).await?;
-    let decoded: EncodedRequest = toml::from_str(&buffer)?;
+    let decoded: EncodedRequest = hcl::from_str(&buffer)?;
 
     Ok(decoded)
 }

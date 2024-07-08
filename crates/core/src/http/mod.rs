@@ -211,8 +211,7 @@ impl Collections {
     ) -> Option<PathBuf> {
         self.entries
             .get_mut(col)
-            .map(|collection| collection.create_folder(name, folder_id))
-            .flatten()
+            .and_then(|collection| collection.create_folder(name, folder_id))
     }
 
     pub fn remove(&mut self, col: CollectionKey) {

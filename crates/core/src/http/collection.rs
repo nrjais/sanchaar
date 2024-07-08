@@ -2,7 +2,7 @@ use super::environment::{Environment, EnvironmentKey};
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
-    persistence::{TS_EXTENSION, REQUESTS, SCRIPTS},
+    persistence::{REQUESTS, SCRIPTS, TS_EXTENSION},
 };
 use std::{ops::Not, path::PathBuf};
 
@@ -93,8 +93,9 @@ impl Collection {
     }
 
     pub fn toggle_folder(&mut self, id: FolderId) {
-        self.folder_mut(id)
-            .map(|folder| folder.expanded = !folder.expanded);
+        if let Some(folder) = self.folder_mut(id) {
+            folder.expanded = !folder.expanded;
+        }
     }
 
     pub fn folder_mut(&mut self, id: FolderId) -> Option<&mut Folder> {
@@ -147,7 +148,7 @@ impl Collection {
                     let old_path = item.path.clone();
                     let new_path = item.path.with_file_name(format!("{name}.toml"));
                     item.name = name.to_string();
-                    item.path = new_path.clone();
+                    item.path.clone_from(&new_path);
                     return Some((old_path, new_path));
                 }
             }
@@ -162,7 +163,7 @@ impl Collection {
                     let old_path = item.path.clone();
                     let new_path = item.path.with_file_name(name);
                     item.name = name.to_string();
-                    item.path = new_path.clone();
+                    item.path.clone_from(&new_path);
                     return Some((old_path, new_path));
                 }
             }
@@ -182,7 +183,7 @@ impl Collection {
     }
 
     pub fn delete_folder(&mut self, folder_id: FolderId) -> Option<PathBuf> {
-        fn recurse<'a>(entries: &mut Vec<Entry>, id: FolderId) -> Option<PathBuf> {
+        fn recurse(entries: &mut Vec<Entry>, id: FolderId) -> Option<PathBuf> {
             let mut path = None;
 
             let iter = entries.iter_mut();
@@ -252,7 +253,7 @@ impl Collection {
     }
 
     pub(crate) fn delete_request(&mut self, req: RequestId) -> Option<PathBuf> {
-        fn recurse<'a>(entries: &mut Vec<Entry>, id: RequestId) -> Option<PathBuf> {
+        fn recurse(entries: &mut Vec<Entry>, id: RequestId) -> Option<PathBuf> {
             let mut path = None;
 
             let iter = entries.iter_mut();

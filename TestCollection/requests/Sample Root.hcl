@@ -1,22 +1,28 @@
-meta {
-  version = "V1"
-  description = "Http request"
-}
-
+version = "V1"
+description = "Http request"
 method = "POST"
 url = "https://echo.nrjais.com/{{test}}"
-
-queries {
-  test = "{{test}}"
-}
+queries = [
+  {
+    "name" = "test"
+    "value" = "{{test}}"
+  }
+]
 
 body {
-  form {
-    multipart = "text value"
-  }
-
-  files {
-    file = "/Users/neeraj/projects/sanchaar/TestCollection/collection.toml"
+  multipart {
+    params = [
+      {
+        "name" = "multipart"
+        "value" = "text value"
+      }
+    ]
+    files = [
+      {
+        "name" = "file"
+        "path" = "/Users/neeraj/projects/sanchaar/TestCollection/collection.toml"
+      }
+    ]
   }
 }
 

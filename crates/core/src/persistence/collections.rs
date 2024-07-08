@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use directories::ProjectDirs;
@@ -153,7 +153,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     ))
 }
 
-pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<Script>> {
+pub async fn find_all_scripts(col: &Path) -> anyhow::Result<Vec<Script>> {
     let path = col.join(SCRIPTS);
     let exists = fs::try_exists(&path).await?;
     if !exists {
@@ -188,7 +188,7 @@ pub async fn find_all_scripts(col: &PathBuf) -> anyhow::Result<Vec<Script>> {
     Ok(scripts)
 }
 
-async fn find_all_requests(path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
+async fn find_all_requests(path: &Path) -> anyhow::Result<Vec<Entry>> {
     let requests = path.join(REQUESTS);
     let exists = fs::try_exists(&requests).await?;
     if !exists {
@@ -198,7 +198,7 @@ async fn find_all_requests(path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
     walk_entries(&requests).await
 }
 
-async fn walk_entries(dir_path: &PathBuf) -> anyhow::Result<Vec<Entry>> {
+async fn walk_entries(dir_path: &Path) -> anyhow::Result<Vec<Entry>> {
     let mut all_entries = vec![];
     let mut dir = fs::read_dir(dir_path).await?;
 

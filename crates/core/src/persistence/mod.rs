@@ -59,7 +59,8 @@ pub fn to_hcl_pretty<T: Serialize>(value: &T) -> anyhow::Result<String> {
     Ok(hcl::to_string(value)?)
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, Serialize, Default, Deserialize, Display, EnumString)]
 pub enum Version {
+    #[default]
     V1,
 }

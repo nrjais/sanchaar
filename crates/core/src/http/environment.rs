@@ -13,6 +13,12 @@ pub struct Environments {
     envs: HashMap<EnvironmentKey, Environment>,
 }
 
+impl Default for Environments {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Environments {
     pub fn new() -> Self {
         Self {
@@ -25,7 +31,7 @@ impl Environments {
     }
 
     pub fn get_mut(&mut self, id: &EnvironmentKey) -> Option<&mut Environment> {
-        self.envs.get_mut(&id)
+        self.envs.get_mut(id)
     }
 
     pub fn insert(&mut self, env: Environment) -> EnvironmentKey {

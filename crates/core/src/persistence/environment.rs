@@ -16,11 +16,11 @@ pub struct EncodedEnvironment {
     pub variables: Vec<EncodedKeyValue>,
 }
 
-impl Into<Environment> for EncodedEnvironment {
-    fn into(self) -> Environment {
+impl From<EncodedEnvironment> for Environment {
+    fn from(val: EncodedEnvironment) -> Self {
         Environment {
-            name: self.name,
-            variables: KeyValList::from(self.variables.into_iter().map(Into::into).collect()),
+            name: val.name,
+            variables: KeyValList::from(val.variables.into_iter().map(Into::into).collect()),
         }
     }
 }
