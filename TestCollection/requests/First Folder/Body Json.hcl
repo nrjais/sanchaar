@@ -1,30 +1,30 @@
-version = "V1"
+version     = "V1"
 description = "Http request"
-method = "GET"
-url = "https://echo.nrjais.com"
+url         = "https://echo.nrjais.com"
+method      = "GET"
 queries = [
   {
-    "name" = "param"
+    "name"  = "param"
     "value" = "first"
   },
   {
-    "name" = "param"
+    "name"  = "param"
     "value" = "duplicate"
   },
   {
-    "name" = "another"
-    "value" = "second"
+    "name"     = "another"
+    "value"    = "second"
     "disabled" = true
   }
 ]
 headers = [
   {
-    "name" = "header"
+    "name"  = "header"
     "value" = "sample"
   },
   {
-    "name" = "header-another"
-    "value" = "sample"
+    "name"     = "header-another"
+    "value"    = "sample"
     "disabled" = true
   }
 ]

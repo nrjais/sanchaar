@@ -5,6 +5,7 @@ use hcl::structure::BodyBuilder;
 use hcl::value::to_value;
 use hcl::{Block, Body, Expression};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
@@ -142,7 +143,7 @@ fn multiline_text(data: String) -> Expression {
         .chars()
         .fold(0, |acc, c| if c == '_' { acc + 1 } else { 0 });
 
-    let delimiter = "_".repeat(max_running + 1);
+    let delimiter = "_".repeat(max_running + 2);
 
     let template = TemplateExpr::Heredoc(Heredoc::new(delimiter.into(), data));
     Expression::TemplateExpr(Box::new(template))
@@ -300,6 +301,10 @@ pub async fn load_from_file(path: &PathBuf) -> anyhow::Result<EncodedRequest> {
 
     reader.read_to_string(&mut buffer).await?;
     let decoded: EncodedRequest = hcl::from_str(&buffer)?;
+
+    // let temp: Value = hcl::from_str(&buffer)?;
+    // let json = serde_json::to_string_pretty(&temp)?;
+    // println!("{}", json);
 
     Ok(decoded)
 }

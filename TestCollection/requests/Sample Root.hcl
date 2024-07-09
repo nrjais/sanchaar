@@ -1,10 +1,10 @@
-version = "V1"
+version     = "V1"
 description = "Http request"
-method = "POST"
-url = "https://echo.nrjais.com/{{test}}"
+method      = "POST"
+url         = "https://echo.nrjais.com/{{test}}"
 queries = [
   {
-    "name" = "test"
+    "name"  = "test"
     "value" = "{{test}}"
   }
 ]
@@ -13,7 +13,7 @@ body {
   multipart {
     params = [
       {
-        "name" = "multipart"
+        "name"  = "multipart"
         "value" = "text value"
       }
     ]
@@ -26,4 +26,28 @@ body {
   }
 }
 
-pre_request = "test_pre.js"
+assertions {
+  status {
+    gt = 200
+  }
+
+  header "Content-Type" {
+    contains = "application/json"
+  }
+
+  header "Content-Type" {
+    contains = "utf8"
+  }
+
+  jsonpath "$.result.name" {
+    equal = "Mohit"
+  }
+
+  body {
+    eq = <<EOF
+{
+  "test": "test
+}
+EOF
+  }
+}
