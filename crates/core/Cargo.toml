@@ -9,7 +9,6 @@ iced = { workspace = true }
 slotmap = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-toml = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 directories = { workspace = true }

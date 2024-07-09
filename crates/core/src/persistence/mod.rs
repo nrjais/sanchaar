@@ -8,12 +8,11 @@ pub mod collections;
 pub mod environment;
 pub mod request;
 
-pub const TOML_EXTENSION: &str = "toml";
-pub const HCL_EXTENSION: &str = "hcl";
+pub const HCL_SUFFIX: &str = "hcl";
+pub const HCL_EXTENSION: &str = ".hcl";
 pub const JS_EXTENSION: &str = "js";
 pub const TS_EXTENSION: &str = "ts";
-pub const COLLECTION_ROOT_FILE: &str = "collection.toml";
-pub const COLLECTION_ROOT_FILE_RON: &str = "collection.hcl";
+pub const COLLECTION_ROOT_FILE: &str = "collection.hcl";
 pub const ENVIRONMENTS: &str = "environments";
 pub const SCRIPTS: &str = "scripts";
 pub const REQUESTS: &str = "requests";
@@ -53,10 +52,6 @@ impl From<EncodedKeyValue> for KeyValue {
             disabled: value.disabled,
         }
     }
-}
-
-pub fn to_hcl_pretty<T: Serialize>(value: &T) -> anyhow::Result<String> {
-    Ok(hcl::to_string(value)?)
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Default, Deserialize, Display, EnumString)]

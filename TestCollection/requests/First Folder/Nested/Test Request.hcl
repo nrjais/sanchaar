@@ -1,6 +1,4 @@
 description = "Http request"
-version = "V1"
-http = {
-  "method" = "GET"
-  "url" = "https://echo.nrjais.com"
-}
+version     = "V1"
+method      = "GET"
+url         = "https://echo.nrjais.com"

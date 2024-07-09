@@ -9,10 +9,7 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{
-    to_hcl_pretty, COLLECTION_ROOT_FILE, COLLECTION_ROOT_FILE_RON, HCL_EXTENSION, JS_EXTENSION,
-    REQUESTS, SCRIPTS, TS_EXTENSION,
-};
+use super::{COLLECTION_ROOT_FILE, HCL_EXTENSION, JS_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncodedCollection {
@@ -35,12 +32,6 @@ fn project_dirs() -> Option<ProjectDirs> {
 }
 
 fn collections_file() -> Option<PathBuf> {
-    let dirs = project_dirs()?;
-    let data_dir = dirs.data_dir();
-    Some(data_dir.join("collections.toml"))
-}
-
-fn collections_file_ron() -> Option<PathBuf> {
     let dirs = project_dirs()?;
     let data_dir = dirs.data_dir();
     Some(data_dir.join("collections.hcl"))
@@ -66,7 +57,7 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
         open: vec![CollectionConfig::Path(default_path)],
     };
 
-    let data = toml::to_string_pretty(&state)?;
+    let data = hcl::to_string(&state)?;
     fs::write(collections_file, data).await?;
 
     Ok(state)
@@ -91,7 +82,7 @@ async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
             return None;
         }
     };
-    let collections: CollectionsState = toml::from_str(&data).ok()?;
+    let collections: CollectionsState = hcl::from_str(&data).ok()?;
 
     Some(collections.open)
 }
@@ -122,7 +113,7 @@ pub async fn load() -> anyhow::Result<Vec<Collection>> {
 }
 
 pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
-    let collections_file = collections_file_ron().context("Failed to find collections file")?;
+    let collections_file = collections_file().context("Failed to find collections file")?;
     let state = CollectionsState {
         open: collection
             .into_iter()
@@ -130,7 +121,7 @@ pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
             .collect(),
     };
 
-    let data = to_hcl_pretty(&state)?;
+    let data = hcl::to_string(&state)?;
     fs::write(collections_file, data).await?;
 
     Ok(())
@@ -139,7 +130,7 @@ pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
 pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error> {
     let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
 
-    let collection: EncodedCollection = toml::from_str(&data)?;
+    let collection: EncodedCollection = hcl::from_str(&data)?;
     let environments = read_environments(&path).await?;
     let entries = find_all_requests(&path).await?;
     let scripts = find_all_scripts(&path).await?;
@@ -215,14 +206,14 @@ async fn walk_entries(dir_path: &Path) -> anyhow::Result<Vec<Entry>> {
         } else {
             let name = entry.file_name();
             let name = name.to_string_lossy();
+            let without_ext = name.trim_end_matches(&HCL_EXTENSION);
 
-            let ext = format!(".{}", HCL_EXTENSION);
-            if !name.ends_with(&ext) || name.trim_end_matches(&ext).is_empty() {
+            if !name.ends_with(&HCL_EXTENSION) || without_ext.is_empty() {
                 continue;
             }
 
             all_entries.push(Entry::Item(RequestRef {
-                name: name.trim_end_matches(&ext).to_string(),
+                name: without_ext.to_string(),
                 path: entry.path(),
                 id: RequestId::new(),
             }));
@@ -239,10 +230,10 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
 }
 
 pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> anyhow::Result<()> {
-    let data = to_hcl_pretty(&collection).expect("Failed to encode collection");
+    let data = hcl::to_string(&collection).expect("Failed to encode collection");
 
     fs::create_dir_all(&path).await?;
-    fs::write(path.join(COLLECTION_ROOT_FILE_RON), data).await?;
+    fs::write(path.join(COLLECTION_ROOT_FILE), data).await?;
 
     Ok(())
 }

@@ -1,6 +1,6 @@
 use core::http::environment::EnvironmentKey;
 use core::persistence::environment::{encode_environments, save_environments};
-use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS, TOML_EXTENSION};
+use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -114,7 +114,7 @@ pub fn create_new_request_cmd<M: 'static + MaybeSend>(
             let Some(folder) = collection.folder_mut(fol) else {
                 return Task::none();
             };
-            let path = folder.path.join(format!("{}.{}", &name, HCL_EXTENSION));
+            let path = folder.path.join(format!("{}{}", &name, HCL_EXTENSION));
             folder.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -126,7 +126,7 @@ pub fn create_new_request_cmd<M: 'static + MaybeSend>(
             let path = collection
                 .path
                 .join(REQUESTS)
-                .join(format!("{}.toml", &name));
+                .join(format!("{}{}", &name, HCL_EXTENSION));
             collection.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -272,7 +272,7 @@ pub(crate) fn save_environments_cmd<Message: 'static + MaybeSend>(
                 collection
                     .path
                     .join(ENVIRONMENTS)
-                    .join(format!("{}{}", env.name, TOML_EXTENSION)),
+                    .join(format!("{}{}", env.name, HCL_EXTENSION)),
             );
         }
     }

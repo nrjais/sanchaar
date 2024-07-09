@@ -12,7 +12,7 @@ use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
 use crate::persistence::Version;
 
-use super::{to_hcl_pretty, EncodedKeyFile, EncodedKeyValue, HCL_EXTENSION};
+use super::{EncodedKeyFile, EncodedKeyValue};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -286,7 +286,7 @@ pub async fn save_req_to_file(path: PathBuf, req: hcl::Body) -> Result<(), anyho
 
     let file = fs::File::create(path).await?;
     let mut writer = BufWriter::new(file);
-    let encoded = to_hcl_pretty(&req)?;
+    let encoded = hcl::to_string(&req)?;
 
     writer.write_all(encoded.as_bytes()).await?;
     writer.flush().await?;
