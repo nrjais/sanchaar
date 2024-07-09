@@ -29,6 +29,11 @@ body {
 assertions {
   status {
     gt = 200
+    lt = 200
+  }
+
+  status {
+    lt = 200
   }
 
   header "Content-Type" {
@@ -39,15 +44,45 @@ assertions {
     contains = "utf8"
   }
 
-  jsonpath "$.result.name" {
-    equal = "Mohit"
+  header "Test-Type" {
+    contains = "utf8"
   }
 
-  body {
-    eq = <<EOF
+  // jsonpath "$.result.name" {
+  //   eq = "Mohit"
+  // }
+
+  body raw {
+    eq = <<__
 {
-  "test": "test
+  "test": "test"
 }
-EOF
+__
   }
 }
+
+/*
+{
+  "body": {
+    "eq": "{\n  \"test\": \"test\n}\n"
+  },
+  "header": {
+    "Content-Type": [
+      {
+        "contains": "application/json"
+      },
+      {
+        "eq": "utf8"
+      }
+    ]
+  },
+  "jsonpath": {
+    "$.result.name": {
+      "equal": "Mohit"
+    }
+  },
+  "status": {
+    "gt": 200
+  }
+}
+*/

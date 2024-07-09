@@ -5,7 +5,6 @@ use hcl::structure::BodyBuilder;
 use hcl::value::to_value;
 use hcl::{Block, Body, Expression};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
@@ -13,7 +12,7 @@ use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
 use crate::persistence::Version;
 
-use super::{EncodedKeyFile, EncodedKeyValue};
+use super::{assertions, EncodedKeyFile, EncodedKeyValue};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -44,7 +43,7 @@ impl From<EncodedMethod> for Method {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct EncodedRequest {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub description: String,
@@ -61,9 +60,11 @@ pub struct EncodedRequest {
     pub auth: Option<EncodedAuthType>,
     pub body: Option<EncodedRequestBody>,
     pub pre_request: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub assertions: assertions::Assertions,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum EncodedRequestBody {
     Form(Vec<EncodedKeyValue>),
@@ -138,6 +139,10 @@ fn add_body_block(builder: BodyBuilder, body: RequestBody) -> hcl::Result<BodyBu
 }
 
 fn multiline_text(data: String) -> Expression {
+    if data.len() < 120 {
+        return data.into();
+    }
+
     // Find the longest running sequence of only underscores in line
     let max_running = data
         .chars()
@@ -302,9 +307,7 @@ pub async fn load_from_file(path: &PathBuf) -> anyhow::Result<EncodedRequest> {
     reader.read_to_string(&mut buffer).await?;
     let decoded: EncodedRequest = hcl::from_str(&buffer)?;
 
-    // let temp: Value = hcl::from_str(&buffer)?;
-    // let json = serde_json::to_string_pretty(&temp)?;
-    // println!("{}", json);
+    // println!("{:?}", decoded);
 
     Ok(decoded)
 }
