@@ -6,6 +6,19 @@ use hcl::{
     BlockLabel, Identifier, Value,
 };
 use serde::Deserialize;
+use strum::{Display, EnumString};
+
+#[derive(Debug, Clone, PartialEq, Eq, Display, EnumString)]
+pub enum MatchType {
+    Null,
+    Undefined,
+    Bool,
+    Number,
+    String,
+    Array,
+    Object,
+    Empty,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Condition {
@@ -17,11 +30,18 @@ pub enum Condition {
     Lt(String, f64),
     Lte(String, f64),
 
+    In(String, Vec<Value>),
+    NotIn(String, Vec<Value>),
+
     Contains(String, String),
     NotContains(String, String),
     StartsWith(String, String),
     EndsWith(String, String),
     Matches(String, String),
+    NotMatches(String, String),
+
+    Is(String, MatchType),
+    IsNot(String, MatchType),
 }
 
 impl Condition {
@@ -38,6 +58,11 @@ impl Condition {
             Condition::StartsWith(_, _) => "starts_with",
             Condition::EndsWith(_, _) => "ends_with",
             Condition::Matches(_, _) => "matches",
+            Condition::NotMatches(_, _) => "not_matches",
+            Condition::In(_, _) => "in",
+            Condition::NotIn(_, _) => "not_in",
+            Condition::Is(_, _) => "is",
+            Condition::IsNot(_, _) => "is_not",
         }
     }
 }
@@ -82,6 +107,11 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
                 "starts_with" => Condition::StartsWith(key, as_string(value)?),
                 "ends_with" => Condition::EndsWith(key, as_string(value)?),
                 "matches" => Condition::Matches(key, as_string(value)?),
+                "not_matches" => Condition::NotMatches(key, as_string(value)?),
+                "in" => Condition::In(key, as_array(value)?),
+                "not_in" => Condition::NotIn(key, as_array(value)?),
+                "is" => Condition::Is(key, as_string(value)?.parse()?),
+                "is_not" => Condition::IsNot(key, as_string(value)?.parse()?),
                 _ => continue, // Ignored
             };
             cons.push(condition);
@@ -111,6 +141,10 @@ fn as_f64(value: &Value) -> anyhow::Result<f64> {
 
 fn as_string(value: &Value) -> anyhow::Result<String> {
     Ok(value.as_str().context("Expected String")?.to_string())
+}
+
+fn as_array(value: &Value) -> anyhow::Result<Vec<Value>> {
+    Ok(value.as_array().context("Expected Array")?.to_owned())
 }
 
 pub fn parse(body: Value) -> anyhow::Result<Assertions> {
@@ -143,6 +177,7 @@ fn encode_condition_block(
 
     for condition in conditions.into_iter() {
         let op = condition.to_string();
+
         // Handle multiline strings with heredoc
         let (key, value) = match condition {
             Condition::Eq(k, v) => (k, v),
@@ -156,6 +191,11 @@ fn encode_condition_block(
             Condition::StartsWith(k, v) => (k, v.into()),
             Condition::EndsWith(k, v) => (k, v.into()),
             Condition::Matches(k, v) => (k, v.into()),
+            Condition::NotMatches(k, v) => (k, v.into()),
+            Condition::In(k, v) => (k, v.into()),
+            Condition::NotIn(k, v) => (k, v.into()),
+            Condition::Is(k, v) => (k, v.to_string().into()),
+            Condition::IsNot(k, v) => (k, v.to_string().into()),
         };
 
         let mut block = blocks.remove(&key).unwrap_or_else(|| {
