@@ -2,10 +2,9 @@ use std::borrow::Cow;
 
 use iced::{
     window::{self, Position},
-    Element, Point, Size, Task, Theme,
+    Point, Size, Theme,
 };
 
-use app::AppMsg;
 use commands::init_command;
 use state::AppState;
 
@@ -16,7 +15,7 @@ pub mod state;
 pub const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
 
 fn main() -> iced::Result {
-    iced::application("Sanchaar", update, view)
+    iced::application("Sanchaar", app::update, app::view)
         .theme(theme)
         .load(init_command)
         .antialiasing(true)
@@ -28,14 +27,6 @@ fn main() -> iced::Result {
             ..Default::default()
         })
         .run()
-}
-
-fn update(state: &mut AppState, message: AppMsg) -> Task<AppMsg> {
-    message.update(state)
-}
-
-fn view(state: &AppState) -> Element<AppMsg> {
-    app::view(state)
 }
 
 fn theme(state: &AppState) -> Theme {

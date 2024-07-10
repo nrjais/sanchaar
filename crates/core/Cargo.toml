@@ -6,7 +6,6 @@ description.workspace = true
 edition.workspace = true
 
 [dependencies]
-# js = { path = "../js" }
 iced = { workspace = true }
 slotmap = { workspace = true }
 serde = { workspace = true }

@@ -142,7 +142,7 @@ fn add_body_block(builder: BodyBuilder, body: RequestBody) -> hcl::Result<BodyBu
 }
 
 fn multiline_text(data: String) -> Expression {
-    if data.len() < 120 {
+    if data.len() < 120 && !data.contains('\n') {
         return data.into();
     }
 

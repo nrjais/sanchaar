@@ -52,7 +52,6 @@ path = "crates/app/src/main.rs"
 name = "sanchaar-cli"
 path = "crates/cli/src/main.rs"
 
-
 [profile.dev]
 incremental = true
 

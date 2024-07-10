@@ -19,15 +19,13 @@ pub enum AppMsg {
     Popup(PopupMsg),
 }
 
-impl AppMsg {
-    pub fn update(self, state: &mut AppState) -> Task<AppMsg> {
-        let cmd = match self {
-            AppMsg::Command(msg) => msg.update(state).map(AppMsg::Command),
-            AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
-            AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
-        };
-        Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
-    }
+pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
+    let cmd = match msg {
+        AppMsg::Command(msg) => msg.update(state).map(AppMsg::Command),
+        AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
+        AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
+    };
+    Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
 }
 
 pub fn view(state: &AppState) -> iced::Element<AppMsg> {
