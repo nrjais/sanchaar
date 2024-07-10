@@ -60,7 +60,7 @@ const getBody = async (request: Request): Promise<[string, BodyType]> => {
   try {
     const text = textDecoder.decode(body);
     return [text, "text"];
-  } catch (e) {
+  } catch {
     const base64 = btoa(String.fromCharCode(...new Uint8Array(body)));
     return [base64, "base64"];
   }
