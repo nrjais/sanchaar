@@ -2,21 +2,21 @@ use std::borrow::Cow;
 
 use iced::{
     window::{self, Position},
-    Point, Size, Theme,
+    Point, Size,
 };
 
 use commands::init_command;
 use state::AppState;
 
-pub mod app;
-pub mod commands;
-pub mod state;
+pub(crate) mod app;
+pub(crate) mod commands;
+pub(crate) mod state;
 
-pub const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
+const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
 
-fn main() -> iced::Result {
+pub fn main() -> Result<(), iced::Error> {
     iced::application("Sanchaar", app::update, app::view)
-        .theme(theme)
+        .theme(|s| s.theme.clone())
         .load(init_command)
         .antialiasing(true)
         .font(Cow::from(HACK_REG_BYTES))
@@ -27,8 +27,4 @@ fn main() -> iced::Result {
             ..Default::default()
         })
         .run()
-}
-
-fn theme(state: &AppState) -> Theme {
-    state.theme.clone()
 }

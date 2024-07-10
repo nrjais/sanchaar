@@ -1,27 +1,10 @@
 [package]
-name = "app"
+name = "gui"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
 edition.workspace = true
 
-[package.metadata.bundle]
-name = "Sanchaar"
-identifier = "com.nrjais.sanchaar"
-icon = [
-  "assets/16x16.png",
-  "assets/16x16@2x.png",
-  "assets/32x32.png",
-  "assets/32x32@2x.png",
-  "assets/64x64.png",
-  "assets/64x64@2x.png",
-  "assets/128x128.png",
-  "assets/128x128@2x.png",
-  "assets/256x256.png",
-  "assets/256x256@2x.png",
-  "assets/512x512.png",
-  "assets/512x512@2x.png",
-]
 
 [dependencies]
 components = { workspace = true }

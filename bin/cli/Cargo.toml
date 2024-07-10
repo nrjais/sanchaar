@@ -1,10 +1,13 @@
 [package]
-name = "cli"
+name = "sanchaar-cli"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
 edition.workspace = true
 
+[[bin]]
+name = "sanchaar-cli"
+path = "main.rs"
+
 [dependencies]
-core = { workspace = true }
-tokio = { workspace = true }
+cli = { path = "../../crates/cli" }

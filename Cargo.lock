@@ -125,25 +125,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3d1d046238990b9cf5bcde22a3fb3584ee5cf65fb2765f454ed428c7a0063da"
 
 [[package]]
-name = "app"
-version = "0.1.0-prerelease.1"
-dependencies = [
- "anyhow",
- "components",
- "core",
- "humansize",
- "iced",
- "log",
- "reqwest",
- "rfd",
- "serde",
- "serde_json",
- "slotmap",
- "strum",
- "tokio",
-]
-
-[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -550,6 +531,7 @@ name = "cli"
 version = "0.1.0-prerelease.1"
 dependencies = [
  "core",
+ "tokio",
 ]
 
 [[package]]
@@ -1424,6 +1406,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bf0b36e6f090b7e1d8a4b49c0cb81c1f8376f72198c65dd3ad9ff3556b8b78c"
 dependencies = [
  "bitflags 2.6.0",
+]
+
+[[package]]
+name = "gui"
+version = "0.1.0-prerelease.1"
+dependencies = [
+ "anyhow",
+ "components",
+ "core",
+ "humansize",
+ "iced",
+ "log",
+ "reqwest",
+ "rfd",
+ "serde",
+ "serde_json",
+ "slotmap",
+ "strum",
+ "tokio",
 ]
 
 [[package]]
@@ -3347,6 +3348,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "sanchaar"
+version = "0.1.0-prerelease.1"
+dependencies = [
+ "gui",
+]
+
+[[package]]
+name = "sanchaar-cli"
+version = "0.1.0-prerelease.1"
+dependencies = [
+ "cli",
 ]
 
 [[package]]

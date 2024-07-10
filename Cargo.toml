@@ -8,8 +8,14 @@ version = "0.1.0-prerelease.1"
 edition = "2021"
 
 [workspace]
-members = ["crates/*"]
-default-members = ["crates/app"]
+members = [
+    "crates/gui",
+    "crates/cli",
+    "crates/components",
+    "crates/core",
+    "bin/*",
+]
+default-members = ["bin/gui"]
 
 [workspace.dependencies]
 iced = { git = "https://github.com/nrjais/iced", features = [
@@ -45,12 +51,12 @@ components = { path = "crates/components" }
 core = { path = "crates/core" }
 
 [[bin]]
-name = "sanchaar"
-path = "crates/app/src/main.rs"
+name = "gui"
+path = "crates/gui/src/main.rs"
 
-[[bin]]
-name = "sanchaar-cli"
-path = "crates/cli/src/main.rs"
+# [[bin]]
+# name = "cli"
+# path = "crates/cli/src/main.rs"
 
 [profile.dev]
 incremental = true
