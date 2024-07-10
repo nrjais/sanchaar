@@ -27,13 +27,14 @@ body {
 }
 
 assertions {
-  status {
+  status code {
     gt = 200
     lt = 200
   }
 
-  status {
-    lt = 200
+  duration ms {
+    gt = 100
+    lt = 100
   }
 
   header "Content-Type" {

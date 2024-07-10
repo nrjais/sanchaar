@@ -108,6 +108,7 @@ pub fn encode_request(req: Request) -> hcl::Result<Body> {
     builder = add_kv_block(builder, "queries", query_params)?;
     builder = add_kv_block(builder, "headers", headers)?;
     builder = add_body_block(builder, body)?;
+    // builder = add_assertions_block(builder, req.assertions)?;
 
     if let Some(pre_request) = pre_request {
         builder = builder.add_attribute(("pre_request", pre_request));
