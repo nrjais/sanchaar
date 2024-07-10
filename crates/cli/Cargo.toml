@@ -1,10 +1,9 @@
 [package]
-name = "components"
+name = "cli"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
 edition.workspace = true
 
 [dependencies]
-iced = { workspace = true }
-iced_core = { workspace = true }
+core = { workspace = true }

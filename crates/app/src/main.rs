@@ -13,7 +13,7 @@ pub mod app;
 pub mod commands;
 pub mod state;
 
-pub const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
+pub const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
 
 fn main() -> iced::Result {
     iced::application("Sanchaar", update, view)

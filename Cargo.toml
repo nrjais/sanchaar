@@ -1,29 +1,15 @@
 [package]
 name = "Sanchaar"
+
+[workspace.package]
+authors = ["Neeraj Jaiswal <me@nrjais.com>"]
 description = "A fast offline REST API Client"
 version = "0.1.0-prerelease.1"
 edition = "2021"
 
-[package.metadata.bundle]
-name = "Sanchaar"
-identifier = "com.nrjais.sanchaar"
-icon = [
-    "assets/16x16.png",
-    "assets/16x16@2x.png",
-    "assets/32x32.png",
-    "assets/32x32@2x.png",
-    "assets/64x64.png",
-    "assets/64x64@2x.png",
-    "assets/128x128.png",
-    "assets/128x128@2x.png",
-    "assets/256x256.png",
-    "assets/256x256@2x.png",
-    "assets/512x512.png",
-    "assets/512x512@2x.png",
-]
-
 [workspace]
 members = ["crates/*"]
+default-members = ["crates/app"]
 
 [workspace.dependencies]
 iced = { git = "https://github.com/nrjais/iced", features = [
@@ -55,22 +41,17 @@ directories = "5.0.1"
 log = "0.4.21"
 regex = "1.10.4"
 hcl-rs = "0.18.0"
-
-[dependencies]
 components = { path = "crates/components" }
 core = { path = "crates/core" }
-# js = { path = "crates/js" }
-iced = { workspace = true }
-tokio = { workspace = true }
-strum = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-slotmap = { workspace = true }
-humansize = { workspace = true }
-reqwest = { workspace = true }
-anyhow = { workspace = true }
-rfd = { workspace = true }
-log = { workspace = true }
+
+[[bin]]
+name = "sanchaar"
+path = "crates/app/src/main.rs"
+
+[[bin]]
+name = "sanchaar-cli"
+path = "crates/cli/src/main.rs"
+
 
 [profile.dev]
 incremental = true
