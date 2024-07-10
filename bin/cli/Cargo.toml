@@ -7,7 +7,7 @@ edition.workspace = true
 
 [[bin]]
 name = "sanchaar-cli"
-path = "main.rs"
+path = "cli.rs"
 
 [dependencies]
 cli = { path = "../../crates/cli" }
