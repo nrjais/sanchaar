@@ -207,6 +207,7 @@ impl RequestPane {
             auth: self.auth.to_auth(),
             query_params: to_core_kv_list(&self.query_params),
             path_params: to_core_kv_list(&self.path_params),
+            assertions: Default::default(),
             pre_request: self.pre_request.clone(),
         }
     }

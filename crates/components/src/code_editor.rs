@@ -1,6 +1,6 @@
 use iced::highlighter::Highlighter;
 use iced::widget::{component, Component};
-use iced::{highlighter, Element, Font, Length, Renderer, Theme};
+use iced::{highlighter, Element, Font, Length};
 use iced_core::text::Wrapping;
 
 use crate::text_editor::{self, text_editor, ContentAction};
@@ -94,8 +94,8 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
     }
 }
 
-impl<'a, M: 'a> Into<Element<'a, M>> for CodeEditor<'a, M> {
-    fn into(self) -> Element<'a, M, Theme, Renderer> {
-        component(self)
+impl<'a, M: 'a> From<CodeEditor<'a, M>> for Element<'a, M> {
+    fn from(val: CodeEditor<'a, M>) -> Self {
+        component(val)
     }
 }

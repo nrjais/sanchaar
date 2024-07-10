@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
 
-use super::{KeyFileList, KeyValList};
+use super::{assertions::Assertions, KeyFileList, KeyValList};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RequestBody {
@@ -38,7 +38,7 @@ pub enum Method {
     TRACE,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Request {
     pub description: String,
     pub method: Method,
@@ -48,6 +48,7 @@ pub struct Request {
     pub query_params: KeyValList,
     pub path_params: KeyValList,
     pub auth: Auth,
+    pub assertions: Assertions,
     pub pre_request: Option<String>,
 }
 
@@ -62,6 +63,7 @@ impl Default for Request {
             query_params: KeyValList::new(),
             path_params: KeyValList::new(),
             auth: Auth::None,
+            assertions: Assertions::default(),
             pre_request: None,
         }
     }

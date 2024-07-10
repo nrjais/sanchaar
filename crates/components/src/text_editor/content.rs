@@ -81,12 +81,10 @@ pub enum ContentAction {
 impl ContentAction {
     /// Returns `true` if the [`ContentAction`] is an edit.
     pub fn is_edit(&self) -> bool {
-        match self {
-            Self::Action(Action::Edit(_)) => true,
-            Self::Delete(_) => true,
-            Self::Undo | Self::Redo => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Self::Action(Action::Edit(_)) | Self::Delete(_) | Self::Undo | Self::Redo
+        )
     }
 }
 

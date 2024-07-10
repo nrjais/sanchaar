@@ -268,8 +268,8 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
     }
 }
 
-impl<'a, M: Clone + 'a> Into<Element<'a, M>> for KeyValEditor<'a, M> {
-    fn into(self) -> Element<'a, M> {
-        component(self)
+impl<'a, M: Clone + 'a> From<KeyValEditor<'a, M>> for Element<'a, M> {
+    fn from(val: KeyValEditor<'a, M>) -> Self {
+        component(val)
     }
 }

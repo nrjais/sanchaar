@@ -7,7 +7,6 @@ use crate::http::KeyValue;
 pub mod collections;
 pub mod environment;
 pub mod request;
-mod assertions;
 
 pub const HCL_SUFFIX: &str = "hcl";
 pub const HCL_EXTENSION: &str = ".hcl";

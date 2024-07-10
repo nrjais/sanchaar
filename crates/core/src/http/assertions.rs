@@ -1,16 +1,21 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use anyhow::Context;
 use hcl::{
     structure::{BlockBuilder, BodyBuilder},
-    BlockLabel, Identifier, Number, Value,
+    BlockLabel, Identifier, Value,
 };
 use serde::Deserialize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Condition {
     Eq(String, Value),
     Ne(String, Value),
+
+    Gt(String, f64),
+    Gte(String, f64),
+    Lt(String, f64),
+    Lte(String, f64),
 
     Contains(String, String),
     NotContains(String, String),
@@ -24,6 +29,10 @@ impl Condition {
         match self {
             Condition::Eq(_, _) => "eq",
             Condition::Ne(_, _) => "ne",
+            Condition::Gt(_, _) => "gt",
+            Condition::Gte(_, _) => "gte",
+            Condition::Lt(_, _) => "lt",
+            Condition::Lte(_, _) => "lte",
             Condition::Contains(_, _) => "contains",
             Condition::NotContains(_, _) => "not_contains",
             Condition::StartsWith(_, _) => "starts_with",
@@ -33,7 +42,7 @@ impl Condition {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Assertion {
     Status(Vec<Condition>),
     Duration(Vec<Condition>),
@@ -41,7 +50,7 @@ pub enum Assertion {
     Body(Vec<Condition>),
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Assertions(pub Vec<Assertion>);
 
 impl<'de> Deserialize<'de> for Assertions {
@@ -64,6 +73,10 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
             let condition = match op.as_str() {
                 "eq" => Condition::Eq(key, value.to_owned()),
                 "ne" => Condition::Ne(key, value.to_owned()),
+                "gt" => Condition::Gt(key, as_f64(value)?),
+                "gte" => Condition::Gte(key, as_f64(value)?),
+                "lt" => Condition::Lt(key, as_f64(value)?),
+                "lte" => Condition::Lte(key, as_f64(value)?),
                 "contains" => Condition::Contains(key, as_string(value)?),
                 "not_contains" => Condition::NotContains(key, as_string(value)?),
                 "starts_with" => Condition::StartsWith(key, as_string(value)?),
@@ -92,6 +105,10 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
     Ok(conditions)
 }
 
+fn as_f64(value: &Value) -> anyhow::Result<f64> {
+    value.as_f64().context("Expected Number")
+}
+
 fn as_string(value: &Value) -> anyhow::Result<String> {
     Ok(value.as_str().context("Expected String")?.to_string())
 }
@@ -100,13 +117,13 @@ pub fn parse(body: Value) -> anyhow::Result<Assertions> {
     let mut assertions = Vec::new();
 
     let root = body.as_object().context("Expected Object")?;
-
     for (key, value) in root {
+        let matchers = parse_conditions(value)?;
         let condition = match key.as_str() {
-            "status" => Assertion::Status(parse_conditions(value)?),
-            "duration" => Assertion::Duration(parse_conditions(value)?),
-            "header" => Assertion::Headers(parse_conditions(value)?),
-            "body" => Assertion::Body(parse_conditions(value)?),
+            "status" => Assertion::Status(matchers),
+            "duration" => Assertion::Duration(matchers),
+            "header" => Assertion::Headers(matchers),
+            "body" => Assertion::Body(matchers),
             _ => continue, // Ignored
         };
 
@@ -126,9 +143,14 @@ fn encode_condition_block(
 
     for condition in conditions.into_iter() {
         let op = condition.to_string();
+        // Handle multiline strings with heredoc
         let (key, value) = match condition {
             Condition::Eq(k, v) => (k, v),
             Condition::Ne(k, v) => (k, v),
+            Condition::Gt(k, v) => (k, v.into()),
+            Condition::Gte(k, v) => (k, v.into()),
+            Condition::Lt(k, v) => (k, v.into()),
+            Condition::Lte(k, v) => (k, v.into()),
             Condition::Contains(k, v) => (k, v.into()),
             Condition::NotContains(k, v) => (k, v.into()),
             Condition::StartsWith(k, v) => (k, v.into()),
@@ -155,7 +177,7 @@ fn encode_condition_block(
     root
 }
 
-pub fn encode_body(builder: BodyBuilder, assertions: Assertions) -> BodyBuilder {
+pub fn encode(builder: BodyBuilder, assertions: Assertions) -> BodyBuilder {
     if assertions.0.is_empty() {
         return builder;
     }

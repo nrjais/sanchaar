@@ -93,10 +93,10 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
     if let Some(suffix) = suffix {
         tabs_row.extend([
             vertical
-                .then(|| vertical_space())
+                .then(vertical_space)
                 .unwrap_or(horizontal_space())
                 .into(),
-            suffix.into(),
+            suffix,
         ]);
     }
 

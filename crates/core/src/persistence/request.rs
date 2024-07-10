@@ -8,11 +8,12 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
+use crate::http::assertions::{self, Assertions};
 use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
 use crate::persistence::Version;
 
-use super::{assertions, EncodedKeyFile, EncodedKeyValue};
+use super::{EncodedKeyFile, EncodedKeyValue};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -45,23 +46,23 @@ impl From<EncodedMethod> for Method {
 
 #[derive(Debug, Deserialize)]
 pub struct EncodedRequest {
-    #[serde(default, skip_serializing_if = "String::is_empty")]
+    #[serde(default)]
     pub description: String,
     #[serde(default)]
     pub version: Version,
     pub method: EncodedMethod,
     pub url: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub params: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub queries: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub headers: Vec<EncodedKeyValue>,
     pub auth: Option<EncodedAuthType>,
     pub body: Option<EncodedRequestBody>,
     pub pre_request: Option<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub assertions: assertions::Assertions,
+    #[serde(default)]
+    pub assertions: Assertions,
 }
 
 #[derive(Debug, Deserialize)]
@@ -94,6 +95,7 @@ pub fn encode_request(req: Request) -> hcl::Result<Body> {
         path_params,
         auth,
         description,
+        assertions,
         pre_request,
     } = req;
 
@@ -108,7 +110,7 @@ pub fn encode_request(req: Request) -> hcl::Result<Body> {
     builder = add_kv_block(builder, "queries", query_params)?;
     builder = add_kv_block(builder, "headers", headers)?;
     builder = add_body_block(builder, body)?;
-    // builder = add_assertions_block(builder, req.assertions)?;
+    builder = assertions::encode(builder, assertions);
 
     if let Some(pre_request) = pre_request {
         builder = builder.add_attribute(("pre_request", pre_request));
@@ -265,6 +267,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         params: path_params,
         auth,
         pre_request,
+        assertions,
         ..
     } = req;
 
@@ -277,6 +280,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         path_params: decode_key_values(path_params),
         auth: decode_auth(auth),
         description,
+        assertions,
         pre_request,
     }
 }
@@ -307,8 +311,6 @@ pub async fn load_from_file(path: &PathBuf) -> anyhow::Result<EncodedRequest> {
 
     reader.read_to_string(&mut buffer).await?;
     let decoded: EncodedRequest = hcl::from_str(&buffer)?;
-
-    // println!("{:?}", decoded);
 
     Ok(decoded)
 }

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -40,7 +40,7 @@ impl From<Environment> for EncodedEnvironment {
     }
 }
 
-pub async fn read_environments(col: &PathBuf) -> anyhow::Result<Environments> {
+pub async fn read_environments(col: &Path) -> anyhow::Result<Environments> {
     let env_path = col.join(ENVIRONMENTS);
     let exists = fs::try_exists(&env_path).await?;
     if !exists {

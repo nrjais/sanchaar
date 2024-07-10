@@ -199,7 +199,6 @@ pub fn open_request_cmd<M: 'static + MaybeSend>(
         Ok(req) => on_done(Some(req)),
         Err(e) => {
             log::error!("Error opening request: {:?}", &e);
-            println!("Error opening request: {:?}", &e);
             on_done(None)
         }
     })

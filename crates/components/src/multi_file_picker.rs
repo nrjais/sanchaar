@@ -173,7 +173,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
     fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
         match event {
             FilePickerUpdateMsg::OpenFilePicker(idx) => {
-                return Some((self.on_file_picker)(idx));
+                Some((self.on_file_picker)(idx))
             }
             _ => self.on_change.as_ref().map(|f| f(event)),
         }
@@ -286,8 +286,8 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
     }
 }
 
-impl<'a, M: Clone + 'a> Into<Element<'a, M>> for MultiFilePicker<'a, M> {
-    fn into(self) -> Element<'a, M> {
-        component(self)
+impl<'a, M: Clone + 'a> From<MultiFilePicker<'a, M>> for Element<'a, M> {
+    fn from(val: MultiFilePicker<'a, M>) -> Self {
+        component(val)
     }
 }
