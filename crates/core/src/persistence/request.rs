@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
-use crate::http::assertions::{self, Assertions};
+use crate::assertions::{self, Assertions};
 use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
 use crate::persistence::Version;

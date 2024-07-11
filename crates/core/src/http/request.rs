@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
 
-use super::{assertions::Assertions, KeyFileList, KeyValList};
+use crate::assertions::Assertions;
+
+use super::{ KeyFileList, KeyValList};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RequestBody {

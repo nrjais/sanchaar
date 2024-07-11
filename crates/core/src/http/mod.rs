@@ -11,7 +11,6 @@ use self::environment::{Environment, EnvironmentKey};
 pub mod collection;
 pub mod environment;
 pub mod request;
-pub mod assertions;
 
 slotmap::new_key_type! {
     pub struct CollectionKey;

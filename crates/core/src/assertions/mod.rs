@@ -1,3 +1,5 @@
+pub mod runner;
+
 use std::collections::HashMap;
 
 use anyhow::Context;
@@ -8,7 +10,7 @@ use hcl::{
 use serde::Deserialize;
 use strum::{Display, EnumString};
 
-#[derive(Debug, Clone, PartialEq, Eq, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display, EnumString)]
 pub enum MatchType {
     Null,
     Undefined,
@@ -20,49 +22,55 @@ pub enum MatchType {
     Empty,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Condition {
-    Eq(String, Value),
-    Ne(String, Value),
+#[derive(Debug, Clone, PartialEq, Display)]
+pub enum Matcher {
+    Eq(Value),
+    Ne(Value),
 
-    Gt(String, f64),
-    Gte(String, f64),
-    Lt(String, f64),
-    Lte(String, f64),
+    Gt(f64),
+    Gte(f64),
+    Lt(f64),
+    Lte(f64),
 
-    In(String, Vec<Value>),
-    NotIn(String, Vec<Value>),
+    In(Vec<Value>),
+    NotIn(Vec<Value>),
 
-    Contains(String, String),
-    NotContains(String, String),
-    StartsWith(String, String),
-    EndsWith(String, String),
-    Matches(String, String),
-    NotMatches(String, String),
+    Contains(String),
+    NotContains(String),
+    StartsWith(String),
+    EndsWith(String),
+    Matches(String),
+    NotMatches(String),
 
-    Is(String, MatchType),
-    IsNot(String, MatchType),
+    Is(MatchType),
+    IsNot(MatchType),
 }
 
-impl Condition {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Condition {
+    key: String,
+    matcher: Matcher,
+}
+
+impl Matcher {
     fn to_string(&self) -> &'static str {
         match self {
-            Condition::Eq(_, _) => "eq",
-            Condition::Ne(_, _) => "ne",
-            Condition::Gt(_, _) => "gt",
-            Condition::Gte(_, _) => "gte",
-            Condition::Lt(_, _) => "lt",
-            Condition::Lte(_, _) => "lte",
-            Condition::Contains(_, _) => "contains",
-            Condition::NotContains(_, _) => "not_contains",
-            Condition::StartsWith(_, _) => "starts_with",
-            Condition::EndsWith(_, _) => "ends_with",
-            Condition::Matches(_, _) => "matches",
-            Condition::NotMatches(_, _) => "not_matches",
-            Condition::In(_, _) => "in",
-            Condition::NotIn(_, _) => "not_in",
-            Condition::Is(_, _) => "is",
-            Condition::IsNot(_, _) => "is_not",
+            Matcher::Eq(_) => "eq",
+            Matcher::Ne(_) => "ne",
+            Matcher::Gt(_) => "gt",
+            Matcher::Gte(_) => "gte",
+            Matcher::Lt(_) => "lt",
+            Matcher::Lte(_) => "lte",
+            Matcher::Contains(_) => "contains",
+            Matcher::NotContains(_) => "not_contains",
+            Matcher::StartsWith(_) => "starts_with",
+            Matcher::EndsWith(_) => "ends_with",
+            Matcher::Matches(_) => "matches",
+            Matcher::NotMatches(_) => "not_matches",
+            Matcher::In(_) => "in",
+            Matcher::NotIn(_) => "not_in",
+            Matcher::Is(_) => "is",
+            Matcher::IsNot(_) => "is_not",
         }
     }
 }
@@ -94,27 +102,27 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
     fn parse_condition(cons: &mut Vec<Condition>, key: &str, obj: &Value) -> anyhow::Result<()> {
         let object = obj.as_object().context("Expected Object")?;
         for (op, value) in object {
-            let key = key.to_owned();
-            let condition = match op.as_str() {
-                "eq" => Condition::Eq(key, value.to_owned()),
-                "ne" => Condition::Ne(key, value.to_owned()),
-                "gt" => Condition::Gt(key, as_f64(value)?),
-                "gte" => Condition::Gte(key, as_f64(value)?),
-                "lt" => Condition::Lt(key, as_f64(value)?),
-                "lte" => Condition::Lte(key, as_f64(value)?),
-                "contains" => Condition::Contains(key, as_string(value)?),
-                "not_contains" => Condition::NotContains(key, as_string(value)?),
-                "starts_with" => Condition::StartsWith(key, as_string(value)?),
-                "ends_with" => Condition::EndsWith(key, as_string(value)?),
-                "matches" => Condition::Matches(key, as_string(value)?),
-                "not_matches" => Condition::NotMatches(key, as_string(value)?),
-                "in" => Condition::In(key, as_array(value)?),
-                "not_in" => Condition::NotIn(key, as_array(value)?),
-                "is" => Condition::Is(key, as_string(value)?.parse()?),
-                "is_not" => Condition::IsNot(key, as_string(value)?.parse()?),
+            let matcher = match op.as_str() {
+                "eq" => Matcher::Eq(value.to_owned()),
+                "ne" => Matcher::Ne(value.to_owned()),
+                "gt" => Matcher::Gt(as_f64(value)?),
+                "gte" => Matcher::Gte(as_f64(value)?),
+                "lt" => Matcher::Lt(as_f64(value)?),
+                "lte" => Matcher::Lte(as_f64(value)?),
+                "contains" => Matcher::Contains(as_string(value)?),
+                "not_contains" => Matcher::NotContains(as_string(value)?),
+                "starts_with" => Matcher::StartsWith(as_string(value)?),
+                "ends_with" => Matcher::EndsWith(as_string(value)?),
+                "matches" => Matcher::Matches(as_string(value)?),
+                "not_matches" => Matcher::NotMatches(as_string(value)?),
+                "in" => Matcher::In(as_array(value)?),
+                "not_in" => Matcher::NotIn(as_array(value)?),
+                "is" => Matcher::Is(as_string(value)?.parse()?),
+                "is_not" => Matcher::IsNot(as_string(value)?.parse()?),
                 _ => continue, // Ignored
             };
-            cons.push(condition);
+            let key = key.to_owned();
+            cons.push(Condition { key, matcher });
         }
         Ok(())
     }
@@ -176,26 +184,27 @@ fn encode_condition_block(
     let mut blocks = HashMap::new();
 
     for condition in conditions.into_iter() {
-        let op = condition.to_string();
+        let Condition { key, matcher } = condition;
+        let op = matcher.to_string();
 
         // Handle multiline strings with heredoc
-        let (key, value) = match condition {
-            Condition::Eq(k, v) => (k, v),
-            Condition::Ne(k, v) => (k, v),
-            Condition::Gt(k, v) => (k, v.into()),
-            Condition::Gte(k, v) => (k, v.into()),
-            Condition::Lt(k, v) => (k, v.into()),
-            Condition::Lte(k, v) => (k, v.into()),
-            Condition::Contains(k, v) => (k, v.into()),
-            Condition::NotContains(k, v) => (k, v.into()),
-            Condition::StartsWith(k, v) => (k, v.into()),
-            Condition::EndsWith(k, v) => (k, v.into()),
-            Condition::Matches(k, v) => (k, v.into()),
-            Condition::NotMatches(k, v) => (k, v.into()),
-            Condition::In(k, v) => (k, v.into()),
-            Condition::NotIn(k, v) => (k, v.into()),
-            Condition::Is(k, v) => (k, v.to_string().into()),
-            Condition::IsNot(k, v) => (k, v.to_string().into()),
+        let value = match matcher {
+            Matcher::Eq(v) => v,
+            Matcher::Ne(v) => v,
+            Matcher::Gt(v) => v.into(),
+            Matcher::Gte(v) => v.into(),
+            Matcher::Lt(v) => v.into(),
+            Matcher::Lte(v) => v.into(),
+            Matcher::Contains(v) => v.into(),
+            Matcher::NotContains(v) => v.into(),
+            Matcher::StartsWith(v) => v.into(),
+            Matcher::EndsWith(v) => v.into(),
+            Matcher::Matches(v) => v.into(),
+            Matcher::NotMatches(v) => v.into(),
+            Matcher::In(v) => v.into(),
+            Matcher::NotIn(v) => v.into(),
+            Matcher::Is(v) => v.to_string().into(),
+            Matcher::IsNot(v) => v.to_string().into(),
         };
 
         let mut block = blocks.remove(&key).unwrap_or_else(|| {
