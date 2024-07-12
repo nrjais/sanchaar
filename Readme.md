@@ -1,11 +1,12 @@
 <div align="center">
 <img src="assets/512x512.png" alt="logo" width="150" style="border-radius: 25px"/>
+</div>
 
 # Sanchaar - A Offline REST API client
 
 Sanchaar is a offline REST API client built using Iced in Rust. It is a simple tool to test REST APIs without the need of internet connection. It supports GET, POST, PUT, DELETE requests with path, query and header parameters.
 
-</div>
+[![Discord](https://img.shields.io/discord/1261282563138392117?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/FSK25BXgdt)
 
 ## Screenshot
 
