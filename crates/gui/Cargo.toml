@@ -5,7 +5,6 @@ authors.workspace = true
 description.workspace = true
 edition.workspace = true
 
-
 [dependencies]
 components = { workspace = true }
 core = { workspace = true }

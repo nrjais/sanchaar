@@ -1,5 +1,24 @@
 [package]
+name = "sanchaar"
+default-run = "sanchaar"
+
+[package.metadata.bundle]
 name = "Sanchaar"
+identifier = "com.nrjais.sanchaar"
+icon = [
+    "assets/16x16.png",
+    "assets/16x16@2x.png",
+    "assets/32x32.png",
+    "assets/32x32@2x.png",
+    "assets/64x64.png",
+    "assets/64x64@2x.png",
+    "assets/128x128.png",
+    "assets/128x128@2x.png",
+    "assets/256x256.png",
+    "assets/256x256@2x.png",
+    "assets/512x512.png",
+    "assets/512x512@2x.png",
+]
 
 [workspace.package]
 authors = ["Neeraj Jaiswal <me@nrjais.com>"]
@@ -8,14 +27,7 @@ version = "0.1.0-prerelease.1"
 edition = "2021"
 
 [workspace]
-members = [
-    "crates/gui",
-    "crates/cli",
-    "crates/components",
-    "crates/core",
-    "bin/*",
-]
-default-members = ["bin/gui"]
+members = ["crates/gui", "crates/cli", "crates/components", "crates/core"]
 
 [workspace.dependencies]
 iced = { git = "https://github.com/nrjais/iced", features = [
@@ -50,13 +62,15 @@ hcl-rs = "0.18.0"
 components = { path = "crates/components" }
 core = { path = "crates/core" }
 
-[[bin]]
-name = "gui"
-path = "crates/gui/src/main.rs"
+[dependencies]
+cli = { path = "crates/cli" }
+gui = { path = "crates/gui" }
 
-# [[bin]]
-# name = "cli"
-# path = "crates/cli/src/main.rs"
+[[bin]]
+name = "sanchaar"
+
+[[bin]]
+name = "sanchaar-cli"
 
 [profile.dev]
 incremental = true
