@@ -195,13 +195,17 @@ pub fn open_request_cmd<M: 'static + MaybeSend>(
         return Task::none();
     };
 
-    Task::perform(read_request(req.path.clone()), move |res| match res {
-        Ok(req) => on_done(Some(req)),
-        Err(e) => {
-            log::error!("Error opening request: {:?}", &e);
-            on_done(None)
-        }
-    })
+    let path = req.path.clone();
+    Task::perform(
+        async move { read_request(&path).await },
+        move |res| match res {
+            Ok(req) => on_done(Some(req)),
+            Err(e) => {
+                log::error!("Error opening request: {:?}", &e);
+                on_done(None)
+            }
+        },
+    )
 }
 
 pub(crate) fn delete_folder_cmd<M: 'static + MaybeSend>(
@@ -323,7 +327,7 @@ pub(crate) fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
     ) -> Result<Vec<(TabKey, RequestDirtyState)>, anyhow::Error> {
         let mut status = Vec::new();
         for (key, req, path) in to_check {
-            let file_request = read_request(path).await?;
+            let file_request = read_request(&path).await?;
             if req != file_request {
                 status.push((key, RequestDirtyState::Dirty));
             } else {

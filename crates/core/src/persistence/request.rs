@@ -285,8 +285,8 @@ fn decode_request(req: EncodedRequest) -> Request {
     }
 }
 
-pub async fn read_request(path: PathBuf) -> anyhow::Result<Request> {
-    let request = load_from_file(&path).await?;
+pub async fn read_request(path: &PathBuf) -> anyhow::Result<Request> {
+    let request = load_from_file(path).await?;
     Ok(decode_request(request))
 }
 

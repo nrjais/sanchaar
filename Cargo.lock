@@ -628,6 +628,7 @@ dependencies = [
  "core",
  "hex",
  "humansize",
+ "reqwest",
  "serde_json",
  "tokio",
 ]

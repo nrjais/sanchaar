@@ -13,7 +13,7 @@ pub async fn run(root: PathBuf, req: PathBuf, verbose: bool) -> anyhow::Result<(
     let root = current_dir.join(root);
 
     let path = root.join(req);
-    let req = read_request(path).await?;
+    let req = read_request(&path).await?;
 
     let client = create_client();
     let req = transform_request(client.clone(), req, None).await?;

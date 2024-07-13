@@ -12,4 +12,5 @@ clap = { workspace = true }
 anyhow = { workspace = true }
 humansize = { workspace = true }
 serde_json = { workspace = true }
+reqwest = { workspace = true }
 hex = "0.4.3"
