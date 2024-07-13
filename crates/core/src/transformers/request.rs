@@ -195,7 +195,7 @@ async fn open_file(file: &PathBuf) -> (String, File) {
         .read(true)
         .open(file)
         .await
-        .expect("Failed to open file");
+        .expect("Failed to open file for request body");
     (content_type, file)
 }
 

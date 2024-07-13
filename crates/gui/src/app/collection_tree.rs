@@ -131,6 +131,10 @@ fn handle_context_menu(
         MenuAction::DeleteRequest(req) => {
             builders::delete_request_cmd(state, col, req, move || CollectionTreeMsg::ActionComplete)
         }
+        MenuAction::CopyPath(_) => {
+            // TODO: Copy path to clipboard
+            Task::none()
+        }
     }
 }
 
@@ -265,6 +269,7 @@ pub enum MenuAction {
     RenameFolder(String, FolderId),
     DeleteFolder(FolderId),
     RenameRequest(String, RequestId),
+    CopyPath(RequestId),
     DeleteRequest(RequestId),
     NewRequest(Option<FolderId>),
     RenameCollection(String),
@@ -331,6 +336,10 @@ fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, 
                     col,
                     MenuAction::RenameRequest(item.name.to_owned(), request_id),
                 ),
+            ),
+            menu_item(
+                "Copy Path",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::CopyPath(request_id)),
             ),
             menu_item(
                 "Delete",

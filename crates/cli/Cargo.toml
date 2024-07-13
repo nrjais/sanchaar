@@ -9,3 +9,7 @@ edition.workspace = true
 core = { workspace = true }
 tokio = { workspace = true }
 clap = { workspace = true }
+anyhow = { workspace = true }
+humansize = { workspace = true }
+serde_json = { workspace = true }
+hex = "0.4.3"

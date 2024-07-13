@@ -1,4 +1,13 @@
+version = "V1"
 description = "Http request"
-version     = "V1"
-method      = "GET"
-url         = "https://echo.nrjais.com"
+url = "https://echo.nrjais.com"
+method = "GET"
+
+body {
+  form = [
+    {
+      "name" = "test"
+      "value" = "param"
+    }
+  ]
+}

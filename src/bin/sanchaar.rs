@@ -1,3 +1,9 @@
 fn main() {
-    gui::main().expect("Failed to run GUI");
+    match gui::main() {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
 }

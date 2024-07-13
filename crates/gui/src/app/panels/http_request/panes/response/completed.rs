@@ -1,3 +1,5 @@
+use core::utils::fmt_duration;
+
 use humansize::{format_size, BINARY};
 use iced::widget::{button, container, text, Column, Row};
 use iced::{clipboard, Alignment, Border, Color, Element, Task, Theme};
@@ -44,20 +46,6 @@ impl CompletedMsg {
     }
 }
 
-fn fmt_duration(d: std::time::Duration) -> String {
-    let millis = d.as_millis();
-
-    let mut duration = String::from("Time:");
-    if millis > 1000 {
-        duration.push_str(&format!(" {}s", millis / 1000));
-    }
-    let millis = millis % 1000;
-    if millis > 0 {
-        duration.push_str(&format!(" {}ms", millis));
-    }
-
-    duration
-}
 
 fn status_color(status: reqwest::StatusCode) -> Color {
     match status.as_u16() {
