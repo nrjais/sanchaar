@@ -1,4 +1,5 @@
 use iced::advanced::text::Wrapping;
+use iced::padding;
 use iced::widget::{container, scrollable, text, Column};
 use iced::{widget::Row, Element, Length};
 
@@ -9,7 +10,7 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
     let spacing = 2;
     let mut values_col = Column::new()
         .spacing(spacing)
-        .padding([4, 12, 4, 0])
+        .padding(padding::Padding::from([4, 12]).left(0))
         .width(Length::Fill);
 
     for (key, val) in values {

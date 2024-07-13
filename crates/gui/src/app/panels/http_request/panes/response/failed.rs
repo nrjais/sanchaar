@@ -12,11 +12,11 @@ pub fn view(_state: &AppState, e: Arc<anyhow::Error>) -> iced::Element<'_, Respo
     let error_msg = Row::new()
         .push(text("Error: "))
         .push(text(e.root_cause().to_string()))
-        .align_items(iced::Alignment::Center);
+        .align_y(iced::Alignment::Center);
 
     Column::new()
         .push(container(error_icon).padding(10))
         .push(error_msg)
-        .align_items(iced::Alignment::Center)
+        .align_x(iced::Alignment::Center)
         .into()
 }

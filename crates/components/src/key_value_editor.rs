@@ -1,9 +1,9 @@
 use iced::widget::{column, text};
+use iced::{padding, Background, Length};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
 };
-use iced::{Background, Length};
 use std::ops::Not;
 
 use crate::text_editor::{self, line_editor, ContentAction};
@@ -199,7 +199,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     Row::new()
                         .push(tooltip("Enabled", enabled))
                         .push(tooltip("Delete", remove))
-                        .align_items(iced::Alignment::Center)
+                        .align_y(iced::Alignment::Center)
                         .spacing(8),
                 )
                 .style(container::rounded_box)
@@ -254,15 +254,15 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 t.extended_palette().background.weak.color,
             )),
             border: Border::default()
-                .with_width(1)
-                .with_color(t.extended_palette().background.strong.color),
+                .width(1)
+                .color(t.extended_palette().background.strong.color),
             ..container::transparent(t)
         })
         .into();
 
         column([header])
             .extend(values)
-            .padding([0, 8, 0, 0])
+            .padding(padding::right(8))
             .width(Length::Fill)
             .into()
     }

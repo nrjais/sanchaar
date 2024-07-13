@@ -64,7 +64,7 @@ pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
             .padding([2, 8]),
         )
         .height(Length::Shrink)
-        .align_items(iced::Alignment::Center);
+        .align_y(iced::Alignment::Center);
 
     let body: Element<AuthEditorMsg> = auth_body(auth);
 
@@ -102,7 +102,7 @@ fn auth_body(auth: &RawAuthType) -> Element<AuthEditorMsg> {
             Column::new()
                 .push(empty_icon)
                 .push(text("No Auth"))
-                .align_items(iced::Alignment::Center)
+                .align_x(iced::Alignment::Center)
                 .height(Length::Shrink)
                 .width(Length::Shrink)
                 .into()

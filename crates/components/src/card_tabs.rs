@@ -4,7 +4,7 @@ use iced::widget::{horizontal_space, Column};
 use iced::Background;
 use iced::{
     widget::{button, Row, Text},
-    Element,
+    Center, Element,
 };
 
 #[derive(Debug, Clone)]
@@ -30,7 +30,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     on_action: impl Fn(TabBarAction<T>) -> M,
     suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
-    let mut tabs_row = Row::new().align_items(iced::Alignment::Center).spacing(2);
+    let mut tabs_row = Row::new().align_y(Center).spacing(2);
     for tab in tabs {
         let active = tab.id == active;
 
@@ -52,7 +52,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                     }),
             )
             .padding([4, 2])
-            .align_items(iced::Alignment::Center)
+            .align_y(Center)
             .spacing(4);
 
         tabs_row = tabs_row.push(

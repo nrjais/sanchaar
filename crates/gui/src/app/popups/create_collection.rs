@@ -93,7 +93,7 @@ pub(crate) fn view<'a>(
             .padding([2, 6])
             .on_press(Message::OpenDialog),
         )
-        .align_items(iced::Alignment::Center)
+        .align_y(iced::Alignment::Center)
         .spacing(4);
 
     Column::new()

@@ -1,7 +1,7 @@
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
 use iced::widget::{button, column, container, row, text, Button, Column, Row, Scrollable};
-use iced::{Task, Element, Length};
+use iced::{padding, Element, Length, Task};
 
 use components::{context_menu, horizontal_line, icon, icons, menu_item, tooltip, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
@@ -169,17 +169,17 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         )
         .push(horizontal_line(2))
         .push(
-            Scrollable::with_direction(
+            Scrollable::new(
                 column(it)
                     .width(Length::Shrink)
                     .height(Length::Shrink)
                     .spacing(4)
-                    .padding([0, 12, 12, 0]),
-                Direction::Both {
-                    vertical: Default::default(),
-                    horizontal: Default::default(),
-                },
+                    .padding(padding::right(12).bottom(12)),
             )
+            .direction(Direction::Both {
+                vertical: Default::default(),
+                horizontal: Default::default(),
+            })
             .height(Length::Fill),
         )
         .spacing(7)
@@ -202,7 +202,7 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
 
     column(it)
         .spacing(2)
-        .padding([0, 0, 0, 12])
+        .padding(padding::left(12))
         .width(Length::Shrink)
         .into()
 }
@@ -243,7 +243,7 @@ fn expandable_button(
 ) -> impl Into<Element<CollectionTreeMsg>> {
     let base = button(
         row([icon(arrow).into(), text(name).into()])
-            .align_items(iced::Alignment::Center)
+            .align_y(iced::Alignment::Center)
             .width(Length::Shrink)
             .spacing(4),
     )
@@ -312,7 +312,7 @@ fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, 
                 .into(),
             text(&item.name).into(),
         ])
-        .align_items(iced::Alignment::Center)
+        .align_y(iced::Alignment::Center)
         .width(Length::Shrink)
         .spacing(6),
     )

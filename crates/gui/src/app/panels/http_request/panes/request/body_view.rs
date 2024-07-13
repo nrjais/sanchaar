@@ -24,7 +24,7 @@ pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
             .padding([2, 6]),
         )
         .height(Length::Shrink)
-        .align_items(iced::Alignment::Center);
+        .align_y(iced::Alignment::Center);
 
     let body = match body {
         RawRequestBody::Json(content) => body_editor::view(content, ContentType::Json),
@@ -57,7 +57,7 @@ fn file(path: &Option<PathBuf>) -> Element<RequestPaneMsg> {
                 .on_press(RequestPaneMsg::OpenFilePicker)
                 .style(button::secondary),
         )
-        .align_items(iced::Alignment::Center)
+        .align_x(iced::Alignment::Center)
         .spacing(8)
         .into()
 }
@@ -73,7 +73,7 @@ fn no_body<'a>() -> Element<'a, RequestPaneMsg> {
     Column::new()
         .push(container(icon(icons::FileCancel).size(80.0)).padding(10))
         .push(text("No Body Content"))
-        .align_items(iced::Alignment::Center)
+        .align_x(iced::Alignment::Center)
         .height(Length::Shrink)
         .width(Length::Shrink)
         .into()

@@ -29,7 +29,7 @@ pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
         .push(text("Executing Request."))
         .push(cancel)
         .spacing(8)
-        .align_items(iced::Alignment::Center)
+        .align_x(iced::Alignment::Center)
         .height(Length::Shrink)
         .width(Length::Shrink);
 

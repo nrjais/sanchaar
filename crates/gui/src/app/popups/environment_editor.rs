@@ -4,7 +4,7 @@ use std::ops::Not;
 use iced::widget::{
     button, horizontal_space, scrollable, text, text_input, value, vertical_space, Column, Row,
 };
-use iced::{Task, Element, Length};
+use iced::{padding, Element, Length, Task};
 
 use components::{button_tab, icon, icons, key_value_editor, vertical_button_tabs, vertical_line};
 use core::http::environment::EnvironmentKey;
@@ -140,7 +140,7 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
                 .padding([2, 12])
                 .on_press(Message::AddNewEnvMode),
         )
-        .align_items(iced::Alignment::Center);
+        .align_y(iced::Alignment::Center);
 
     let tab_bar = Row::new()
         .push(
@@ -152,7 +152,7 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
                 )))
                 .push(vertical_space())
                 .push(env_actions)
-                .align_items(iced::Alignment::Center),
+                .align_x(iced::Alignment::Center),
         )
         .push(vertical_line(2));
 
@@ -168,7 +168,7 @@ pub fn view<'a>(_state: &'a AppState, data: &'a EnvironmentEditorState) -> Eleme
                         .style(button::danger)
                         .on_press(Message::DeleteEnv(selected)),
                 )
-                .padding([0, 8, 0, 0]),
+                .padding(padding::right(8)),
         )
         .push(
             scrollable(key_value_editor(&env.variables).on_change(update_env)).width(Length::Fill),

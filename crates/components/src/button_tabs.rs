@@ -1,5 +1,6 @@
 use iced::widget::button::Status;
 use iced::widget::{horizontal_space, vertical_space};
+use iced::Alignment::Center;
 use iced::{
     widget::{button, Column, Row, Text},
     Element,
@@ -33,7 +34,7 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
         .push(horizontal_line(2))
         .width(iced::Length::Fill)
         .height(iced::Length::Shrink)
-        .align_items(iced::Alignment::Center)
+        .align_x(Center)
         .into()
 }
 
@@ -44,11 +45,7 @@ pub fn vertical_button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 ) -> Row<'a, M> {
     let tabs = tab_list(active, tabs, on_tab_change, None, true);
     Row::new()
-        .push(
-            Column::from_vec(tabs)
-                .spacing(4)
-                .align_items(iced::Alignment::Center),
-        )
+        .push(Column::from_vec(tabs).spacing(4).align_x(Center))
         .width(iced::Length::Shrink)
         .height(iced::Length::Shrink)
 }

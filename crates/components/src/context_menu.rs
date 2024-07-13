@@ -1,9 +1,7 @@
-use iced::advanced::widget::{operation, tree, Operation};
+use iced::advanced::widget::{tree, Operation};
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::widget::{button, column, container, text};
-use iced::{
-    event, mouse, Element, Event, Length, Point, Rectangle, Renderer, Size, Task, Theme, Vector,
-};
+use iced::{event, mouse, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector};
 
 use crate::min_dimension::min_width;
 
@@ -229,42 +227,6 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
 
         Some(overlay::Group::with_children(base.into_iter().chain(overlay).collect()).overlay())
     }
-}
-
-pub fn close<Message: Send + 'static>(f: fn(bool) -> Message) -> Task<Message> {
-    struct Close<T> {
-        any_closed: bool,
-        f: fn(bool) -> T,
-    }
-
-    impl<T> Operation<T> for Close<T> {
-        fn container(
-            &mut self,
-            _id: Option<&widget::Id>,
-            _bounds: Rectangle,
-            operate_on_children: &mut dyn FnMut(&mut dyn Operation<T>),
-        ) {
-            operate_on_children(self)
-        }
-
-        fn custom(&mut self, state: &mut dyn std::any::Any, _id: Option<&widget::Id>) {
-            if let Some(state) = state.downcast_mut::<State>() {
-                if let State::Open(_) = *state {
-                    *state = State::Closed;
-                    self.any_closed = true;
-                }
-            }
-        }
-
-        fn finish(&self) -> operation::Outcome<T> {
-            operation::Outcome::Some((self.f)(self.any_closed))
-        }
-    }
-
-    Task::widget(Close {
-        any_closed: false,
-        f,
-    })
 }
 
 impl<'a, Message> From<ContextMenu<'a, Message>> for Element<'a, Message>

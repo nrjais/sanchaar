@@ -17,7 +17,6 @@ const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regula
 pub fn main() -> Result<(), iced::Error> {
     iced::application("Sanchaar", app::update, app::view)
         .theme(|s| s.theme.clone())
-        .load(init_command)
         .antialiasing(true)
         .font(Cow::from(HACK_REG_BYTES))
         .window(window::Settings {
@@ -26,5 +25,5 @@ pub fn main() -> Result<(), iced::Error> {
             min_size: Some(Size::new(800.0, 600.0)),
             ..Default::default()
         })
-        .run()
+        .run_with(|| (AppState::default(), init_command()))
 }

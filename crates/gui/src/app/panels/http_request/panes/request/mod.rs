@@ -185,7 +185,7 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
                 ))
                 .push(horizontal_space())
                 .width(Length::Fill)
-                .align_items(iced::Alignment::Center)
+                .align_y(iced::Alignment::Center)
                 .spacing(4),
         )
         .width(Length::Fill)

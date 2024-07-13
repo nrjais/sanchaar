@@ -1,6 +1,6 @@
 use iced::widget::container::Style;
 use iced::widget::{button, container, horizontal_space, text, Column, Row};
-use iced::{Alignment, Border, Task, Element};
+use iced::{border, Alignment, Element, Task};
 
 use crate::state::popups::Popup;
 use crate::state::AppState;
@@ -81,7 +81,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
                 .on_press_maybe(done_msg),
         )
         .width(iced::Length::Fill)
-        .align_items(Alignment::End)
+        .align_y(Alignment::End)
         .spacing(8);
 
     container(
@@ -96,7 +96,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
     .padding(16)
     .style(|theme| Style {
         background: Some(theme.extended_palette().background.weak.color.into()),
-        border: Border::rounded(6),
+        border: border::rounded(6),
         ..Style::default()
     })
     .into()

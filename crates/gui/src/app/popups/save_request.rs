@@ -5,7 +5,7 @@ use std::ops::Not;
 use iced::widget::{
     button, container, horizontal_space, scrollable, text, text_input, Column, Row,
 };
-use iced::{Task, Element, Length};
+use iced::{Element, Length, Task};
 
 use core::http::collection::{Collection, Entry, Folder, FolderId};
 use core::http::CollectionKey;
@@ -94,7 +94,7 @@ pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Elem
             .push(Column::from_vec(collections).width(Length::Shrink))
             .spacing(4)
             .padding(4)
-            .align_items(iced::Alignment::Center),
+            .align_x(iced::Alignment::Center),
     )
     .into()
 }
@@ -123,7 +123,7 @@ pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Elemen
         .push(Column::from_vec(entries))
         .spacing(4)
         .padding(4)
-        .align_items(iced::Alignment::Center)
+        .align_x(iced::Alignment::Center)
         .into()
 }
 
@@ -138,7 +138,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
                 .on_input(Message::NameChanged)
                 .on_paste(Message::NameChanged),
         )
-        .align_items(iced::Alignment::Center)
+        .align_y(iced::Alignment::Center)
         .spacing(4);
 
     let col_name = collection
@@ -153,7 +153,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
         .push(text("Location"))
         .push(horizontal_space())
         .push(text(col_name).size(12))
-        .align_items(iced::Alignment::Center)
+        .align_y(iced::Alignment::Center)
         .spacing(4);
 
     let folder_selector = collection.map(|c| dir_selector(c, data.folder_id));

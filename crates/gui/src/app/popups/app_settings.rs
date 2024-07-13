@@ -68,7 +68,7 @@ fn general_tab(state: &AppState) -> Element<Message> {
         .push(text("Theme"))
         .push(horizontal_space())
         .push(pick_list(Theme::ALL, Some(&state.theme), Message::ChangeTheme).text_size(size))
-        .align_items(iced::Alignment::Center);
+        .align_y(iced::Alignment::Center);
 
     Column::new().push(theme).spacing(8).into()
 }

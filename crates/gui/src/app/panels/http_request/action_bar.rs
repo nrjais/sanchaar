@@ -97,7 +97,7 @@ pub(crate) fn view(state: &AppState) -> Element<ActionBarMsg> {
             .push(edit_name)
             .push(horizontal_space())
             .push(environment_view(collection, col_ref.0))
-            .align_items(iced::Alignment::Center)
+            .align_y(iced::Alignment::Center)
             .width(Length::Fill)
     });
 
@@ -125,6 +125,6 @@ fn environment_view(col: &Collection, key: CollectionKey) -> Element<'_, ActionB
     Row::new()
         .push(picker)
         .push(settings)
-        .align_items(iced::Alignment::Center)
+        .align_y(iced::Alignment::Center)
         .into()
 }

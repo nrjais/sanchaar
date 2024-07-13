@@ -1,9 +1,9 @@
 use iced::widget::{column, text};
+use iced::{padding, Background, Length};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
 };
-use iced::{Background, Length};
 use std::ops::Not;
 use std::path::PathBuf;
 
@@ -172,9 +172,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
 
     fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
         match event {
-            FilePickerUpdateMsg::OpenFilePicker(idx) => {
-                Some((self.on_file_picker)(idx))
-            }
+            FilePickerUpdateMsg::OpenFilePicker(idx) => Some((self.on_file_picker)(idx)),
             _ => self.on_change.as_ref().map(|f| f(event)),
         }
     }
@@ -204,7 +202,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                     Row::new()
                         .push(tooltip("Enabled", enabled))
                         .push(tooltip("Delete", remove))
-                        .align_items(iced::Alignment::Center)
+                        .align_y(iced::Alignment::Center)
                         .spacing(8),
                 )
                 .style(container::rounded_box)
@@ -242,7 +240,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                     .push(tooltip(path, text(path).size(size)))
                     .height(Length::Fill)
                     .spacing(spacing)
-                    .align_items(iced::Alignment::Center),
+                    .align_y(iced::Alignment::Center),
             )
             .width(Length::FillPortion(3));
 
@@ -272,8 +270,8 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                 t.extended_palette().background.weak.color,
             )),
             border: Border::default()
-                .with_width(1)
-                .with_color(t.extended_palette().background.strong.color),
+                .width(1)
+                .color(t.extended_palette().background.strong.color),
             ..container::transparent(t)
         })
         .into();
@@ -281,7 +279,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
         column([header])
             .extend(values)
             .width(Length::Fill)
-            .padding([0, 8, 0, 0])
+            .padding(padding::right(8))
             .into()
     }
 }

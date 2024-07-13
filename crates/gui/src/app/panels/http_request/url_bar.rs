@@ -1,5 +1,5 @@
 use iced::widget::{vertical_rule, Button, Row};
-use iced::Border;
+use iced::{border, Border};
 use iced::{
     widget::{button, container, pick_list},
     Task, Element,
@@ -137,7 +137,7 @@ impl UrlBarMsg {
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
     button(container(icon(ico)).padding([0, 10])).style(|t, s| button::Style {
-        border: Border::rounded(0),
+        border: border::rounded(0),
         ..button::primary(t, s)
     })
 }
@@ -188,7 +188,7 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     .style(|theme| {
         let base = container::bordered_box(theme);
         container::Style {
-            border: base.border.with_width(2),
+            border: base.border.width(2),
             ..base
         }
     })

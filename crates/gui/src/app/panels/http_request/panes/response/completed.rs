@@ -1,6 +1,6 @@
 use humansize::{format_size, BINARY};
 use iced::widget::{button, container, text, Column, Row};
-use iced::{clipboard, Alignment, Border, Color, Task, Element, Theme};
+use iced::{clipboard, Alignment, Border, Color, Element, Task, Theme};
 
 use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
@@ -99,8 +99,8 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         .push(container(actions).style(|theme: &Theme| {
             container::Style {
                 border: Border::default()
-                    .with_width(1)
-                    .with_color(theme.extended_palette().background.weak.color),
+                    .width(1)
+                    .color(theme.extended_palette().background.weak.color),
                 ..container::transparent(theme)
             }
         }))
@@ -148,7 +148,7 @@ pub(crate) fn view<'a>(
         )
         .padding([4, 8])
         .spacing(8)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     let headers = res
         .headers

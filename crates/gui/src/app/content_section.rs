@@ -3,7 +3,7 @@ use iced::font::Weight;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::text::Shaping::Advanced;
 use iced::widget::{container, pane_grid, text, Column, PaneGrid};
-use iced::{Color, Task, Element, Font, Length};
+use iced::{padding, Color, Element, Font, Length, Task};
 
 use crate::app::panels::PanelMsg;
 
@@ -71,7 +71,7 @@ fn side_bar(state: &AppState) -> Element<MainPageMsg> {
     bordered_right(
         BORDER_WIDTH,
         container(collection_tree::view(state).map(MainPageMsg::CollectionTree))
-            .padding([0, 4, 0, 0]),
+            .padding(padding::right(4)),
     )
 }
 
@@ -113,7 +113,7 @@ fn tabs_view(state: &AppState) -> Element<MainPageMsg> {
         ))
         .push(panels::view(state).map(MainPageMsg::Panel))
         .spacing(8)
-        .align_items(iced::Alignment::Center);
+        .align_x(iced::Alignment::Center);
 
-    bordered_left(BORDER_WIDTH, container(tabs).padding([0, 0, 0, 4]))
+    bordered_left(BORDER_WIDTH, container(tabs).padding(padding::left(4)))
 }

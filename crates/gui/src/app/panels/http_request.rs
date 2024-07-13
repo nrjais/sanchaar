@@ -1,7 +1,8 @@
 use components::{bordered_left, bordered_right};
+use iced::padding;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::{column, pane_grid, PaneGrid};
-use iced::{widget::container, Task, Element};
+use iced::{widget::container, Element, Task};
 
 use crate::state::{AppState, SplitState};
 
@@ -50,11 +51,17 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
         let pane = match pane {
             SplitState::First => {
                 let request_view = request::view(state).map(HttpMsg::Req);
-                bordered_right(BORDER_WIDTH, container(request_view).padding([0, 4, 0, 0]))
+                bordered_right(
+                    BORDER_WIDTH,
+                    container(request_view).padding(padding::right(4)),
+                )
             }
             SplitState::Second => {
                 let response_view = response::view(state).map(HttpMsg::Res);
-                bordered_left(BORDER_WIDTH, container(response_view).padding([0, 0, 0, 4]))
+                bordered_left(
+                    BORDER_WIDTH,
+                    container(response_view).padding(padding::left(4)),
+                )
             }
         };
 
@@ -64,7 +71,7 @@ pub(crate) fn view(state: &AppState) -> Element<HttpMsg> {
     .width(iced::Length::Fill)
     .on_resize(8, HttpMsg::SplitResize);
 
-    let req_res = container(req_res).padding([4, 0, 0, 0]).into();
+    let req_res = container(req_res).padding(padding::top(4)).into();
     column([action_bar, url_bar, req_res])
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
