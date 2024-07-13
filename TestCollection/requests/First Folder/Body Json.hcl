@@ -40,13 +40,12 @@ _
 
 assertions {
   status code {
-    gt = 200
-    lt = 200
+    eq = 200
   }
 
   duration ms {
     gt = 100
-    lt = 100
+    lt = 1000
   }
 
   header "Content-Type" {
@@ -60,12 +59,4 @@ assertions {
   header "Test-Type" {
     contains = "utf8"
   }
-
-//   body raw {
-//     eq = <<__
-// {
-//   "test": "test"
-// }
-// __
-//   }
 }

@@ -20,7 +20,7 @@ body {
     files = [
       {
         "name" = "file"
-        "path" = "/Users/neeraj/projects/sanchaar/TestCollection/collection.toml"
+        "path" = "/Users/neeraj/projects/sanchaar/TestCollection/collection.hcl"
       }
     ]
   }
@@ -28,13 +28,12 @@ body {
 
 assertions {
   status code {
-    gt = 200
-    lt = 200
+    eq = 200
   }
 
   duration ms {
     gt = 100
-    lt = 100
+    lt = 1000
   }
 
   header "Content-Type" {
@@ -42,22 +41,14 @@ assertions {
   }
 
   header "Content-Type" {
-    contains = "utf8"
-  }
-
-  header "Test-Type" {
-    contains = "utf8"
+    contains = "json"
   }
 
   // jsonpath "$.result.name" {
   //   eq = "Mohit"
   // }
 
-  body raw {
-    eq = <<__
-{
-  "test": "test"
-}
-__
+  body string {
+    contains = "echo.nrjais.com"
   }
 }

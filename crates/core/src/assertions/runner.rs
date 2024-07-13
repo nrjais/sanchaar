@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::from_utf8};
 
 use hcl::Value;
 use regex::Regex;
@@ -24,23 +24,19 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionReport>
         let results = match assertion {
             Assertion::Status(conditions) => {
                 let status = response.status;
-                match_conditions(conditions, {
-                    let mut map = HashMap::new();
-                    map.insert("code".into(), status.as_u16().into());
-                    map.insert("text".into(), status.to_string().into());
-                    map.insert("success".into(), status.is_success().into());
-                    map
+                match_conditions(conditions, |key| match key {
+                    "code" => Some(status.as_u16().into()),
+                    "text" => Some(status.to_string().into()),
+                    _ => None,
                 })
             }
             Assertion::Duration(conditions) => {
                 let duration = response.duration;
                 let millis = duration.as_millis() as f64;
-                match_conditions(conditions, {
-                    let mut map = HashMap::new();
-                    map.insert("seconds".into(), duration.as_secs().into());
-                    map.insert("milliseconds".into(), millis.into());
-                    map.insert("ms".into(), millis.into());
-                    map
+                match_conditions(conditions, |key| match key {
+                    "seconds" => Some(duration.as_secs().into()),
+                    "millis" | "ms" => Some(millis.into()),
+                    _ => None,
                 })
             }
             Assertion::Headers(conditions) => {
@@ -48,12 +44,18 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionReport>
                 let headers = headers
                     .iter()
                     .map(|(k, v)| (k.as_str(), v.to_str().unwrap_or("<Not UTF8>")))
-                    .map(|(k, v)| (k.to_owned(), Value::from(v)))
+                    .map(|(k, v)| (k.to_ascii_lowercase(), Value::from(v)))
                     .collect::<HashMap<_, _>>();
 
-                match_conditions(conditions, headers)
+                match_conditions(conditions, |key| {
+                    let lower = key.to_ascii_lowercase();
+                    headers.get(&lower).cloned()
+                })
             }
-            Assertion::Body(_) => todo!(),
+            Assertion::Body(conditions) => match_conditions(conditions, |key| match key {
+                "string" => from_utf8(&response.body.data).ok().map(Value::from),
+                _ => None,
+            }),
         };
 
         report.extend(results);
@@ -64,12 +66,13 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionReport>
 
 fn match_conditions(
     conditions: &[Condition],
-    values: HashMap<String, Value>,
+    get_value: impl Fn(&str) -> Option<Value>,
 ) -> Vec<AssertionReport> {
     let mut results = Vec::new();
     for condition in conditions {
         let Condition { key, matcher } = condition;
-        let actual = values.get(key);
+        let actual = get_value(key);
+        let actual = actual.as_ref();
 
         let result = match matcher {
             Matcher::Eq(expected) => equal(actual, expected),
