@@ -1,5 +1,7 @@
 pub mod runner;
 
+pub use runner::run;
+
 use std::collections::HashMap;
 
 use anyhow::Context;

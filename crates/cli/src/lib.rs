@@ -1,4 +1,5 @@
 pub mod run;
+pub mod test;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
@@ -46,6 +47,6 @@ pub async fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Run { request, verbose } => run::run(cli.path, request, verbose).await,
-        Commands::Test { .. } => todo!(),
+        Commands::Test { path } => test::test(cli.path, path.unwrap_or_default()).await,
     }
 }

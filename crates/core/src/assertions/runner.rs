@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::format};
+use std::collections::HashMap;
 
 use hcl::Value;
 use regex::Regex;
@@ -7,14 +7,14 @@ use crate::client::Response;
 
 use super::{Assertion, Assertions, Condition, MatchType, Matcher};
 
-pub enum ConditionResult {
+pub enum AssertionResult {
     Passed,
     Failed(String),
 }
 
 pub struct AssertionReport {
-    name: String,
-    result: ConditionResult,
+    pub name: String,
+    pub result: AssertionResult,
 }
 
 pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionReport> {
@@ -32,8 +32,27 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionReport>
                     map
                 })
             }
-            Assertion::Duration(_) => todo!(),
-            Assertion::Headers(_) => todo!(),
+            Assertion::Duration(conditions) => {
+                let duration = response.duration;
+                let millis = duration.as_millis() as f64;
+                match_conditions(conditions, {
+                    let mut map = HashMap::new();
+                    map.insert("seconds".into(), duration.as_secs().into());
+                    map.insert("milliseconds".into(), millis.into());
+                    map.insert("ms".into(), millis.into());
+                    map
+                })
+            }
+            Assertion::Headers(conditions) => {
+                let headers = &response.headers;
+                let headers = headers
+                    .iter()
+                    .map(|(k, v)| (k.as_str(), v.to_str().unwrap_or("<Not UTF8>")))
+                    .map(|(k, v)| (k.to_owned(), Value::from(v)))
+                    .collect::<HashMap<_, _>>();
+
+                match_conditions(conditions, headers)
+            }
             Assertion::Body(_) => todo!(),
         };
 
@@ -80,25 +99,25 @@ fn match_conditions(
     results
 }
 
-fn equal(actual: Option<&Value>, expected: &Value) -> ConditionResult {
+fn equal(actual: Option<&Value>, expected: &Value) -> AssertionResult {
     match actual {
-        Some(actual) if actual == expected => ConditionResult::Passed,
-        Some(actual) => ConditionResult::Failed(format!("Expected {} == {}", expected, actual)),
-        None => ConditionResult::Failed(format!("Expected {} but got nothing", expected)),
+        Some(actual) if actual == expected => AssertionResult::Passed,
+        Some(actual) => AssertionResult::Failed(format!("Expected {} == {}", expected, actual)),
+        None => AssertionResult::Failed(format!("Expected {} but got nothing", expected)),
     }
 }
 
-fn not_equal(actual: Option<&Value>, expected: &Value) -> ConditionResult {
+fn not_equal(actual: Option<&Value>, expected: &Value) -> AssertionResult {
     match actual {
-        Some(actual) if actual != expected => ConditionResult::Passed,
-        Some(actual) => ConditionResult::Failed(format!("Expected {} != {}", expected, actual)),
-        None => ConditionResult::Failed(format!("Expected {} but got nothing", expected)),
+        Some(actual) if actual != expected => AssertionResult::Passed,
+        Some(actual) => AssertionResult::Failed(format!("Expected {} != {}", expected, actual)),
+        None => AssertionResult::Failed(format!("Expected {} but got nothing", expected)),
     }
 }
 
-fn greater_than(actual: Option<&Value>, expected: f64) -> ConditionResult {
+fn greater_than(actual: Option<&Value>, expected: f64) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_f64()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} > {}",
             expected,
             actual.unwrap_or(&Value::Null)
@@ -106,15 +125,15 @@ fn greater_than(actual: Option<&Value>, expected: f64) -> ConditionResult {
     };
 
     if actual > expected {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} > {}", expected, actual))
+        AssertionResult::Failed(format!("Expected {} > {}", expected, actual))
     }
 }
 
-fn greater_than_or_equal(actual: Option<&Value>, expected: f64) -> ConditionResult {
+fn greater_than_or_equal(actual: Option<&Value>, expected: f64) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_f64()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} >= {}",
             expected,
             actual.unwrap_or(&Value::Null)
@@ -122,15 +141,15 @@ fn greater_than_or_equal(actual: Option<&Value>, expected: f64) -> ConditionResu
     };
 
     if actual >= expected {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} >= {}", expected, actual))
+        AssertionResult::Failed(format!("Expected {} >= {}", expected, actual))
     }
 }
 
-fn less_than(actual: Option<&Value>, expected: f64) -> ConditionResult {
+fn less_than(actual: Option<&Value>, expected: f64) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_f64()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} < {}",
             expected,
             actual.unwrap_or(&Value::Null)
@@ -138,15 +157,15 @@ fn less_than(actual: Option<&Value>, expected: f64) -> ConditionResult {
     };
 
     if actual < expected {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} < {}", expected, actual))
+        AssertionResult::Failed(format!("Expected {} < {}", expected, actual))
     }
 }
 
-fn less_than_or_equal(actual: Option<&Value>, expected: f64) -> ConditionResult {
+fn less_than_or_equal(actual: Option<&Value>, expected: f64) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_f64()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} <= {}",
             expected,
             actual.unwrap_or(&Value::Null)
@@ -154,95 +173,95 @@ fn less_than_or_equal(actual: Option<&Value>, expected: f64) -> ConditionResult 
     };
 
     if actual <= expected {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} <= {}", expected, actual))
+        AssertionResult::Failed(format!("Expected {} <= {}", expected, actual))
     }
 }
 
-fn in_list(actual: Option<&Value>, expected: &Vec<Value>) -> ConditionResult {
+fn in_list(actual: Option<&Value>, expected: &Vec<Value>) -> AssertionResult {
     let actual = actual.unwrap_or(&Value::Null);
 
     if expected.contains(actual) {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} in {:?}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} in {:?}", actual, expected))
     }
 }
 
-fn not_in_list(actual: Option<&Value>, expected: &Vec<Value>) -> ConditionResult {
+fn not_in_list(actual: Option<&Value>, expected: &Vec<Value>) -> AssertionResult {
     let actual = actual.unwrap_or(&Value::Null);
 
     if !expected.contains(actual) {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} not in {:?}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} not in {:?}", actual, expected))
     }
 }
 
-fn contains(actual: Option<&Value>, expected: &str) -> ConditionResult {
+fn contains(actual: Option<&Value>, expected: &str) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_str()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} to be a string",
             actual.unwrap_or(&Value::Null)
         ));
     };
 
     if actual.contains(expected) {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} to contain {}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} to contain {}", actual, expected))
     }
 }
 
-fn not_contains(actual: Option<&Value>, expected: &str) -> ConditionResult {
+fn not_contains(actual: Option<&Value>, expected: &str) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_str()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} to be a string",
             actual.unwrap_or(&Value::Null)
         ));
     };
 
     if !actual.contains(expected) {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} not to contain {}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} not to contain {}", actual, expected))
     }
 }
 
-fn starts_with(actual: Option<&Value>, expected: &str) -> ConditionResult {
+fn starts_with(actual: Option<&Value>, expected: &str) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_str()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} to be a string",
             actual.unwrap_or(&Value::Null)
         ));
     };
 
     if actual.starts_with(expected) {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} to start with {}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} to start with {}", actual, expected))
     }
 }
 
-fn ends_with(actual: Option<&Value>, expected: &str) -> ConditionResult {
+fn ends_with(actual: Option<&Value>, expected: &str) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_str()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} to be a string",
             actual.unwrap_or(&Value::Null)
         ));
     };
 
     if actual.ends_with(expected) {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} to end with {}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} to end with {}", actual, expected))
     }
 }
 
-fn matches(actual: Option<&Value>, expected: &str) -> ConditionResult {
+fn matches(actual: Option<&Value>, expected: &str) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_str()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} to be a string",
             actual.unwrap_or(&Value::Null)
         ));
@@ -251,20 +270,20 @@ fn matches(actual: Option<&Value>, expected: &str) -> ConditionResult {
     Regex::new(expected)
         .map(|re| re.is_match(actual))
         .map_or_else(
-            |err| ConditionResult::Failed(format!("Invalid regex: {}", err)),
+            |err| AssertionResult::Failed(format!("Invalid regex: {}", err)),
             |matches| {
                 if matches {
-                    ConditionResult::Passed
+                    AssertionResult::Passed
                 } else {
-                    ConditionResult::Failed(format!("Expected {} to match {}", actual, expected))
+                    AssertionResult::Failed(format!("Expected {} to match {}", actual, expected))
                 }
             },
         )
 }
 
-fn not_matches(actual: Option<&Value>, expected: &str) -> ConditionResult {
+fn not_matches(actual: Option<&Value>, expected: &str) -> AssertionResult {
     let Some(actual) = actual.and_then(|v| v.as_str()) else {
-        return ConditionResult::Failed(format!(
+        return AssertionResult::Failed(format!(
             "Expected {} to be a string",
             actual.unwrap_or(&Value::Null)
         ));
@@ -273,12 +292,12 @@ fn not_matches(actual: Option<&Value>, expected: &str) -> ConditionResult {
     Regex::new(expected)
         .map(|re| !re.is_match(actual))
         .map_or_else(
-            |err| ConditionResult::Failed(format!("Invalid regex: {}", err)),
+            |err| AssertionResult::Failed(format!("Invalid regex: {}", err)),
             |matches| {
                 if matches {
-                    ConditionResult::Passed
+                    AssertionResult::Passed
                 } else {
-                    ConditionResult::Failed(format!(
+                    AssertionResult::Failed(format!(
                         "Expected {} not to match {}",
                         actual, expected
                     ))
@@ -287,7 +306,7 @@ fn not_matches(actual: Option<&Value>, expected: &str) -> ConditionResult {
         )
 }
 
-fn is_matching(actual_opt: Option<&Value>, expected: MatchType) -> ConditionResult {
+fn is_matching(actual_opt: Option<&Value>, expected: MatchType) -> AssertionResult {
     let actual = actual_opt.unwrap_or(&Value::Null);
 
     let pass = match expected {
@@ -306,21 +325,21 @@ fn is_matching(actual_opt: Option<&Value>, expected: MatchType) -> ConditionResu
     };
 
     if pass {
-        ConditionResult::Passed
+        AssertionResult::Passed
     } else {
-        ConditionResult::Failed(format!("Expected {} to be of type {}", actual, expected))
+        AssertionResult::Failed(format!("Expected {} to be of type {}", actual, expected))
     }
 }
 
-fn is_not_type(actual_opt: Option<&Value>, expected: MatchType) -> ConditionResult {
+fn is_not_type(actual_opt: Option<&Value>, expected: MatchType) -> AssertionResult {
     let matching = is_matching(actual_opt, expected);
 
     match matching {
-        ConditionResult::Passed => ConditionResult::Failed(format!(
+        AssertionResult::Passed => AssertionResult::Failed(format!(
             "Expected {} not to be of type {}",
             actual_opt.unwrap_or(&Value::Null),
             expected
         )),
-        ConditionResult::Failed(_) => ConditionResult::Passed,
+        AssertionResult::Failed(_) => AssertionResult::Passed,
     }
 }

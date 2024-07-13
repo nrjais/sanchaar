@@ -61,29 +61,3 @@ assertions {
 __
   }
 }
-
-/*
-{
-  "body": {
-    "eq": "{\n  \"test\": \"test\n}\n"
-  },
-  "header": {
-    "Content-Type": [
-      {
-        "contains": "application/json"
-      },
-      {
-        "eq": "utf8"
-      }
-    ]
-  },
-  "jsonpath": {
-    "$.result.name": {
-      "equal": "Mohit"
-    }
-  },
-  "status": {
-    "gt": 200
-  }
-}
-*/
