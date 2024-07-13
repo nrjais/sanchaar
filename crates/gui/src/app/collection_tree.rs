@@ -1,7 +1,7 @@
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
 use iced::widget::{button, column, container, row, text, Button, Column, Row, Scrollable};
-use iced::{padding, Element, Length, Task};
+use iced::{clipboard, padding, Element, Length, Task};
 
 use components::{context_menu, horizontal_line, icon, icons, menu_item, tooltip, NerdIcon};
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
@@ -131,9 +131,12 @@ fn handle_context_menu(
         MenuAction::DeleteRequest(req) => {
             builders::delete_request_cmd(state, col, req, move || CollectionTreeMsg::ActionComplete)
         }
-        MenuAction::CopyPath(_) => {
-            // TODO: Copy path to clipboard
-            Task::none()
+        MenuAction::CopyPath(req) => {
+            if let Some(request) = state.collections.get_ref(CollectionRequest(col, req)) {
+                clipboard::write(request.path.to_string_lossy().to_string())
+            } else {
+                Task::none()
+            }
         }
     }
 }
