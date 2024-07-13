@@ -1,11 +1,12 @@
+use iced::border::{left, top};
 use iced::widget::button::Status;
 use iced::widget::{horizontal_space, vertical_space};
 use iced::Alignment::Center;
+use iced::{border, Length};
 use iced::{
     widget::{button, Column, Row, Text},
     Element,
 };
-use iced::{Border, Length};
 
 use crate::horizontal_line;
 use crate::min_dimension::min_width;
@@ -64,6 +65,8 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
         let tab_button = |width: Length| {
             button((tab.label)())
                 .style(move |theme, _| {
+                    let border = if vertical { left(4) } else { top(4) };
+
                     let style = if active {
                         button::primary(theme, Status::Active)
                     } else {
@@ -71,7 +74,7 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
                     };
 
                     button::Style {
-                        border: Border::default(),
+                        border: border::rounded(border),
                         ..style
                     }
                 })

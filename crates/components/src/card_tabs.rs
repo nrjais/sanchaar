@@ -1,7 +1,7 @@
 use crate::{horizontal_line, icon, icons};
 use iced::widget::button::Status;
 use iced::widget::{horizontal_space, Column};
-use iced::Background;
+use iced::{border, Background};
 use iced::{
     widget::{button, Row, Text},
     Center, Element,
@@ -60,7 +60,10 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                 .padding(if active { [2, 4] } else { [0, 4] })
                 .style(move |theme, _status| {
                     if active {
-                        button::secondary(theme, Status::Active)
+                        button::Style {
+                            border: border::rounded(border::top(4)),
+                            ..button::secondary(theme, Status::Active)
+                        }
                     } else {
                         button::secondary(theme, Status::Disabled)
                     }

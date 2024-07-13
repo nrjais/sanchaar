@@ -2,7 +2,7 @@ use iced::widget::{vertical_rule, Button, Row};
 use iced::{border, Border};
 use iced::{
     widget::{button, container, pick_list},
-    Task, Element,
+    Element, Task,
 };
 use log::info;
 use reqwest::Url;
@@ -136,7 +136,7 @@ impl UrlBarMsg {
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
-    button(container(icon(ico)).padding([0, 10])).style(|t, s| button::Style {
+    button(container(icon(ico)).padding([0, 8])).style(|t, s| button::Style {
         border: border::rounded(0),
         ..button::primary(t, s)
     })
