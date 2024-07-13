@@ -13,12 +13,14 @@ pub(crate) mod commands;
 pub(crate) mod state;
 
 const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
+const HACK_MONO_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFontMono-Regular.ttf");
 
 pub fn main() -> Result<(), iced::Error> {
     iced::application("Sanchaar", app::update, app::view)
         .theme(|s| s.theme.clone())
         .antialiasing(true)
         .font(Cow::from(HACK_REG_BYTES))
+        .font(Cow::from(HACK_MONO_REG_BYTES))
         .window(window::Settings {
             size: Size::new(1024.0, 768.0),
             position: Position::Specific(Point::ORIGIN),

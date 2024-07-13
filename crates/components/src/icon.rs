@@ -1,12 +1,17 @@
 use iced::{
     widget::{button, container, text, Button, Text},
-    Font, Length, Renderer, Theme,
+    Alignment::Center,
+    Font,
+    Length::{self},
+    Renderer, Theme,
 };
 
 pub fn icon<'a>(icon: NerdIcon) -> Text<'a, Theme, Renderer> {
     text(icon.0)
         .shaping(text::Shaping::Advanced)
-        .font(Font::with_name("Hack Nerd Font Mono"))
+        .align_x(Center)
+        .align_y(Center)
+        .font(Font::with_name("Hack Nerd Mono Font"))
 }
 
 pub fn icon_button<'a, M: 'a>(
