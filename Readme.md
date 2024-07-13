@@ -1,12 +1,13 @@
 <div align="center">
 <img src="assets/512x512.png" alt="logo" width="150" style="border-radius: 25px"/>
+
+[![Discord](https://img.shields.io/discord/1261282563138392117?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/FSK25BXgdt)
+
 </div>
 
 # Sanchaar - A Offline REST API client
 
 Sanchaar is a offline REST API client built using Iced in Rust. It is a simple tool to test REST APIs without the need of internet connection. It supports GET, POST, PUT, DELETE requests with path, query and header parameters.
-
-[![Discord](https://img.shields.io/discord/1261282563138392117?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/FSK25BXgdt)
 
 ## Screenshot
 
@@ -58,10 +59,10 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Export/Import
   - [ ] Settings
     - [ ] Update default env
-    - [ ] Change template syntax
+    - [ ] Change template replacer syntax
     - [ ] Collection headers
     - [ ] Collection auth
-    - [ ] Request preset
+    - [ ] Request template selection
 - [ ] Environments
   - [x] Add/Remove/Update
   - [x] Choose environment
@@ -69,6 +70,12 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Secure environment variables
   - [ ] Variables from .env file
 - [ ] Assertions
+  - [x] Status code
+  - [x] Response time
+  - [x] Response body
+  - [x] Response headers
+  - [ ] GUI editor
+  - [ ] GUI assertions
 - [ ] Scripting
   - [ ] Pre request
   - [ ] Post request
@@ -78,8 +85,8 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] SSL
   - [ ] Timeout
 - [ ] Cookies
-  - [ ] List
-  - [ ] Edit/Add/Remove
+  - [ ] List/Remove
+  - [ ] Edit/Add ?
 - [ ] History
   - [ ] List
   - [ ] Clear
@@ -87,7 +94,9 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Auto Save/Load
 - [ ] Mock APIs
 - [ ] CLI
-  - [ ] Run request by path
+  - [x] Run request by path
+  - [x] Run assertion by path/folder
+  - [ ] Pretty print assertion results
   - [ ] Select environment by name
   - [ ] Run tests by path
   - [ ] Run all collection tests
