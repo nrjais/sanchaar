@@ -637,6 +637,9 @@ impl Update {
                         keyboard::Key::Character("y") if modifiers.control() => {
                             return Some(Self::Action(ContentAction::Redo));
                         }
+                        keyboard::Key::Character("a") if modifiers.command() => {
+                            return Some(Self::Action(ContentAction::Action(Action::SelectAll)));
+                        }
                         _ => {}
                     }
 
