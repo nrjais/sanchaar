@@ -155,7 +155,7 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
         UrlBarMsg::MethodChanged,
     )
     .style(move |theme, _| pick_list::Style {
-        border,
+        border: border.rounded(border::left(4)),
         ..pick_list::default(theme, pick_list::Status::Active)
     });
 
@@ -175,7 +175,14 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     let buttons = Row::new()
         .push(icon_button(icons::Send).on_press_maybe(on_press))
         .push(vertical_rule(1))
-        .push(icon_button(icons::ContentSave).on_press(UrlBarMsg::SaveRequest));
+        .push(
+            icon_button(icons::ContentSave)
+                .on_press(UrlBarMsg::SaveRequest)
+                .style(|t, s| button::Style {
+                    border: border::rounded(border::right(4)),
+                    ..button::primary(t, s)
+                }),
+        );
 
     container(
         Row::new()
@@ -188,7 +195,7 @@ pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
     .style(|theme| {
         let base = container::bordered_box(theme);
         container::Style {
-            border: base.border.width(2),
+            border: base.border.width(2).rounded(4),
             ..base
         }
     })

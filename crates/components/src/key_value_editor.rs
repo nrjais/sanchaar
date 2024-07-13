@@ -1,5 +1,6 @@
+use iced::border::radius;
 use iced::widget::{column, text};
-use iced::{padding, Background, Length};
+use iced::{border, padding, Background, Length};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
@@ -178,7 +179,9 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
         let size = 14;
         let spacing = 2;
 
-        let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
+        let values = &self.values.values();
+        let last_idx = values.len() - 1;
+        let values = values.iter().enumerate().map(|(idx, kv)| {
             let border = Border::default();
             let enabled = checkbox("", !kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
@@ -236,7 +239,21 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                     .push_maybe(actions)
                     .spacing(spacing),
             )
-            .style(container::bordered_box)
+            .style(move |t| {
+                let last = idx == last_idx;
+                let style = container::bordered_box(t);
+
+                let radius = if last {
+                    border::bottom(2)
+                } else {
+                    border::radius(0)
+                };
+
+                container::Style {
+                    border: style.border.rounded(radius),
+                    ..style
+                }
+            })
             .padding(1)
             .into()
         });
@@ -255,7 +272,8 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
             )),
             border: Border::default()
                 .width(1)
-                .color(t.extended_palette().background.strong.color),
+                .color(t.extended_palette().background.strong.color)
+                .rounded(border::top(2)),
             ..container::transparent(t)
         })
         .into();
