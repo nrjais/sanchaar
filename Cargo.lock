@@ -625,6 +625,7 @@ version = "0.1.0-prerelease.1"
 dependencies = [
  "anyhow",
  "clap",
+ "colored_json",
  "core",
  "hex",
  "humansize",
@@ -687,6 +688,17 @@ name = "colorchoice"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b6a852b24ab71dffc585bcb46eaf7959d175cb865a7152e35b348d1b2960422"
+
+[[package]]
+name = "colored_json"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e35980a1b846f8e3e359fd18099172a0857140ba9230affc4f71348081e039b6"
+dependencies = [
+ "serde",
+ "serde_json",
+ "yansi",
+]
 
 [[package]]
 name = "com"

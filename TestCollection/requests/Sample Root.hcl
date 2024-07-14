@@ -28,11 +28,11 @@ body {
 
 assertions {
   status code {
-    eq = 200
+    eq = 201
   }
 
   duration ms {
-    gt = 100
+    gt = 1000
     lt = 1000
   }
 

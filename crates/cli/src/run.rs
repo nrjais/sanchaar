@@ -1,3 +1,4 @@
+use colored_json::prelude::ToColoredJson;
 use core::{
     client::{create_client, send_request, Response},
     persistence::request::read_request,
@@ -7,6 +8,8 @@ use core::{
 use std::{env, path::PathBuf};
 
 use humansize::{format_size, BINARY};
+
+use crate::color::{color, Color};
 
 pub async fn run(root: PathBuf, req: PathBuf, verbose: bool) -> anyhow::Result<()> {
     let current_dir = env::current_dir()?;
@@ -27,37 +30,37 @@ pub async fn run(root: PathBuf, req: PathBuf, verbose: bool) -> anyhow::Result<(
         size_bytes,
     } = response;
     if verbose {
-        println!("{}", status);
-        println!("Duration: {}", fmt_duration(duration));
-        println!("Size: {}", format_size(size_bytes, BINARY));
+        println!("{}", color(&status.to_string(), Color::CYAN));
+        println!(
+            "{} {}",
+            color("Size:", Color::DARKGRAY),
+            color(&format_size(size_bytes, BINARY), Color::VIOLET)
+        );
+        println!(
+            "{} {}",
+            color("Time:", Color::DARKGRAY),
+            color(&fmt_duration(duration), Color::VIOLET)
+        );
 
         println!();
         if !headers.is_empty() {
-            println!("Headers:");
+            println!("{}", color("Headers:", Color::DARKGRAY));
             for (k, v) in headers.iter() {
                 let value = v.to_str().unwrap_or("<Invalid UTF-8>");
-                println!("  {}: {}", k.as_str(), value);
-            }
-        }
-
-        println!();
-        match body.content_type {
-            core::client::ContentType::Json => {
-                println!("Body JSON:");
-            }
-            core::client::ContentType::Text => {
-                println!("Body Text:");
-            }
-            core::client::ContentType::Buffer => {
-                println!("Body Buffer (Hex):");
+                println!(
+                    "  {}: {}",
+                    color(k.as_str(), Color::BLUE),
+                    color(value, Color::DARKGREEN)
+                );
             }
         }
     }
 
+    println!();
     match body.content_type {
         core::client::ContentType::Json => {
-            let json: serde_json::Value = serde_json::from_slice(&body.data)?;
-            println!("{}", serde_json::to_string_pretty(&json)?);
+            let json = String::from_utf8(body.data)?;
+            println!("{}", json.to_colored_json_auto()?);
         }
         core::client::ContentType::Text => {
             let text = String::from_utf8(body.data)?;
