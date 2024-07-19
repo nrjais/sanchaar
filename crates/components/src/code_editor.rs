@@ -81,7 +81,7 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
         text_editor(self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
-            .wrapping(Wrapping::Glyph)
+            .wrapping(Wrapping::WordOrGlyph)
             .on_action(|ac| CodeEditorMsg::EditorAction(ac, self.editable))
             .highlight::<Highlighter>(
                 highlighter::Settings {

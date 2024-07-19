@@ -42,7 +42,7 @@ iced = { git = "https://github.com/nrjais/iced", features = [
 iced_core = { git = "https://github.com/nrjais/iced", features = [
     "advanced",
 ], branch = "editor" }
-rfd = { version = "0.14.1", default-features = false, features = [
+rfd = { version = "0.14", default-features = false, features = [
     "xdg-portal",
     "tokio",
 ] }
@@ -53,12 +53,13 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 mime_guess = "2.0"
-slotmap = "1.0.7"
-humansize = "2.1.3"
-directories = "5.0.1"
-log = "0.4.21"
-regex = "1.10.4"
-hcl-rs = "0.18.0"
+slotmap = "1.0"
+humansize = "2.1"
+directories = "5.0"
+log = "0.4"
+regex = "1.10"
+hcl-rs = "0.18"
+similar = "2.5"
 clap = { version = "4.5", features = ["derive"] }
 components = { path = "crates/components" }
 core = { path = "crates/core" }
@@ -75,6 +76,7 @@ name = "sanchaar-cli"
 
 [profile.dev]
 incremental = true
+debug = 0
 
 [profile.dev.package."*"]
 opt-level = 3

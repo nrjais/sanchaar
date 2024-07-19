@@ -68,7 +68,7 @@ pub async fn run(root: PathBuf, req: PathBuf, verbose: bool) -> anyhow::Result<(
         }
         core::client::ContentType::Buffer => {
             let hex = hex::encode(body.data);
-            println!("{}", hex);
+            println!("Hex:\n{}", hex);
         }
     }
 

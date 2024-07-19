@@ -54,6 +54,15 @@ pub struct Condition {
     matcher: Matcher,
 }
 
+fn to_string_vec(val: &[Value]) -> String {
+    let vals = val
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<String>>()
+        .join(", ");
+    format!("[{}]", vals)
+}
+
 impl Matcher {
     fn to_string(&self) -> &'static str {
         match self {
@@ -75,6 +84,27 @@ impl Matcher {
             Matcher::IsNot(_) => "is_not",
         }
     }
+
+    fn describe(&self) -> String {
+        match self {
+            Matcher::Eq(exp) => format!("{} {}", self, exp),
+            Matcher::Ne(exp) => format!("{} {}", self, exp),
+            Matcher::Gt(exp) => format!("{} {}", self, exp),
+            Matcher::Gte(exp) => format!("{} {}", self, exp),
+            Matcher::Lt(exp) => format!("{} {}", self, exp),
+            Matcher::Lte(exp) => format!("{} {}", self, exp),
+            Matcher::In(exp) => format!("{} {}", self, to_string_vec(exp)),
+            Matcher::NotIn(exp) => format!("{} {}", self, to_string_vec(exp)),
+            Matcher::Contains(exp) => format!("{} {}", self, exp),
+            Matcher::NotContains(exp) => format!("{} {}", self, exp),
+            Matcher::StartsWith(exp) => format!("{} {}", self, exp),
+            Matcher::EndsWith(exp) => format!("{} {}", self, exp),
+            Matcher::Matches(exp) => format!("{} {}", self, exp),
+            Matcher::NotMatches(exp) => format!("{} {}", self, exp),
+            Matcher::Is(exp) => format!("{} {}", self, exp),
+            Matcher::IsNot(exp) => format!("{} {}", self, exp),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -83,6 +113,16 @@ pub enum Assertion {
     Duration(Vec<Condition>),
     Headers(Vec<Condition>),
     Body(Vec<Condition>),
+}
+impl Assertion {
+    fn name(&self) -> String {
+        match self {
+            Assertion::Status(_) => "Status".to_string(),
+            Assertion::Duration(_) => "Response Duration".to_string(),
+            Assertion::Headers(_) => "Headers".to_string(),
+            Assertion::Body(_) => "Body".to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]

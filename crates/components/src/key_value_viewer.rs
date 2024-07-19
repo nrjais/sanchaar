@@ -18,14 +18,14 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
             .push(
                 text(*key)
                     .size(size)
-                    .wrapping(Wrapping::Glyph)
+                    .wrapping(Wrapping::WordOrGlyph)
                     .color(colors::DARK_GREY)
                     .width(Length::FillPortion(2)),
             )
             .push(
                 text(*val)
                     .size(size)
-                    .wrapping(Wrapping::Glyph)
+                    .wrapping(Wrapping::WordOrGlyph)
                     .color(colors::DARK_GREY)
                     .width(Length::FillPortion(3)),
             )
