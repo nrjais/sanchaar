@@ -86,7 +86,7 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
             .highlight::<Highlighter>(
                 highlighter::Settings {
                     theme: highlighter::Theme::SolarizedDark,
-                    extension: self.content_type.to_extension(),
+                    token: self.content_type.to_extension(),
                 },
                 |highlight, _theme| highlight.to_format(),
             )
