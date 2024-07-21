@@ -1,7 +1,6 @@
 //! Display a multi-line text input for text editing.
 
 mod content;
-pub mod gutters;
 mod undo_stack;
 
 use std::cell::RefCell;
