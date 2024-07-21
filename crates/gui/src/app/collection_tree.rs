@@ -9,7 +9,7 @@ use core::http::{request::Request, CollectionKey, CollectionRequest};
 
 use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
 use crate::state::popups::{Popup, PopupNameAction};
-use crate::state::AppState;
+use crate::state::{AppState, HttpTab, Tab};
 
 #[derive(Debug, Clone)]
 pub enum CollectionTreeMsg {
@@ -19,7 +19,7 @@ pub enum CollectionTreeMsg {
     CreateCollection,
     OpenCollection,
     OpenCollectionHandle(Option<Collection>),
-    RequestLoaded(CollectionRequest, Box<Option<Request>>),
+    RequestLoaded(CollectionRequest, Box<Option<(Request, String)>>),
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
     OpenSettings,
@@ -57,18 +57,18 @@ impl CollectionTreeMsg {
                 }
             }
             CollectionTreeMsg::RequestLoaded(col, req) => {
-                if let Some(req) = *req {
-                    state.open_request(col, req);
+                if let Some((req, name)) = *req {
+                    state.open_tab(Tab::Http(HttpTab::new(name, req, col)));
                 }
             }
             CollectionTreeMsg::ContextMenu(col, action) => {
                 return handle_context_menu(state, col, action);
             }
-            CollectionTreeMsg::ActionComplete => {}
+            CollectionTreeMsg::ActionComplete => (),
             CollectionTreeMsg::OpenSettings => {
                 Popup::app_settings(state);
             }
-        }
+        };
         Task::none()
     }
 }

@@ -8,8 +8,9 @@ use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
 };
 
+use crate::state::response::ResponseTabId;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
-use crate::state::{response::ResponseTabId, AppState};
+use crate::state::HttpTab;
 
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {
@@ -20,8 +21,7 @@ pub enum CompletedMsg {
 }
 
 impl CompletedMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Task<CompletedMsg> {
-        let active_tab = state.active_tab_mut();
+    pub fn update(self, active_tab: &mut HttpTab) -> Task<CompletedMsg> {
         match self {
             Self::TabChanged(tab) => {
                 active_tab.response.active_tab = tab;
@@ -45,7 +45,6 @@ impl CompletedMsg {
         Task::none()
     }
 }
-
 
 fn status_color(status: reqwest::StatusCode) -> Color {
     match status.as_u16() {
@@ -110,11 +109,7 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         .into()
 }
 
-pub(crate) fn view<'a>(
-    state: &'a AppState,
-    cr: &'a CompletedResponse,
-) -> Element<'a, CompletedMsg> {
-    let active_tab = state.active_tab();
+pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, CompletedMsg> {
     let res = &cr.result;
 
     let status_size = 12;
@@ -144,13 +139,13 @@ pub(crate) fn view<'a>(
         .map(|(k, v)| (k.as_str(), v.to_str().unwrap_or_default()))
         .collect::<Vec<_>>();
 
-    let tab_content = match active_tab.response.active_tab {
+    let tab_content = match tab.response.active_tab {
         ResponseTabId::Body => body_view(cr),
         ResponseTabId::Headers => key_value_viewer(&headers),
     };
 
     let tabs = button_tabs(
-        active_tab.response.active_tab,
+        tab.response.active_tab,
         [
             button_tab(ResponseTabId::Body, || text("Body")),
             button_tab(ResponseTabId::Headers, || text("Headers")),

@@ -4,8 +4,6 @@ use iced::Theme;
 use slotmap::SlotMap;
 
 use core::client::create_client;
-use core::http::collection::RequestRef;
-use core::http::request::Request;
 use core::http::{CollectionRequest, Collections};
 pub use tab::*;
 
@@ -32,8 +30,14 @@ slotmap::new_key_type! {
 }
 
 #[derive(Debug)]
+pub enum Tab {
+    Http(HttpTab),
+}
+
+#[derive(Debug)]
 pub struct AppState {
-    pub active_tab: TabKey,
+    pub active_tab: Option<TabKey>,
+    tab_history: indexmap::IndexSet<TabKey>,
     pub tabs: SlotMap<TabKey, Tab>,
     pub collections: Collections,
     pub client: reqwest::Client,
@@ -45,13 +49,10 @@ pub struct AppState {
 
 impl AppState {
     pub fn new() -> Self {
-        let tab = Tab::default();
-        let mut tabs = SlotMap::with_key();
-        let active_tab = tabs.insert(tab);
-
         Self {
-            active_tab,
-            tabs,
+            active_tab: None,
+            tabs: SlotMap::with_key(),
+            tab_history: indexmap::IndexSet::new(),
             client: create_client(),
             collections: Collections::default(),
             panes: pane_grid::State::with_configuration(Configuration::Split {
@@ -66,18 +67,31 @@ impl AppState {
         }
     }
 
-    pub fn open_request(&mut self, req_ref: CollectionRequest, request: Request) {
-        self.active_tab = self.tabs.insert(Tab::with_ref(request, req_ref));
+    pub fn switch_tab(&mut self, tab: TabKey) {
+        self.active_tab = Some(tab);
+        self.tab_history.shift_remove(&tab);
+        self.tab_history.insert(tab);
+    }
+
+    pub fn open_tab(&mut self, tab: Tab) {
+        let id = self.tabs.insert(tab);
+        self.switch_tab(id);
     }
 
     pub fn switch_to_tab(&mut self, req: CollectionRequest) -> bool {
-        self.tabs
+        let tab = self
+            .tabs
             .iter()
-            .find(|tab| tab.1.collection_ref == Some(req))
-            .inspect(|tab| {
-                self.active_tab = tab.0;
+            .filter_map(|(key, tab)| match tab {
+                Tab::Http(tab) => Some((key, tab)),
             })
-            .is_some()
+            .find(|(_, tab)| tab.collection_ref == req)
+            .map(|(key, _)| key);
+
+        tab.inspect(|tab| {
+            self.switch_tab(*tab);
+        })
+        .is_some()
     }
 
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
@@ -88,45 +102,35 @@ impl AppState {
         self.tabs.get(key)
     }
 
-    pub fn active_tab_mut(&mut self) -> &mut Tab {
-        self.tabs
-            .get_mut(self.active_tab)
-            .expect("Active tab not found")
+    pub fn active_tab_mut(&mut self) -> Option<&mut Tab> {
+        self.tabs.get_mut(self.active_tab?)
     }
 
-    pub fn active_tab(&self) -> &Tab {
-        self.tabs
-            .get(self.active_tab)
-            .expect("Active tab not found")
-    }
-
-    pub fn clear_tab_tasks(&mut self, tab: TabKey) {
-        if let Some(tab) = self.get_tab_mut(tab) {
-            tab.cancel_tasks();
-        }
+    pub fn active_tab(&self) -> Option<&Tab> {
+        self.tabs.get(self.active_tab?)
     }
 
     pub fn cancel_tab_tasks(&mut self, tab: TabKey) {
-        if let Some(tab) = self.get_tab_mut(tab) {
+        if let Some(Tab::Http(tab)) = self.get_tab_mut(tab) {
             tab.cancel_tasks();
+            tab.response.state = ResponseState::Idle;
         }
-
-        self.active_tab_mut().response.state = ResponseState::Idle;
     }
 
     pub fn close_tab(&mut self, tab: TabKey) {
         self.tabs.remove(tab);
-        self.active_tab = self
-            .tabs
-            .keys()
-            .next()
-            .unwrap_or_else(|| self.tabs.insert(Default::default()));
+        let tab = self.tab_history.pop();
+        while let Some(tab) = tab {
+            if self.tabs.contains_key(tab) {
+                self.switch_tab(tab);
+                break;
+            }
+        }
     }
 
-    pub(crate) fn get_req_ref(&self, tab: TabKey) -> Option<&RequestRef> {
-        let tab = self.tabs.get(tab)?;
-        let req_ref = tab.collection_ref.as_ref()?;
-        self.collections.get_ref(*req_ref)
+    pub fn open_new_tab(&mut self, default: Tab) {
+        let id = self.tabs.insert(default);
+        self.switch_tab(id);
     }
 }
 

@@ -19,3 +19,4 @@ reqwest = { workspace = true }
 anyhow = { workspace = true }
 rfd = { workspace = true }
 log = { workspace = true }
+indexmap = { workspace = true }

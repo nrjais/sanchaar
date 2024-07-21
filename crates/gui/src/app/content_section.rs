@@ -8,9 +8,12 @@ use iced::{padding, Color, Element, Font, Length, Task};
 use crate::app::panels::PanelMsg;
 
 use crate::app::{collection_tree, panels};
-use crate::state::{AppState, SplitState, TabKey};
-use components::{bordered_left, bordered_right, card_tab, card_tabs, colors, TabBarAction};
+use crate::state::{AppState, HttpTab, SplitState, Tab, TabKey};
+use components::{
+    bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons, CardTab, TabBarAction,
+};
 use core::http::request::Method;
+use core::http::CollectionRequest;
 
 const BORDER_WIDTH: u16 = 1;
 
@@ -28,8 +31,12 @@ impl MainPageMsg {
             Self::TabBarAction(action) => {
                 use TabBarAction::*;
                 match action {
-                    ChangeTab(tab) => state.active_tab = tab,
-                    NewTab => state.active_tab = state.tabs.insert(Default::default()),
+                    ChangeTab(tab) => state.switch_tab(tab),
+                    NewTab => state.open_new_tab(Tab::Http(HttpTab::new(
+                        "Untitled".to_string(),
+                        Default::default(),
+                        CollectionRequest(Default::default(), Default::default()),
+                    ))),
                     CloseTab(key) => state.close_tab(key),
                 }
                 Task::none()
@@ -56,7 +63,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
     let panes = PaneGrid::new(&state.panes, move |_, pane, _| {
         let pane = match pane {
             SplitState::First => side_bar(state),
-            SplitState::Second => tabs_view(state),
+            SplitState::Second => tab_panel(state),
         };
         pane_grid::Content::new(pane)
     })
@@ -75,45 +82,61 @@ fn side_bar(state: &AppState) -> Element<MainPageMsg> {
     )
 }
 
-fn tabs_view(state: &AppState) -> Element<MainPageMsg> {
+fn tab_panel(state: &AppState) -> Element<MainPageMsg> {
+    match state.active_tab.zip(state.active_tab()) {
+        Some((key, tab)) => tabs_view(state, key, tab),
+        None => no_tabs_view(),
+    }
+}
+
+fn no_tabs_view<'a>() -> Element<'a, MainPageMsg> {
+    container(
+        Column::new()
+            .push(container(icon(icons::FolderOpen).size(80.0)).padding(10))
+            .push(iced::widget::Text::new("No tabs open").size(20))
+            .align_x(iced::Alignment::Center),
+    )
+    .center(Length::Fill)
+    .into()
+}
+
+fn tabs_view<'a>(
+    state: &'a AppState,
+    active_tab: TabKey,
+    tab: &'a Tab,
+) -> Element<'a, MainPageMsg> {
     let mut tabs = state.tabs.iter().collect::<Vec<_>>();
-    tabs.sort_unstable_by_key(|(_, v)| v.id);
+    tabs.sort_unstable_by_key(|(key, _)| *key);
 
     let tabs = tabs
         .into_iter()
-        .map(|(key, tab)| {
-            let dirty_flag = if tab.is_request_dirty() { "" } else { "" };
-            card_tab(
-                key,
-                text(format!("{}{}", dirty_flag, tab.request().method))
-                    .color(method_color(tab.request().method))
-                    .shaping(Advanced)
-                    .size(12)
-                    .height(Length::Shrink)
-                    .font(Font {
-                        weight: Weight::Bold,
-                        ..Default::default()
-                    }),
-                text(
-                    state
-                        .get_req_ref(key)
-                        .map(|a| &a.name as &str)
-                        .unwrap_or("Untitled"),
-                ),
-            )
+        .map(|(key, tab)| match tab {
+            Tab::Http(tab) => tab_card(key, tab),
         })
         .collect();
 
     let tabs = Column::new()
-        .push(card_tabs(
-            state.active_tab,
-            tabs,
-            MainPageMsg::TabBarAction,
-            None,
-        ))
-        .push(panels::view(state).map(MainPageMsg::Panel))
+        .push(card_tabs(active_tab, tabs, MainPageMsg::TabBarAction, None))
+        .push(panels::view(state, tab).map(MainPageMsg::Panel))
         .spacing(8)
         .align_x(iced::Alignment::Center);
 
     bordered_left(BORDER_WIDTH, container(tabs).padding(padding::left(4)))
+}
+
+fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {
+    let dirty_flag = if tab.is_request_dirty() { "" } else { "" };
+    card_tab(
+        key,
+        text(format!("{}{}", dirty_flag, tab.request().method))
+            .color(method_color(tab.request().method))
+            .shaping(Advanced)
+            .size(12)
+            .height(Length::Shrink)
+            .font(Font {
+                weight: Weight::Bold,
+                ..Default::default()
+            }),
+        text(&tab.name),
+    )
 }

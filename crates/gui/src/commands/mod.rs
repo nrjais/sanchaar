@@ -5,7 +5,7 @@ use std::time::Instant;
 
 use crate::{
     app::AppMsg,
-    state::{RequestDirtyState, TabKey},
+    state::{RequestDirtyState, Tab, TabKey},
     AppState,
 };
 
@@ -76,7 +76,7 @@ impl TaskMsg {
             TaskMsg::UpdateDirtyTabs(status) => {
                 task_done(state, BackgroundTask::CheckDirtyRequests);
                 for (key, status) in status {
-                    if let Some(tab) = state.tabs.get_mut(key) {
+                    if let Some(Tab::Http(tab)) = state.tabs.get_mut(key) {
                         tab.request_dirty_state = status;
                     };
                 }

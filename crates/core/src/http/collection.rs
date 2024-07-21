@@ -295,6 +295,14 @@ impl Collection {
             .find(|script| script.name == s)
             .map(|script| script.path.clone())
     }
+
+    pub fn update_active_env_by_name(&mut self, name: &str) {
+        let env = self.environments.find_by_name(name);
+
+        if let Some(env) = env {
+            self.active_environment = Some(env);
+        }
+    }
 }
 
 impl Default for Collection {

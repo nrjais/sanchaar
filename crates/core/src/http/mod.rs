@@ -6,7 +6,7 @@ use crate::http::collection::{Collection, RequestId, RequestRef};
 use crate::http::environment::Environments;
 
 use self::collection::FolderId;
-use self::environment::{Environment, EnvironmentKey};
+use self::environment::EnvironmentKey;
 
 pub mod collection;
 pub mod environment;
@@ -143,11 +143,6 @@ impl Collections {
         Some(&self.entries.get(key)?.environments)
     }
 
-    pub fn get_active_env(&self, key: CollectionKey) -> Option<&Environment> {
-        let envs = self.get_envs(key)?;
-        envs.get(self.entries.get(key)?.active_environment?)
-    }
-
     pub fn rename_collection(
         &mut self,
         col: CollectionKey,
@@ -223,19 +218,6 @@ impl Collections {
         let collection = self.get_mut(col)?;
 
         Some(collection.environments.create(name))
-    }
-
-    pub fn update_active_env_by_name(
-        &mut self,
-        col: CollectionKey,
-        name: &str,
-    ) -> Option<EnvironmentKey> {
-        let env = self.entries.get(col)?.environments.find_by_name(name);
-
-        if let Some(env) = env {
-            self.get_mut(col)?.active_environment = Some(env);
-        }
-        env
     }
 
     pub fn delete_request(&mut self, col: CollectionKey, req: RequestId) -> Option<PathBuf> {

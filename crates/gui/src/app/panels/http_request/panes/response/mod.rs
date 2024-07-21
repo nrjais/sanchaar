@@ -1,5 +1,5 @@
-use crate::state::response::ResponseState;
-use iced::{widget::center, Task, Element};
+use crate::state::{response::ResponseState, AppState, HttpTab, Tab};
+use iced::{widget::center, Element, Task};
 
 mod completed;
 mod executing;
@@ -13,13 +13,17 @@ pub enum ResponsePaneMsg {
 }
 
 impl ResponsePaneMsg {
-    pub(crate) fn update(self, state: &mut crate::state::AppState) -> Task<Self> {
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
+        let active_tab = state.active_tab.zip(state.active_tab_mut());
+        let Some((active_tab, Tab::Http(tab))) = active_tab else {
+            return Task::none();
+        };
         match self {
-            Self::Completed(msg) => msg.update(state).map(ResponsePaneMsg::Completed),
+            Self::Completed(msg) => msg.update(tab).map(ResponsePaneMsg::Completed),
             Self::CancelRequest => {
-                let res_state = &state.active_tab().response.state;
+                let res_state = &tab.response.state;
                 if let ResponseState::Executing = res_state {
-                    state.cancel_tab_tasks(state.active_tab);
+                    state.cancel_tab_tasks(active_tab);
                 }
                 Task::none()
             }
@@ -27,17 +31,16 @@ impl ResponsePaneMsg {
     }
 }
 
-pub(crate) fn view(state: &crate::state::AppState) -> Element<ResponsePaneMsg> {
-    let active_tab = state.active_tab();
-    let res = &active_tab.response;
+pub fn view(tab: &HttpTab) -> Element<ResponsePaneMsg> {
+    let res = &tab.response;
 
     let res = match res.state {
-        ResponseState::Idle => idle::view(state),
-        ResponseState::Executing => executing::view(state),
+        ResponseState::Idle => idle::view(),
+        ResponseState::Executing => executing::view(),
         ResponseState::Completed(ref result) => {
-            completed::view(state, result).map(ResponsePaneMsg::Completed)
+            completed::view(tab, result).map(ResponsePaneMsg::Completed)
         }
-        ResponseState::Failed(ref e) => failed::view(state, e.clone()),
+        ResponseState::Failed(ref e) => failed::view(e.clone()),
     };
 
     center(res).into()

@@ -2,7 +2,6 @@ use iced::widget::{button, center, container, text, Column};
 use iced::Length;
 
 use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
-use crate::state::AppState;
 use components::{icon, icons};
 
 pub fn center_x<'a>(
@@ -16,7 +15,7 @@ pub fn center_x<'a>(
         .into()
 }
 
-pub fn view(_state: &AppState) -> iced::Element<'_, ResponsePaneMsg> {
+pub fn view<'a>() -> iced::Element<'a, ResponsePaneMsg> {
     let cancel = center_x(
         button(container(text("Cancel").size(16.0)).padding([0, 24]))
             .style(button::danger)

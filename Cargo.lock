@@ -1582,6 +1582,7 @@ dependencies = [
  "core",
  "humansize",
  "iced",
+ "indexmap",
  "log",
  "reqwest",
  "rfd",

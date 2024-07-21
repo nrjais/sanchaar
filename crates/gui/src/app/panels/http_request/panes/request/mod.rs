@@ -1,13 +1,15 @@
+use core::http::collection::Collection;
 use core::http::CollectionKey;
 use std::path::PathBuf;
 
 use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
-use iced::{widget::text, Task, Length};
+use iced::{widget::text, Length, Task};
 
 use crate::commands::dialog::open_file_dialog;
 use crate::state::popups::{Popup, PopupNameAction};
+use crate::state::request::ReqTabId;
 use crate::state::request::{RawRequestBody, RequestPane};
-use crate::state::{request::ReqTabId, AppState};
+use crate::state::{AppState, HttpTab, Tab};
 use components::{
     button_tab, button_tabs, icon_button, icons, key_value_editor, tooltip, KeyValUpdateMsg,
 };
@@ -40,8 +42,12 @@ pub enum RequestPaneMsg {
 }
 
 impl RequestPaneMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
-        let request = state.active_tab_mut().request_mut();
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
+        let Some(Tab::Http(tab)) = state.active_tab_mut() else {
+            return Task::none();
+        };
+        let request = tab.request_mut();
+
         match self {
             Self::TabSelected(tab) => {
                 request.tab = tab;
@@ -83,17 +89,19 @@ impl RequestPaneMsg {
                 request.body = RawRequestBody::File(path);
             }
             Self::MulitpartOpenFilePicker(idx) => {
-                return open_file_dialog("Select File", move |handle| {
+                let task = open_file_dialog("Select File", move |handle| {
                     let path = handle.map(|p| p.path().to_path_buf());
                     RequestPaneMsg::MultipartFilesAction(FilePickerUpdateMsg::FilePicked(idx, path))
                 });
+                return task;
             }
             Self::ChangeBodyType(ct) => request.change_body_type(ct),
             Self::AuthEditorAction(action) => action.update(request),
             Self::OpenFilePicker => {
-                return open_file_dialog("Select File", |path| {
+                let task = open_file_dialog("Select File", |path| {
                     RequestPaneMsg::ChangeBodyFile(path.map(|p| p.path().to_path_buf()))
                 });
+                return task;
             }
             Self::CreateScript(col) => {
                 Popup::popup_name(state, String::new(), PopupNameAction::NewScript(col));
@@ -138,19 +146,15 @@ fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
     .into()
 }
 
-fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
-    let tab = state.active_tab();
-    let Some(collection_key) = tab.collection_key() else {
+fn script_view<'a>(
+    col: Option<&'a Collection>,
+    tab: &'a HttpTab,
+) -> iced::Element<'a, RequestPaneMsg> {
+    let Some(col) = col else {
         return Column::new().into();
     };
 
-    let scripts = state
-        .collections
-        .get(collection_key)
-        .map(|c| &c.scripts)
-        .cloned()
-        .unwrap_or_default();
-
+    let scripts = &col.scripts;
     let selected = tab.request().pre_request.as_ref();
 
     Column::new()
@@ -172,7 +176,7 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
                 .push(tooltip(
                     "New Script",
                     icon_button(icons::Plus, Some(20), Some(12))
-                        .on_press(RequestPaneMsg::CreateScript(collection_key))
+                        .on_press(RequestPaneMsg::CreateScript(tab.collection_key()))
                         .style(button::secondary),
                 ))
                 .push(tooltip(
@@ -193,16 +197,18 @@ fn script_view(state: &AppState) -> iced::Element<RequestPaneMsg> {
         .into()
 }
 
-pub(crate) fn view(state: &AppState) -> iced::Element<RequestPaneMsg> {
-    let request = state.active_tab().request();
-    let col = state.active_tab().collection_key();
+pub(crate) fn view<'a>(
+    tab: &'a HttpTab,
+    col: Option<&'a Collection>,
+) -> iced::Element<'a, RequestPaneMsg> {
+    let request = tab.request();
 
     let tab_content = match request.tab {
         ReqTabId::Params => params_view(request),
         ReqTabId::Headers => headers_view(request),
         ReqTabId::Auth => auth_view(request).map(RequestPaneMsg::AuthEditorAction),
         ReqTabId::Body => body_tab(&request.body),
-        ReqTabId::PreRequest => script_view(state),
+        ReqTabId::PreRequest => script_view(col, tab),
     };
 
     let tabs = button_tabs(

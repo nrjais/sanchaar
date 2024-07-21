@@ -9,10 +9,6 @@ use core::http::{CollectionKey, CollectionRequest};
 
 use super::request::RequestPane;
 
-core::new_id_type!(
-    pub struct TabOpenId;
-);
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestDirtyState {
     Clean,
@@ -21,9 +17,9 @@ pub enum RequestDirtyState {
 }
 
 #[derive(Debug)]
-pub struct Tab {
-    pub id: TabOpenId,
-    pub collection_ref: Option<CollectionRequest>,
+pub struct HttpTab {
+    pub name: String,
+    pub collection_ref: CollectionRequest,
     request: RequestPane,
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
@@ -32,17 +28,11 @@ pub struct Tab {
     pub request_dirty_state: RequestDirtyState,
 }
 
-impl Default for Tab {
-    fn default() -> Self {
-        Self::new(Request::default())
-    }
-}
-
-impl Tab {
-    pub fn new(request: Request) -> Self {
+impl HttpTab {
+    pub fn new(name: String, request: Request, req_ref: CollectionRequest) -> Self {
         Self {
-            id: TabOpenId::new(),
-            collection_ref: None,
+            name,
+            collection_ref: req_ref,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
@@ -77,12 +67,6 @@ impl Tab {
         self.request_dirty_state = RequestDirtyState::CheckIfDirty;
     }
 
-    pub(crate) fn with_ref(req: Request, req_ref: CollectionRequest) -> Tab {
-        let mut tab = Tab::new(req);
-        tab.collection_ref = Some(req_ref);
-        tab
-    }
-
     pub fn cancel_tasks(&mut self) {
         for task in self.tasks.drain(..) {
             let _ = task.send(());
@@ -93,12 +77,12 @@ impl Tab {
         self.tasks.push(task);
     }
 
-    pub fn collection_key(&self) -> Option<CollectionKey> {
-        self.collection_ref.as_ref().map(|r| r.0)
+    pub fn collection_key(&self) -> CollectionKey {
+        self.collection_ref.0
     }
 }
 
-impl Drop for Tab {
+impl Drop for HttpTab {
     fn drop(&mut self) {
         self.cancel_tasks();
     }

@@ -24,7 +24,7 @@ use core::transformers::request::transform_request;
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
-use crate::state::{AppState, RequestDirtyState, TabKey};
+use crate::state::{AppState, RequestDirtyState, Tab, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum ResponseResult {
@@ -38,14 +38,15 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
     tab: TabKey,
     on_result: impl Fn(ResponseResult) -> M + 'static + MaybeSend,
 ) -> Task<M> {
-    let Some(sel_tab) = state.get_tab(tab) else {
+    let Some(Tab::Http(sel_tab)) = state.get_tab(tab) else {
         return Task::none();
     };
 
-    let env = match sel_tab.collection_ref {
-        Some(col) => state.collections.get_active_env(col.0).cloned(),
-        None => None,
-    };
+    let env = state
+        .collections
+        .get(sel_tab.collection_ref.0)
+        .and_then(|c| c.get_active_environment())
+        .cloned();
 
     let client = state.client.clone();
     let req_fut = transform_request(client.clone(), sel_tab.request().to_request(), env)
@@ -53,9 +54,10 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
 
-    let Some(sel_tab) = state.get_tab_mut(tab) else {
+    let Some(Tab::Http(sel_tab)) = state.get_tab_mut(tab) else {
         return Task::none();
     };
+
     sel_tab.response.state = ResponseState::Executing;
     sel_tab.add_task(cancel_tx);
 
@@ -89,7 +91,7 @@ pub fn save_tab_request_cmd<M: 'static + MaybeSend>(
     fol: Option<FolderId>,
     msg: impl Fn(Option<anyhow::Error>) -> M + 'static + MaybeSend,
 ) -> Task<M> {
-    let Some(sel_tab) = state.get_tab(tab) else {
+    let Some(Tab::Http(sel_tab)) = state.get_tab(tab) else {
         return Task::none();
     };
     let req = sel_tab.request().to_request();
@@ -189,23 +191,24 @@ pub fn open_collection_cmd<M: 'static + MaybeSend>(
 pub fn open_request_cmd<M: 'static + MaybeSend>(
     state: &mut AppState,
     col: CollectionRequest,
-    on_done: impl Fn(Option<Request>) -> M + 'static + MaybeSend,
+    on_done: impl Fn(Option<(Request, String)>) -> M + 'static + MaybeSend,
 ) -> Task<M> {
     let Some(req) = state.collections.get_ref(col) else {
         return Task::none();
     };
 
     let path = req.path.clone();
-    Task::perform(
-        async move { read_request(&path).await },
-        move |res| match res {
-            Ok(req) => on_done(Some(req)),
-            Err(e) => {
-                log::error!("Error opening request: {:?}", &e);
-                on_done(None)
-            }
-        },
-    )
+    let name = req.name.clone();
+
+    let fut = async move { read_request(&path).await };
+
+    Task::perform(fut, move |res| match res {
+        Ok(req) => on_done(Some((req, name.clone()))),
+        Err(e) => {
+            log::error!("Error opening request: {:?}", &e);
+            on_done(None)
+        }
+    })
 }
 
 pub(crate) fn delete_folder_cmd<M: 'static + MaybeSend>(
@@ -298,21 +301,19 @@ pub async fn load_collections_cmd() -> Vec<Collection> {
     })
 }
 
-pub(crate) fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
+pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
     state: &mut AppState,
     on_done: impl Fn(Vec<(TabKey, RequestDirtyState)>) -> M + 'static + MaybeSend,
 ) -> Task<M> {
     let mut to_check = Vec::new();
     for (key, tab) in state.tabs.iter_mut() {
+        let Tab::Http(tab) = tab;
+
         if RequestDirtyState::CheckIfDirty != tab.request_dirty_state {
             continue;
         }
-        let Some(col) = tab.collection_ref.as_ref() else {
-            tab.request_dirty_state = RequestDirtyState::Clean;
-            continue;
-        };
 
-        let Some(request_ref) = state.collections.get_ref(*col) else {
+        let Some(request_ref) = state.collections.get_ref(tab.collection_ref) else {
             tab.request_dirty_state = RequestDirtyState::Clean;
             continue;
         };

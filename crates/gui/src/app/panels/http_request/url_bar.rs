@@ -4,7 +4,6 @@ use iced::{
     widget::{button, container, pick_list},
     Element, Task,
 };
-use log::info;
 use reqwest::Url;
 use serde_json::Value;
 use strum::VariantArray;
@@ -16,7 +15,7 @@ use core::http::request::Method;
 use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
 use crate::state::popups::Popup;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
-use crate::state::{AppState, TabKey};
+use crate::state::{AppState, HttpTab, Tab, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {
@@ -52,16 +51,12 @@ fn pretty_body(body: &[u8]) -> (String, Option<String>) {
     (raw, json)
 }
 
-fn update_response(state: &mut AppState, tab: TabKey, result: ResponseResult) {
+fn update_response(tab: &mut HttpTab, result: ResponseResult) {
     match result {
         ResponseResult::Completed(res) => {
-            state.cancel_tab_tasks(tab);
-            let Some(tab_mut) = state.get_tab_mut(tab) else {
-                return;
-            };
-
+            tab.cancel_tasks();
             let (raw, pretty) = pretty_body(&res.body.data);
-            tab_mut.response.state = ResponseState::Completed(CompletedResponse {
+            tab.response.state = ResponseState::Completed(CompletedResponse {
                 result: res,
                 content: pretty.map(|p| Content::with_text(p.as_str())),
                 raw: Content::with_text(raw.as_str()),
@@ -69,67 +64,65 @@ fn update_response(state: &mut AppState, tab: TabKey, result: ResponseResult) {
             });
         }
         ResponseResult::Error(e) => {
-            state.cancel_tab_tasks(tab);
-            let active_tab = state.active_tab_mut();
-            active_tab.response.state = ResponseState::Failed(e);
+            tab.cancel_tasks();
+            tab.response.state = ResponseState::Failed(e);
         }
-        ResponseResult::Cancelled => {
-            // Response state is already updated to idle in cancel_tasks
-            state.clear_tab_tasks(tab);
-        }
+        ResponseResult::Cancelled => tab.cancel_tasks(),
     }
 }
 
 impl UrlBarMsg {
-    pub(crate) fn update(self, state: &mut AppState) -> Task<Self> {
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
+        let active = state.active_tab.zip(state.active_tab_mut());
+        let Some((active_tab, Tab::Http(tab))) = active else {
+            return Task::none();
+        };
+
         match self {
             UrlBarMsg::MethodChanged(method) => {
-                state.active_tab_mut().request_mut().method = method;
+                tab.request_mut().method = method;
             }
             UrlBarMsg::UrlChanged(action) => {
-                let active_tab = state.active_tab_mut();
-                active_tab.request_mut().url_content.perform(action);
+                tab.request_mut().url_content.perform(action);
 
-                let url = active_tab.request().url_content.text();
+                let url = tab.request().url_content.text();
                 if let Some(params) = parse_path_params(&url) {
-                    active_tab
-                        .request_mut()
+                    tab.request_mut()
                         .path_params
                         .retain(|key| params.contains(key.name()));
 
                     for param in params {
-                        if !active_tab.request().path_params.contains_key(&param) {
-                            active_tab.request_mut().path_params.insert(param);
+                        if !tab.request().path_params.contains_key(&param) {
+                            tab.request_mut().path_params.insert(param);
                         }
                     }
                 }
             }
             UrlBarMsg::SendRequest => {
-                let active_tab = state.active_tab_mut();
-                if let ResponseState::Executing = active_tab.response.state {
-                    state.cancel_tab_tasks(state.active_tab);
-                }
-                let tab = state.active_tab;
-                return send_request_cmd(state, state.active_tab, move |r| {
-                    UrlBarMsg::RequestResult(tab, r)
-                });
+                tab.cancel_tasks();
+                let cb = move |r| UrlBarMsg::RequestResult(active_tab, r);
+                return send_request_cmd(state, active_tab, cb);
             }
             UrlBarMsg::SaveRequest => {
-                let sel_tab = state.active_tab();
-                let req_ref = state.get_req_ref(state.active_tab);
+                let Some(Tab::Http(tab)) = state.active_tab() else {
+                    return Task::none();
+                };
+
+                let req_ref = state.collections.get_ref(tab.collection_ref);
                 if let Some(req_res) = req_ref {
-                    return save_request_cmd(sel_tab.request(), req_res.path.clone(), |_| {
-                        Self::RequestSaved
-                    });
+                    let path = req_res.path.clone();
+                    return save_request_cmd(tab.request(), path, |_| Self::RequestSaved);
                 } else {
-                    Popup::save_request(state, state.active_tab);
+                    Popup::save_request(state, active_tab);
                 }
             }
-            UrlBarMsg::RequestSaved => {
-                state.active_tab_mut().check_dirty();
-                info!("Request saved");
+            UrlBarMsg::RequestSaved => tab.check_dirty(),
+            UrlBarMsg::RequestResult(tab, res) => {
+                let tab = state.get_tab_mut(tab);
+                if let Some(Tab::Http(tab)) = tab {
+                    update_response(tab, res)
+                }
             }
-            UrlBarMsg::RequestResult(tab, res) => update_response(state, tab, res),
         }
         Task::none()
     }
@@ -142,8 +135,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
     })
 }
 
-pub(crate) fn view(state: &AppState) -> Element<UrlBarMsg> {
-    let tab = state.active_tab();
+pub(crate) fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
     let request = tab.request();
     let executing = tab.response.is_executing();
 
