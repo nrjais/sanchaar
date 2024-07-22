@@ -1,4 +1,4 @@
-use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
+use crate::app::panels::http::panes::response::ResponsePaneMsg;
 use iced::widget::{container, Column};
 
 use components::{icon, icons};

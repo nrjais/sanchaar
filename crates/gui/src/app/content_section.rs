@@ -112,6 +112,7 @@ fn tabs_view<'a>(
         .into_iter()
         .map(|(key, tab)| match tab {
             Tab::Http(tab) => tab_card(key, tab),
+            Tab::Collection(_) => todo!(),
         })
         .collect();
 

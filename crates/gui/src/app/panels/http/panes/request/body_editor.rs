@@ -1,6 +1,6 @@
 use components::{code_editor, text_editor, ContentType};
 
-use crate::app::panels::http_request::panes::request::RequestPaneMsg;
+use crate::app::panels::http::panes::request::RequestPaneMsg;
 use iced::widget::container;
 use iced::Element;
 

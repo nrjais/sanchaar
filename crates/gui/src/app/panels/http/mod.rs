@@ -15,7 +15,7 @@ pub mod url_bar;
 const BORDER_WIDTH: u16 = 1;
 
 #[derive(Debug, Clone)]
-pub enum HttpMsg {
+pub enum HttpTabMsg {
     Req(request::RequestPaneMsg),
     Res(response::ResponsePaneMsg),
     Url(url_bar::UrlBarMsg),
@@ -23,14 +23,14 @@ pub enum HttpMsg {
     SplitResize(ResizeEvent),
 }
 
-impl HttpMsg {
+impl HttpTabMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
-            HttpMsg::Req(msg) => msg.update(state).map(HttpMsg::Req),
-            HttpMsg::Res(msg) => msg.update(state).map(HttpMsg::Res),
-            HttpMsg::Url(msg) => msg.update(state).map(HttpMsg::Url),
-            HttpMsg::Actions(ac) => ac.update(state).map(HttpMsg::Actions),
-            HttpMsg::SplitResize(ResizeEvent { split, ratio }) => {
+            HttpTabMsg::Req(msg) => msg.update(state).map(HttpTabMsg::Req),
+            HttpTabMsg::Res(msg) => msg.update(state).map(HttpTabMsg::Res),
+            HttpTabMsg::Url(msg) => msg.update(state).map(HttpTabMsg::Url),
+            HttpTabMsg::Actions(ac) => ac.update(state).map(HttpTabMsg::Actions),
+            HttpTabMsg::SplitResize(ResizeEvent { split, ratio }) => {
                 let Some(Tab::Http(tab)) = state.active_tab_mut() else {
                     return Task::none();
                 };
@@ -44,23 +44,23 @@ impl HttpMsg {
     }
 }
 
-pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpMsg> {
+pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg> {
     let col = state.collections.get(tab.collection_key());
 
-    let url_bar = url_bar::view(tab).map(HttpMsg::Url);
-    let action_bar = col.map(|col| action_bar::view(tab, col).map(HttpMsg::Actions));
+    let url_bar = url_bar::view(tab).map(HttpTabMsg::Url);
+    let action_bar = col.map(|col| action_bar::view(tab, col).map(HttpTabMsg::Actions));
 
     let req_res = PaneGrid::new(&tab.panes, move |_, pane, _| {
         let pane = match pane {
             SplitState::First => {
-                let request_view = request::view(tab, col).map(HttpMsg::Req);
+                let request_view = request::view(tab, col).map(HttpTabMsg::Req);
                 bordered_right(
                     BORDER_WIDTH,
                     container(request_view).padding(padding::right(4)),
                 )
             }
             SplitState::Second => {
-                let response_view = response::view(tab).map(HttpMsg::Res);
+                let response_view = response::view(tab).map(HttpTabMsg::Res);
                 bordered_left(
                     BORDER_WIDTH,
                     container(response_view).padding(padding::left(4)),
@@ -72,7 +72,7 @@ pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpMsg> {
     })
     .height(iced::Length::Fill)
     .width(iced::Length::Fill)
-    .on_resize(8, HttpMsg::SplitResize);
+    .on_resize(8, HttpTabMsg::SplitResize);
 
     let req_res = container(req_res).padding(padding::top(4));
     Column::new()

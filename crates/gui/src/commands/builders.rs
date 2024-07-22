@@ -307,7 +307,9 @@ pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
 ) -> Task<M> {
     let mut to_check = Vec::new();
     for (key, tab) in state.tabs.iter_mut() {
-        let Tab::Http(tab) = tab;
+        let Tab::Http(tab) = tab else {
+            continue;
+        };
 
         if RequestDirtyState::CheckIfDirty != tab.request_dirty_state {
             continue;

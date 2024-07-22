@@ -1,3 +1,4 @@
+use collection_tab::CollectionTab;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use iced::Theme;
@@ -5,17 +6,18 @@ use slotmap::SlotMap;
 
 use core::client::create_client;
 use core::http::{CollectionRequest, Collections};
-pub use tab::*;
+pub use http_tab::*;
 
 use crate::commands::JobState;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 
+pub mod collection_tab;
 pub mod environment;
+pub mod http_tab;
 pub mod popups;
 pub mod request;
 pub mod response;
-pub mod tab;
 pub mod utils;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -32,6 +34,7 @@ slotmap::new_key_type! {
 #[derive(Debug)]
 pub enum Tab {
     Http(HttpTab),
+    Collection(CollectionTab),
 }
 
 #[derive(Debug)]
@@ -84,6 +87,7 @@ impl AppState {
             .iter()
             .filter_map(|(key, tab)| match tab {
                 Tab::Http(tab) => Some((key, tab)),
+                _ => None,
             })
             .find(|(_, tab)| tab.collection_ref == req)
             .map(|(key, _)| key);

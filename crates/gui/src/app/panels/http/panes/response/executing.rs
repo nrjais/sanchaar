@@ -1,7 +1,7 @@
 use iced::widget::{button, center, container, text, Column};
 use iced::Length;
 
-use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
+use crate::app::panels::http::panes::response::ResponsePaneMsg;
 use components::{icon, icons};
 
 pub fn center_x<'a>(

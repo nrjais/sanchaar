@@ -3,11 +3,12 @@ use iced::Task;
 
 use crate::state::{AppState, Tab};
 
-pub mod http_request;
+pub mod collection;
+pub mod http;
 
 #[derive(Debug, Clone)]
 pub enum PanelMsg {
-    Http(http_request::HttpMsg),
+    Http(http::HttpTabMsg),
 }
 
 impl PanelMsg {
@@ -20,7 +21,8 @@ impl PanelMsg {
 
 pub fn view<'a>(state: &'a AppState, tab: &'a Tab) -> iced::Element<'a, PanelMsg> {
     let req = match tab {
-        Tab::Http(tab) => http_request::view(state, tab).map(PanelMsg::Http),
+        Tab::Http(tab) => http::view(state, tab).map(PanelMsg::Http),
+        Tab::Collection(_) => todo!(),
     };
 
     container::Container::new(req)

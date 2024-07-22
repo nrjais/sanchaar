@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::app::panels::http_request::panes::response::ResponsePaneMsg;
+use crate::app::panels::http::panes::response::ResponsePaneMsg;
 use components::{icon, icons};
 use iced::widget::{container, text, Column, Row};
 
