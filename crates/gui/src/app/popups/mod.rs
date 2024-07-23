@@ -7,14 +7,12 @@ use crate::state::AppState;
 
 mod app_settings;
 mod create_collection;
-mod environment_editor;
 mod name_popup;
 mod save_request;
 
 #[derive(Clone, Debug)]
 pub enum PopupMsg {
     CreateCollection(create_collection::Message),
-    EnvironmentEditor(environment_editor::Message),
     SaveRequest(save_request::Message),
     RenamePopup(name_popup::Message),
     AppSettings(app_settings::Message),
@@ -26,7 +24,6 @@ impl PopupMsg {
     pub fn update(self, state: &mut AppState) -> Task<PopupMsg> {
         match self {
             PopupMsg::CreateCollection(msg) => msg.update(state).map(PopupMsg::CreateCollection),
-            PopupMsg::EnvironmentEditor(msg) => msg.update(state).map(PopupMsg::EnvironmentEditor),
             PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
             PopupMsg::RenamePopup(msg) => msg.update(state).map(PopupMsg::RenamePopup),
             PopupMsg::AppSettings(msg) => msg.update(state).map(PopupMsg::AppSettings),
@@ -45,11 +42,6 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             create_collection::title(),
             create_collection::view(state, data).map(PopupMsg::CreateCollection),
             create_collection::done(data).map(PopupMsg::CreateCollection),
-        ),
-        Popup::EnvironmentEditor(data) => (
-            environment_editor::title(),
-            environment_editor::view(state, data).map(PopupMsg::EnvironmentEditor),
-            environment_editor::done(data).map(PopupMsg::EnvironmentEditor),
         ),
         Popup::SaveRequest(data) => (
             save_request::title(),

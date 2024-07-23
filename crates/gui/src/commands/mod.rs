@@ -5,7 +5,7 @@ use std::time::Instant;
 
 use crate::{
     app::AppMsg,
-    state::{RequestDirtyState, Tab, TabKey},
+    state::{collection_tab::CollectionTab, RequestDirtyState, Tab, TabKey},
     AppState,
 };
 
@@ -68,6 +68,10 @@ impl TaskMsg {
         match self {
             TaskMsg::CollectionsLoaded(collection) => {
                 state.collections.insert_all(collection);
+                let first = state.collections.iter().last();
+                if let Some((key, col)) = first {
+                    state.open_tab(Tab::Collection(CollectionTab::env_tab(key, col)));
+                }
                 task_done(state, BackgroundTask::SaveCollections);
             }
             TaskMsg::Completed(task) => {
@@ -76,7 +80,7 @@ impl TaskMsg {
             TaskMsg::UpdateDirtyTabs(status) => {
                 task_done(state, BackgroundTask::CheckDirtyRequests);
                 for (key, status) in status {
-                    if let Some(Tab::Http(tab)) = state.tabs.get_mut(key) {
+                    if let Some(Tab::Http(tab)) = state.tabs.get_mut(&key) {
                         tab.request_dirty_state = status;
                     };
                 }

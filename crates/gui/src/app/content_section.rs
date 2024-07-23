@@ -8,6 +8,7 @@ use iced::{padding, Color, Element, Font, Length, Task};
 use crate::app::panels::PanelMsg;
 
 use crate::app::{collection_tree, panels};
+use crate::state::collection_tab::CollectionTab;
 use crate::state::{AppState, HttpTab, SplitState, Tab, TabKey};
 use components::{
     bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons, CardTab, TabBarAction,
@@ -32,7 +33,7 @@ impl MainPageMsg {
                 use TabBarAction::*;
                 match action {
                     ChangeTab(tab) => state.switch_tab(tab),
-                    NewTab => state.open_new_tab(Tab::Http(HttpTab::new(
+                    NewTab => state.open_tab(Tab::Http(HttpTab::new(
                         "Untitled".to_string(),
                         Default::default(),
                         CollectionRequest(Default::default(), Default::default()),
@@ -111,8 +112,8 @@ fn tabs_view<'a>(
     let tabs = tabs
         .into_iter()
         .map(|(key, tab)| match tab {
-            Tab::Http(tab) => tab_card(key, tab),
-            Tab::Collection(_) => todo!(),
+            Tab::Http(tab) => tab_card(*key, tab),
+            Tab::Collection(tab) => col_tab(*key, tab),
         })
         .collect();
 
@@ -123,6 +124,10 @@ fn tabs_view<'a>(
         .align_x(iced::Alignment::Center);
 
     bordered_left(BORDER_WIDTH, container(tabs).padding(padding::left(4)))
+}
+
+fn col_tab(key: TabKey, tab: &CollectionTab) -> CardTab<TabKey> {
+    card_tab(key, icon(icons::Folder), text(&tab.name))
 }
 
 fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {

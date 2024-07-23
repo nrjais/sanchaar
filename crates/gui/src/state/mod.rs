@@ -2,7 +2,7 @@ use collection_tab::CollectionTab;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use iced::Theme;
-use slotmap::SlotMap;
+use indexmap::IndexMap;
 
 use core::client::create_client;
 use core::http::{CollectionRequest, Collections};
@@ -27,7 +27,7 @@ pub enum SplitState {
     Second, // Right or Bottom
 }
 
-slotmap::new_key_type! {
+core::new_id_type! {
     pub struct TabKey;
 }
 
@@ -41,7 +41,7 @@ pub enum Tab {
 pub struct AppState {
     pub active_tab: Option<TabKey>,
     tab_history: indexmap::IndexSet<TabKey>,
-    pub tabs: SlotMap<TabKey, Tab>,
+    pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub collections: Collections,
     pub client: reqwest::Client,
     pub panes: pane_grid::State<SplitState>,
@@ -54,7 +54,7 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             active_tab: None,
-            tabs: SlotMap::with_key(),
+            tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
             client: create_client(),
             collections: Collections::default(),
@@ -77,41 +77,40 @@ impl AppState {
     }
 
     pub fn open_tab(&mut self, tab: Tab) {
-        let id = self.tabs.insert(tab);
+        let id = TabKey::new();
+        self.tabs.insert(id, tab);
         self.switch_tab(id);
     }
 
     pub fn switch_to_tab(&mut self, req: CollectionRequest) -> bool {
-        let tab = self
-            .tabs
+        self.tabs
             .iter()
             .filter_map(|(key, tab)| match tab {
                 Tab::Http(tab) => Some((key, tab)),
                 _ => None,
             })
             .find(|(_, tab)| tab.collection_ref == req)
-            .map(|(key, _)| key);
-
-        tab.inspect(|tab| {
-            self.switch_tab(*tab);
-        })
-        .is_some()
+            .map(|(key, _)| *key)
+            .inspect(|tab| {
+                self.switch_tab(*tab);
+            })
+            .is_some()
     }
 
     pub fn get_tab_mut(&mut self, key: TabKey) -> Option<&mut Tab> {
-        self.tabs.get_mut(key)
+        self.tabs.get_mut(&key)
     }
 
     pub fn get_tab(&self, key: TabKey) -> Option<&Tab> {
-        self.tabs.get(key)
+        self.tabs.get(&key)
     }
 
     pub fn active_tab_mut(&mut self) -> Option<&mut Tab> {
-        self.tabs.get_mut(self.active_tab?)
+        self.tabs.get_mut(&self.active_tab?)
     }
 
     pub fn active_tab(&self) -> Option<&Tab> {
-        self.tabs.get(self.active_tab?)
+        self.tabs.get(&self.active_tab?)
     }
 
     pub fn cancel_tab_tasks(&mut self, tab: TabKey) {
@@ -122,19 +121,16 @@ impl AppState {
     }
 
     pub fn close_tab(&mut self, tab: TabKey) {
-        self.tabs.remove(tab);
-        let tab = self.tab_history.pop();
-        while let Some(tab) = tab {
-            if self.tabs.contains_key(tab) {
-                self.switch_tab(tab);
+        self.tabs.shift_remove(&tab);
+        let mut tab = self.tab_history.pop();
+        while let Some(key) = tab {
+            if self.tabs.contains_key(&key) {
+                self.switch_tab(key);
                 break;
             }
-        }
-    }
 
-    pub fn open_new_tab(&mut self, default: Tab) {
-        let id = self.tabs.insert(default);
-        self.switch_tab(id);
+            tab = self.tab_history.pop();
+        }
     }
 }
 

@@ -27,4 +27,4 @@ pub use key_value_viewer::key_value_viewer;
 pub use lines::{horizontal_line, vertical_line};
 pub use min_dimension::{min_height, min_width, MinDimension};
 pub use modal::modal;
-pub use multi_file_picker::{multi_file_picker, FilePickerUpdateMsg, KeyFile, KeyFileList};
+pub use multi_file_picker::{multi_file_picker, FilePickerAction, KeyFile, KeyFileList};

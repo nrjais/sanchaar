@@ -10,10 +10,11 @@ use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::request::ReqTabId;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
+use components::CodeEditorMsg;
 use components::{
-    button_tab, button_tabs, icon_button, icons, key_value_editor, tooltip, KeyValUpdateMsg,
+    button_tab, button_tabs, icon_button, icons, key_value_editor, tooltip, FilePickerAction,
+    KeyValUpdateMsg,
 };
-use components::{CodeEditorMsg, FilePickerUpdateMsg};
 
 use self::auth_editor::{auth_view, AuthEditorMsg};
 use self::body_view::body_tab;
@@ -32,7 +33,7 @@ pub enum RequestPaneMsg {
     AuthEditorAction(AuthEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
     MultipartParamsAction(KeyValUpdateMsg),
-    MultipartFilesAction(FilePickerUpdateMsg),
+    MultipartFilesAction(FilePickerAction),
     MulitpartOpenFilePicker(usize),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
@@ -91,7 +92,7 @@ impl RequestPaneMsg {
             Self::MulitpartOpenFilePicker(idx) => {
                 let task = open_file_dialog("Select File", move |handle| {
                     let path = handle.map(|p| p.path().to_path_buf());
-                    RequestPaneMsg::MultipartFilesAction(FilePickerUpdateMsg::FilePicked(idx, path))
+                    RequestPaneMsg::MultipartFilesAction(FilePickerAction::FilePicked(idx, path))
                 });
                 return task;
             }

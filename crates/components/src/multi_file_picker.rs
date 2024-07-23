@@ -69,19 +69,18 @@ impl KeyFileList {
         }
     }
 
-    pub fn update(&mut self, msg: FilePickerUpdateMsg) {
+    pub fn update(&mut self, msg: FilePickerAction) {
         match msg {
-            FilePickerUpdateMsg::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
-            FilePickerUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
-            FilePickerUpdateMsg::FilePicked(idx, file) => {
+            FilePickerAction::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
+            FilePickerAction::NameChanged(idx, name) => self.list[idx].name = name,
+            FilePickerAction::FilePicked(idx, file) => {
                 if let Some(file) = file {
                     self.list[idx].path = Some(file);
                 }
             }
-            FilePickerUpdateMsg::Remove(idx) => {
+            FilePickerAction::Remove(idx) => {
                 self.list.remove(idx);
             }
-            _ => todo!(),
         }
         if self.fixed {
             return;
@@ -131,14 +130,14 @@ impl KeyFileList {
 
 pub struct MultiFilePicker<'a, M> {
     values: &'a KeyFileList,
-    on_change: Option<Box<dyn Fn(FilePickerUpdateMsg) -> M + 'a>>,
+    on_change: Option<Box<dyn Fn(FilePickerAction) -> M + 'a>>,
     on_file_picker: Box<dyn Fn(usize) -> M + 'a>,
 }
 
 impl<'a, M: Clone> MultiFilePicker<'a, M> {
     pub fn on_change<F>(mut self, f: F) -> Self
     where
-        F: 'static + Fn(FilePickerUpdateMsg) -> M,
+        F: 'static + Fn(FilePickerAction) -> M,
     {
         self.on_change = Some(Box::new(f));
         self
@@ -146,11 +145,16 @@ impl<'a, M: Clone> MultiFilePicker<'a, M> {
 }
 
 #[derive(Debug, Clone)]
-pub enum FilePickerUpdateMsg {
+pub enum FilePickerAction {
     Toggled(usize, bool),
     NameChanged(usize, String),
     FilePicked(usize, Option<PathBuf>),
     Remove(usize),
+}
+
+#[derive(Debug, Clone)]
+pub enum FilePickerUpdateMsg {
+    Action(FilePickerAction),
     OpenFilePicker(usize),
 }
 
@@ -173,7 +177,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
     fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
         match event {
             FilePickerUpdateMsg::OpenFilePicker(idx) => Some((self.on_file_picker)(idx)),
-            _ => self.on_change.as_ref().map(|f| f(event)),
+            FilePickerUpdateMsg::Action(action) => self.on_change.as_ref().map(|f| f(action)),
         }
     }
 
@@ -181,10 +185,11 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
         let size = 14;
         let spacing = 2;
 
+        use FilePickerUpdateMsg::*;
         let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
             let border = Border::default();
             let enabled = checkbox("", !kv.disabled)
-                .on_toggle(move |enabled| FilePickerUpdateMsg::Toggled(idx, enabled))
+                .on_toggle(move |enabled| Action(FilePickerAction::Toggled(idx, enabled)))
                 .size(size)
                 .spacing(spacing);
 
@@ -192,7 +197,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                 .padding(0)
                 .style(button::text)
                 .on_press_maybe(if idx < self.values.values().len() - 1 {
-                    Some(FilePickerUpdateMsg::Remove(idx))
+                    Some(Action(FilePickerAction::Remove(idx)))
                 } else {
                     None
                 });
@@ -216,8 +221,8 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
 
             let name = text_input("", &kv.name)
                 .style(input_style)
-                .on_input(move |name| FilePickerUpdateMsg::NameChanged(idx, name))
-                .on_paste(move |name| FilePickerUpdateMsg::NameChanged(idx, name))
+                .on_input(move |name| Action(FilePickerAction::NameChanged(idx, name)))
+                .on_paste(move |name| Action(FilePickerAction::NameChanged(idx, name)))
                 .size(size)
                 .width(Length::FillPortion(2));
 

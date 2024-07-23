@@ -322,7 +322,7 @@ pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
 
         let req = tab.request().to_request();
 
-        to_check.push((key, req, request_ref.path.clone()));
+        to_check.push((*key, req, request_ref.path.clone()));
     }
 
     async fn exec(

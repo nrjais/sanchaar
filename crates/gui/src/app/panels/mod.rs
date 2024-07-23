@@ -8,21 +8,23 @@ pub mod http;
 
 #[derive(Debug, Clone)]
 pub enum PanelMsg {
-    Http(http::HttpTabMsg),
+    HttpTab(http::HttpTabMsg),
+    CollectionTab(collection::CollectionTabMsg),
 }
 
 impl PanelMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
-            PanelMsg::Http(msg) => msg.update(state).map(PanelMsg::Http),
+            PanelMsg::HttpTab(msg) => msg.update(state).map(PanelMsg::HttpTab),
+            PanelMsg::CollectionTab(msg) => msg.update(state).map(PanelMsg::CollectionTab),
         }
     }
 }
 
 pub fn view<'a>(state: &'a AppState, tab: &'a Tab) -> iced::Element<'a, PanelMsg> {
     let req = match tab {
-        Tab::Http(tab) => http::view(state, tab).map(PanelMsg::Http),
-        Tab::Collection(_) => todo!(),
+        Tab::Http(tab) => http::view(state, tab).map(PanelMsg::HttpTab),
+        Tab::Collection(tab) => collection::view(tab).map(PanelMsg::CollectionTab),
     };
 
     container::Container::new(req)

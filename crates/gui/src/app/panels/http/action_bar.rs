@@ -5,7 +5,7 @@ use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column
 use iced::{widget::button, Element, Length, Task};
 
 use crate::commands::builders;
-use crate::state::popups::Popup;
+use crate::state::collection_tab::CollectionTab;
 use crate::state::{AppState, HttpTab, Tab};
 
 #[derive(Debug, Clone)]
@@ -44,7 +44,9 @@ impl ActionBarMsg {
                 Task::none()
             }
             ActionBarMsg::OpenEnvironments(key) => {
-                Popup::environment_editor(state, key);
+                if let Some(col) = state.collections.get(key) {
+                    state.open_tab(Tab::Collection(CollectionTab::env_tab(key, col)));
+                }
                 Task::none()
             }
             ActionBarMsg::RequestRenamed(name) => {
