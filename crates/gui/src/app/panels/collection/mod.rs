@@ -1,13 +1,12 @@
 pub mod env_editor;
 
-use components::{button_tab, button_tabs, colors};
+use components::{button_tab, button_tabs};
 use iced::widget::{text, Column};
 use iced::Length;
-use iced::{widget::container, Element, Task};
+use iced::{Element, Task};
 
 use crate::state::collection_tab::{CollectionTab, CollectionTabId};
 use crate::state::{AppState, Tab};
-
 
 #[derive(Debug, Clone)]
 pub enum CollectionTabMsg {
@@ -32,9 +31,7 @@ impl CollectionTabMsg {
 
 pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, CollectionTabMsg> {
     let tab_content = match tab.tab {
-        CollectionTabId::Environments => env_editor::view(tab)
-            .map(CollectionTabMsg::EnvEditor)
-            .explain(colors::CYAN),
+        CollectionTabId::Environments => env_editor::view(tab).map(CollectionTabMsg::EnvEditor),
         CollectionTabId::Settings => todo!(),
     };
 

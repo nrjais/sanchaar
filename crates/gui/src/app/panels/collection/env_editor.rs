@@ -1,15 +1,11 @@
-use iced::widget::{
-    button, horizontal_space, pick_list, scrollable, text, text_input, value, vertical_space,
-    Column, Row,
-};
-use iced::{padding, Element, Length, Task};
+use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
+use iced::{Alignment, Element, Length, Task};
 
-use components::{button_tab, icon, icons, key_value_editor, vertical_button_tabs, vertical_line};
+use components::{icon, icons, key_value_editor, NerdIcon};
 use core::http::environment::EnvironmentKey;
 
 use crate::commands::builders;
-use crate::state::collection_tab::{CollectionTab, EnvironmentEditorState};
-use crate::state::environment::Env;
+use crate::state::collection_tab::CollectionTab;
 use crate::state::{AppState, Tab};
 
 #[derive(Debug, Clone)]
@@ -17,8 +13,6 @@ pub enum Message {
     SaveEnvs,
     SelectEnv(String),
     DeleteEnv(EnvironmentKey),
-    NameChanged(String),
-    CreateEnv,
     EnvUpdate(EnvironmentKey, components::KeyValUpdateMsg),
     Saved,
 }
@@ -40,9 +34,6 @@ impl Message {
                     }
                 }
             }
-            Message::NameChanged(name) => {
-                data.env_name = name;
-            }
             Message::SaveEnvs => {
                 let col = data.col;
                 if let Some(collection) = state.collections.get_mut(col) {
@@ -54,22 +45,23 @@ impl Message {
                     });
                 }
             }
-            Message::CreateEnv => {
-                let name = data.env_name.clone();
-                data.env_name.clear();
-                let key = state
-                    .collections
-                    .create_env(data.col, name)
-                    .expect("Failed to create env");
-                let env = state
-                    .collections
-                    .get_envs(data.col)
-                    .expect("Environment not found")
-                    .get(key)
-                    .expect("Environment not found");
-                data.environments.insert(key, Env::from(env));
-            }
+            // Message::CreateEnv => {
+            //     let name = data.env_name.clone();
+            //     data.env_name.clear();
+            //     let key = state
+            //         .collections
+            //         .create_env(data.col, name)
+            //         .expect("Failed to create env");
+            //     let env = state
+            //         .collections
+            //         .get_envs(data.col)
+            //         .expect("Environment not found")
+            //         .get(key)
+            //         .expect("Environment not found");
+            //     data.environments.insert(key, Env::from(env));
+            // }
             Message::EnvUpdate(env, update) => {
+                data.edited = true;
                 let env = data
                     .environments
                     .get_mut(&env)
@@ -88,24 +80,17 @@ impl Message {
     }
 }
 
-fn create_env_view(data: &EnvironmentEditorState) -> Element<Message> {
-    Column::new()
-        .push(text("Add new environment!"))
-        .push(
-            text_input("Environment Name", &data.env_name)
-                .on_input(Message::NameChanged)
-                .on_paste(Message::NameChanged),
-        )
-        .spacing(8)
-        .width(350)
-        .into()
+fn icon_button<'a>(icn: NerdIcon, on_press: Option<Message>) -> iced::widget::Button<'a, Message> {
+    button(icon(icn))
+        .on_press_maybe(on_press)
+        .style(button::secondary)
 }
 
 pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
-    let env_editor = &tab.env_editor;
-    let environments = &env_editor.environments;
+    let editor = &tab.env_editor;
+    let environments = &editor.environments;
 
-    let selected = env_editor.selected_env;
+    let selected = editor.selected_env;
 
     let env_tabs: Vec<_> = environments
         .iter()
@@ -117,25 +102,26 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
         .map(|env| env.name.clone());
 
     let tab_bar = Row::new()
-        .push(pick_list(env_tabs, selected_name, Message::SelectEnv))
-        .push(vertical_line(2));
+        .push("Environment Editor")
+        .push(horizontal_space().width(Length::FillPortion(3)))
+        .push(icon_button(icons::Delete, selected.map(Message::DeleteEnv)))
+        .push(icon_button(
+            icons::ContentSave,
+            editor.edited.then_some(Message::SaveEnvs),
+        ))
+        .push(
+            pick_list(env_tabs, selected_name, Message::SelectEnv)
+                .width(Length::FillPortion(1))
+                .placeholder("Select Environment"),
+        )
+        .spacing(4)
+        .width(Length::Fill)
+        .align_y(Alignment::Center);
 
     let editor = selected.map(|selected| {
         let env = environments.get(&selected).expect("Environment not found");
-
         let update_env = move |u| Message::EnvUpdate(selected, u);
-        Column::new()
-            .push(
-                Row::new()
-                    .push(text("Variables"))
-                    .push(horizontal_space())
-                    .padding(padding::right(8)),
-            )
-            .push(
-                scrollable(key_value_editor(&env.variables).on_change(update_env))
-                    .width(Length::Fill),
-            )
-            .spacing(4)
+        scrollable(key_value_editor(&env.variables).on_change(update_env)).width(Length::Fill)
     });
 
     Column::new()

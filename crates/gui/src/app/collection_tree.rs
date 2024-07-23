@@ -8,6 +8,7 @@ use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef}
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
 use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
+use crate::state::collection_tab::CollectionTab;
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::{AppState, HttpTab, Tab};
 
@@ -75,7 +76,7 @@ impl CollectionTreeMsg {
 
 fn handle_context_menu(
     state: &mut AppState,
-    col: CollectionKey,
+    key: CollectionKey,
     action: MenuAction,
 ) -> Task<CollectionTreeMsg> {
     match action {
@@ -83,7 +84,7 @@ fn handle_context_menu(
             Popup::popup_name(
                 state,
                 String::new(),
-                PopupNameAction::NewRequest(col, folder_id),
+                PopupNameAction::NewRequest(key, folder_id),
             );
             Task::none()
         }
@@ -91,24 +92,24 @@ fn handle_context_menu(
             Popup::popup_name(
                 state,
                 String::new(),
-                PopupNameAction::CreateFolder(col, folder_id),
+                PopupNameAction::CreateFolder(key, folder_id),
             );
             Task::none()
         }
         MenuAction::DeleteFolder(folder_id) => {
-            builders::delete_folder_cmd(state, col, folder_id, move || {
+            builders::delete_folder_cmd(state, key, folder_id, move || {
                 CollectionTreeMsg::ActionComplete
             })
         }
         MenuAction::RemoveCollection => {
-            state.collections.remove(col);
+            state.collections.remove(key);
             Task::none()
         }
         MenuAction::RenameFolder(name, folder_id) => {
             Popup::popup_name(
                 state,
                 name.to_owned(),
-                PopupNameAction::RenameFolder(col, folder_id),
+                PopupNameAction::RenameFolder(key, folder_id),
             );
             Task::none()
         }
@@ -116,7 +117,7 @@ fn handle_context_menu(
             Popup::popup_name(
                 state,
                 name.to_owned(),
-                PopupNameAction::RenameCollection(col),
+                PopupNameAction::RenameCollection(key),
             );
             Task::none()
         }
@@ -124,19 +125,25 @@ fn handle_context_menu(
             Popup::popup_name(
                 state,
                 name.to_owned(),
-                PopupNameAction::RenameRequest(col, req),
+                PopupNameAction::RenameRequest(key, req),
             );
             Task::none()
         }
         MenuAction::DeleteRequest(req) => {
-            builders::delete_request_cmd(state, col, req, move || CollectionTreeMsg::ActionComplete)
+            builders::delete_request_cmd(state, key, req, move || CollectionTreeMsg::ActionComplete)
         }
         MenuAction::CopyPath(req) => {
-            if let Some(request) = state.collections.get_ref(CollectionRequest(col, req)) {
+            if let Some(request) = state.collections.get_ref(CollectionRequest(key, req)) {
                 clipboard::write(request.path.to_string_lossy().to_string())
             } else {
                 Task::none()
             }
+        }
+        MenuAction::OpenCollection => {
+            if let Some(col) = state.collections.get(key) {
+                state.open_tab(Tab::Collection(CollectionTab::env_tab(key, col)));
+            }
+            Task::none()
         }
     }
 }
@@ -277,6 +284,7 @@ pub enum MenuAction {
     NewRequest(Option<FolderId>),
     RenameCollection(String),
     RemoveCollection,
+    OpenCollection,
 }
 
 fn context_button_folder<'a>(
@@ -360,6 +368,10 @@ fn context_button_collection<'a>(
     context_menu(
         base,
         vec![
+            menu_item(
+                "Open",
+                CollectionTreeMsg::ContextMenu(col, MenuAction::OpenCollection),
+            ),
             menu_item(
                 "Rename",
                 CollectionTreeMsg::ContextMenu(col, MenuAction::RenameCollection(name)),

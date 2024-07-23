@@ -16,7 +16,6 @@ pub struct EnvironmentEditorState {
     pub environments: BTreeMap<EnvironmentKey, Env>,
     pub deleted: Vec<EnvironmentKey>,
     pub selected_env: Option<EnvironmentKey>,
-    pub env_name: String,
     pub edited: bool,
 }
 
@@ -37,7 +36,6 @@ impl CollectionTab {
                 environments: environment_keyvals(&col.environments),
                 deleted: Vec::new(),
                 selected_env: None,
-                env_name: String::new(),
                 edited: false,
             },
         }
