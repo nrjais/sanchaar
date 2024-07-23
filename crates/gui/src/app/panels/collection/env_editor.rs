@@ -69,8 +69,10 @@ impl Message {
                 env.variables.update(update);
             }
             Message::DeleteEnv(env) => {
+                data.edited = true;
                 data.environments.remove(&env);
                 data.deleted.push(env);
+                data.selected_env = None;
             }
             Message::Saved => {
                 data.edited = false;
