@@ -26,6 +26,7 @@ impl Message {
         let Some((key, Tab::Collection(tab))) = state.active_tab.zip(active_tab) else {
             return Task::none();
         };
+        let collection_key = tab.collection_key;
         let data = &mut tab.env_editor;
 
         match self {
@@ -38,8 +39,7 @@ impl Message {
                 }
             }
             Message::SaveEnvs => {
-                let col = data.col;
-                if let Some(collection) = state.collections.get_mut(col) {
+                if let Some(collection) = state.collections.get_mut(collection_key) {
                     for (key, env) in data.environments.iter() {
                         collection.update_environment(*key, env.into());
                     }
@@ -49,12 +49,10 @@ impl Message {
                 }
             }
             Message::EnvUpdate(env, update) => {
-                data.edited = true;
-                let env = data
-                    .environments
-                    .get_mut(&env)
-                    .expect("Environment not found");
-                env.variables.update(update);
+                if let Some(env) = data.environments.get_mut(&env) {
+                    data.edited = true;
+                    env.variables.update(update);
+                }
             }
             Message::DeleteEnv(env) => {
                 data.edited = true;
@@ -117,8 +115,8 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
         .and_then(|key| environments.get(&key))
         .map(|env| env.name.clone());
 
-    let tab_bar = Row::new()
-        .push("Environment Editor")
+    let action_bar = Row::new()
+        .push("Edit Environments")
         .push(horizontal_space().width(Length::FillPortion(3)))
         .push(icon_button("Create New", icons::Plus, Message::CreatNewEnv))
         .push_maybe(selected.map(|s| icon_button("Rename", icons::Pencil, Message::RenameEnv(s))))
@@ -145,7 +143,7 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
         });
 
     Column::new()
-        .push(tab_bar)
+        .push(action_bar)
         .push_maybe(editor)
         .spacing(8)
         .width(Length::Fill)

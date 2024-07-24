@@ -235,7 +235,8 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
         name: collection.name.clone(),
         version: Version::V1,
         default_environment: collection
-            .get_active_environment()
+            .default_env
+            .and_then(|env| collection.environments.get(env))
             .map(|env| env.name.clone()),
     }
 }

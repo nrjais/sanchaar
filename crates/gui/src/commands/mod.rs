@@ -68,9 +68,9 @@ impl TaskMsg {
         match self {
             TaskMsg::CollectionsLoaded(collection) => {
                 state.collections.insert_all(collection);
-                let first = state.collections.iter().last();
-                if let Some((key, col)) = first {
-                    state.open_tab(Tab::Collection(CollectionTab::env_tab(key, col)));
+                let last = state.collections.iter().last();
+                if let Some((key, col)) = last {
+                    state.open_tab(Tab::Collection(CollectionTab::new(key, col)));
                 }
                 task_done(state, BackgroundTask::SaveCollections);
             }

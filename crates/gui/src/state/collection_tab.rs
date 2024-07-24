@@ -12,7 +12,6 @@ pub enum CollectionTabId {
 
 #[derive(Debug)]
 pub struct EnvironmentEditor {
-    pub col: CollectionKey,
     pub environments: BTreeMap<EnvironmentKey, Env>,
     pub deleted: Vec<EnvironmentKey>,
     pub selected_env: Option<EnvironmentKey>,
@@ -22,17 +21,26 @@ pub struct EnvironmentEditor {
 #[derive(Debug)]
 pub struct CollectionTab {
     pub name: String,
+    pub default_env: Option<String>,
+    pub collection_key: CollectionKey,
     pub tab: CollectionTabId,
     pub env_editor: EnvironmentEditor,
 }
 
 impl CollectionTab {
-    pub fn env_tab(key: CollectionKey, col: &Collection) -> Self {
+    pub fn new(key: CollectionKey, col: &Collection) -> Self {
+        let default_env = col
+            .default_env
+            .as_ref()
+            .and_then(|env| col.environments.get(*env))
+            .map(|env| env.name.clone());
+
         CollectionTab {
             name: col.name.clone(),
-            tab: CollectionTabId::Environments,
+            tab: CollectionTabId::Settings,
+            default_env,
+            collection_key: key,
             env_editor: EnvironmentEditor {
-                col: key,
                 environments: environment_keyvals(&col.environments),
                 deleted: Vec::new(),
                 selected_env: None,

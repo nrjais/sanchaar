@@ -54,6 +54,7 @@ pub struct Collection {
     pub environments: Environments,
     pub scripts: Vec<Script>,
     pub active_environment: Option<EnvironmentKey>,
+    pub default_env: Option<EnvironmentKey>,
 }
 
 impl Collection {
@@ -63,7 +64,7 @@ impl Collection {
         scripts: Vec<Script>,
         path: PathBuf,
         environments: Environments,
-        active_environment: Option<EnvironmentKey>,
+        default_env: Option<EnvironmentKey>,
     ) -> Self {
         Self {
             name,
@@ -72,7 +73,8 @@ impl Collection {
             environments,
             scripts,
             expanded: false,
-            active_environment,
+            active_environment: default_env,
+            default_env,
         }
     }
 
@@ -300,6 +302,13 @@ impl Collection {
             self.active_environment = Some(env);
         }
     }
+
+    pub fn set_default_env(&mut self, env: Option<EnvironmentKey>) {
+        self.default_env = env;
+        if self.active_environment.is_none() {
+            self.active_environment = env;
+        }
+    }
 }
 
 impl Default for Collection {
@@ -312,6 +321,7 @@ impl Default for Collection {
             environments: Environments::new(),
             scripts: Vec::new(),
             active_environment: None,
+            default_env: None,
         }
     }
 }

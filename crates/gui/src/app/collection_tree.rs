@@ -141,7 +141,7 @@ fn handle_context_menu(
         }
         MenuAction::OpenCollection => {
             if let Some(col) = state.collections.get(key) {
-                state.open_tab(Tab::Collection(CollectionTab::env_tab(key, col)));
+                state.open_tab(Tab::Collection(CollectionTab::new(key, col)));
             }
             Task::none()
         }

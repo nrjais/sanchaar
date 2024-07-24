@@ -1,4 +1,5 @@
 pub mod env_editor;
+mod settings;
 
 use components::{button_tab, button_tabs};
 use iced::widget::{text, Column};
@@ -12,6 +13,7 @@ use crate::state::{AppState, Tab};
 pub enum CollectionTabMsg {
     TabChange(CollectionTabId),
     EnvEditor(env_editor::Message),
+    Settings(settings::Message),
 }
 
 impl CollectionTabMsg {
@@ -25,6 +27,7 @@ impl CollectionTabMsg {
                 Task::none()
             }
             CollectionTabMsg::EnvEditor(msg) => msg.update(state).map(CollectionTabMsg::EnvEditor),
+            CollectionTabMsg::Settings(msg) => msg.update(state).map(CollectionTabMsg::Settings),
         }
     }
 }
@@ -32,7 +35,7 @@ impl CollectionTabMsg {
 pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, CollectionTabMsg> {
     let tab_content = match tab.tab {
         CollectionTabId::Environments => env_editor::view(tab).map(CollectionTabMsg::EnvEditor),
-        CollectionTabId::Settings => todo!(),
+        CollectionTabId::Settings => settings::view(tab).map(CollectionTabMsg::Settings),
     };
 
     let tabs = button_tabs(

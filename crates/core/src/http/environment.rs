@@ -52,19 +52,19 @@ impl Environments {
         self.envs.is_empty()
     }
 
-    pub(crate) fn create(&mut self, name: String) -> EnvironmentKey {
+    pub fn create(&mut self, name: String) -> EnvironmentKey {
         let env = Environment::new(name);
         self.insert(env)
     }
 
-    pub(crate) fn find_by_name(&self, name: &str) -> Option<EnvironmentKey> {
+    pub fn find_by_name(&self, name: &str) -> Option<EnvironmentKey> {
         self.envs
             .iter()
             .find(|(_, env)| env.name == name)
             .map(|(id, _)| *id)
     }
 
-    pub(crate) fn remove(&mut self, key: EnvironmentKey) -> Option<Environment> {
+    pub fn remove(&mut self, key: EnvironmentKey) -> Option<Environment> {
         self.envs.remove(&key)
     }
 }
