@@ -8,17 +8,18 @@ use std::ops::DerefMut;
 use std::sync::Arc;
 
 pub use content::ContentAction;
+use iced::alignment;
 use iced_core::clipboard::{self, Clipboard};
 use iced_core::event::{self, Event};
-use iced_core::keyboard;
-use iced_core::keyboard::{key, Modifiers};
+use iced_core::keyboard::key;
 use iced_core::layout::{self, Layout, Node};
 use iced_core::mouse;
 use iced_core::renderer;
 use iced_core::text::editor::{Cursor, Editor as _};
 use iced_core::text::highlighter::{self, Highlighter};
 use iced_core::text::{self, LineHeight, Wrapping};
-use iced_core::widget::{self, Widget};
+use iced_core::widget::{self, operation, Widget};
+use iced_core::{keyboard, Text};
 use iced_core::{
     Background, Border, Color, Element, Length, Padding, Pixels, Rectangle, Shell, Size, Theme,
     Vector,
@@ -26,7 +27,6 @@ use iced_core::{
 pub use text::editor::{Action, Edit, Motion};
 
 /// A multi-line text input.
-#[allow(missing_debug_implementations)]
 pub struct TextEditor<'a, Highlighter, Message, Theme = iced::Theme, Renderer = iced::Renderer>
 where
     Highlighter: text::Highlighter,
@@ -34,6 +34,7 @@ where
     Renderer: text::Renderer,
 {
     content: &'a Content<Renderer>,
+    placeholder: Option<text::Fragment<'a>>,
     font: Option<Renderer::Font>,
     text_size: Option<Pixels>,
     line_height: LineHeight,
@@ -79,6 +80,7 @@ where
     pub fn new(content: &'a Content<Renderer>, single_line: bool) -> Self {
         Self {
             content,
+            placeholder: None,
             font: None,
             text_size: None,
             line_height: LineHeight::default(),
@@ -102,6 +104,12 @@ where
     Theme: Catalog,
     Renderer: text::Renderer,
 {
+    /// Sets the placeholder of the [`TextEditor`].
+    pub fn placeholder(mut self, placeholder: impl text::IntoFragment<'a>) -> Self {
+        self.placeholder = Some(placeholder.into_fragment());
+        self
+    }
+
     /// Sets the height of the [`TextEditor`].
     pub fn height(mut self, height: impl Into<Length>) -> Self {
         self.height = height.into();
@@ -158,6 +166,7 @@ where
     ) -> TextEditor<'a, H, Message, Theme, Renderer> {
         TextEditor {
             content: self.content,
+            placeholder: self.placeholder,
             font: self.font,
             text_size: self.text_size,
             line_height: self.line_height,
@@ -212,6 +221,20 @@ impl<Highlighter: text::Highlighter> State<Highlighter> {
     }
 }
 
+impl<Highlighter: text::Highlighter> operation::Focusable for State<Highlighter> {
+    fn is_focused(&self) -> bool {
+        self.is_focused
+    }
+
+    fn focus(&mut self) {
+        self.is_focused = true;
+    }
+
+    fn unfocus(&mut self) {
+        self.is_focused = false;
+    }
+}
+
 impl<'a, Highlighter, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
     for TextEditor<'a, Highlighter, Message, Theme, Renderer>
 where
@@ -219,6 +242,22 @@ where
     Theme: Catalog,
     Renderer: text::Renderer,
 {
+    fn tag(&self) -> widget::tree::Tag {
+        widget::tree::Tag::of::<State<Highlighter>>()
+    }
+
+    fn state(&self) -> widget::tree::State {
+        widget::tree::State::new(State {
+            is_focused: false,
+            last_click: None,
+            drag_click: None,
+            partial_scroll: 0.0,
+            highlighter: RefCell::new(Highlighter::new(&self.highlighter_settings)),
+            highlighter_settings: self.highlighter_settings.clone(),
+            highlighter_format_address: self.highlighter_format as usize,
+        })
+    }
+
     fn size(&self) -> Size<Length> {
         Size {
             width: self.width,
@@ -262,11 +301,13 @@ where
         );
 
         match self.height {
-            Length::Fill | Length::FillPortion(_) | Length::Fixed(_) => Node::new(limits.max()),
+            Length::Fill | Length::FillPortion(_) | Length::Fixed(_) => {
+                layout::Node::new(limits.max())
+            }
             Length::Shrink => {
                 let min_bounds = internal.editor.min_bounds();
 
-                Node::new(
+                layout::Node::new(
                     limits
                         .height(min_bounds.height)
                         .max()
@@ -274,6 +315,89 @@ where
                 )
             }
         }
+    }
+
+    fn on_event(
+        &mut self,
+        tree: &mut widget::Tree,
+        event: Event,
+        layout: Layout<'_>,
+        cursor: mouse::Cursor,
+        _renderer: &Renderer,
+        clipboard: &mut dyn Clipboard,
+        shell: &mut Shell<'_, Message>,
+        _viewport: &Rectangle,
+    ) -> event::Status {
+        let Some(on_edit) = self.on_edit.as_ref() else {
+            return event::Status::Ignored;
+        };
+
+        let on_edit_ca = |ca: Action| on_edit(ContentAction::Action(ca));
+
+        let state = tree.state.downcast_mut::<State<Highlighter>>();
+
+        let Some(update) = Update::from_event(event, state, layout.bounds(), self.padding, cursor)
+        else {
+            return event::Status::Ignored;
+        };
+
+        match update {
+            Update::Click(click) => {
+                let action = match click.kind() {
+                    mouse::click::Kind::Single => Action::Click(click.position()),
+                    mouse::click::Kind::Double => Action::SelectWord,
+                    mouse::click::Kind::Triple => Action::SelectLine,
+                };
+
+                state.is_focused = true;
+                state.last_click = Some(click);
+                state.drag_click = Some(click.kind());
+
+                shell.publish(on_edit_ca(action));
+            }
+            Update::Scroll(lines) => {
+                let bounds = self.content.0.borrow().editor.bounds();
+
+                if bounds.height >= i32::MAX as f32 {
+                    return event::Status::Ignored;
+                }
+
+                let lines = lines + state.partial_scroll;
+                state.partial_scroll = lines.fract();
+
+                shell.publish(on_edit_ca(Action::Scroll {
+                    lines: lines as i32,
+                }));
+            }
+            Update::Unfocus => {
+                state.is_focused = false;
+                state.drag_click = None;
+            }
+            Update::Release => {
+                state.drag_click = None;
+            }
+            Update::Action(action) => {
+                shell.publish(on_edit(action));
+            }
+            Update::Copy => {
+                if let Some(selection) = self.content.selection() {
+                    clipboard.write(clipboard::Kind::Standard, selection);
+                }
+            }
+            Update::Cut => {
+                if let Some(selection) = self.content.selection() {
+                    clipboard.write(clipboard::Kind::Standard, selection);
+                    shell.publish(on_edit_ca(Action::Edit(Edit::Delete)));
+                }
+            }
+            Update::Paste => {
+                if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
+                    shell.publish(on_edit_ca(Action::Edit(Edit::Paste(Arc::new(contents)))));
+                }
+            }
+        }
+
+        event::Status::Captured
     }
 
     fn draw(
@@ -291,8 +415,10 @@ where
         let mut internal = self.content.0.borrow_mut();
         let state = tree.state.downcast_ref::<State<Highlighter>>();
 
+        let font = self.font.unwrap_or_else(|| renderer.default_font());
+
         internal.editor.highlight(
-            self.font.unwrap_or_else(|| renderer.default_font()),
+            font,
             state.highlighter.borrow_mut().deref_mut(),
             |highlight| (self.highlighter_format)(highlight, theme),
         );
@@ -321,34 +447,56 @@ where
             style.background,
         );
 
-        renderer.fill_editor(
-            &internal.editor,
-            bounds.position() + Vector::new(self.padding.left, self.padding.top),
-            defaults.text_color,
-            *viewport,
-        );
+        let position = bounds.position() + Vector::new(self.padding.left, self.padding.top);
+
+        if internal.editor.is_empty() {
+            if let Some(placeholder) = self.placeholder.clone() {
+                renderer.fill_text(
+                    Text {
+                        content: placeholder.into_owned(),
+                        bounds: bounds.size() - Size::new(self.padding.right, self.padding.bottom),
+                        size: self.text_size.unwrap_or_else(|| renderer.default_size()),
+                        line_height: self.line_height,
+                        font,
+                        horizontal_alignment: alignment::Horizontal::Left,
+                        vertical_alignment: alignment::Vertical::Top,
+                        shaping: text::Shaping::Advanced,
+                        wrapping: self.wrapping,
+                    },
+                    position,
+                    style.placeholder,
+                    *viewport,
+                );
+            }
+        } else {
+            renderer.fill_editor(&internal.editor, position, defaults.text_color, *viewport);
+        }
 
         let translation = Vector::new(bounds.x + self.padding.left, bounds.y + self.padding.top);
 
         if state.is_focused {
             match internal.editor.cursor() {
                 Cursor::Caret(position) => {
-                    let position = position + translation;
+                    let cursor = Rectangle::new(
+                        position + translation,
+                        Size::new(
+                            1.0,
+                            self.line_height
+                                .to_absolute(
+                                    self.text_size.unwrap_or_else(|| renderer.default_size()),
+                                )
+                                .into(),
+                        ),
+                    );
 
-                    if bounds.contains(position) {
+                    if let Some(clipped_cursor) = bounds.intersection(&cursor) {
                         renderer.fill_quad(
                             renderer::Quad {
                                 bounds: Rectangle {
-                                    x: position.x.floor(),
-                                    y: position.y,
-                                    width: 1.0,
-                                    height: self
-                                        .line_height
-                                        .to_absolute(
-                                            self.text_size
-                                                .unwrap_or_else(|| renderer.default_size()),
-                                        )
-                                        .into(),
+                                    x: clipped_cursor.x.floor(),
+                                    y: clipped_cursor.y,
+                                    width: clipped_cursor.width,
+                                    height: clipped_cursor.height,
                                 },
                                 ..renderer::Quad::default()
                             },
@@ -374,108 +522,6 @@ where
         }
     }
 
-    fn tag(&self) -> widget::tree::Tag {
-        widget::tree::Tag::of::<State<Highlighter>>()
-    }
-
-    fn state(&self) -> widget::tree::State {
-        widget::tree::State::new(State {
-            is_focused: false,
-            last_click: None,
-            drag_click: None,
-            partial_scroll: 0.0,
-            highlighter: RefCell::new(Highlighter::new(&self.highlighter_settings)),
-            highlighter_settings: self.highlighter_settings.clone(),
-            highlighter_format_address: self.highlighter_format as usize,
-        })
-    }
-
-    fn on_event(
-        &mut self,
-        tree: &mut widget::Tree,
-        event: Event,
-        layout: Layout<'_>,
-        cursor: mouse::Cursor,
-        _renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
-        _viewport: &Rectangle,
-    ) -> event::Status {
-        let Some(on_edit) = self.on_edit.as_ref() else {
-            return event::Status::Ignored;
-        };
-
-        let on_edit_act = |action| on_edit(ContentAction::Action(action));
-
-        let state = tree.state.downcast_mut::<State<Highlighter>>();
-
-        let Some(update) = Update::from_event(event, state, layout.bounds(), self.padding, cursor)
-        else {
-            return event::Status::Ignored;
-        };
-
-        match update {
-            Update::Click(click) => {
-                let action = match click.kind() {
-                    mouse::click::Kind::Single => Action::Click(click.position()),
-                    mouse::click::Kind::Double => Action::SelectWord,
-                    mouse::click::Kind::Triple => Action::SelectLine,
-                };
-
-                state.is_focused = true;
-                state.last_click = Some(click);
-                state.drag_click = Some(click.kind());
-
-                shell.publish(on_edit_act(action));
-            }
-            Update::Scroll(lines) => {
-                if self.single_line {
-                    return event::Status::Ignored;
-                }
-                let lines = lines + state.partial_scroll;
-                state.partial_scroll = lines.fract();
-
-                shell.publish(on_edit_act(Action::Scroll {
-                    lines: lines as i32,
-                }));
-            }
-            Update::Unfocus => {
-                state.is_focused = false;
-                state.drag_click = None;
-            }
-            Update::Release => {
-                state.drag_click = None;
-            }
-            Update::Action(action) => {
-                if matches!(action, ContentAction::Action(Action::Edit(Edit::Enter)))
-                    && self.single_line
-                {
-                    return event::Status::Ignored;
-                } else {
-                    shell.publish(on_edit(action));
-                }
-            }
-            Update::Copy => {
-                if let Some(selection) = self.content.selection() {
-                    clipboard.write(clipboard::Kind::Standard, selection);
-                }
-            }
-            Update::Cut => {
-                if let Some(selection) = self.content.selection() {
-                    clipboard.write(clipboard::Kind::Standard, selection);
-                    shell.publish(on_edit_act(Action::Edit(Edit::Delete)));
-                }
-            }
-            Update::Paste => {
-                if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
-                    shell.publish(on_edit_act(Action::Edit(Edit::Paste(Arc::new(contents)))));
-                }
-            }
-        }
-
-        event::Status::Captured
-    }
-
     fn mouse_interaction(
         &self,
         _state: &widget::Tree,
@@ -495,6 +541,18 @@ where
         } else {
             mouse::Interaction::default()
         }
+    }
+
+    fn operate(
+        &self,
+        tree: &mut widget::Tree,
+        _layout: Layout<'_>,
+        _renderer: &Renderer,
+        operation: &mut dyn widget::Operation<()>,
+    ) {
+        let state = tree.state.downcast_mut::<State<Highlighter>>();
+
+        operation.focusable(state, None);
     }
 }
 
@@ -628,8 +686,7 @@ impl Update {
                             return Some(Self::Action(ContentAction::Undo));
                         }
                         keyboard::Key::Character("z")
-                            if platform::is_command_modifier_pressed(modifiers)
-                                && modifiers.shift() =>
+                            if modifiers.command() && modifiers.shift() =>
                         {
                             return Some(Self::Action(ContentAction::Redo));
                         }
@@ -637,7 +694,7 @@ impl Update {
                             return Some(Self::Action(ContentAction::Redo));
                         }
                         keyboard::Key::Character("a") if modifiers.command() => {
-                            return Some(Self::Action(ContentAction::Action(Action::SelectAll)));
+                            return action(Action::SelectAll);
                         }
                         _ => {}
                     }
@@ -649,8 +706,18 @@ impl Update {
                     }
 
                     if let keyboard::Key::Named(named_key) = key.as_ref() {
-                        if let Some(motion) = motion(named_key, modifiers) {
-                            let motion = if platform::is_jump_modifier_pressed(modifiers) {
+                        if let Some(motion) = motion(named_key) {
+                            let motion = if modifiers.macos_command() {
+                                match motion {
+                                    Motion::Left => Motion::Home,
+                                    Motion::Right => Motion::End,
+                                    _ => motion,
+                                }
+                            } else {
+                                motion
+                            };
+
+                            let motion = if modifiers.jump() {
                                 motion.widen()
                             } else {
                                 motion
@@ -673,19 +740,10 @@ impl Update {
     }
 }
 
-fn motion(key: key::Named, modifiers: Modifiers) -> Option<Motion> {
-    let cmd_pressed = platform::is_command_modifier_pressed(modifiers);
+fn motion(key: key::Named) -> Option<Motion> {
     match key {
-        key::Named::ArrowLeft => Some(if cmd_pressed {
-            Motion::Home
-        } else {
-            Motion::Left
-        }),
-        key::Named::ArrowRight => Some(if cmd_pressed {
-            Motion::End
-        } else {
-            Motion::Right
-        }),
+        key::Named::ArrowLeft => Some(Motion::Left),
+        key::Named::ArrowRight => Some(Motion::Right),
         key::Named::ArrowUp => Some(Motion::Up),
         key::Named::ArrowDown => Some(Motion::Down),
         key::Named::Home => Some(Motion::Home),
@@ -693,26 +751,6 @@ fn motion(key: key::Named, modifiers: Modifiers) -> Option<Motion> {
         key::Named::PageUp => Some(Motion::PageUp),
         key::Named::PageDown => Some(Motion::PageDown),
         _ => None,
-    }
-}
-
-mod platform {
-    use iced_core::keyboard;
-
-    pub fn is_jump_modifier_pressed(modifiers: keyboard::Modifiers) -> bool {
-        if cfg!(target_os = "macos") {
-            modifiers.alt()
-        } else {
-            modifiers.control()
-        }
-    }
-
-    pub fn is_command_modifier_pressed(modifiers: keyboard::Modifiers) -> bool {
-        if cfg!(target_os = "macos") {
-            modifiers.command()
-        } else {
-            false
-        }
     }
 }
 
@@ -736,6 +774,8 @@ pub struct Style {
     pub background: Background,
     /// The [`Border`] of the text input.
     pub border: Border,
+    /// The [`Color`] of the icon of the text input.
+    pub icon: Color,
     /// The [`Color`] of the placeholder of the text input.
     pub placeholder: Color,
     /// The [`Color`] of the value of the text input.
@@ -782,6 +822,7 @@ pub fn default(theme: &Theme, status: Status) -> Style {
             width: 1.0,
             color: palette.background.strong.color,
         },
+        icon: palette.background.weak.text,
         placeholder: palette.background.strong.color,
         value: palette.background.base.text,
         selection: palette.primary.weak.color,
