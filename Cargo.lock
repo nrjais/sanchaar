@@ -792,13 +792,13 @@ dependencies = [
  "directories",
  "hcl-rs",
  "iced",
+ "indexmap",
  "mime_guess",
  "regex",
  "reqwest",
  "serde",
  "serde_json",
  "similar",
- "slotmap",
  "strum",
  "tokio",
 ]
@@ -1588,7 +1588,6 @@ dependencies = [
  "rfd",
  "serde",
  "serde_json",
- "slotmap",
  "strum",
  "tokio",
 ]

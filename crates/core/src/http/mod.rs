@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use slotmap::SlotMap;
+use indexmap::IndexMap;
 
 use crate::http::collection::{Collection, RequestId, RequestRef};
 use crate::http::environment::Environments;
@@ -12,7 +12,7 @@ pub mod collection;
 pub mod environment;
 pub mod request;
 
-slotmap::new_key_type! {
+crate::new_id_type! {
     pub struct CollectionKey;
 }
 
@@ -91,7 +91,7 @@ pub struct CollectionRequest(pub CollectionKey, pub RequestId);
 
 #[derive(Debug, Default)]
 pub struct Collections {
-    entries: SlotMap<CollectionKey, Collection>,
+    entries: IndexMap<CollectionKey, Collection>,
     pub dirty: bool,
 }
 
@@ -107,40 +107,40 @@ impl Collections {
     where
         F: FnOnce(&Collection) -> R,
     {
-        self.entries.get(key).map(f)
+        self.entries.get(&key).map(f)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (CollectionKey, &Collection)> {
-        self.entries.iter()
+        self.entries.iter().map(|(k, v)| (*k, v))
     }
 
     pub fn get_ref(&self, cr: CollectionRequest) -> Option<&RequestRef> {
-        self.entries.get(cr.0).and_then(|c| c.get_ref(cr.1))
+        self.entries.get(&cr.0).and_then(|c| c.get_ref(cr.1))
     }
 
     pub fn get(&self, key: CollectionKey) -> Option<&Collection> {
-        self.entries.get(key)
+        self.entries.get(&key)
     }
 
     pub fn get_mut(&mut self, key: CollectionKey) -> Option<&mut Collection> {
         self.dirty();
-        self.entries.get_mut(key)
+        self.entries.get_mut(&key)
     }
 
     pub fn insert_all(&mut self, collections: Vec<Collection>) {
         self.dirty();
         for collection in collections {
-            self.entries.insert(collection);
+            self.entries.insert(CollectionKey::new(), collection);
         }
     }
 
     pub fn insert(&mut self, collection: Collection) {
         self.dirty();
-        self.entries.insert(collection);
+        self.entries.insert(CollectionKey::new(), collection);
     }
 
     pub fn get_envs(&self, key: CollectionKey) -> Option<&Environments> {
-        Some(&self.entries.get(key)?.environments)
+        Some(&self.entries.get(&key)?.environments)
     }
 
     pub fn rename_collection(&mut self, col: CollectionKey, new: String) {
@@ -173,9 +173,11 @@ impl Collections {
             Collection::new(name, children, Vec::new(), path, Environments::new(), None);
 
         self.dirty();
-        let key = self.entries.insert(collection);
+
+        let key = CollectionKey::new();
+        self.entries.insert(key, collection);
         self.entries
-            .get(key)
+            .get(&key)
             .expect("Inserted collection not found")
     }
 
@@ -204,13 +206,13 @@ impl Collections {
         folder_id: Option<collection::FolderId>,
     ) -> Option<PathBuf> {
         self.entries
-            .get_mut(col)
+            .get_mut(&col)
             .and_then(|collection| collection.create_folder(name, folder_id))
     }
 
     pub fn remove(&mut self, col: CollectionKey) {
         self.dirty();
-        self.entries.remove(col);
+        self.entries.shift_remove(&col);
     }
 
     pub fn create_env(&mut self, col: CollectionKey, name: String) -> Option<EnvironmentKey> {
@@ -228,6 +230,6 @@ impl Collections {
     }
 
     pub fn get_script_path(&self, col: CollectionKey, s: &str) -> Option<PathBuf> {
-        self.entries.get(col)?.get_script_path(s)
+        self.entries.get(&col)?.get_script_path(s)
     }
 }

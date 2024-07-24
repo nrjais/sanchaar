@@ -43,7 +43,7 @@ impl CollectionTab {
             env_editor: EnvironmentEditor {
                 environments: environment_keyvals(&col.environments),
                 deleted: Vec::new(),
-                selected_env: None,
+                selected_env: col.active_environment,
                 edited: false,
             },
         }

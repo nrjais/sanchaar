@@ -13,7 +13,6 @@ tokio = { workspace = true }
 strum = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-slotmap = { workspace = true }
 humansize = { workspace = true }
 reqwest = { workspace = true }
 anyhow = { workspace = true }
