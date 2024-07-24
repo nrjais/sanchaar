@@ -1,5 +1,6 @@
 use crate::state::TabKey;
 use core::http::collection::{FolderId, RequestId};
+use core::http::environment::EnvironmentKey;
 use core::http::CollectionKey;
 use std::path::PathBuf;
 
@@ -27,6 +28,8 @@ pub enum PopupNameAction {
     CreateFolder(CollectionKey, Option<FolderId>),
     NewRequest(CollectionKey, Option<FolderId>),
     NewScript(CollectionKey),
+    CreateEnvironment(TabKey),
+    RenameEnvironment(TabKey, EnvironmentKey),
 }
 
 #[derive(Debug)]

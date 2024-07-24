@@ -11,7 +11,7 @@ pub enum CollectionTabId {
 }
 
 #[derive(Debug)]
-pub struct EnvironmentEditorState {
+pub struct EnvironmentEditor {
     pub col: CollectionKey,
     pub environments: BTreeMap<EnvironmentKey, Env>,
     pub deleted: Vec<EnvironmentKey>,
@@ -23,7 +23,7 @@ pub struct EnvironmentEditorState {
 pub struct CollectionTab {
     pub name: String,
     pub tab: CollectionTabId,
-    pub env_editor: EnvironmentEditorState,
+    pub env_editor: EnvironmentEditor,
 }
 
 impl CollectionTab {
@@ -31,7 +31,7 @@ impl CollectionTab {
         CollectionTab {
             name: col.name.clone(),
             tab: CollectionTabId::Environments,
-            env_editor: EnvironmentEditorState {
+            env_editor: EnvironmentEditor {
                 col: key,
                 environments: environment_keyvals(&col.environments),
                 deleted: Vec::new(),
@@ -39,5 +39,21 @@ impl CollectionTab {
                 edited: false,
             },
         }
+    }
+
+    pub fn add_env(&mut self, env: Env) {
+        self.env_editor
+            .environments
+            .insert(EnvironmentKey::new(), env);
+        self.env_editor.edited = true;
+    }
+
+    pub fn remove_env(&mut self, env_key: EnvironmentKey) -> Option<Env> {
+        self.env_editor.edited = true;
+        if self.env_editor.selected_env == Some(env_key) {
+            self.env_editor.selected_env = None;
+        }
+        self.env_editor.deleted.push(env_key);
+        self.env_editor.environments.remove(&env_key)
     }
 }

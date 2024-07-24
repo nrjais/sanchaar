@@ -10,6 +10,14 @@ pub struct Env {
     pub name: String,
     pub variables: KeyValList,
 }
+impl Env {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            variables: KeyValList::new(),
+        }
+    }
+}
 
 impl From<&Environment> for Env {
     fn from(env: &Environment) -> Self {
