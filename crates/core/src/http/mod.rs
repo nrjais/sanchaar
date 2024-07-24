@@ -169,7 +169,8 @@ impl Collections {
     pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
         let children = Vec::new();
         let path = path.join(&name);
-        let collection = Collection::new(name, children, Vec::new(), path, Environments::new());
+        let collection =
+            Collection::new(name, children, Vec::new(), path, Environments::new(), None);
 
         self.dirty();
         let key = self.entries.insert(collection);

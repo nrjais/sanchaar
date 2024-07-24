@@ -63,8 +63,8 @@ impl Collection {
         scripts: Vec<Script>,
         path: PathBuf,
         environments: Environments,
+        active_environment: Option<EnvironmentKey>,
     ) -> Self {
-        let active_environment = environments.entries().next().map(|e| e.0).copied();
         Self {
             name,
             entries,

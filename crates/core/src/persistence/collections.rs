@@ -15,6 +15,7 @@ use super::{COLLECTION_ROOT_FILE, HCL_EXTENSION, JS_EXTENSION, REQUESTS, SCRIPTS
 pub struct EncodedCollection {
     pub name: String,
     pub version: Version,
+    pub default_environment: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -49,6 +50,7 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
         EncodedCollection {
             name: "Sanchaar".to_string(),
             version: Version::V1,
+            default_environment: None,
         },
     )
     .await?;
@@ -135,12 +137,18 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     let entries = find_all_requests(&path).await?;
     let scripts = find_all_scripts(&path).await?;
 
+    let default_env = collection
+        .default_environment
+        .as_deref()
+        .and_then(|n| environments.find_by_name(n));
+
     Ok(Collection::new(
         collection.name,
         entries,
         scripts,
         path,
         environments,
+        default_env,
     ))
 }
 
@@ -226,6 +234,9 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
     EncodedCollection {
         name: collection.name.clone(),
         version: Version::V1,
+        default_environment: collection
+            .get_active_environment()
+            .map(|env| env.name.clone()),
     }
 }
 
