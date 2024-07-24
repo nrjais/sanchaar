@@ -350,24 +350,6 @@ pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
     })
 }
 
-pub(crate) fn rename_collection_cmd<Message: 'static + MaybeSend>(
-    state: &mut AppState,
-    col: CollectionKey,
-    name: String,
-    done: impl Fn() -> Message + 'static + MaybeSend,
-) -> Task<Message> {
-    let Some((old, new)) = state.collections.rename_collection(col, name) else {
-        return Task::none();
-    };
-
-    Task::perform(fs::rename(old, new), move |res| {
-        if let Err(e) = res {
-            log::error!("Error renaming collection: {:?}", e);
-        }
-        done()
-    })
-}
-
 pub(crate) fn rename_folder_cmd<Message: 'static + MaybeSend>(
     state: &mut AppState,
     col: CollectionKey,

@@ -3,11 +3,11 @@ use core::http::CollectionRequest;
 use std::borrow::Cow;
 
 use iced::widget::{horizontal_space, text, text_input, Column, Row};
-use iced::{Task, Element};
+use iced::{Element, Task};
 
 use crate::commands::builders::{
-    create_folder_cmd, create_new_request_cmd, create_script_cmd, rename_collection_cmd,
-    rename_folder_cmd, rename_request_cmd,
+    create_folder_cmd, create_new_request_cmd, create_script_cmd, rename_folder_cmd,
+    rename_request_cmd,
 };
 use crate::state::popups::{Popup, PopupNameAction, PopupNameState};
 use crate::state::AppState;
@@ -32,7 +32,8 @@ impl Message {
             }
             Message::Rename(name) => match data.action {
                 PopupNameAction::RenameCollection(col) => {
-                    rename_collection_cmd(state, col, name, || Message::Done)
+                    state.collections.rename_collection(col, name);
+                    Task::done(Message::Done)
                 }
                 PopupNameAction::RenameFolder(col, folder_id) => {
                     rename_folder_cmd(state, col, folder_id, name, || Message::Done)

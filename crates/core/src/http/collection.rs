@@ -245,14 +245,11 @@ impl Collection {
         self.environments.update(key, env);
     }
 
-    pub(crate) fn rename(&mut self, new: &str) -> Option<(PathBuf, PathBuf)> {
+    pub fn rename(&mut self, new: &str) {
         self.name = new.to_string();
-        let new_path = self.path.with_file_name(new);
-        let old_path = self.path.clone();
-        Some((old_path, new_path))
     }
 
-    pub(crate) fn delete_request(&mut self, req: RequestId) -> Option<PathBuf> {
+    pub fn delete_request(&mut self, req: RequestId) -> Option<PathBuf> {
         fn recurse(entries: &mut Vec<Entry>, id: RequestId) -> Option<PathBuf> {
             let mut path = None;
 

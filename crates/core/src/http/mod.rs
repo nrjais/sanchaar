@@ -143,12 +143,10 @@ impl Collections {
         Some(&self.entries.get(key)?.environments)
     }
 
-    pub fn rename_collection(
-        &mut self,
-        col: CollectionKey,
-        new: String,
-    ) -> Option<(PathBuf, PathBuf)> {
-        self.get_mut(col)?.rename(&new)
+    pub fn rename_collection(&mut self, col: CollectionKey, new: String) {
+        if let Some(it) = self.get_mut(col) {
+            it.rename(&new)
+        }
     }
 
     pub fn rename_request(
