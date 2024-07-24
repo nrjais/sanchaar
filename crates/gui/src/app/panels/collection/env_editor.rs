@@ -1,7 +1,7 @@
 use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
 use iced::{Alignment, Element, Length, Task};
 
-use components::{icon, icons, key_value_editor, NerdIcon};
+use components::{icon, icons, key_value_editor, tooltip, NerdIcon};
 use core::http::environment::EnvironmentKey;
 
 use crate::commands::builders;
@@ -89,10 +89,17 @@ impl Message {
     }
 }
 
-fn icon_button<'a>(icn: NerdIcon, on_press: Message) -> iced::widget::Button<'a, Message> {
-    button(icon(icn))
-        .on_press(on_press)
-        .style(button::secondary)
+fn icon_button<'a>(
+    msg: &'a str,
+    icn: NerdIcon,
+    on_press: Message,
+) -> iced::widget::Tooltip<'a, Message> {
+    tooltip(
+        msg,
+        button(icon(icn))
+            .on_press(on_press)
+            .style(button::secondary),
+    )
 }
 
 pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
@@ -113,14 +120,14 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
     let tab_bar = Row::new()
         .push("Environment Editor")
         .push(horizontal_space().width(Length::FillPortion(3)))
-        .push(icon_button(icons::Plus, Message::CreatNewEnv))
-        .push_maybe(selected.map(|s| icon_button(icons::Pencil, Message::RenameEnv(s))))
-        .push_maybe(selected.map(|s| icon_button(icons::Delete, Message::DeleteEnv(s))))
-        .push_maybe(
-            editor
-                .edited
-                .then_some(icon_button(icons::ContentSave, Message::SaveEnvs)),
-        )
+        .push(icon_button("Create New", icons::Plus, Message::CreatNewEnv))
+        .push_maybe(selected.map(|s| icon_button("Rename", icons::Pencil, Message::RenameEnv(s))))
+        .push_maybe(selected.map(|s| icon_button("Delete", icons::Delete, Message::DeleteEnv(s))))
+        .push_maybe(editor.edited.then_some(icon_button(
+            "Save Changes",
+            icons::ContentSave,
+            Message::SaveEnvs,
+        )))
         .push(
             pick_list(env_tabs, selected_name, Message::SelectEnv)
                 .width(Length::FillPortion(1))
@@ -130,11 +137,12 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
         .width(Length::Fill)
         .align_y(Alignment::Center);
 
-    let editor = selected.map(|selected| {
-        let env = environments.get(&selected).expect("Environment not found");
-        let update_env = move |u| Message::EnvUpdate(selected, u);
-        scrollable(key_value_editor(&env.variables).on_change(update_env)).width(Length::Fill)
-    });
+    let editor = selected
+        .and_then(|s| environments.get(&s).map(|e| (e, s)))
+        .map(|(env, selected)| {
+            let update_env = move |u| Message::EnvUpdate(selected, u);
+            scrollable(key_value_editor(&env.variables).on_change(update_env)).width(Length::Fill)
+        });
 
     Column::new()
         .push(tab_bar)
