@@ -152,6 +152,7 @@ pub(crate) fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
     });
 
     let url = line_editor(&request.url_content)
+        .placeholder("https://example.com")
         .style(move |t: &iced::Theme, _| text_editor::Style {
             border,
             ..text_editor::default(t, text_editor::Status::Active)

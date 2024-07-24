@@ -213,7 +213,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                 ..text_input::default(theme, status)
             };
 
-            let name = text_input("", &kv.name)
+            let name = text_input("Name", &kv.name)
                 .style(input_style)
                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))
                 .on_paste(move |name| KeyValUpdateMsg::NameChanged(idx, name))
@@ -222,6 +222,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
 
             let value = container(
                 line_editor(&kv.value)
+                    .placeholder("Value")
                     .style(move |t, s| text_editor::Style {
                         border,
                         ..text_editor::default(t, s)
