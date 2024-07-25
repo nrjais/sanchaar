@@ -43,7 +43,7 @@ impl KeyValList {
         self.0.len() == 0
     }
 
-    fn extend(&mut self, vals: KeyValList) {
+    pub fn extend(&mut self, vals: KeyValList) {
         self.0.extend(vals.0);
     }
 }

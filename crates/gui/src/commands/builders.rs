@@ -47,7 +47,9 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
 
     let mut request = sel_tab.request().to_request();
     if let Some(collection) = collection {
-        request.extend_headers(&collection.headers);
+        let mut col_headers = collection.headers.clone();
+        col_headers.extend(request.headers);
+        request.headers = col_headers;
     }
 
     let client = state.client.clone();
