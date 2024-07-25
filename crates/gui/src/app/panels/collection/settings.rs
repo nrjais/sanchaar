@@ -1,7 +1,7 @@
 use components::{icon, icons, key_value_editor, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon};
 use iced::{
     padding,
-    widget::{button, horizontal_space, pick_list, scrollable, Column, Row},
+    widget::{button, horizontal_space, pick_list, scrollable, text, Column, Row},
     Alignment, Element, Length, Task,
 };
 
@@ -82,6 +82,7 @@ fn icon_button<'a>(
     tooltip(
         msg,
         button(icon(icn))
+            .padding([1, 6])
             .on_press(on_press)
             .style(button::secondary),
     )
@@ -123,7 +124,7 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
     let default_env_name = tab.default_env.as_ref();
 
     let action_bar = Row::new()
-        .push("Collection Settings")
+        .push(text("Collection Settings").size(18))
         .push(horizontal_space().width(Length::FillPortion(1)))
         .push_maybe(tab.edited.then_some(icon_button(
             "Save Changes",
