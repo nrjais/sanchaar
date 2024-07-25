@@ -1,6 +1,6 @@
+pub mod color;
 pub mod run;
 pub mod test;
-pub mod color;
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
