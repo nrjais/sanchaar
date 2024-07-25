@@ -103,6 +103,12 @@ fn environment_view(col: &Collection, key: CollectionKey) -> Element<'_, ActionB
         .map(|(_, env)| &env.name)
         .collect::<Vec<_>>();
 
+    let env_placeholder = if envs.len() > 0 {
+        "Select Environment"
+    } else {
+        "No Environments"
+    };
+
     let selected = col.get_active_environment().map(|env| &env.name);
 
     let picker = pick_list(envs, selected, |name| {
@@ -110,7 +116,7 @@ fn environment_view(col: &Collection, key: CollectionKey) -> Element<'_, ActionB
     })
     .width(Length::Shrink)
     .padding([2, 4])
-    .placeholder("No Environment");
+    .placeholder(env_placeholder);
 
     let settings = icon_button(icons::Gear).on_press(ActionBarMsg::OpenEnvironments(key));
 

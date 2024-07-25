@@ -35,7 +35,7 @@ impl KeyValList {
         Self(vals)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &KeyValue> {
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &KeyValue> {
         self.0.iter()
     }
 

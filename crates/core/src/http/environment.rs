@@ -86,6 +86,7 @@ impl Environment {
     pub fn get(&self, name: &str) -> Option<&str> {
         self.variables
             .iter()
+            .rev()
             .find(|kv| kv.name == name)
             .map(|kv| kv.value.as_str())
     }
