@@ -119,13 +119,13 @@ impl RawRequestBody {
 
     fn from_request_body(body: RequestBody) -> RawRequestBody {
         match body {
-            RequestBody::Form(form) => RawRequestBody::Form(from_core_kv_list(form, false)),
+            RequestBody::Form(form) => RawRequestBody::Form(from_core_kv_list(&form, false)),
             RequestBody::Json(json) => RawRequestBody::Json(text_editor::Content::with_text(&json)),
             RequestBody::XML(xml) => RawRequestBody::XML(text_editor::Content::with_text(&xml)),
             RequestBody::Text(text) => RawRequestBody::Text(text_editor::Content::with_text(&text)),
             RequestBody::File(file) => RawRequestBody::File(file.clone()),
             RequestBody::Multipart { params, files } => RawRequestBody::Multipart(
-                from_core_kv_list(params, false),
+                from_core_kv_list(&params, false),
                 from_core_kf_list(files),
             ),
             RequestBody::None => RawRequestBody::None,
@@ -216,11 +216,11 @@ impl RequestPane {
         RequestPane {
             url_content: text_editor::Content::with_text(&request.url),
             method: request.method,
-            headers: from_core_kv_list(request.headers, false),
+            headers: from_core_kv_list(&request.headers, false),
             body: RawRequestBody::from_request_body(request.body),
             auth: RawAuthType::from_auth(request.auth),
-            query_params: from_core_kv_list(request.query_params, false),
-            path_params: from_core_kv_list(request.path_params, true),
+            query_params: from_core_kv_list(&request.query_params, false),
+            path_params: from_core_kv_list(&request.path_params, true),
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),
             pre_request: request.pre_request,

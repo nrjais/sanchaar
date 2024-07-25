@@ -23,7 +23,7 @@ impl From<&Environment> for Env {
     fn from(env: &Environment) -> Self {
         Self {
             name: env.name.clone(),
-            variables: from_core_kv_list(env.variables.clone(), false),
+            variables: from_core_kv_list(&env.variables, false),
         }
     }
 }

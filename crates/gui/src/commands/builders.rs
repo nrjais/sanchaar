@@ -42,14 +42,16 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
         return Task::none();
     };
 
-    let env = state
-        .collections
-        .get(sel_tab.collection_ref.0)
-        .and_then(|c| c.get_active_environment())
-        .cloned();
+    let collection = state.collections.get(sel_tab.collection_ref.0);
+    let env = collection.and_then(|c| c.get_active_environment()).cloned();
+
+    let mut request = sel_tab.request().to_request();
+    if let Some(collection) = collection {
+        request.extend_headers(&collection.headers);
+    }
 
     let client = state.client.clone();
-    let req_fut = transform_request(client.clone(), sel_tab.request().to_request(), env)
+    let req_fut = transform_request(client.clone(), request, env)
         .and_then(move |req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);

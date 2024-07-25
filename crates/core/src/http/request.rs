@@ -3,7 +3,7 @@ use strum::{Display, EnumString, VariantArray};
 
 use crate::assertions::Assertions;
 
-use super::{ KeyFileList, KeyValList};
+use super::{KeyFileList, KeyValList};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RequestBody {
@@ -52,6 +52,12 @@ pub struct Request {
     pub auth: Auth,
     pub assertions: Assertions,
     pub pre_request: Option<String>,
+}
+
+impl Request {
+    pub fn extend_headers(&mut self, headers: &KeyValList) {
+        self.headers.extend(headers.clone());
+    }
 }
 
 impl Default for Request {

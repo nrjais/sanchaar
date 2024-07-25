@@ -9,21 +9,26 @@ use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, Re
 use crate::persistence::Version;
 
 use super::environment::read_environments;
-use super::{COLLECTION_ROOT_FILE, HCL_EXTENSION, JS_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION};
+use super::{
+    decode_key_values, encode_key_values, EncodedKeyValue, COLLECTION_ROOT_FILE, HCL_EXTENSION,
+    JS_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION,
+};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct EncodedCollection {
     pub name: String,
     pub version: Version,
     pub default_environment: Option<String>,
+    #[serde(default)]
+    pub headers: Vec<EncodedKeyValue>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CollectionConfig {
     Path(PathBuf),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CollectionsState {
     pub open: Vec<CollectionConfig>,
 }
@@ -51,6 +56,7 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
             name: "Sanchaar".to_string(),
             version: Version::V1,
             default_environment: None,
+            headers: vec![],
         },
     )
     .await?;
@@ -149,6 +155,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         path,
         environments,
         default_env,
+        decode_key_values(collection.headers),
     ))
 }
 
@@ -238,6 +245,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
             .default_env
             .and_then(|env| collection.environments.get(env))
             .map(|env| env.name.clone()),
+        headers: encode_key_values(collection.headers.clone()),
     }
 }
 

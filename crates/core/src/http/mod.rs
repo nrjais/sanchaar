@@ -42,6 +42,10 @@ impl KeyValList {
     pub fn is_empty(&self) -> bool {
         self.0.len() == 0
     }
+
+    fn extend(&mut self, vals: KeyValList) {
+        self.0.extend(vals.0);
+    }
 }
 
 impl IntoIterator for KeyValList {
@@ -167,10 +171,16 @@ impl Collections {
     }
 
     pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
-        let children = Vec::new();
         let path = path.join(&name);
-        let collection =
-            Collection::new(name, children, Vec::new(), path, Environments::new(), None);
+        let collection = Collection::new(
+            name,
+            Vec::new(),
+            Vec::new(),
+            path,
+            Environments::new(),
+            None,
+            KeyValList::new(),
+        );
 
         self.dirty();
 

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{ops::Not, path::PathBuf};
 use strum::{Display, EnumString};
 
-use crate::http::KeyValue;
+use crate::http::{KeyValList, KeyValue};
 
 pub mod collections;
 pub mod environment;
@@ -58,4 +58,21 @@ impl From<EncodedKeyValue> for KeyValue {
 pub enum Version {
     #[default]
     V1,
+}
+
+pub fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
+    kv.into_iter().map(|v| v.into()).collect()
+}
+
+pub fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
+    let mut list = Vec::new();
+    for v in kv {
+        list.push(KeyValue {
+            name: v.name,
+            value: v.value,
+            disabled: v.disabled,
+        });
+    }
+
+    KeyValList::from(list)
 }

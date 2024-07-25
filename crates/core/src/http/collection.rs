@@ -1,4 +1,5 @@
 use super::environment::{Environment, EnvironmentKey};
+use super::KeyValList;
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
@@ -55,6 +56,7 @@ pub struct Collection {
     pub scripts: Vec<Script>,
     pub active_environment: Option<EnvironmentKey>,
     pub default_env: Option<EnvironmentKey>,
+    pub headers: KeyValList,
 }
 
 impl Collection {
@@ -65,6 +67,7 @@ impl Collection {
         path: PathBuf,
         environments: Environments,
         default_env: Option<EnvironmentKey>,
+        headers: KeyValList,
     ) -> Self {
         Self {
             name,
@@ -75,6 +78,7 @@ impl Collection {
             expanded: false,
             active_environment: default_env,
             default_env,
+            headers,
         }
     }
 
@@ -322,6 +326,7 @@ impl Default for Collection {
             scripts: Vec::new(),
             active_environment: None,
             default_env: None,
+            headers: KeyValList::new(),
         }
     }
 }

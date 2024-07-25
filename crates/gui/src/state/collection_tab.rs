@@ -1,7 +1,12 @@
 use core::http::{collection::Collection, environment::EnvironmentKey, CollectionKey};
 use std::collections::BTreeMap;
 
-use super::environment::{environment_keyvals, Env};
+use components::KeyValList;
+
+use super::{
+    environment::{environment_keyvals, Env},
+    utils::from_core_kv_list,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum CollectionTabId {
@@ -25,6 +30,7 @@ pub struct CollectionTab {
     pub collection_key: CollectionKey,
     pub tab: CollectionTabId,
     pub env_editor: EnvironmentEditor,
+    pub headers: KeyValList,
 }
 
 impl CollectionTab {
@@ -40,6 +46,7 @@ impl CollectionTab {
             tab: CollectionTabId::Settings,
             default_env,
             collection_key: key,
+            headers: from_core_kv_list(&col.headers, false),
             env_editor: EnvironmentEditor {
                 environments: environment_keyvals(&col.environments),
                 deleted: Vec::new(),

@@ -10,10 +10,10 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
 use crate::assertions::{self, Assertions};
 use crate::http::request::{Auth, Method, Request, RequestBody};
-use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
+use crate::http::{KeyFile, KeyFileList, KeyValList};
 use crate::persistence::Version;
 
-use super::{EncodedKeyFile, EncodedKeyValue};
+use super::{decode_key_values, encode_key_values, EncodedKeyFile, EncodedKeyValue};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {
@@ -164,10 +164,6 @@ fn path_expr(path: Option<PathBuf>) -> Expression {
         .into()
 }
 
-fn encode_key_values(kv: KeyValList) -> Vec<EncodedKeyValue> {
-    kv.into_iter().map(|v| v.into()).collect()
-}
-
 fn encode_key_files(files: KeyFileList) -> Vec<EncodedKeyFile> {
     files
         .into_iter()
@@ -203,19 +199,6 @@ fn add_kv_block(body: BodyBuilder, name: &'static str, kv: KeyValList) -> hcl::R
         body = body.add_attribute((name, to_value(encode_key_values(kv))?));
     }
     Ok(body)
-}
-
-fn decode_key_values(kv: Vec<EncodedKeyValue>) -> KeyValList {
-    let mut list = Vec::new();
-    for v in kv {
-        list.push(KeyValue {
-            name: v.name,
-            value: v.value,
-            disabled: v.disabled,
-        });
-    }
-
-    KeyValList::from(list)
 }
 
 fn decode_key_files(files: Vec<EncodedKeyFile>) -> KeyFileList {

@@ -1,5 +1,5 @@
 use iced::widget::{column, text};
-use iced::{border, padding, Background, Length};
+use iced::{border, padding, Background, Length, Padding};
 use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
@@ -138,6 +138,7 @@ impl KeyValList {
 pub struct KeyValEditor<'a, M> {
     values: &'a KeyValList,
     on_change: Option<Box<dyn Fn(KeyValUpdateMsg) -> M + 'a>>,
+    padding: Padding,
 }
 
 impl<'a, M: Clone> KeyValEditor<'a, M> {
@@ -146,6 +147,11 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
         F: 'static + Fn(KeyValUpdateMsg) -> M,
     {
         self.on_change = Some(Box::new(f));
+        self
+    }
+
+    pub fn padding(mut self, padding: impl Into<Padding>) -> Self {
+        self.padding = padding.into();
         self
     }
 }
@@ -162,6 +168,7 @@ pub fn key_value_editor<M>(values: &KeyValList) -> KeyValEditor<'_, M> {
     KeyValEditor {
         values,
         on_change: None,
+        padding: padding::right(8),
     }
 }
 
@@ -280,7 +287,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
 
         column([header])
             .extend(values)
-            .padding(padding::right(8))
+            .padding(self.padding)
             .width(Length::Fill)
             .into()
     }

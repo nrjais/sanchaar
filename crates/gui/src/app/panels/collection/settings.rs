@@ -1,4 +1,4 @@
-use components::{icon, tooltip, NerdIcon};
+use components::{icon, key_value_editor, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon};
 use iced::{
     padding,
     widget::{button, horizontal_space, pick_list, scrollable, Column, Row},
@@ -10,6 +10,7 @@ use crate::state::{collection_tab::CollectionTab, AppState, Tab};
 #[derive(Debug, Clone)]
 pub enum Message {
     UpdateDefaultEnv(String),
+    UpdateHeaders(KeyValUpdateMsg),
 }
 
 impl Message {
@@ -32,6 +33,9 @@ impl Message {
                     tab.default_env = Some(name);
                 }
             }
+            Message::UpdateHeaders(msg) => {
+                tab.headers.update(msg);
+            }
         };
 
         Task::none()
@@ -49,6 +53,19 @@ fn icon_button<'a>(
             .on_press(on_press)
             .style(button::secondary),
     )
+}
+
+pub fn headers_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
+    Column::new()
+        .push("Collection Headers")
+        .push(
+            key_value_editor(vals)
+                .on_change(Message::UpdateHeaders)
+                .padding(padding::all(0)),
+        )
+        .spacing(4)
+        .width(Length::Fill)
+        .into()
 }
 
 pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
@@ -75,6 +92,7 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
     scrollable(
         Column::new()
             .push(default_env)
+            .push(headers_view(&tab.headers))
             .spacing(8)
             .width(Length::Fill)
             .height(Length::Shrink)

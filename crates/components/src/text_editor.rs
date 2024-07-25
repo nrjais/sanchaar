@@ -11,22 +11,26 @@ pub use content::ContentAction;
 use iced::alignment;
 use iced_core::clipboard::{self, Clipboard};
 use iced_core::event::{self, Event};
+use iced_core::keyboard;
 use iced_core::keyboard::key;
 use iced_core::layout::{self, Layout, Node};
 use iced_core::mouse;
 use iced_core::renderer;
 use iced_core::text::editor::{Cursor, Editor as _};
 use iced_core::text::highlighter::{self, Highlighter};
-use iced_core::text::{self, LineHeight, Wrapping};
-use iced_core::widget::{self, operation, Widget};
-use iced_core::{keyboard, Text};
+use iced_core::text::Wrapping;
+use iced_core::text::{self, LineHeight, Text};
+use iced_core::widget::operation;
+use iced_core::widget::{self, Widget};
 use iced_core::{
     Background, Border, Color, Element, Length, Padding, Pixels, Rectangle, Shell, Size, Theme,
     Vector,
 };
+
 pub use text::editor::{Action, Edit, Motion};
 
 /// A multi-line text input.
+#[allow(missing_debug_implementations)]
 pub struct TextEditor<'a, Highlighter, Message, Theme = iced::Theme, Renderer = iced::Renderer>
 where
     Highlighter: text::Highlighter,
@@ -127,7 +131,7 @@ where
 
     /// Sets the [`Font`] of the [`TextEditor`].
     ///
-    /// [`Font`]: Renderer::Font
+    /// [`Font`]: text::Renderer::Font
     pub fn font(mut self, font: impl Into<Renderer::Font>) -> Self {
         self.font = Some(font.into());
         self
@@ -139,8 +143,8 @@ where
         self
     }
 
-    /// Sets the [`LineHeight`] of the [`TextEditor`].
-    pub fn line_height(mut self, line_height: impl Into<LineHeight>) -> Self {
+    /// Sets the [`text::LineHeight`] of the [`TextEditor`].
+    pub fn line_height(mut self, line_height: impl Into<text::LineHeight>) -> Self {
         self.line_height = line_height.into();
         self
     }

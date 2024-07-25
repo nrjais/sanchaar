@@ -51,19 +51,18 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
 - [ ] Collections/Folder
   - [x] Tree view
   - [x] Create/Open
-  - [x] Auto Save
+  - [ ] Auto Save
   - [ ] Refresh tree manually
   - [ ] Refresh tree automatically
   - [x] Remove
   - [x] Rename collection/folder
   - [ ] Export/Import
   - [ ] Settings
-    - [ ] Update default env
-    - [ ] Collection headers
+    - [x] Update default env
+    - [x] Collection headers
     - [ ] Collection auth
-    - [ ] Collection Headers
     - [ ] Collection Variables
-    - [ ] Request template selection
+    - [ ] Request template
 - [ ] Environments
   - [x] Add/Remove/Update
   - [x] Choose environment
