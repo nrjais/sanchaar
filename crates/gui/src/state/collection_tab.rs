@@ -31,6 +31,8 @@ pub struct CollectionTab {
     pub tab: CollectionTabId,
     pub env_editor: EnvironmentEditor,
     pub headers: KeyValList,
+    pub variables: KeyValList,
+    pub edited: bool,
 }
 
 impl CollectionTab {
@@ -47,12 +49,14 @@ impl CollectionTab {
             default_env,
             collection_key: key,
             headers: from_core_kv_list(&col.headers, false),
+            variables: from_core_kv_list(&col.variables, false),
             env_editor: EnvironmentEditor {
                 environments: environment_keyvals(&col.environments),
                 deleted: Vec::new(),
                 selected_env: col.active_environment,
                 edited: false,
             },
+            edited: false,
         }
     }
 

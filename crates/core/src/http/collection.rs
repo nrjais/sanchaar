@@ -57,6 +57,7 @@ pub struct Collection {
     pub active_environment: Option<EnvironmentKey>,
     pub default_env: Option<EnvironmentKey>,
     pub headers: KeyValList,
+    pub variables: KeyValList,
 }
 
 impl Collection {
@@ -68,6 +69,7 @@ impl Collection {
         environments: Environments,
         default_env: Option<EnvironmentKey>,
         headers: KeyValList,
+        variables: KeyValList,
     ) -> Self {
         Self {
             name,
@@ -79,6 +81,7 @@ impl Collection {
             active_environment: default_env,
             default_env,
             headers,
+            variables,
         }
     }
 
@@ -327,6 +330,7 @@ impl Default for Collection {
             active_environment: None,
             default_env: None,
             headers: KeyValList::new(),
+            variables: KeyValList::new(),
         }
     }
 }

@@ -21,6 +21,8 @@ pub struct EncodedCollection {
     pub default_environment: Option<String>,
     #[serde(default)]
     pub headers: Vec<EncodedKeyValue>,
+    #[serde(default)]
+    pub variables: Vec<EncodedKeyValue>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -57,6 +59,7 @@ async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<C
             version: Version::V1,
             default_environment: None,
             headers: vec![],
+            variables: vec![],
         },
     )
     .await?;
@@ -156,6 +159,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         environments,
         default_env,
         decode_key_values(collection.headers),
+        decode_key_values(collection.variables),
     ))
 }
 
@@ -246,6 +250,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
             .and_then(|env| collection.environments.get(env))
             .map(|env| env.name.clone()),
         headers: encode_key_values(collection.headers.clone()),
+        variables: encode_key_values(collection.variables.clone()),
     }
 }
 

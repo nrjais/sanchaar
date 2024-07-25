@@ -89,4 +89,8 @@ impl Environment {
             .find(|kv| kv.name == name)
             .map(|kv| kv.value.as_str())
     }
+
+    pub fn extend(&mut self, other: KeyValList) {
+        self.variables.extend(other);
+    }
 }

@@ -43,13 +43,15 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
     };
 
     let collection = state.collections.get(sel_tab.collection_ref.0);
-    let env = collection.and_then(|c| c.get_active_environment()).cloned();
+    let mut env = collection.and_then(|c| c.get_active_environment()).cloned();
 
     let mut request = sel_tab.request().to_request();
     if let Some(collection) = collection {
         let mut col_headers = collection.headers.clone();
         col_headers.extend(request.headers);
         request.headers = col_headers;
+
+        env.as_mut().map(|e| e.extend(collection.variables.clone()));
     }
 
     let client = state.client.clone();
@@ -402,4 +404,26 @@ pub(crate) fn delete_request_cmd<M: 'static + MaybeSend>(
     };
 
     Task::perform(fs::remove_file(path), move |_| action())
+}
+
+pub fn save_collection_cmd<M: 'static + MaybeSend>(
+    state: &mut AppState,
+    collection_key: CollectionKey,
+    action: impl Fn() -> M + 'static + MaybeSend,
+) -> Task<M> {
+    let Some(collection) = state.collections.get(collection_key) else {
+        return Task::none();
+    };
+
+    let encoded = encode_collection(collection);
+    Task::perform(
+        save_collection(collection.path.clone(), encoded),
+        move |r| match r {
+            Ok(_) => action(),
+            Err(e) => {
+                log::error!("Error saving collection: {:?}", e);
+                action()
+            }
+        },
+    )
 }

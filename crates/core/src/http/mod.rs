@@ -180,6 +180,7 @@ impl Collections {
             Environments::new(),
             None,
             KeyValList::new(),
+            KeyValList::new(),
         );
 
         self.dirty();
