@@ -1,0 +1,4 @@
+template = { SOI ~ (variable | text)* ~ EOI }
+variable = { "{{" ~ ident ~ "}}" }
+text     = { (!variable ~ ANY)+ }
+ident    = { (ASCII_ALPHANUMERIC | "_" | "-" | "!")+ }

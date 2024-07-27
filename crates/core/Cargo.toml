@@ -19,3 +19,5 @@ regex = { workspace = true }
 hcl-rs = { workspace = true }
 similar = { workspace = true }
 indexmap = { workspace = true }
+pest = { workspace = true }
+pest_derive = { workspace = true }
