@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
+use crate::http::KeyValList;
 use crate::persistence::Version;
 
 use super::environment::read_environments;
@@ -158,8 +159,8 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         path,
         environments,
         default_env,
-        decode_key_values(collection.headers),
-        decode_key_values(collection.variables),
+        decode_key_values(collection.headers).into(),
+        decode_key_values(collection.variables).into(),
     ))
 }
 
@@ -249,8 +250,8 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
             .default_env
             .and_then(|env| collection.environments.get(env))
             .map(|env| env.name.clone()),
-        headers: encode_key_values(collection.headers.clone()),
-        variables: encode_key_values(collection.variables.clone()),
+        headers: encode_key_values(KeyValList::clone(&collection.headers)),
+        variables: encode_key_values(KeyValList::clone(&collection.variables)),
     }
 }
 

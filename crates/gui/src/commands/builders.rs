@@ -1,4 +1,5 @@
 use core::http::environment::EnvironmentKey;
+use core::http::KeyValList;
 use core::persistence::environment::{encode_environments, save_environments};
 use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
 use std::path::PathBuf;
@@ -46,12 +47,12 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
     let mut env = collection.and_then(|c| c.get_active_environment()).cloned();
 
     let mut request = sel_tab.request().to_request();
-    if let Some(collection) = collection {
-        let mut col_headers = collection.headers.clone();
-        col_headers.extend(request.headers);
-        request.headers = col_headers;
+    if let Some(col) = collection {
+        let mut headers = KeyValList::clone(&col.headers);
+        headers.extend(request.headers);
+        request.headers = headers;
 
-        env.as_mut().map(|e| e.extend(collection.variables.clone()));
+        env.as_mut().map(|e| e.inherit(col.variables.clone()));
     }
 
     let client = state.client.clone();

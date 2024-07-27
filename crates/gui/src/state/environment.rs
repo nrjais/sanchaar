@@ -1,5 +1,5 @@
 use core::http::environment::{Environment, EnvironmentKey, Environments};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use components::KeyValList;
 
@@ -32,7 +32,8 @@ impl From<&Env> for Environment {
     fn from(value: &Env) -> Self {
         Self {
             name: value.name.trim().to_owned(),
-            variables: to_core_kv_list(&value.variables),
+            variables: Arc::new(to_core_kv_list(&value.variables)),
+            parent: None,
         }
     }
 }

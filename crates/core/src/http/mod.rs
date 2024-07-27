@@ -179,8 +179,8 @@ impl Collections {
             path,
             Environments::new(),
             None,
-            KeyValList::new(),
-            KeyValList::new(),
+            Default::default(),
+            Default::default(),
         );
 
         self.dirty();

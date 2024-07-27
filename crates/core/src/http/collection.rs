@@ -5,6 +5,7 @@ use crate::{
     http::environment::Environments,
     persistence::{HCL_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION},
 };
+use std::sync::Arc;
 use std::{ops::Not, path::PathBuf};
 
 new_id_type! {
@@ -56,8 +57,8 @@ pub struct Collection {
     pub scripts: Vec<Script>,
     pub active_environment: Option<EnvironmentKey>,
     pub default_env: Option<EnvironmentKey>,
-    pub headers: KeyValList,
-    pub variables: KeyValList,
+    pub headers: Arc<KeyValList>,
+    pub variables: Arc<KeyValList>,
 }
 
 impl Collection {
@@ -68,8 +69,8 @@ impl Collection {
         path: PathBuf,
         environments: Environments,
         default_env: Option<EnvironmentKey>,
-        headers: KeyValList,
-        variables: KeyValList,
+        headers: Arc<KeyValList>,
+        variables: Arc<KeyValList>,
     ) -> Self {
         Self {
             name,
@@ -329,8 +330,8 @@ impl Default for Collection {
             scripts: Vec::new(),
             active_environment: None,
             default_env: None,
-            headers: KeyValList::new(),
-            variables: KeyValList::new(),
+            headers: Default::default(),
+            variables: Default::default(),
         }
     }
 }

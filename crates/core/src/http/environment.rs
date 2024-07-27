@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use crate::new_id_type;
 
@@ -72,14 +72,16 @@ impl Environments {
 #[derive(Debug, Clone)]
 pub struct Environment {
     pub name: String,
-    pub variables: KeyValList,
+    pub variables: Arc<KeyValList>,
+    pub parent: Option<Box<Environment>>,
 }
 
 impl Environment {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            variables: KeyValList::new(),
+            variables: Default::default(),
+            parent: None,
         }
     }
 
@@ -89,9 +91,18 @@ impl Environment {
             .rev()
             .find(|kv| kv.name == name)
             .map(|kv| kv.value.as_str())
+            .or_else(|| self.parent.as_ref().and_then(|parent| parent.get(name)))
     }
 
-    pub fn extend(&mut self, other: KeyValList) {
-        self.variables.extend(other);
+    pub fn inherit(&self, parent: Arc<KeyValList>) -> Self {
+        Environment {
+            name: self.name.clone(),
+            variables: Arc::clone(&self.variables),
+            parent: Some(Box::new(Environment {
+                name: self.name.clone(),
+                variables: parent,
+                parent: None,
+            })),
+        }
     }
 }

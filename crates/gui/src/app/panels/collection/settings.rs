@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use components::{icon, icons, key_value_editor, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon};
 use iced::{
     padding,
@@ -58,8 +60,8 @@ impl Message {
                     .default_env
                     .as_ref()
                     .and_then(|name| collection.environments.find_by_name(name));
-                collection.headers = to_core_kv_list(&tab.headers);
-                collection.variables = to_core_kv_list(&tab.variables);
+                collection.headers = Arc::new(to_core_kv_list(&tab.headers));
+                collection.variables = Arc::new(to_core_kv_list(&tab.variables));
 
                 return save_collection_cmd(state, collection_key, move || Message::Saved(key));
             }

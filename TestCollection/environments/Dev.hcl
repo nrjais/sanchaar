@@ -4,5 +4,9 @@ variables = [
   {
     "name" = "sample"
     "value" = "variable"
+  },
+  {
+    "name" = "test"
+    "value" = "from_env"
   }
 ]
