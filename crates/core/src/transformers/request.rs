@@ -3,10 +3,9 @@ use std::path::PathBuf;
 use anyhow::Context;
 use mime::{APPLICATION_JSON, TEXT_PLAIN, TEXT_XML};
 use mime_guess::{mime, Mime};
-use regex::Regex;
 use reqwest::multipart::Part;
-use reqwest::RequestBuilder;
 use reqwest::{header::CONTENT_TYPE, multipart::Form};
+use reqwest::{RequestBuilder, Url};
 use tokio::fs::File;
 
 use crate::http::environment::EnvironmentChain;
@@ -89,7 +88,10 @@ pub async fn transform_request(
 
     let env = &env;
 
+    let url = replace_env_vars(&url, env);
+    let url = Url::parse(&url).context("Failed to parse URL")?;
     let url = replace_path_params(url, path_params, env);
+
     let mut builder = client.request(req_method(method), url);
 
     builder = req_headers(builder, headers, env);
@@ -117,21 +119,30 @@ fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
     buffer
 }
 
-fn replace_path_params(url: String, params: KeyValList, env: &EnvironmentChain) -> String {
-    let url = replace_env_vars(&url, env);
-    let replaced = Regex::new(r":([a-zA-Z0-9]+)").unwrap().replace_all(
-        &url,
-        |cap: &regex::Captures| -> String {
-            let name = &cap[1];
+fn replace_path_params(mut url: Url, params: KeyValList, env: &EnvironmentChain) -> Url {
+    let Some(segs) = url.path_segments() else {
+        return url;
+    };
+    let mut buffer = String::new();
+
+    for seg in segs {
+        buffer.push('/');
+        if seg.starts_with(':') {
+            let name = &seg[1..];
             let value = params
                 .iter()
+                .rev()
                 .find(|param| param.name == name)
                 .map(|param| replace_env_vars(&param.value, env))
                 .unwrap_or_else(|| name.to_owned());
-            value
-        },
-    );
-    replaced.to_string()
+            buffer.push_str(&value);
+        } else {
+            buffer.push_str(seg);
+        }
+    }
+
+    url.set_path(&buffer);
+    url
 }
 
 async fn req_body(
