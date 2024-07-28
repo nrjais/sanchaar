@@ -18,7 +18,7 @@ pub async fn test(root: PathBuf, path: PathBuf) -> anyhow::Result<()> {
 
     let path = root.join(path);
 
-    let client = create_client();
+    let client = create_client(false);
 
     let file = tokio::fs::File::open(&path).await?;
     if file.metadata().await?.is_dir() {

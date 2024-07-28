@@ -32,6 +32,7 @@ pub struct CollectionTab {
     pub env_editor: EnvironmentEditor,
     pub headers: KeyValList,
     pub variables: KeyValList,
+    pub disable_ssl: bool,
     pub edited: bool,
 }
 
@@ -56,6 +57,7 @@ impl CollectionTab {
                 selected_env: col.active_environment,
                 edited: false,
             },
+            disable_ssl: col.disable_ssl,
             edited: false,
         }
     }

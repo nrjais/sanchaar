@@ -60,24 +60,24 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Settings
     - [x] Update default env
     - [x] Collection headers
-    - [ ] Collection auth
     - [x] Collection Variables
+    - [x] SSL verification
+    - [ ] Collection auth
     - [ ] Request preset
-    - [ ] SSL verification
     - [ ] Timeout
 - [ ] Environments
   - [x] Add/Remove/Update
   - [x] Choose environment
   - [x] Auto Save/Load current state
-  - [ ] Secure environment variables
+  - [ ] Secure environment variables (keyring)
   - [x] Variables from .env file
+  - [x] dotenv file var access in environment vars
 - [ ] Assertions
   - [x] Status code
   - [x] Response time
   - [x] Response body
   - [x] Response headers
-  - [ ] GUI editor
-  - [ ] GUI assertions
+  - [ ] GUI editor/viewer
 - [ ] Scripting
   - [ ] Pre request
   - [ ] Post request
@@ -93,7 +93,6 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] List
   - [ ] Clear
   - [ ] Open from history
-  - [ ] Auto Save/Load
 - [ ] Mock APIs
 - [ ] CLI
   - [x] Run request by path
@@ -113,10 +112,13 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Search in body
 - [ ] Hotkeys
   - [ ] Close tab (Cmd + W)
+  - [ ] Close all tabs (Cmd + Shift + W)
+  - [ ] Close other tabs (Cmd + Alt + W)
+  - [ ] New request (Cmd + N)
+  - [ ] Send request (Cmd + Enter)
   - [ ] Save reqest (Cmd + S - In request view)
   - [ ] Save collection (Cmd + S - In collection view)
   - [ ] Save environment (Cmd + S - In environment view)
-  - [ ] New tab (Cmd + T)
   - [ ] App Setting (Cmd + ,)
   - [ ] Collection Setting (Cmd + ;)
 - [ ] Other improvemetns

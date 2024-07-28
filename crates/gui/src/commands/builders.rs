@@ -53,8 +53,13 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
     }
 
     let env = collection.map(|c| c.env_chain()).unwrap_or_default();
+    let disable_ssl = collection.map(|c| c.disable_ssl).unwrap_or_default();
+    let client = if disable_ssl {
+        state.client_no_ssl.clone()
+    } else {
+        state.client.clone()
+    };
 
-    let client = state.client.clone();
     let req_fut = transform_request(client.clone(), request, env)
         .and_then(move |req| send_request(client, req));
 

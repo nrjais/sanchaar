@@ -182,6 +182,7 @@ impl Collections {
             Default::default(),
             Default::default(),
             Default::default(),
+            false,
         );
 
         self.dirty();

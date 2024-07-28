@@ -44,6 +44,7 @@ pub struct AppState {
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub collections: Collections,
     pub client: reqwest::Client,
+    pub client_no_ssl: reqwest::Client,
     pub panes: pane_grid::State<SplitState>,
     pub popup: Option<Popup>,
     pub theme: Theme,
@@ -56,7 +57,8 @@ impl AppState {
             active_tab: None,
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
-            client: create_client(),
+            client: create_client(false),
+            client_no_ssl: create_client(true),
             collections: Collections::default(),
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,

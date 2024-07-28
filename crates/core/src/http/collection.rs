@@ -60,6 +60,7 @@ pub struct Collection {
     pub headers: Arc<KeyValList>,
     pub variables: Arc<KeyValList>,
     pub dotenv: Arc<KeyValList>,
+    pub disable_ssl: bool,
 }
 
 impl Collection {
@@ -73,6 +74,7 @@ impl Collection {
         headers: Arc<KeyValList>,
         variables: Arc<KeyValList>,
         dotenv: Arc<KeyValList>,
+        disable_ssl: bool,
     ) -> Self {
         Self {
             name,
@@ -86,6 +88,7 @@ impl Collection {
             headers,
             variables,
             dotenv,
+            disable_ssl,
         }
     }
 
@@ -348,6 +351,7 @@ impl Default for Collection {
             headers: Default::default(),
             variables: Default::default(),
             dotenv: Default::default(),
+            disable_ssl: false,
         }
     }
 }

@@ -1,13 +1,13 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
-use directories::ProjectDirs;
-use serde::{Deserialize, Serialize};
-use tokio::fs;
-
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
 use crate::http::{KeyValList, KeyValue};
 use crate::persistence::Version;
+use anyhow::{Context, Result};
+use directories::ProjectDirs;
+use serde::{Deserialize, Serialize};
+use std::ops::Not;
+use tokio::fs;
 
 use super::environment::read_environments;
 use super::{
@@ -19,6 +19,8 @@ use super::{
 pub struct EncodedCollection {
     pub name: String,
     pub version: Version,
+    #[serde(default, skip_serializing_if = "Not::not")]
+    pub disable_cert_verification: bool,
     pub default_environment: Option<String>,
     #[serde(default)]
     pub headers: Vec<EncodedKeyValue>,
@@ -58,6 +60,7 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
         EncodedCollection {
             name: "Sanchaar".to_string(),
             version: Version::V1,
+            disable_cert_verification: false,
             default_environment: None,
             headers: vec![],
             variables: vec![],
@@ -163,6 +166,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         decode_key_values(collection.headers).into(),
         decode_key_values(collection.variables).into(),
         dotenv.into(),
+        collection.disable_cert_verification,
     ))
 }
 
@@ -265,6 +269,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
     EncodedCollection {
         name: collection.name.clone(),
         version: Version::V1,
+        disable_cert_verification: collection.disable_ssl,
         default_environment: collection
             .default_env
             .and_then(|env| collection.environments.get(env))

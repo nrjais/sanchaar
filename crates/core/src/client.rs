@@ -62,8 +62,9 @@ pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Respon
     })
 }
 
-pub fn create_client() -> reqwest::Client {
+pub fn create_client(disable_verification: bool) -> reqwest::Client {
     reqwest::Client::builder()
+        .danger_accept_invalid_certs(disable_verification)
         .build()
         .expect("Failed to create client")
 }
