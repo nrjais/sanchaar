@@ -1,10 +1,16 @@
-version     = "V1"
+version = "V1"
 description = "Http request"
-method      = "POST"
-url         = "https://echo.nrjais.com/{{test}}"
+url = "https://echo.nrjais.com/:path/{{test}}"
+method = "POST"
+params = [
+  {
+    "name" = "path"
+    "value" = "from_path"
+  }
+]
 queries = [
   {
-    "name"  = "test"
+    "name" = "test"
     "value" = "{{test}}"
   }
 ]
@@ -13,7 +19,7 @@ body {
   multipart {
     params = [
       {
-        "name"  = "multipart"
+        "name" = "multipart"
         "value" = "text value"
       }
     ]
