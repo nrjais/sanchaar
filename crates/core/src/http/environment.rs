@@ -96,58 +96,44 @@ impl Environment {
     }
 }
 
-#[derive(Debug, Clone)]
-struct WithPath {
-    path: String,
-    vars: Arc<KeyValList>,
+#[derive(Debug, Clone, Default)]
+pub struct EnvironmentChain {
+    dotenv: Arc<KeyValList>,
+    vars: Vec<Arc<KeyValList>>,
 }
 
-impl WithPath {
-    fn new(path: String, vars: Arc<KeyValList>) -> Self {
-        Self { path, vars }
+impl EnvironmentChain {
+    pub fn new() -> Self {
+        Self {
+            dotenv: Default::default(),
+            vars: Vec::new(),
+        }
     }
 
-    fn get_named(&self, name: &str) -> Option<&str> {
-        self.vars
-            .iter()
+    pub fn from_iter<I>(dotenv: Arc<KeyValList>, iter: I) -> Self
+    where
+        I: IntoIterator<Item = Arc<KeyValList>>,
+    {
+        Self {
+            dotenv,
+            vars: iter.into_iter().collect(),
+        }
+    }
+
+    fn get_named<'a>(name: &str, list: &'a KeyValList) -> Option<&'a str> {
+        list.iter()
             .rev()
             .find(|kv| kv.name == name)
             .map(|kv| kv.value.as_str())
     }
 
-    fn get(&self, name: &str) -> Option<&str> {
-        let (path, name) = name.split_once('.').unwrap_or(("", name));
-        if path == self.path {
-            self.get_named(name)
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct EnvironmentChain {
-    vars: Vec<WithPath>,
-}
-
-impl EnvironmentChain {
-    pub fn new() -> Self {
-        Self { vars: Vec::new() }
-    }
-
-    pub fn from_iter<I>(iter: I) -> Self
-    where
-        I: IntoIterator<Item = (String, Arc<KeyValList>)>,
-    {
-        Self {
-            vars: iter
-                .into_iter()
-                .map(|(path, vars)| WithPath::new(path, vars))
-                .collect(),
-        }
-    }
-
     pub fn get(&self, name: &str) -> Option<&str> {
-        self.vars.iter().find_map(|env| env.get(name))
+        name.strip_prefix("env.")
+            .and_then(|name| Self::get_named(name, &self.dotenv))
+            .or_else(|| {
+                self.vars
+                    .iter()
+                    .find_map(|vars| Self::get_named(name, vars))
+            })
     }
 }

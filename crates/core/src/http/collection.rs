@@ -1,4 +1,4 @@
-use super::environment::{Environment, EnvironmentKey};
+use super::environment::{Environment, EnvironmentChain, EnvironmentKey};
 use super::KeyValList;
 use crate::new_id_type;
 use crate::{
@@ -319,6 +319,18 @@ impl Collection {
         if self.active_environment.is_none() {
             self.active_environment = env;
         }
+    }
+
+    pub fn env_chain(&self) -> EnvironmentChain {
+        let env = self
+            .get_active_environment()
+            .map(|e| e.vars())
+            .unwrap_or_default();
+
+        EnvironmentChain::from_iter(
+            Arc::clone(&self.dotenv),
+            [Arc::clone(&self.variables), env].into_iter(),
+        )
     }
 }
 

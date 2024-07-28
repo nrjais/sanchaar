@@ -1,4 +1,4 @@
-use core::http::environment::{EnvironmentChain, EnvironmentKey};
+use core::http::environment::EnvironmentKey;
 use core::http::KeyValList;
 use core::persistence::environment::{encode_environments, save_environments};
 use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
@@ -52,16 +52,10 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
         request.headers = headers;
     }
 
-    let env = collection
-        .and_then(|c| c.get_active_environment())
-        .map(|e| ("".to_owned(), e.vars()));
-    let col_vars = collection.map(|c| ("".to_owned(), c.variables.clone()));
-    let dotenv = collection.map(|c| ("env".to_owned(), c.dotenv.clone()));
-
-    let env_chain = EnvironmentChain::from_iter([dotenv, col_vars, env].into_iter().flatten());
+    let env = collection.map(|c| c.env_chain()).unwrap_or_default();
 
     let client = state.client.clone();
-    let req_fut = transform_request(client.clone(), request, env_chain)
+    let req_fut = transform_request(client.clone(), request, env)
         .and_then(move |req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
