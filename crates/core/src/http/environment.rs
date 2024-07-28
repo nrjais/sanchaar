@@ -96,6 +96,8 @@ impl Environment {
     }
 }
 
+const ENV_PREFIX: &str = "env.";
+
 #[derive(Debug, Clone, Default)]
 pub struct EnvironmentChain {
     dotenv: Arc<KeyValList>,
@@ -133,7 +135,10 @@ impl EnvironmentChain {
             match span.token {
                 crate::parsers::Token::Text(text) => buffer.push_str(&text),
                 crate::parsers::Token::Variable(var) => {
-                    let value = Self::get_named(&var, &self.dotenv).unwrap_or(var);
+                    let value = var
+                        .strip_prefix(ENV_PREFIX)
+                        .and_then(|var| Self::get_named(var, &self.dotenv))
+                        .unwrap_or(var);
                     buffer.push_str(value.as_str());
                 }
                 crate::parsers::Token::Escaped(text) => {
@@ -146,7 +151,7 @@ impl EnvironmentChain {
 
     pub fn get(&self, name: &str) -> Option<String> {
         let name = name.trim_ascii();
-        name.strip_prefix("env.")
+        name.strip_prefix(ENV_PREFIX)
             .and_then(|name| Self::get_named(name, &self.dotenv))
             .or_else(|| {
                 self.vars

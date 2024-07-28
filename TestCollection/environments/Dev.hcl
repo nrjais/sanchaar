@@ -3,7 +3,7 @@ version = "V1"
 variables = [
   {
     "name" = "sample"
-    "value" = "variable"
+    "value" = "{{env.test}}"
   },
   {
     "name" = "test"
