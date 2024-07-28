@@ -12,9 +12,9 @@ pub enum Token {
 
 #[derive(Debug, PartialEq)]
 pub struct Span {
-    token: Token,
-    start: usize,
-    end: usize,
+    pub token: Token,
+    pub start: usize,
+    pub end: usize,
 }
 
 #[derive(Parser)]
@@ -50,8 +50,9 @@ fn add_template_tokens(pairs: Pairs<Rule>, tokens: &mut Vec<Span>) {
                         Rule::ident => {
                             let var = inner_pair.as_str().to_string();
                             if var.starts_with('!') {
+                                let text = format!("{{{}}}", &var[1..]);
                                 tokens.push(Span {
-                                    token: Token::Escaped(var[1..].to_string()),
+                                    token: Token::Escaped(text),
                                     start: span.start(),
                                     end: span.end(),
                                 });

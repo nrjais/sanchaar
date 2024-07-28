@@ -14,6 +14,7 @@ use crate::http::{
     request::{Auth, Method, Request, RequestBody},
     KeyFileList, KeyValList, KeyValue,
 };
+use crate::parsers;
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
@@ -100,14 +101,20 @@ pub async fn transform_request(
 }
 
 fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
-    let replaced = Regex::new(r"\{\{([a-zA-Z0-9]+)\}\}").unwrap().replace_all(
-        source,
-        |cap: &regex::Captures| -> String {
-            let name = &cap[1];
-            env.get(name).unwrap_or(name).to_string()
-        },
-    );
-    replaced.to_string()
+    let mut buffer = String::new();
+    for span in parsers::parse_template(source) {
+        match span.token {
+            parsers::Token::Text(text) => buffer.push_str(&text),
+            parsers::Token::Variable(var) => {
+                let value = env.get(&var).unwrap_or(&var);
+                buffer.push_str(value);
+            }
+            parsers::Token::Escaped(text) => {
+                buffer.push_str(&text);
+            }
+        }
+    }
+    buffer
 }
 
 fn replace_path_params(url: String, params: KeyValList, env: &EnvironmentChain) -> String {
