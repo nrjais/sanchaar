@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
-use iced::{Task, Element};
+use iced::{Element, Task};
 use rfd::FileHandle;
 
 use crate::commands::builders;

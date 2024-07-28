@@ -96,8 +96,38 @@ impl Environment {
     }
 }
 
+#[derive(Debug, Clone)]
+struct WithPath {
+    path: String,
+    vars: Arc<KeyValList>,
+}
+
+impl WithPath {
+    fn new(path: String, vars: Arc<KeyValList>) -> Self {
+        Self { path, vars }
+    }
+
+    fn get_named(&self, name: &str) -> Option<&str> {
+        self.vars
+            .iter()
+            .rev()
+            .find(|kv| kv.name == name)
+            .map(|kv| kv.value.as_str())
+    }
+
+    fn get(&self, name: &str) -> Option<&str> {
+        let (path, name) = name.split_once('.').unwrap_or(("", name));
+        if path == self.path {
+            self.get_named(name)
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct EnvironmentChain {
-    vars: Vec<Arc<KeyValList>>,
+    vars: Vec<WithPath>,
 }
 
 impl EnvironmentChain {
@@ -107,22 +137,17 @@ impl EnvironmentChain {
 
     pub fn from_iter<I>(iter: I) -> Self
     where
-        I: IntoIterator<Item = Arc<KeyValList>>,
+        I: IntoIterator<Item = (String, Arc<KeyValList>)>,
     {
         Self {
-            vars: iter.into_iter().collect(),
+            vars: iter
+                .into_iter()
+                .map(|(path, vars)| WithPath::new(path, vars))
+                .collect(),
         }
     }
 
-    pub fn add(&mut self, env: Arc<KeyValList>) {
-        self.vars.push(env);
-    }
-
     pub fn get(&self, name: &str) -> Option<&str> {
-        self.vars
-            .iter()
-            .flat_map(|env| env.iter().rev())
-            .find(|kv| kv.name == name)
-            .map(|kv| kv.value.as_str())
+        self.vars.iter().find_map(|env| env.get(name))
     }
 }

@@ -54,9 +54,9 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
 
     let env = collection
         .and_then(|c| c.get_active_environment())
-        .map(|e| e.vars());
-    let col_vars = collection.map(|c| c.variables.clone());
-    let dotenv = collection.map(|c| c.dotenv.clone());
+        .map(|e| ("".to_owned(), e.vars()));
+    let col_vars = collection.map(|c| ("".to_owned(), c.variables.clone()));
+    let dotenv = collection.map(|c| ("env".to_owned(), c.dotenv.clone()));
 
     let env_chain = EnvironmentChain::from_iter([dotenv, col_vars, env].into_iter().flatten());
 

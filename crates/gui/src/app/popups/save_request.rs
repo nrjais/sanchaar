@@ -141,6 +141,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
         .align_y(iced::Alignment::Center)
         .spacing(4);
 
+    // Use tree structure to display the collections and folders
     let col_name = collection
         .zip(data.folder_id)
         .and_then(|(c, f)| c.folder(f))
@@ -164,7 +165,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
             .push_maybe(folder_selector),
     )
     .width(Length::Fill)
-    .max_height(200)
+    .max_height(500)
     .style(container::bordered_box);
 
     Column::new()
