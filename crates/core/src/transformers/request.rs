@@ -108,8 +108,8 @@ fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
         match span.token {
             parsers::Token::Text(text) => buffer.push_str(&text),
             parsers::Token::Variable(var) => {
-                let value = env.get(&var).unwrap_or(&var);
-                buffer.push_str(value);
+                let value = env.get(&var).unwrap_or(var);
+                buffer.push_str(&value);
             }
             parsers::Token::Escaped(text) => {
                 buffer.push_str(&text);

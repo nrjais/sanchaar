@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::new_id_type;
+use crate::{new_id_type, parsers::parse_template};
 
 use super::KeyValList;
 
@@ -120,20 +120,41 @@ impl EnvironmentChain {
         }
     }
 
-    fn get_named<'a>(name: &str, list: &'a KeyValList) -> Option<&'a str> {
+    fn get_named<'a>(name: &str, list: &'a KeyValList) -> Option<String> {
         list.iter()
             .rev()
             .find(|kv| kv.name == name)
-            .map(|kv| kv.value.as_str())
+            .map(|kv| kv.value.to_owned())
     }
 
-    pub fn get(&self, name: &str) -> Option<&str> {
+    fn replace_dotenv(&self, source: &str) -> String {
+        let mut buffer = String::new();
+        for span in parse_template(source) {
+            match span.token {
+                crate::parsers::Token::Text(text) => buffer.push_str(&text),
+                crate::parsers::Token::Variable(var) => {
+                    let value = Self::get_named(&var, &self.dotenv).unwrap_or(var);
+                    buffer.push_str(value.as_str());
+                }
+                crate::parsers::Token::Escaped(text) => {
+                    buffer.push_str(&text);
+                }
+            }
+        }
+        buffer
+    }
+
+    pub fn get(&self, name: &str) -> Option<String> {
+        let name = name.trim_ascii();
         name.strip_prefix("env.")
             .and_then(|name| Self::get_named(name, &self.dotenv))
             .or_else(|| {
                 self.vars
                     .iter()
+                    .rev()
                     .find_map(|vars| Self::get_named(name, vars))
+                    .to_owned()
+                    .map(|s| self.replace_dotenv(&s))
             })
     }
 }
