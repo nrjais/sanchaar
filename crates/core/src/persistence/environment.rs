@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -21,10 +20,7 @@ impl From<EncodedEnvironment> for Environment {
     fn from(val: EncodedEnvironment) -> Self {
         Environment {
             name: val.name,
-            variables: Arc::new(KeyValList::from(
-                val.variables.into_iter().map(Into::into).collect(),
-            )),
-            parent: None,
+            variables: KeyValList::from(val.variables.into_iter().map(Into::into).collect()).into(),
         }
     }
 }

@@ -1,6 +1,7 @@
 use colored_json::prelude::ToColoredJson;
 use core::{
     client::{create_client, send_request, Response},
+    http::environment::EnvironmentChain,
     persistence::request::read_request,
     transformers::request::transform_request,
     utils::fmt_duration,
@@ -19,7 +20,7 @@ pub async fn run(root: PathBuf, req: PathBuf, verbose: bool) -> anyhow::Result<(
     let req = read_request(&path).await?;
 
     let client = create_client();
-    let req = transform_request(client.clone(), req, None).await?;
+    let req = transform_request(client.clone(), req, EnvironmentChain::new()).await?;
     let response = send_request(client, req).await?;
 
     let Response {

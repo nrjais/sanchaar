@@ -33,7 +33,6 @@ impl From<&Env> for Environment {
         Self {
             name: value.name.trim().to_owned(),
             variables: Arc::new(to_core_kv_list(&value.variables)),
-            parent: None,
         }
     }
 }

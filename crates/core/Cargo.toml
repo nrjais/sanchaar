@@ -21,3 +21,4 @@ similar = { workspace = true }
 indexmap = { workspace = true }
 pest = { workspace = true }
 pest_derive = { workspace = true }
+dotenvy = { workspace = true }

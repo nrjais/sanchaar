@@ -1,12 +1,12 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::Context;
+use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
-use crate::http::KeyValList;
+use crate::http::{KeyValList, KeyValue};
 use crate::persistence::Version;
 
 use super::environment::read_environments;
@@ -46,7 +46,7 @@ fn collections_file() -> Option<PathBuf> {
     Some(data_dir.join("collections.hcl"))
 }
 
-async fn create_collections_state(collections_file: PathBuf) -> anyhow::Result<CollectionsState> {
+async fn create_collections_state(collections_file: PathBuf) -> Result<CollectionsState> {
     let dirs = project_dirs().context("Failed to find project dir during init")?;
     let data_dir = dirs.data_dir();
 
@@ -99,7 +99,7 @@ async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
     Some(collections.open)
 }
 
-pub async fn load() -> anyhow::Result<Vec<Collection>> {
+pub async fn load() -> Result<Vec<Collection>> {
     let collections = match open_collections_list().await {
         Some(collections) => collections,
         None => return Ok(vec![]),
@@ -124,7 +124,7 @@ pub async fn load() -> anyhow::Result<Vec<Collection>> {
     Ok(result)
 }
 
-pub async fn save(collection: Vec<Collection>) -> anyhow::Result<()> {
+pub async fn save(collection: Vec<Collection>) -> Result<()> {
     let collections_file = collections_file().context("Failed to find collections file")?;
     let state = CollectionsState {
         open: collection
@@ -146,6 +146,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     let environments = read_environments(&path).await?;
     let entries = find_all_requests(&path).await?;
     let scripts = find_all_scripts(&path).await?;
+    let dotenv = read_dotenv(&path);
 
     let default_env = collection
         .default_environment
@@ -161,10 +162,28 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         default_env,
         decode_key_values(collection.headers).into(),
         decode_key_values(collection.variables).into(),
+        dotenv.into(),
     ))
 }
 
-pub async fn find_all_scripts(col: &Path) -> anyhow::Result<Vec<Script>> {
+fn read_dotenv(path: &PathBuf) -> KeyValList {
+    let Ok(vars) = dotenvy::from_filename_iter(path.join(".env")) else {
+        return KeyValList::new();
+    };
+
+    let vars = vars
+        .filter_map(|r| r.ok())
+        .map(|(k, v)| KeyValue {
+            name: k,
+            value: v,
+            disabled: false,
+        })
+        .collect();
+
+    KeyValList::from(vars)
+}
+
+pub async fn find_all_scripts(col: &Path) -> Result<Vec<Script>> {
     let path = col.join(SCRIPTS);
     let exists = fs::try_exists(&path).await?;
     if !exists {
@@ -199,7 +218,7 @@ pub async fn find_all_scripts(col: &Path) -> anyhow::Result<Vec<Script>> {
     Ok(scripts)
 }
 
-async fn find_all_requests(path: &Path) -> anyhow::Result<Vec<Entry>> {
+async fn find_all_requests(path: &Path) -> Result<Vec<Entry>> {
     let requests = path.join(REQUESTS);
     let exists = fs::try_exists(&requests).await?;
     if !exists {
@@ -209,7 +228,7 @@ async fn find_all_requests(path: &Path) -> anyhow::Result<Vec<Entry>> {
     walk_entries(&requests).await
 }
 
-async fn walk_entries(dir_path: &Path) -> anyhow::Result<Vec<Entry>> {
+async fn walk_entries(dir_path: &Path) -> Result<Vec<Entry>> {
     let mut all_entries = vec![];
     let mut dir = fs::read_dir(dir_path).await?;
 
@@ -255,7 +274,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
     }
 }
 
-pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> anyhow::Result<()> {
+pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> Result<()> {
     let data = hcl::to_string(&collection).expect("Failed to encode collection");
 
     fs::create_dir_all(&path).await?;
@@ -264,7 +283,7 @@ pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> an
     Ok(())
 }
 
-pub async fn save_script(path: PathBuf, name: &str, content: &str) -> anyhow::Result<()> {
+pub async fn save_script(path: PathBuf, name: &str, content: &str) -> Result<()> {
     let path = path.join(SCRIPTS).join(name);
     fs::create_dir_all(&path).await?;
     fs::write(path, content).await?;

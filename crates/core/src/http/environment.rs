@@ -73,7 +73,6 @@ impl Environments {
 pub struct Environment {
     pub name: String,
     pub variables: Arc<KeyValList>,
-    pub parent: Option<Box<Environment>>,
 }
 
 impl Environment {
@@ -81,7 +80,6 @@ impl Environment {
         Self {
             name,
             variables: Default::default(),
-            parent: None,
         }
     }
 
@@ -91,18 +89,40 @@ impl Environment {
             .rev()
             .find(|kv| kv.name == name)
             .map(|kv| kv.value.as_str())
-            .or_else(|| self.parent.as_ref().and_then(|parent| parent.get(name)))
     }
 
-    pub fn inherit(&self, parent: Arc<KeyValList>) -> Self {
-        Environment {
-            name: self.name.clone(),
-            variables: Arc::clone(&self.variables),
-            parent: Some(Box::new(Environment {
-                name: self.name.clone(),
-                variables: parent,
-                parent: None,
-            })),
+    pub fn vars(&self) -> Arc<KeyValList> {
+        Arc::clone(&self.variables)
+    }
+}
+
+pub struct EnvironmentChain {
+    vars: Vec<Arc<KeyValList>>,
+}
+
+impl EnvironmentChain {
+    pub fn new() -> Self {
+        Self { vars: Vec::new() }
+    }
+
+    pub fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = Arc<KeyValList>>,
+    {
+        Self {
+            vars: iter.into_iter().collect(),
         }
+    }
+
+    pub fn add(&mut self, env: Arc<KeyValList>) {
+        self.vars.push(env);
+    }
+
+    pub fn get(&self, name: &str) -> Option<&str> {
+        self.vars
+            .iter()
+            .flat_map(|env| env.iter().rev())
+            .find(|kv| kv.name == name)
+            .map(|kv| kv.value.as_str())
     }
 }

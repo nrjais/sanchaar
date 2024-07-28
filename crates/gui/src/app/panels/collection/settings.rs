@@ -105,7 +105,7 @@ pub fn headers_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
 
 pub fn variables_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
     Column::new()
-        .push("Variables")
+        .push("Collection Variables")
         .push(
             key_value_editor(vals)
                 .on_change(Message::UpdateVariables)

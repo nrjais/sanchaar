@@ -1,6 +1,7 @@
 use core::{
     assertions::{self, runner::MatcherResult},
     client::{create_client, send_request},
+    http::environment::EnvironmentChain,
     persistence::request::read_request,
     transformers::request::transform_request,
 };
@@ -56,7 +57,7 @@ async fn test_file(client: reqwest::Client, path: &PathBuf) -> anyhow::Result<()
 
     let assertions = req.assertions.clone();
 
-    let req = transform_request(client.clone(), req, None).await?;
+    let req = transform_request(client.clone(), req, EnvironmentChain::new()).await?;
     let response = send_request(client, req).await?;
 
     let result = assertions::run(&response, &assertions);

@@ -9,8 +9,8 @@ use reqwest::RequestBuilder;
 use reqwest::{header::CONTENT_TYPE, multipart::Form};
 use tokio::fs::File;
 
+use crate::http::environment::EnvironmentChain;
 use crate::http::{
-    environment::Environment,
     request::{Auth, Method, Request, RequestBody},
     KeyFileList, KeyValList, KeyValue,
 };
@@ -19,7 +19,7 @@ fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
 }
 
-fn enabled_params(params: KeyValList, env: Option<&Environment>) -> Vec<(String, String)> {
+fn enabled_params(params: KeyValList, env: &EnvironmentChain) -> Vec<(String, String)> {
     params
         .into_iter()
         .filter(param_enabled)
@@ -27,7 +27,7 @@ fn enabled_params(params: KeyValList, env: Option<&Environment>) -> Vec<(String,
         .collect()
 }
 
-fn enabled_files(files: KeyFileList, _env: Option<&Environment>) -> Vec<(String, PathBuf)> {
+fn enabled_files(files: KeyFileList, _env: &EnvironmentChain) -> Vec<(String, PathBuf)> {
     files
         .into_iter()
         .filter(|file| !file.name.is_empty())
@@ -52,7 +52,7 @@ fn req_method(method: Method) -> reqwest::Method {
 fn req_headers(
     mut builder: RequestBuilder,
     headers: KeyValList,
-    env: Option<&Environment>,
+    env: &EnvironmentChain,
 ) -> RequestBuilder {
     let iter = headers.into_iter().filter(param_enabled);
     for header in iter {
@@ -64,15 +64,16 @@ fn req_headers(
 fn req_params(
     builder: RequestBuilder,
     params: KeyValList,
-    env: Option<&Environment>,
+    env: &EnvironmentChain,
 ) -> RequestBuilder {
     let params = enabled_params(params, env);
     builder.query(&params)
 }
+
 pub async fn transform_request(
     client: reqwest::Client,
     req: Request,
-    env: Option<Environment>,
+    env: EnvironmentChain,
 ) -> anyhow::Result<reqwest::Request> {
     let Request {
         method,
@@ -85,7 +86,7 @@ pub async fn transform_request(
         ..
     } = req;
 
-    let env = env.as_ref();
+    let env = &env;
 
     let url = replace_path_params(url, path_params, env);
     let mut builder = client.request(req_method(method), url);
@@ -98,10 +99,7 @@ pub async fn transform_request(
     builder.build().context("Failed to build request")
 }
 
-fn replace_env_vars(source: &str, env: Option<&Environment>) -> String {
-    let Some(env) = env else {
-        return source.to_string();
-    };
+fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
     let replaced = Regex::new(r"\{\{([a-zA-Z0-9]+)\}\}").unwrap().replace_all(
         source,
         |cap: &regex::Captures| -> String {
@@ -112,7 +110,7 @@ fn replace_env_vars(source: &str, env: Option<&Environment>) -> String {
     replaced.to_string()
 }
 
-fn replace_path_params(url: String, params: KeyValList, env: Option<&Environment>) -> String {
+fn replace_path_params(url: String, params: KeyValList, env: &EnvironmentChain) -> String {
     let url = replace_env_vars(&url, env);
     let replaced = Regex::new(r":([a-zA-Z0-9]+)").unwrap().replace_all(
         &url,
@@ -132,7 +130,7 @@ fn replace_path_params(url: String, params: KeyValList, env: Option<&Environment
 async fn req_body(
     builder: RequestBuilder,
     body: RequestBody,
-    env: Option<&Environment>,
+    env: &EnvironmentChain,
 ) -> RequestBuilder {
     let body_header = |builder: RequestBuilder, data, content_type: Mime| {
         builder
@@ -155,7 +153,7 @@ async fn multipart(
     builder: RequestBuilder,
     params: KeyValList,
     files: KeyFileList,
-    env: Option<&Environment>,
+    env: &EnvironmentChain,
 ) -> RequestBuilder {
     let params = enabled_params(params, env);
     let files = enabled_files(files, env);
@@ -199,7 +197,7 @@ async fn open_file(file: &PathBuf) -> (String, File) {
     (content_type, file)
 }
 
-fn req_auth(builder: RequestBuilder, auth: Auth, env: Option<&Environment>) -> RequestBuilder {
+fn req_auth(builder: RequestBuilder, auth: Auth, env: &EnvironmentChain) -> RequestBuilder {
     match auth {
         Auth::None => builder,
         Auth::Basic { username, password } => {

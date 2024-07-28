@@ -59,6 +59,7 @@ pub struct Collection {
     pub default_env: Option<EnvironmentKey>,
     pub headers: Arc<KeyValList>,
     pub variables: Arc<KeyValList>,
+    pub dotenv: Arc<KeyValList>,
 }
 
 impl Collection {
@@ -71,6 +72,7 @@ impl Collection {
         default_env: Option<EnvironmentKey>,
         headers: Arc<KeyValList>,
         variables: Arc<KeyValList>,
+        dotenv: Arc<KeyValList>,
     ) -> Self {
         Self {
             name,
@@ -83,6 +85,7 @@ impl Collection {
             default_env,
             headers,
             variables,
+            dotenv,
         }
     }
 
@@ -332,6 +335,7 @@ impl Default for Collection {
             default_env: None,
             headers: Default::default(),
             variables: Default::default(),
+            dotenv: Default::default(),
         }
     }
 }

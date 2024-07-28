@@ -1,4 +1,4 @@
-use core::http::environment::EnvironmentKey;
+use core::http::environment::{EnvironmentChain, EnvironmentKey};
 use core::http::KeyValList;
 use core::persistence::environment::{encode_environments, save_environments};
 use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
@@ -44,19 +44,24 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
     };
 
     let collection = state.collections.get(sel_tab.collection_ref.0);
-    let mut env = collection.and_then(|c| c.get_active_environment()).cloned();
 
     let mut request = sel_tab.request().to_request();
     if let Some(col) = collection {
         let mut headers = KeyValList::clone(&col.headers);
         headers.extend(request.headers);
         request.headers = headers;
-
-        env.as_mut().map(|e| e.inherit(col.variables.clone()));
     }
 
+    let env = collection
+        .and_then(|c| c.get_active_environment())
+        .map(|e| e.vars());
+    let col_vars = collection.map(|c| c.variables.clone());
+    let dotenv = collection.map(|c| c.dotenv.clone());
+
+    let env_chain = EnvironmentChain::from_iter([dotenv, col_vars, env].into_iter().flatten());
+
     let client = state.client.clone();
-    let req_fut = transform_request(client.clone(), request, env)
+    let req_fut = transform_request(client.clone(), request, env_chain)
         .and_then(move |req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
