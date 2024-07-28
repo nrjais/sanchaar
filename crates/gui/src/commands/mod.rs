@@ -5,7 +5,7 @@ use std::time::Instant;
 
 use crate::{
     app::AppMsg,
-    state::{collection_tab::CollectionTab, RequestDirtyState, Tab, TabKey},
+    state::{RequestDirtyState, Tab, TabKey},
     AppState,
 };
 
@@ -68,10 +68,6 @@ impl TaskMsg {
         match self {
             TaskMsg::CollectionsLoaded(collection) => {
                 state.collections.insert_all(collection);
-                let last = state.collections.iter().last();
-                if let Some((key, col)) = last {
-                    state.open_tab(Tab::Collection(CollectionTab::new(key, col)));
-                }
                 task_done(state, BackgroundTask::SaveCollections);
             }
             TaskMsg::Completed(task) => {
