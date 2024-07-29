@@ -4,7 +4,7 @@ use components::modal;
 use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;
-use crate::commands;
+use crate::{commands, hotkeys};
 use crate::{commands::TaskMsg, AppState};
 
 mod collection_tree;
@@ -17,6 +17,7 @@ pub enum AppMsg {
     Command(TaskMsg),
     MainPage(MainPageMsg),
     Popup(PopupMsg),
+    Subscription(hotkeys::Message),
 }
 
 pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
@@ -24,6 +25,7 @@ pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
         AppMsg::Command(msg) => msg.update(state).map(AppMsg::Command),
         AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
         AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
+        AppMsg::Subscription(msg) => msg.update(state).map(AppMsg::Subscription),
     };
     Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
 }

@@ -59,7 +59,7 @@ impl CollectionTreeMsg {
             }
             CollectionTreeMsg::RequestLoaded(col, req) => {
                 if let Some((req, name)) = *req {
-                    state.open_tab(Tab::Http(HttpTab::new(name, req, col)));
+                    state.open_tab(Tab::Http(HttpTab::new(&name, req, col)));
                 }
             }
             CollectionTreeMsg::ContextMenu(col, action) => {

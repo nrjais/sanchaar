@@ -14,7 +14,6 @@ use components::{
     bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons, CardTab, TabBarAction,
 };
 use core::http::request::Method;
-use core::http::CollectionRequest;
 
 const BORDER_WIDTH: u16 = 1;
 
@@ -33,11 +32,7 @@ impl MainPageMsg {
                 use TabBarAction::*;
                 match action {
                     ChangeTab(tab) => state.switch_tab(tab),
-                    NewTab => state.open_tab(Tab::Http(HttpTab::new(
-                        "Untitled".to_string(),
-                        Default::default(),
-                        CollectionRequest(Default::default(), Default::default()),
-                    ))),
+                    NewTab => state.open_tab(Tab::Http(Default::default())),
                     CloseTab(key) => state.close_tab(key),
                 }
                 Task::none()

@@ -8,9 +8,10 @@ use iced::{
 use commands::init_command;
 use state::AppState;
 
-pub(crate) mod app;
-pub(crate) mod commands;
-pub(crate) mod state;
+mod app;
+mod commands;
+mod state;
+mod hotkeys;
 
 const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
 const HACK_MONO_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFontMono-Regular.ttf");
@@ -19,6 +20,7 @@ pub fn main() -> Result<(), iced::Error> {
     iced::application("Sanchaar", app::update, app::view)
         .theme(|s| s.theme.clone())
         .antialiasing(true)
+        .subscription(hotkeys::subscription)
         .font(Cow::from(HACK_REG_BYTES))
         .font(Cow::from(HACK_MONO_REG_BYTES))
         .window(window::Settings {

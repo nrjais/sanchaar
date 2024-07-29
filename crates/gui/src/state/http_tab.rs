@@ -28,10 +28,20 @@ pub struct HttpTab {
     pub request_dirty_state: RequestDirtyState,
 }
 
+impl Default for HttpTab {
+    fn default() -> Self {
+        HttpTab::new(
+            "Untitled",
+            Default::default(),
+            CollectionRequest(Default::default(), Default::default()),
+        )
+    }
+}
+
 impl HttpTab {
-    pub fn new(name: String, request: Request, req_ref: CollectionRequest) -> Self {
+    pub fn new(name: &str, request: Request, req_ref: CollectionRequest) -> Self {
         Self {
-            name,
+            name: name.to_owned(),
             collection_ref: req_ref,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
