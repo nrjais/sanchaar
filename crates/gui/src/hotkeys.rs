@@ -1,5 +1,5 @@
 use iced::{
-    keyboard::{self, key::Named, Event},
+    keyboard::{self, key::Named, Event, Key},
     Task,
 };
 
@@ -36,7 +36,7 @@ impl Message {
 }
 
 fn handle_hotkeys(
-    key: keyboard::Key<&str>,
+    key: Key<&str>,
     modifiers: keyboard::Modifiers,
     state: &mut AppState,
 ) -> Task<Message> {
@@ -44,8 +44,12 @@ fn handle_hotkeys(
         return Task::none();
     }
 
+    if state.popup.is_some() {
+        return Task::none();
+    }
+
     match key {
-        keyboard::Key::Character(c) => match c {
+        Key::Character(c) => match c {
             "t" if !modifiers.shift() => state.open_tab(Tab::Http(Default::default())),
             "w" if !modifiers.shift() => {
                 if let Some(active) = state.active_tab {
@@ -72,7 +76,7 @@ fn handle_hotkeys(
 
             _ => (),
         },
-        keyboard::Key::Named(Named::Enter) => {
+        Key::Named(Named::Enter) => {
             if let Some(tab) = state.active_tab {
                 let cb = move |r| Message::RequestResult(tab, r);
                 return send_request_cmd(state, tab).map(cb);

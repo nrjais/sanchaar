@@ -65,7 +65,8 @@ impl Message {
                 collection.variables = Arc::new(to_core_kv_list(&tab.variables));
                 collection.disable_ssl = tab.disable_ssl;
 
-                return save_collection_cmd(state, collection_key, move || Message::Saved(key));
+                return save_collection_cmd(state, collection_key)
+                    .map(move |_| Message::Saved(key));
             }
             Message::Saved(tab_key) => {
                 if let Some(Tab::Collection(tab)) = state.tabs.get_mut(&tab_key) {

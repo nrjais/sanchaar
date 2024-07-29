@@ -76,17 +76,13 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResul
     })
 }
 
-pub fn save_request_cmd<M: 'static + MaybeSend>(
-    req: &RequestPane,
-    path: PathBuf,
-    on_done: impl Fn(Option<Arc<anyhow::Error>>) -> M + 'static + MaybeSend,
-) -> Task<M> {
+pub fn save_request_cmd(req: &RequestPane, path: PathBuf) -> Task<Option<Arc<anyhow::Error>>> {
     let encoded = encode_request(req.to_request()).expect("Failed to encode request");
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
-        Ok(_) => on_done(None),
+        Ok(_) => None,
         Err(e) => {
             log::error!("Error saving request: {:?}", e);
-            on_done(Some(Arc::new(e)))
+            Some(Arc::new(e))
         }
     })
 }
@@ -408,11 +404,7 @@ pub(crate) fn delete_request_cmd<M: 'static + MaybeSend>(
     Task::perform(fs::remove_file(path), move |_| action())
 }
 
-pub fn save_collection_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
-    collection_key: CollectionKey,
-    action: impl Fn() -> M + 'static + MaybeSend,
-) -> Task<M> {
+pub fn save_collection_cmd(state: &mut AppState, collection_key: CollectionKey) -> Task<()> {
     let Some(collection) = state.collections.get(collection_key) else {
         return Task::none();
     };
@@ -421,10 +413,9 @@ pub fn save_collection_cmd<M: 'static + MaybeSend>(
     Task::perform(
         save_collection(collection.path.clone(), encoded),
         move |r| match r {
-            Ok(_) => action(),
+            Ok(_) => (),
             Err(e) => {
                 log::error!("Error saving collection: {:?}", e);
-                action()
             }
         },
     )

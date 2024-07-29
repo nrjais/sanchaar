@@ -78,7 +78,7 @@ impl UrlBarMsg {
                 let req_ref = state.collections.get_ref(tab.collection_ref);
                 if let Some(req_res) = req_ref {
                     let path = req_res.path.clone();
-                    return save_request_cmd(tab.request(), path, |_| Self::RequestSaved);
+                    return save_request_cmd(tab.request(), path).map(|_| Self::RequestSaved);
                 } else {
                     Popup::save_request(state, active_tab);
                 }
