@@ -7,13 +7,14 @@ mod helpers;
 mod icon;
 mod key_value_editor;
 mod key_value_viewer;
+mod line_editor;
 mod lines;
 mod min_dimension;
 mod modal;
 mod multi_file_picker;
+mod text_editor;
 
 pub mod colors;
-pub mod text_editor;
 
 pub use bordered::{bordered_left, bordered_right};
 pub use button_tabs::{button_tab, button_tabs, vertical_button_tabs, ButtonTab};
@@ -24,7 +25,9 @@ pub use helpers::*;
 pub use icon::{icon, icon_button, icons, NerdIcon};
 pub use key_value_editor::{key_value_editor, KeyValList, KeyValUpdateMsg, KeyValue};
 pub use key_value_viewer::key_value_viewer;
+pub use line_editor::{line_editor, LineEditor, LineEditorMsg};
 pub use lines::{horizontal_line, vertical_line};
 pub use min_dimension::{min_height, min_width, MinDimension};
 pub use modal::modal;
 pub use multi_file_picker::{multi_file_picker, FilePickerAction, KeyFile, KeyFileList};
+pub use text_editor::{text_editor, Content, ContentAction, TextEditor};

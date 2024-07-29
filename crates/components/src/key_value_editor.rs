@@ -6,8 +6,8 @@ use iced::{
 };
 use std::ops::Not;
 
-use crate::text_editor::{self, line_editor, ContentAction};
-use crate::tooltip;
+use crate::text_editor;
+use crate::{line_editor, tooltip, LineEditorMsg};
 
 use super::{icon, icons};
 
@@ -82,8 +82,8 @@ impl KeyValList {
         match msg {
             KeyValUpdateMsg::Toggled(idx, enabled) => self.list[idx].disabled = !enabled,
             KeyValUpdateMsg::NameChanged(idx, name) => self.list[idx].name = name,
-            KeyValUpdateMsg::ValueChanged(idx, action) => {
-                self.list[idx].value.perform(action);
+            KeyValUpdateMsg::ValueChanged(idx, msg) => {
+                msg.update(&mut self.list[idx].value);
             }
             KeyValUpdateMsg::Remove(idx) => {
                 self.list.remove(idx);
@@ -160,7 +160,7 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
 pub enum KeyValUpdateMsg {
     Toggled(usize, bool),
     NameChanged(usize, String),
-    ValueChanged(usize, ContentAction),
+    ValueChanged(usize, LineEditorMsg),
     Remove(usize),
 }
 

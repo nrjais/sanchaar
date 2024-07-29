@@ -47,7 +47,6 @@ where
     padding: Padding,
     class: Theme::Class<'a>,
     wrapping: Wrapping,
-    single_line: bool,
     on_edit: Option<Box<dyn Fn(ContentAction) -> Message + 'a>>,
     highlighter_settings: Highlighter::Settings,
     highlighter_format: fn(&Highlighter::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,
@@ -61,18 +60,7 @@ where
     Theme: Catalog + 'a,
     Renderer: text::Renderer,
 {
-    TextEditor::new(content, false)
-}
-
-pub fn line_editor<'a, Message, Theme, Renderer>(
-    content: &'a Content<Renderer>,
-) -> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
-where
-    Message: Clone,
-    Theme: Catalog + 'a,
-    Renderer: text::Renderer,
-{
-    TextEditor::new(content, true)
+    TextEditor::new(content)
 }
 
 impl<'a, Message, Theme, Renderer> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
@@ -81,7 +69,7 @@ where
     Renderer: text::Renderer,
 {
     /// Creates new [`TextEditor`] with the given [`Content`].
-    pub fn new(content: &'a Content<Renderer>, single_line: bool) -> Self {
+    pub fn new(content: &'a Content<Renderer>) -> Self {
         Self {
             content,
             placeholder: None,
@@ -94,7 +82,6 @@ where
             class: Theme::default(),
             wrapping: Wrapping::default(),
             on_edit: None,
-            single_line,
             highlighter_settings: (),
             highlighter_format: |_highlight, _theme| highlighter::Format::default(),
         }
@@ -178,7 +165,6 @@ where
             height: self.height,
             padding: self.padding,
             class: self.class,
-            single_line: self.single_line,
             wrapping: self.wrapping,
             on_edit: self.on_edit,
             highlighter_settings: settings,

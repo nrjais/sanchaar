@@ -34,11 +34,11 @@ impl<'a, M: 'a> CodeEditor<'a, M> {
 }
 
 impl ContentType {
-    pub fn to_extension(&self) -> String {
+    pub fn to_extension(&self) -> &'static str {
         match self {
-            ContentType::Json => "json".to_string(),
-            ContentType::Text => "txt".to_string(),
-            ContentType::XML => "xml".to_string(),
+            ContentType::Json => "json",
+            ContentType::Text => "txt",
+            ContentType::XML => "xml",
         }
     }
 }
@@ -78,7 +78,7 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
     }
 
     fn view(&self, _state: &Self::State) -> Element<Self::Event> {
-        text_editor(self.code)
+        text_editor(&self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
             .wrapping(Wrapping::WordOrGlyph)
@@ -86,7 +86,7 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
             .highlight::<Highlighter>(
                 highlighter::Settings {
                     theme: highlighter::Theme::SolarizedDark,
-                    token: self.content_type.to_extension(),
+                    token: self.content_type.to_extension().to_string(),
                 },
                 |highlight, _theme| highlight.to_format(),
             )
