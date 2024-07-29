@@ -1,13 +1,17 @@
+use components::text_editor::Content;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
+use serde_json::Value;
 use tokio::sync::oneshot;
 
+use crate::commands::builders::ResponseResult;
 use crate::state::response::ResponsePane;
 use crate::state::SplitState;
 use core::http::request::Request;
 use core::http::{CollectionKey, CollectionRequest};
 
 use super::request::RequestPane;
+use super::response::{BodyMode, CompletedResponse, ResponseState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestDirtyState {
@@ -90,6 +94,35 @@ impl HttpTab {
     pub fn collection_key(&self) -> CollectionKey {
         self.collection_ref.0
     }
+
+    pub fn update_response(&mut self, result: ResponseResult) {
+        self.cancel_tasks();
+        match result {
+            ResponseResult::Completed(res) => {
+                let (raw, pretty) = pretty_body(&res.body.data);
+                self.response.state = ResponseState::Completed(CompletedResponse {
+                    result: res,
+                    content: pretty.map(|p| Content::with_text(p.as_str())),
+                    raw: Content::with_text(raw.as_str()),
+                    mode: BodyMode::Pretty,
+                });
+            }
+            ResponseResult::Error(e) => {
+                self.response.state = ResponseState::Failed(e);
+            }
+            ResponseResult::Cancelled => (),
+        }
+    }
+}
+
+fn pretty_body(body: &[u8]) -> (String, Option<String>) {
+    let raw = String::from_utf8_lossy(body).to_string();
+
+    let json = serde_json::from_slice::<Value>(body)
+        .ok()
+        .and_then(|v| serde_json::to_string_pretty(&v).ok());
+
+    (raw, json)
 }
 
 impl Drop for HttpTab {

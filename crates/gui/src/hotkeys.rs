@@ -1,16 +1,18 @@
 use iced::{
-    keyboard::{self, Event},
+    keyboard::{self, key::Named, Event},
     Task,
 };
 
 use crate::{
     app::AppMsg,
-    state::{collection_tab::CollectionTab, popups::Popup, AppState, Tab},
+    commands::builders::{send_request_cmd, ResponseResult},
+    state::{collection_tab::CollectionTab, popups::Popup, AppState, Tab, TabKey},
 };
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Event(iced::Event),
+    RequestResult(TabKey, ResponseResult),
 }
 
 impl Message {
@@ -19,7 +21,12 @@ impl Message {
             Message::Event(e) => {
                 if let iced::Event::Keyboard(Event::KeyPressed { key, modifiers, .. }) = e {
                     let key = key.as_ref();
-                    handle_hotkeys(key, modifiers, state);
+                    return handle_hotkeys(key, modifiers, state);
+                }
+            }
+            Message::RequestResult(key, res) => {
+                if let Some(Tab::Http(tab)) = state.tabs.get_mut(&key) {
+                    tab.update_response(res);
                 }
             }
         }
@@ -28,21 +35,32 @@ impl Message {
     }
 }
 
-fn handle_hotkeys(key: keyboard::Key<&str>, modifiers: keyboard::Modifiers, state: &mut AppState) {
+fn handle_hotkeys(
+    key: keyboard::Key<&str>,
+    modifiers: keyboard::Modifiers,
+    state: &mut AppState,
+) -> Task<Message> {
+    if !modifiers.command() {
+        return Task::none();
+    }
+
     match key {
         keyboard::Key::Character(c) => match c {
-            "t" if modifiers.command() => state.open_tab(Tab::Http(Default::default())),
-            "w" if modifiers.command() => {
+            "t" if !modifiers.shift() => state.open_tab(Tab::Http(Default::default())),
+            "w" if !modifiers.shift() => {
                 if let Some(active) = state.active_tab {
                     state.close_tab(active);
                 }
             }
-            "," if modifiers.command() => {
+            "w" if modifiers.shift() => {
+                state.close_all_tabs();
+            }
+            "," if !modifiers.shift() => {
                 if state.popup.is_none() {
                     Popup::app_settings(state);
                 }
             }
-            ";" if modifiers.command() => {
+            ";" if !modifiers.shift() => {
                 if let Some(Tab::Http(tab)) = state.active_tab() {
                     let key = tab.collection_key();
                     let collection = state.collections.get(key);
@@ -51,11 +69,19 @@ fn handle_hotkeys(key: keyboard::Key<&str>, modifiers: keyboard::Modifiers, stat
                     }
                 }
             }
+
             _ => (),
         },
-        keyboard::Key::Named(_) => (),
-        keyboard::Key::Unidentified => (),
-    }
+        keyboard::Key::Named(Named::Enter) => {
+            if let Some(tab) = state.active_tab {
+                let cb = move |r| Message::RequestResult(tab, r);
+                return send_request_cmd(state, tab).map(cb);
+            }
+        }
+        _ => (),
+    };
+
+    Task::none()
 }
 
 pub fn subscription(_: &AppState) -> iced::Subscription<AppMsg> {

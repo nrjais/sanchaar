@@ -134,6 +134,12 @@ impl AppState {
             tab = self.tab_history.pop();
         }
     }
+
+    pub(crate) fn close_all_tabs(&mut self) {
+        self.tabs.clear();
+        self.active_tab = None;
+        self.tab_history.clear();
+    }
 }
 
 impl Default for AppState {

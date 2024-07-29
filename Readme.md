@@ -112,15 +112,15 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
   - [ ] Search in body
 - [ ] Hotkeys
   - [x] Close tab (Cmd + W)
-  - [ ] Close all tabs (Cmd + Shift + W)
-  - [ ] Close other tabs (Cmd + Alt + W)
+  - [x] Close all tabs (Cmd + Shift + W)
+  - [x] Close other tabs (Cmd + Alt + W)
   - [x] New request (Cmd + T)
-  - [ ] Send request (Cmd + Enter)
+  - [x] Send request (Cmd + Enter)
   - [ ] Save reqest (Cmd + S - In request view)
   - [ ] Save collection (Cmd + S - In collection view)
   - [ ] Save environment (Cmd + S - In environment view)
-  - [ ] App Setting (Cmd + ,)
-  - [ ] Collection Setting (Cmd + ;)
+  - [x] App Setting (Cmd + ,)
+  - [x] Collection Setting (Cmd + ; - In http tab)
 - [ ] Other improvemetns
   - [ ] Error handling
   - [ ] Logging and tracing request

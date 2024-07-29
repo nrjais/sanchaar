@@ -5,16 +5,14 @@ use iced::{
     Element, Task,
 };
 use reqwest::Url;
-use serde_json::Value;
 use strum::VariantArray;
 
-use components::text_editor::{self, line_editor, Content, ContentAction};
+use components::text_editor::{self, line_editor, ContentAction};
 use components::{icon, icons, NerdIcon};
 use core::http::request::Method;
 
 use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
 use crate::state::popups::Popup;
-use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::{AppState, HttpTab, Tab, TabKey};
 
 #[derive(Debug, Clone)]
@@ -39,36 +37,6 @@ fn parse_path_params(url: &str) -> Option<Vec<String>> {
         .collect::<Vec<String>>();
 
     Some(params)
-}
-
-fn pretty_body(body: &[u8]) -> (String, Option<String>) {
-    let raw = String::from_utf8_lossy(body).to_string();
-
-    let json = serde_json::from_slice::<Value>(body)
-        .ok()
-        .and_then(|v| serde_json::to_string_pretty(&v).ok());
-
-    (raw, json)
-}
-
-fn update_response(tab: &mut HttpTab, result: ResponseResult) {
-    match result {
-        ResponseResult::Completed(res) => {
-            tab.cancel_tasks();
-            let (raw, pretty) = pretty_body(&res.body.data);
-            tab.response.state = ResponseState::Completed(CompletedResponse {
-                result: res,
-                content: pretty.map(|p| Content::with_text(p.as_str())),
-                raw: Content::with_text(raw.as_str()),
-                mode: BodyMode::Pretty,
-            });
-        }
-        ResponseResult::Error(e) => {
-            tab.cancel_tasks();
-            tab.response.state = ResponseState::Failed(e);
-        }
-        ResponseResult::Cancelled => tab.cancel_tasks(),
-    }
 }
 
 impl UrlBarMsg {
@@ -99,9 +67,8 @@ impl UrlBarMsg {
                 }
             }
             UrlBarMsg::SendRequest => {
-                tab.cancel_tasks();
-                let cb = move |r| UrlBarMsg::RequestResult(active_tab, r);
-                return send_request_cmd(state, active_tab, cb);
+                return send_request_cmd(state, active_tab)
+                    .map(move |r| UrlBarMsg::RequestResult(active_tab, r));
             }
             UrlBarMsg::SaveRequest => {
                 let Some(Tab::Http(tab)) = state.active_tab() else {
@@ -118,9 +85,8 @@ impl UrlBarMsg {
             }
             UrlBarMsg::RequestSaved => tab.check_dirty(),
             UrlBarMsg::RequestResult(tab, res) => {
-                let tab = state.get_tab_mut(tab);
-                if let Some(Tab::Http(tab)) = tab {
-                    update_response(tab, res)
+                if let Some(Tab::Http(tab)) = state.get_tab_mut(tab) {
+                    tab.update_response(res)
                 }
             }
         }

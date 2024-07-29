@@ -34,11 +34,7 @@ pub enum ResponseResult {
     Cancelled,
 }
 
-pub fn send_request_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
-    tab: TabKey,
-    on_result: impl Fn(ResponseResult) -> M + 'static + MaybeSend,
-) -> Task<M> {
+pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResult> {
     let Some(Tab::Http(sel_tab)) = state.get_tab(tab) else {
         return Task::none();
     };
@@ -69,13 +65,14 @@ pub fn send_request_cmd<M: 'static + MaybeSend>(
         return Task::none();
     };
 
+    sel_tab.cancel_tasks();
     sel_tab.response.state = ResponseState::Executing;
     sel_tab.add_task(cancel_tx);
 
     Task::perform(req_fut, move |r| match r {
-        TaskResult::Completed(Ok(res)) => on_result(ResponseResult::Completed(res)),
-        TaskResult::Cancelled => on_result(ResponseResult::Cancelled),
-        TaskResult::Completed(Err(e)) => on_result(ResponseResult::Error(Arc::new(e))),
+        TaskResult::Completed(Ok(res)) => ResponseResult::Completed(res),
+        TaskResult::Cancelled => ResponseResult::Cancelled,
+        TaskResult::Completed(Err(e)) => ResponseResult::Error(Arc::new(e)),
     })
 }
 
