@@ -1,9 +1,8 @@
-use iced::highlighter::Highlighter;
 use iced::widget::{component, Component};
 use iced::{highlighter, Element, Font, Length};
 use iced_core::text::Wrapping;
 
-use crate::text_editor::{self, text_editor, ContentAction};
+use crate::editor::{self, text_editor, ContentAction};
 
 pub enum ContentType {
     Json,
@@ -12,7 +11,7 @@ pub enum ContentType {
 }
 
 pub struct CodeEditor<'a, M> {
-    pub code: &'a text_editor::Content,
+    pub code: &'a editor::Content,
     pub content_type: ContentType,
     pub on_action: Option<Box<dyn Fn(CodeEditorMsg) -> M>>,
     pub editable: bool,
@@ -49,7 +48,7 @@ pub enum CodeEditorMsg {
 }
 
 impl CodeEditorMsg {
-    pub fn update(self, state: &mut text_editor::Content) {
+    pub fn update(self, state: &mut editor::Content) {
         match self {
             Self::EditorAction(action, editable) => {
                 if editable || !action.is_edit() {
@@ -60,7 +59,7 @@ impl CodeEditorMsg {
     }
 }
 
-pub fn code_editor<M>(code: &text_editor::Content, content_type: ContentType) -> CodeEditor<'_, M> {
+pub fn code_editor<M>(code: &editor::Content, content_type: ContentType) -> CodeEditor<'_, M> {
     CodeEditor {
         code,
         content_type,
@@ -83,12 +82,9 @@ impl<'a, M> Component<M> for CodeEditor<'a, M> {
             .font(Font::MONOSPACE)
             .wrapping(Wrapping::WordOrGlyph)
             .on_action(|ac| CodeEditorMsg::EditorAction(ac, self.editable))
-            .highlight::<Highlighter>(
-                highlighter::Settings {
-                    theme: highlighter::Theme::SolarizedDark,
-                    token: self.content_type.to_extension().to_string(),
-                },
-                |highlight, _theme| highlight.to_format(),
+            .highlight(
+                self.content_type.to_extension(),
+                highlighter::Theme::SolarizedDark,
             )
             .into()
     }

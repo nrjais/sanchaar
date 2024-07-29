@@ -6,7 +6,7 @@ use iced::{
 };
 use std::ops::Not;
 
-use crate::text_editor;
+use crate::editor;
 use crate::{line_editor, tooltip, LineEditorMsg};
 
 use super::{icon, icons};
@@ -15,14 +15,14 @@ use super::{icon, icons};
 pub struct KeyValue {
     pub disabled: bool,
     name: String,
-    value: text_editor::Content,
+    value: editor::Content,
 }
 
 impl KeyValue {
     pub fn new(name: &str, value: &str, disabled: bool) -> Self {
         Self {
             name: name.to_owned(),
-            value: text_editor::Content::with_text(value),
+            value: editor::Content::with_text(value),
             disabled,
         }
     }
@@ -122,7 +122,7 @@ impl KeyValList {
         self.list.push(KeyValue {
             name: key,
             disabled: false,
-            value: text_editor::Content::default(),
+            value: editor::Content::default(),
         });
     }
 
@@ -230,9 +230,9 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
             let value = container(
                 line_editor(&kv.value)
                     .placeholder("Value")
-                    .style(move |t, s| text_editor::Style {
+                    .style(move |t, s| editor::Style {
                         border,
-                        ..text_editor::default(t, s)
+                        ..editor::default(t, s)
                     })
                     .on_action(move |a| KeyValUpdateMsg::ValueChanged(idx, a))
                     .size(size),

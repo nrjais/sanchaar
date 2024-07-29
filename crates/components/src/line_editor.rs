@@ -1,12 +1,12 @@
 use iced::widget::{component, Component};
-use iced::{Element, Font, Length, Pixels, Theme};
+use iced::{Element, Length, Pixels, Theme};
 use iced_core::text::editor::{Action, Edit};
 use iced_core::text::Wrapping;
 
-use crate::text_editor::{self, text_editor, ContentAction, Status, StyleFn};
+use crate::editor::{self, text_editor, ContentAction, Status, StyleFn};
 
 pub struct LineEditor<'a, M> {
-    pub code: &'a text_editor::Content,
+    pub code: &'a editor::Content,
     pub on_action: Option<Box<dyn Fn(LineEditorMsg) -> M>>,
     pub editable: bool,
     pub placeholder: Option<&'a str>,
@@ -39,7 +39,7 @@ impl<'a, M: 'a> LineEditor<'a, M> {
         self
     }
 
-    pub fn style(mut self, style: impl Fn(&Theme, Status) -> text_editor::Style + 'a) -> Self {
+    pub fn style(mut self, style: impl Fn(&Theme, Status) -> editor::Style + 'a) -> Self {
         self.style = Box::new(style);
         self
     }
@@ -51,7 +51,7 @@ pub enum LineEditorMsg {
 }
 
 impl LineEditorMsg {
-    pub fn update(self, state: &mut text_editor::Content) {
+    pub fn update(self, state: &mut editor::Content) {
         match self {
             Self::EditorAction(action, editable) => {
                 let newline = matches!(action, ContentAction::Action(Action::Edit(Edit::Enter)));
@@ -65,14 +65,14 @@ impl LineEditorMsg {
     }
 }
 
-pub fn line_editor<'a, M>(code: &'a text_editor::Content) -> LineEditor<'a, M> {
+pub fn line_editor<'a, M>(code: &'a editor::Content) -> LineEditor<'a, M> {
     LineEditor {
         code,
         on_action: None,
         editable: false,
         placeholder: None,
         text_size: None,
-        style: Box::new(|t, s| text_editor::default(t, s)),
+        style: Box::new(|t, s| editor::default(t, s)),
     }
 }
 
@@ -86,8 +86,7 @@ impl<'a, M> Component<M> for LineEditor<'a, M> {
 
     fn view(&self, _state: &Self::State) -> Element<Self::Event> {
         let editor = text_editor(&self.code)
-            .height(Length::Fill)
-            .font(Font::MONOSPACE)
+            .height(Length::Shrink)
             .wrapping(Wrapping::WordOrGlyph)
             .style(|t, s| (self.style)(t, s))
             .on_action(|ac| LineEditorMsg::EditorAction(ac, self.editable));

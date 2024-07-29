@@ -232,6 +232,13 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                 .and_then(|p| p.to_str())
                 .unwrap_or("Select a file");
 
+            const MAX_LEN: usize = 15;
+            let ellipsis = if path.len() > MAX_LEN {
+                format!("...{}", &path[path.len() - MAX_LEN..])
+            } else {
+                path.to_owned()
+            };
+
             let value = container(
                 Row::new()
                     .push(tooltip(
@@ -242,7 +249,7 @@ impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
                             .padding([2, 6]),
                     ))
                     // TODO: Ellipsis long file path, show tooltip on hover
-                    .push(tooltip(path, text(path).size(size)))
+                    .push(tooltip(path, text(ellipsis).size(size)))
                     .height(Length::Fill)
                     .spacing(spacing)
                     .align_y(iced::Alignment::Center),

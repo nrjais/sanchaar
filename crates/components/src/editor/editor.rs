@@ -1,17 +1,13 @@
 //! Display a multi-line text input for text editing.
 
-mod content;
-mod undo_stack;
-
 use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
-pub use content::ContentAction;
-use iced::alignment;
+use iced::{alignment, window, Point};
 use iced_core::clipboard::{self, Clipboard};
 use iced_core::event::{self, Event};
-use iced_core::keyboard;
 use iced_core::keyboard::key;
 use iced_core::layout::{self, Layout, Node};
 use iced_core::mouse;
@@ -22,12 +18,15 @@ use iced_core::text::Wrapping;
 use iced_core::text::{self, LineHeight, Text};
 use iced_core::widget::operation;
 use iced_core::widget::{self, Widget};
+use iced_core::{keyboard, SmolStr};
 use iced_core::{
     Background, Border, Color, Element, Length, Padding, Pixels, Rectangle, Shell, Size, Theme,
     Vector,
 };
 
 pub use text::editor::{Action, Edit, Motion};
+
+use super::content::{self, ContentAction};
 
 /// A multi-line text input.
 #[allow(missing_debug_implementations)]
@@ -46,21 +45,11 @@ where
     height: Length,
     padding: Padding,
     class: Theme::Class<'a>,
+    key_binding: Option<Box<dyn Fn(KeyPress) -> Option<Binding<Message>> + 'a>>,
     wrapping: Wrapping,
     on_edit: Option<Box<dyn Fn(ContentAction) -> Message + 'a>>,
     highlighter_settings: Highlighter::Settings,
     highlighter_format: fn(&Highlighter::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,
-}
-
-pub fn text_editor<'a, Message, Theme, Renderer>(
-    content: &'a Content<Renderer>,
-) -> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
-where
-    Message: Clone,
-    Theme: Catalog + 'a,
-    Renderer: text::Renderer,
-{
-    TextEditor::new(content)
 }
 
 impl<'a, Message, Theme, Renderer> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
@@ -80,6 +69,7 @@ where
             height: Length::Shrink,
             padding: Padding::new(5.0),
             class: Theme::default(),
+            key_binding: None,
             wrapping: Wrapping::default(),
             on_edit: None,
             highlighter_settings: (),
@@ -148,9 +138,27 @@ where
         self
     }
 
+    /// Highlights the [`TextEditor`] using the given syntax and theme.
+    pub fn highlight(
+        self,
+        syntax: &str,
+        theme: iced::highlighter::Theme,
+    ) -> TextEditor<'a, iced::highlighter::Highlighter, Message, Theme, Renderer>
+    where
+        Renderer: text::Renderer<Font = iced_core::Font>,
+    {
+        self.highlight_with::<iced::highlighter::Highlighter>(
+            iced::highlighter::Settings {
+                theme,
+                token: syntax.to_owned(),
+            },
+            |highlight, _theme| highlight.to_format(),
+        )
+    }
+
     /// Highlights the [`TextEditor`] with the given [`Highlighter`] and
     /// a strategy to turn its highlights into some text format.
-    pub fn highlight<H: text::Highlighter>(
+    pub fn highlight_with<H: text::Highlighter>(
         self,
         settings: H::Settings,
         to_format: fn(&H::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,
@@ -165,11 +173,23 @@ where
             height: self.height,
             padding: self.padding,
             class: self.class,
+            key_binding: self.key_binding,
             wrapping: self.wrapping,
             on_edit: self.on_edit,
             highlighter_settings: settings,
             highlighter_format: to_format,
         }
+    }
+
+    /// Sets the closure to produce key bindings on key presses.
+    ///
+    /// See [`Binding`] for the list of available bindings.
+    pub fn key_binding(
+        mut self,
+        key_binding: impl Fn(KeyPress) -> Option<Binding<Message>> + 'a,
+    ) -> Self {
+        self.key_binding = Some(Box::new(key_binding));
+        self
     }
 
     /// Sets the style of the [`TextEditor`].
@@ -195,7 +215,7 @@ pub type Content<R = iced::Renderer> = content::Content<R>;
 /// The state of a [`TextEditor`].
 #[derive(Debug)]
 pub struct State<Highlighter: text::Highlighter> {
-    is_focused: bool,
+    focus: Option<Focus>,
     last_click: Option<mouse::Click>,
     drag_click: Option<mouse::click::Kind>,
     partial_scroll: f32,
@@ -204,24 +224,51 @@ pub struct State<Highlighter: text::Highlighter> {
     highlighter_format_address: usize,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Focus {
+    updated_at: Instant,
+    now: Instant,
+    is_window_focused: bool,
+}
+
+impl Focus {
+    const CURSOR_BLINK_INTERVAL_MILLIS: u128 = 500;
+
+    fn now() -> Self {
+        let now = Instant::now();
+
+        Self {
+            updated_at: now,
+            now,
+            is_window_focused: true,
+        }
+    }
+
+    fn is_cursor_visible(&self) -> bool {
+        self.is_window_focused
+            && ((self.now - self.updated_at).as_millis() / Self::CURSOR_BLINK_INTERVAL_MILLIS) % 2
+                == 0
+    }
+}
+
 impl<Highlighter: text::Highlighter> State<Highlighter> {
     /// Returns whether the [`TextEditor`] is currently focused or not.
     pub fn is_focused(&self) -> bool {
-        self.is_focused
+        self.focus.is_some()
     }
 }
 
 impl<Highlighter: text::Highlighter> operation::Focusable for State<Highlighter> {
     fn is_focused(&self) -> bool {
-        self.is_focused
+        self.focus.is_some()
     }
 
     fn focus(&mut self) {
-        self.is_focused = true;
+        self.focus = Some(Focus::now());
     }
 
     fn unfocus(&mut self) {
-        self.is_focused = false;
+        self.focus = None;
     }
 }
 
@@ -238,7 +285,7 @@ where
 
     fn state(&self) -> widget::tree::State {
         widget::tree::State::new(State {
-            is_focused: false,
+            focus: None,
             last_click: None,
             drag_click: None,
             partial_scroll: 0.0,
@@ -323,11 +370,48 @@ where
         };
 
         let on_edit_ca = |ca: Action| on_edit(ContentAction::Action(ca));
-
         let state = tree.state.downcast_mut::<State<Highlighter>>();
 
-        let Some(update) = Update::from_event(event, state, layout.bounds(), self.padding, cursor)
-        else {
+        match event {
+            Event::Window(window::Event::Unfocused) => {
+                if let Some(focus) = &mut state.focus {
+                    focus.is_window_focused = false;
+                }
+            }
+            Event::Window(window::Event::Focused) => {
+                if let Some(focus) = &mut state.focus {
+                    focus.is_window_focused = true;
+                    focus.updated_at = Instant::now();
+
+                    shell.request_redraw(window::RedrawRequest::NextFrame);
+                }
+            }
+            Event::Window(window::Event::RedrawRequested(now)) => {
+                if let Some(focus) = &mut state.focus {
+                    if focus.is_window_focused {
+                        focus.now = now;
+
+                        let millis_until_redraw = Focus::CURSOR_BLINK_INTERVAL_MILLIS
+                            - (now - focus.updated_at).as_millis()
+                                % Focus::CURSOR_BLINK_INTERVAL_MILLIS;
+
+                        shell.request_redraw(window::RedrawRequest::At(
+                            now + Duration::from_millis(millis_until_redraw as u64),
+                        ));
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        let Some(update) = Update::from_event(
+            event,
+            state,
+            layout.bounds(),
+            self.padding,
+            cursor,
+            self.key_binding.as_deref(),
+        ) else {
             return event::Status::Ignored;
         };
 
@@ -339,11 +423,17 @@ where
                     mouse::click::Kind::Triple => Action::SelectLine,
                 };
 
-                state.is_focused = true;
+                state.focus = Some(Focus::now());
                 state.last_click = Some(click);
                 state.drag_click = Some(click.kind());
 
                 shell.publish(on_edit_ca(action));
+            }
+            Update::Drag(position) => {
+                shell.publish(on_edit_ca(Action::Drag(position)));
+            }
+            Update::Release => {
+                state.drag_click = None;
             }
             Update::Scroll(lines) => {
                 let bounds = self.content.0.borrow().editor.bounds();
@@ -359,30 +449,85 @@ where
                     lines: lines as i32,
                 }));
             }
-            Update::Unfocus => {
-                state.is_focused = false;
-                state.drag_click = None;
-            }
-            Update::Release => {
-                state.drag_click = None;
-            }
-            Update::Action(action) => {
-                shell.publish(on_edit(action));
-            }
-            Update::Copy => {
-                if let Some(selection) = self.content.selection() {
-                    clipboard.write(clipboard::Kind::Standard, selection);
+            Update::Binding(binding) => {
+                fn apply_binding<H: text::Highlighter, R: text::Renderer, Message>(
+                    binding: Binding<Message>,
+                    content: &Content<R>,
+                    state: &mut State<H>,
+                    on_edit: &dyn Fn(ContentAction) -> Message,
+                    clipboard: &mut dyn Clipboard,
+                    shell: &mut Shell<'_, Message>,
+                ) {
+                    let mut publish_ca = |action| shell.publish(on_edit(action));
+                    let mut publish = |action| publish_ca(ContentAction::Action(action));
+
+                    match binding {
+                        Binding::Unfocus => {
+                            state.focus = None;
+                            state.drag_click = None;
+                        }
+                        Binding::Copy => {
+                            if let Some(selection) = content.selection() {
+                                clipboard.write(clipboard::Kind::Standard, selection);
+                            }
+                        }
+                        Binding::Cut => {
+                            if let Some(selection) = content.selection() {
+                                clipboard.write(clipboard::Kind::Standard, selection);
+
+                                publish(Action::Edit(Edit::Delete));
+                            }
+                        }
+                        Binding::Paste => {
+                            if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
+                                publish(Action::Edit(Edit::Paste(Arc::new(contents))));
+                            }
+                        }
+                        Binding::Move(motion) => {
+                            publish(Action::Move(motion));
+                        }
+                        Binding::Select(motion) => {
+                            publish(Action::Select(motion));
+                        }
+                        Binding::SelectWord => {
+                            publish(Action::SelectWord);
+                        }
+                        Binding::SelectLine => {
+                            publish(Action::SelectLine);
+                        }
+                        Binding::SelectAll => {
+                            publish(Action::SelectAll);
+                        }
+                        Binding::Insert(c) => {
+                            publish(Action::Edit(Edit::Insert(c)));
+                        }
+                        Binding::Enter => {
+                            publish(Action::Edit(Edit::Enter));
+                        }
+                        Binding::Backspace => {
+                            publish(Action::Edit(Edit::Backspace));
+                        }
+                        Binding::Delete(motion) => {
+                            publish_ca(ContentAction::Delete(motion));
+                        }
+                        Binding::Sequence(sequence) => {
+                            for binding in sequence {
+                                apply_binding(binding, content, state, on_edit, clipboard, shell);
+                            }
+                        }
+                        Binding::Custom(message) => {
+                            shell.publish(message);
+                        }
+                        Binding::Undo => publish_ca(ContentAction::Undo),
+                        Binding::Redo => publish_ca(ContentAction::Redo),
+                        Binding::DeleteNext => publish(Action::Edit(Edit::Delete)),
+                    }
                 }
-            }
-            Update::Cut => {
-                if let Some(selection) = self.content.selection() {
-                    clipboard.write(clipboard::Kind::Standard, selection);
-                    shell.publish(on_edit_ca(Action::Edit(Edit::Delete)));
-                }
-            }
-            Update::Paste => {
-                if let Some(contents) = clipboard.read(clipboard::Kind::Standard) {
-                    shell.publish(on_edit_ca(Action::Edit(Edit::Paste(Arc::new(contents)))));
+
+                apply_binding(binding, self.content, state, on_edit, clipboard, shell);
+
+                if let Some(focus) = &mut state.focus {
+                    focus.updated_at = Instant::now();
                 }
             }
         }
@@ -418,7 +563,7 @@ where
 
         let status = if is_disabled {
             Status::Disabled
-        } else if state.is_focused {
+        } else if state.focus.is_some() {
             Status::Focused
         } else if is_mouse_over {
             Status::Hovered
@@ -445,13 +590,14 @@ where
                     Text {
                         content: placeholder.into_owned(),
                         bounds: bounds.size() - Size::new(self.padding.right, self.padding.bottom),
+
                         size: self.text_size.unwrap_or_else(|| renderer.default_size()),
                         line_height: self.line_height,
                         font,
                         horizontal_alignment: alignment::Horizontal::Left,
                         vertical_alignment: alignment::Vertical::Top,
                         shaping: text::Shaping::Advanced,
-                        wrapping: self.wrapping,
+                        wrapping: text::Wrapping::WordOrGlyph,
                     },
                     position,
                     style.placeholder,
@@ -464,9 +610,9 @@ where
 
         let translation = Vector::new(bounds.x + self.padding.left, bounds.y + self.padding.top);
 
-        if state.is_focused {
+        if let Some(focus) = state.focus.as_ref() {
             match internal.editor.cursor() {
-                Cursor::Caret(position) => {
+                Cursor::Caret(position) if focus.is_cursor_visible() => {
                     let cursor = Rectangle::new(
                         position + translation,
                         Size::new(
@@ -508,6 +654,7 @@ where
                         );
                     }
                 }
+                Cursor::Caret(_) => {}
             }
         }
     }
@@ -560,28 +707,162 @@ where
     }
 }
 
-enum Update {
-    Click(mouse::Click),
-    Scroll(f32),
+/// A binding to an action in the [`TextEditor`].
+#[derive(Debug, Clone, PartialEq)]
+pub enum Binding<Message> {
+    /// Unfocus the [`TextEditor`].
     Unfocus,
-    Release,
-    Action(ContentAction),
+    /// Copy the selection of the [`TextEditor`].
     Copy,
+    /// Cut the selection of the [`TextEditor`].
     Cut,
+    /// Paste the clipboard contents in the [`TextEditor`].
     Paste,
+    /// Undo the last action.
+    Undo,
+    /// Redo the last undone action.
+    Redo,
+    /// Apply a [`Motion`].
+    Move(Motion),
+    /// Select text with a given [`Motion`].
+    Select(Motion),
+    /// Select the word at the current cursor.
+    SelectWord,
+    /// Select the line at the current cursor.
+    SelectLine,
+    /// Select the entire buffer.
+    SelectAll,
+    /// Insert the given character.
+    Insert(char),
+    /// Break the current line.
+    Enter,
+    /// Delete the previous character.
+    Backspace,
+    // Delete the next character.
+    DeleteNext,
+    /// Delete by motion
+    Delete(Motion),
+    /// A sequence of bindings to execute.
+    Sequence(Vec<Self>),
+    /// Produce the given message.
+    Custom(Message),
 }
 
-impl Update {
+/// A key press.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeyPress {
+    /// The key pressed.
+    pub key: keyboard::Key,
+    /// The state of the keyboard modifiers.
+    pub modifiers: keyboard::Modifiers,
+    /// The text produced by the key press.
+    pub text: Option<SmolStr>,
+    /// The current [`Status`] of the [`TextEditor`].
+    pub status: Status,
+}
+
+impl<Message> Binding<Message> {
+    /// Returns the default [`Binding`] for the given key press.
+    pub fn from_key_press(event: KeyPress) -> Option<Self> {
+        let KeyPress {
+            key,
+            modifiers,
+            text,
+            status,
+        } = event;
+
+        if status != Status::Focused {
+            return None;
+        }
+
+        match key.as_ref() {
+            keyboard::Key::Named(key::Named::Enter) => Some(Self::Enter),
+            keyboard::Key::Named(key::Named::Backspace)
+                if modifiers.alt() && !modifiers.command() =>
+            {
+                return Some(Self::Delete(Motion::WordLeft));
+            }
+            keyboard::Key::Named(key::Named::Backspace)
+                if !modifiers.alt() && modifiers.command() =>
+            {
+                return Some(Self::Delete(Motion::Home));
+            }
+            keyboard::Key::Named(key::Named::Backspace) => Some(Self::Backspace),
+            keyboard::Key::Named(key::Named::Delete) if modifiers.alt() && !modifiers.command() => {
+                return Some(Self::Delete(Motion::WordRight));
+            }
+            keyboard::Key::Named(key::Named::Delete) => Some(Self::DeleteNext),
+            keyboard::Key::Named(key::Named::Escape) => Some(Self::Unfocus),
+            keyboard::Key::Character("c") if modifiers.command() => Some(Self::Copy),
+            keyboard::Key::Character("x") if modifiers.command() => Some(Self::Cut),
+            keyboard::Key::Character("v") if modifiers.command() && !modifiers.alt() => {
+                Some(Self::Paste)
+            }
+            keyboard::Key::Character("z") if modifiers.command() && !modifiers.shift() => {
+                return Some(Self::Undo);
+            }
+            keyboard::Key::Character("z") if modifiers.command() && modifiers.shift() => {
+                return Some(Self::Redo);
+            }
+            keyboard::Key::Character("y") if modifiers.control() => {
+                return Some(Self::Redo);
+            }
+            keyboard::Key::Character("a") if modifiers.command() => Some(Self::SelectAll),
+            _ => {
+                if let Some(text) = text {
+                    let c = text.chars().find(|c| !c.is_control())?;
+
+                    Some(Self::Insert(c))
+                } else if let keyboard::Key::Named(named_key) = key.as_ref() {
+                    let motion = motion(named_key)?;
+
+                    let motion = if modifiers.macos_command() {
+                        match motion {
+                            Motion::Left => Motion::Home,
+                            Motion::Right => Motion::End,
+                            _ => motion,
+                        }
+                    } else {
+                        motion
+                    };
+
+                    let motion = if modifiers.jump() {
+                        motion.widen()
+                    } else {
+                        motion
+                    };
+
+                    Some(if modifiers.shift() {
+                        Self::Select(motion)
+                    } else {
+                        Self::Move(motion)
+                    })
+                } else {
+                    None
+                }
+            }
+        }
+    }
+}
+
+enum Update<Message> {
+    Click(mouse::Click),
+    Drag(Point),
+    Release,
+    Scroll(f32),
+    Binding(Binding<Message>),
+}
+
+impl<Message> Update<Message> {
     fn from_event<H: Highlighter>(
         event: Event,
         state: &State<H>,
         bounds: Rectangle,
         padding: Padding,
         cursor: mouse::Cursor,
+        key_binding: Option<&dyn Fn(KeyPress) -> Option<Binding<Message>>>,
     ) -> Option<Self> {
-        let content_action = |action| Some(Update::Action(action));
-        let action = |action| content_action(ContentAction::Action(action));
-        let edit = |edit| action(Action::Edit(edit));
+        let binding = |binding| Some(Update::Binding(binding));
 
         match event {
             Event::Mouse(event) => match event {
@@ -593,8 +874,8 @@ impl Update {
                         let click = mouse::Click::new(cursor_position, state.last_click);
 
                         Some(Update::Click(click))
-                    } else if state.is_focused {
-                        Some(Update::Unfocus)
+                    } else if state.focus.is_some() {
+                        binding(Binding::Unfocus)
                     } else {
                         None
                     }
@@ -605,7 +886,7 @@ impl Update {
                         let cursor_position =
                             cursor.position_in(bounds)? - Vector::new(padding.top, padding.left);
 
-                        action(Action::Drag(cursor_position))
+                        Some(Update::Drag(cursor_position))
                     }
                     _ => None,
                 },
@@ -623,108 +904,32 @@ impl Update {
                 }
                 _ => None,
             },
-            Event::Keyboard(event) => match event {
-                keyboard::Event::KeyPressed {
+            Event::Keyboard(keyboard::Event::KeyPressed {
+                key,
+                modifiers,
+                text,
+                ..
+            }) => {
+                let status = if state.focus.is_some() {
+                    Status::Focused
+                } else {
+                    Status::Active
+                };
+
+                let key_press = KeyPress {
                     key,
                     modifiers,
                     text,
-                    ..
-                } if state.is_focused => {
-                    match key.as_ref() {
-                        keyboard::Key::Named(key::Named::Enter) => {
-                            return edit(Edit::Enter);
-                        }
-                        keyboard::Key::Named(key::Named::Backspace)
-                            if modifiers.alt() && !modifiers.command() =>
-                        {
-                            return content_action(ContentAction::Delete(Motion::WordLeft));
-                        }
-                        keyboard::Key::Named(key::Named::Backspace)
-                            if !modifiers.alt() && modifiers.command() =>
-                        {
-                            return content_action(ContentAction::Delete(Motion::Home));
-                        }
-                        keyboard::Key::Named(key::Named::Backspace) => {
-                            return edit(Edit::Backspace);
-                        }
+                    status,
+                };
 
-                        keyboard::Key::Named(key::Named::Delete)
-                            if modifiers.alt() && !modifiers.command() =>
-                        {
-                            return content_action(ContentAction::Delete(Motion::WordRight));
-                        }
-                        keyboard::Key::Named(key::Named::Delete) => {
-                            return edit(Edit::Delete);
-                        }
-                        keyboard::Key::Named(key::Named::Escape) => {
-                            return Some(Self::Unfocus);
-                        }
-                        keyboard::Key::Character("c") if modifiers.command() => {
-                            return Some(Self::Copy);
-                        }
-                        keyboard::Key::Character("x") if modifiers.command() => {
-                            return Some(Self::Cut);
-                        }
-                        keyboard::Key::Character("v")
-                            if modifiers.command() && !modifiers.alt() =>
-                        {
-                            return Some(Self::Paste);
-                        }
-                        keyboard::Key::Character("z")
-                            if modifiers.command() && !modifiers.shift() =>
-                        {
-                            return Some(Self::Action(ContentAction::Undo));
-                        }
-                        keyboard::Key::Character("z")
-                            if modifiers.command() && modifiers.shift() =>
-                        {
-                            return Some(Self::Action(ContentAction::Redo));
-                        }
-                        keyboard::Key::Character("y") if modifiers.control() => {
-                            return Some(Self::Action(ContentAction::Redo));
-                        }
-                        keyboard::Key::Character("a") if modifiers.command() => {
-                            return action(Action::SelectAll);
-                        }
-                        _ => {}
-                    }
-
-                    if let Some(text) = text {
-                        if let Some(c) = text.chars().find(|c| !c.is_control()) {
-                            return edit(Edit::Insert(c));
-                        }
-                    }
-
-                    if let keyboard::Key::Named(named_key) = key.as_ref() {
-                        if let Some(motion) = motion(named_key) {
-                            let motion = if modifiers.macos_command() {
-                                match motion {
-                                    Motion::Left => Motion::Home,
-                                    Motion::Right => Motion::End,
-                                    _ => motion,
-                                }
-                            } else {
-                                motion
-                            };
-
-                            let motion = if modifiers.jump() {
-                                motion.widen()
-                            } else {
-                                motion
-                            };
-
-                            return action(if modifiers.shift() {
-                                Action::Select(motion)
-                            } else {
-                                Action::Move(motion)
-                            });
-                        }
-                    }
-
-                    None
+                if let Some(key_binding) = key_binding {
+                    key_binding(key_press)
+                } else {
+                    Binding::from_key_press(key_press)
                 }
-                _ => None,
-            },
+                .map(Self::Binding)
+            }
             _ => None,
         }
     }

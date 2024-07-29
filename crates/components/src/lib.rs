@@ -14,11 +14,7 @@ mod modal;
 mod multi_file_picker;
 
 pub mod colors;
-pub(crate) mod text_editor;
-
-pub mod editor {
-    pub use crate::text_editor::*;
-}
+pub mod editor;
 
 pub use bordered::{bordered_left, bordered_right};
 pub use button_tabs::{button_tab, button_tabs, vertical_button_tabs, ButtonTab};
