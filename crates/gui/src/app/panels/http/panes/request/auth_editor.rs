@@ -1,7 +1,4 @@
-use components::{
-    icon, icons,
-    text_editor::{line_editor, ContentAction},
-};
+use components::{icon, icons, line_editor, LineEditorMsg};
 use iced::{
     widget::{center, container, horizontal_space, pick_list, text, Column, Row},
     Element, Length,
@@ -12,9 +9,9 @@ use crate::state::request::{RawAuthType, RequestPane};
 #[derive(Debug, Clone)]
 pub enum AuthEditorMsg {
     ChangeAuthType(&'static str),
-    BearerToken(ContentAction),
-    BasicUsername(ContentAction),
-    BasicPassword(ContentAction),
+    BearerToken(LineEditorMsg),
+    BasicUsername(LineEditorMsg),
+    BasicPassword(LineEditorMsg),
 }
 impl AuthEditorMsg {
     pub(crate) fn update(self, request: &mut RequestPane) {
@@ -22,17 +19,17 @@ impl AuthEditorMsg {
             AuthEditorMsg::ChangeAuthType(auth) => request.change_auth_type(auth),
             AuthEditorMsg::BearerToken(action) => {
                 if let RawAuthType::Bearer { token } = &mut request.auth {
-                    token.perform(action);
+                    action.update(token);
                 }
             }
             AuthEditorMsg::BasicUsername(action) => {
                 if let RawAuthType::Basic { username, .. } = &mut request.auth {
-                    username.perform(action);
+                    action.update(username);
                 }
             }
             AuthEditorMsg::BasicPassword(action) => {
                 if let RawAuthType::Basic { password, .. } = &mut request.auth {
-                    password.perform(action);
+                    action.update(password);
                 }
             }
         }

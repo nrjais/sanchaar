@@ -12,9 +12,13 @@ mod lines;
 mod min_dimension;
 mod modal;
 mod multi_file_picker;
-mod text_editor;
 
 pub mod colors;
+pub(crate) mod text_editor;
+
+pub mod editor {
+    pub use crate::text_editor::*;
+}
 
 pub use bordered::{bordered_left, bordered_right};
 pub use button_tabs::{button_tab, button_tabs, vertical_button_tabs, ButtonTab};
@@ -30,4 +34,3 @@ pub use lines::{horizontal_line, vertical_line};
 pub use min_dimension::{min_height, min_width, MinDimension};
 pub use modal::modal;
 pub use multi_file_picker::{multi_file_picker, FilePickerAction, KeyFile, KeyFileList};
-pub use text_editor::{text_editor, Content, ContentAction, TextEditor};

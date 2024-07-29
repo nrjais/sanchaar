@@ -1,6 +1,7 @@
-use components::text_editor;
 use core::client;
 use std::sync::Arc;
+
+use components::editor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ResponseTabId {
@@ -18,19 +19,19 @@ pub enum BodyMode {
 #[derive(Debug)]
 pub struct CompletedResponse {
     pub result: client::Response,
-    pub content: Option<text_editor::Content>,
-    pub raw: text_editor::Content,
+    pub content: Option<editor::Content>,
+    pub raw: editor::Content,
     pub mode: BodyMode,
 }
 
 impl CompletedResponse {
-    pub fn selected_content(&self) -> &text_editor::Content {
+    pub fn selected_content(&self) -> &editor::Content {
         match self.mode {
             BodyMode::Pretty => self.content.as_ref().unwrap_or(&self.raw),
             BodyMode::Raw => &self.raw,
         }
     }
-    pub fn selected_content_mut(&mut self) -> &mut text_editor::Content {
+    pub fn selected_content_mut(&mut self) -> &mut editor::Content {
         match self.mode {
             BodyMode::Pretty => self.content.as_mut().unwrap_or(&mut self.raw),
             BodyMode::Raw => &mut self.raw,

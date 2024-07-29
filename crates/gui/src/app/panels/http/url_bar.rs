@@ -1,3 +1,4 @@
+use components::editor;
 use iced::widget::{vertical_rule, Button, Row};
 use iced::{border, Border};
 use iced::{
@@ -7,8 +8,7 @@ use iced::{
 use reqwest::Url;
 use strum::VariantArray;
 
-use components::text_editor::{self, line_editor, ContentAction};
-use components::{icon, icons, NerdIcon};
+use components::{icon, icons, line_editor, LineEditorMsg, NerdIcon};
 use core::http::request::Method;
 
 use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
@@ -18,7 +18,7 @@ use crate::state::{AppState, HttpTab, Tab, TabKey};
 #[derive(Debug, Clone)]
 pub enum UrlBarMsg {
     MethodChanged(Method),
-    UrlChanged(ContentAction),
+    UrlChanged(LineEditorMsg),
     SendRequest,
     SaveRequest,
     RequestSaved,
@@ -51,7 +51,7 @@ impl UrlBarMsg {
                 tab.request_mut().method = method;
             }
             UrlBarMsg::UrlChanged(action) => {
-                tab.request_mut().url_content.perform(action);
+                action.update(&mut tab.request_mut().url_content);
 
                 let url = tab.request().url_content.text();
                 if let Some(params) = parse_path_params(&url) {
@@ -119,9 +119,9 @@ pub(crate) fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
 
     let url = line_editor(&request.url_content)
         .placeholder("https://example.com")
-        .style(move |t: &iced::Theme, _| text_editor::Style {
+        .style(move |t: &iced::Theme, _| editor::Style {
             border,
-            ..text_editor::default(t, text_editor::Status::Active)
+            ..editor::default(t, editor::Status::Active)
         })
         .on_action(UrlBarMsg::UrlChanged);
 

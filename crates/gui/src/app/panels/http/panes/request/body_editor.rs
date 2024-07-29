@@ -1,10 +1,10 @@
-use components::{code_editor, text_editor, ContentType};
+use components::{code_editor, editor::Content, ContentType};
 
 use crate::app::panels::http::panes::request::RequestPaneMsg;
 use iced::widget::container;
 use iced::Element;
 
-pub fn view(content: &text_editor::Content, content_type: ContentType) -> Element<RequestPaneMsg> {
+pub fn view(content: &Content, content_type: ContentType) -> Element<RequestPaneMsg> {
     container(
         code_editor(content, content_type)
             .editable()

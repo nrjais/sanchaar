@@ -1,4 +1,4 @@
-use components::text_editor::Content;
+use components::editor::Content;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use serde_json::Value;
