@@ -25,15 +25,17 @@ pub enum Message {
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Task<Message> {
-        let Some(Popup::SaveRequest(ref mut data)) = state.popup else {
+        let common = &mut state.common;
+        let Some(Popup::SaveRequest(ref mut data)) = common.popup else {
             return Task::none();
         };
+
         match self {
             Message::Done(col) => {
                 let name = data.name.clone();
                 let tab = data.tab;
                 let folder = data.folder_id;
-                save_tab_request_cmd(state, name, tab, col, folder, |_| Message::Close)
+                save_tab_request_cmd(state, name, tab, col, folder).map(|_| Message::Close)
             }
             Message::NameChanged(name) => {
                 data.name = name;
@@ -51,7 +53,7 @@ impl Message {
                 Task::none()
             }
             Message::Close => {
-                state.popup = None;
+                common.popup = None;
                 Task::none()
             }
         }
@@ -72,6 +74,7 @@ pub fn done(data: &SaveRequestState) -> Option<Message> {
 
 pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {
     let collections = state
+        .common
         .collections
         .iter()
         .map(|(k, c)| {
@@ -128,7 +131,7 @@ pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Elemen
 }
 
 pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {
-    let collection = data.col.and_then(|col| state.collections.get(col));
+    let collection = data.col.and_then(|col| state.common.collections.get(col));
 
     let name = Row::new()
         .push(text("Name"))

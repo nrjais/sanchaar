@@ -23,7 +23,7 @@ pub enum Message {
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Task<Message> {
-        let Some(CreateCollection(data)) = state.popup.as_mut() else {
+        let Some(CreateCollection(data)) = state.common.popup.as_mut() else {
             return Task::none();
         };
 
@@ -32,16 +32,19 @@ impl Message {
                 data.name = name;
                 Task::none()
             }
-            Message::OpenDialog => open_folder_dialog("Select location", Message::FolderSelected),
+            Message::OpenDialog => {
+                open_folder_dialog("Select location").map(Message::FolderSelected)
+            }
             Message::FolderSelected(handle) => {
                 data.path = handle.map(|h| h.path().to_owned());
                 Task::none()
             }
             Message::CreateCollection(name, path) => {
-                builders::create_collection_cmd(state, name, path, |_| Message::Done)
+                builders::create_collection_cmd(&mut state.common, name, path)
+                    .map(|_| Message::Done)
             }
             Message::Done => {
-                state.popup = None;
+                state.common.popup = None;
                 Task::none()
             }
         }

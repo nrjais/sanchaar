@@ -75,12 +75,12 @@ impl UrlBarMsg {
                     return Task::none();
                 };
 
-                let req_ref = state.collections.get_ref(tab.collection_ref);
+                let req_ref = state.common.collections.get_ref(tab.collection_ref);
                 if let Some(req_res) = req_ref {
                     let path = req_res.path.clone();
                     return save_request_cmd(tab.request(), path).map(|_| Self::RequestSaved);
                 } else {
-                    Popup::save_request(state, active_tab);
+                    Popup::save_request(&mut state.common, active_tab);
                 }
             }
             UrlBarMsg::RequestSaved => tab.check_dirty(),
@@ -101,7 +101,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
     })
 }
 
-pub(crate) fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
+pub fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
     let request = tab.request();
     let executing = tab.response.is_executing();
 

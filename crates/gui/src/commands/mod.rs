@@ -29,17 +29,26 @@ pub enum BackgroundTask {
 }
 
 fn remove_task(state: &mut AppState, task: BackgroundTask) {
-    state.background_tasks.retain(|t| t.task != task);
+    state.common.background_tasks.retain(|t| t.task != task);
 }
 
 fn task_done(state: &mut AppState, task: BackgroundTask) {
-    if let Some(job) = state.background_tasks.iter_mut().find(|t| t.task == task) {
+    if let Some(job) = state
+        .common
+        .background_tasks
+        .iter_mut()
+        .find(|t| t.task == task)
+    {
         job.done = true;
     }
 }
 
 fn schedule_task(state: &mut AppState, task: BackgroundTask, delay: u64) -> bool {
-    let job = state.background_tasks.iter().find(|t| t.task == task);
+    let job = state
+        .common
+        .background_tasks
+        .iter()
+        .find(|t| t.task == task);
 
     let sch = match job {
         Some(job) => job.started.elapsed().as_secs() > delay && job.done,
@@ -47,7 +56,7 @@ fn schedule_task(state: &mut AppState, task: BackgroundTask, delay: u64) -> bool
     };
     if sch {
         remove_task(state, task);
-        state.background_tasks.push(JobState {
+        state.common.background_tasks.push(JobState {
             task,
             done: false,
             started: Instant::now(),
@@ -67,7 +76,7 @@ impl TaskMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
             TaskMsg::CollectionsLoaded(collection) => {
-                state.collections.insert_all(collection);
+                state.common.collections.insert_all(collection);
                 task_done(state, BackgroundTask::SaveCollections);
             }
             TaskMsg::Completed(task) => {
@@ -88,12 +97,12 @@ impl TaskMsg {
 
 fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveCollections;
-    let schedule = state.collections.dirty && schedule_task(state, task, 0);
+    let schedule = state.common.collections.dirty && schedule_task(state, task, 0);
     if !schedule {
         return Task::none();
     }
 
-    let collections = state.collections.get_collections_for_save();
+    let collections = state.common.collections.get_collections_for_save();
     Task::perform(collections::save(collections), |result| match result {
         Ok(_) => TaskMsg::Completed(BackgroundTask::SaveCollections),
         Err(e) => {
@@ -109,7 +118,7 @@ fn check_dirty_requests(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
-    check_dirty_requests_cmd(state, TaskMsg::UpdateDirtyTabs)
+    check_dirty_requests_cmd(state).map(TaskMsg::UpdateDirtyTabs)
 }
 
 pub fn background(state: &mut AppState) -> Task<TaskMsg> {

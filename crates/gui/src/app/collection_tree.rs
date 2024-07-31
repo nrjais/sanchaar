@@ -28,33 +28,29 @@ pub enum CollectionTreeMsg {
 
 impl CollectionTreeMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
+        let collections = &mut state.common.collections;
         match self {
             CollectionTreeMsg::ToggleExpandCollection(key) => {
-                state
-                    .collections
-                    .with_collection_mut(key, |collection| collection.toggle_expand());
+                collections.with_collection_mut(key, |collection| collection.toggle_expand());
             }
             CollectionTreeMsg::ToggleFolder(col, id) => {
-                state
-                    .collections
-                    .with_collection_mut(col, |collection| collection.toggle_folder(id));
+                collections.with_collection_mut(col, |collection| collection.toggle_folder(id));
             }
             CollectionTreeMsg::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
-                    return open_request_cmd(state, col, move |res| {
-                        Self::RequestLoaded(col, Box::new(res))
-                    });
+                    return open_request_cmd(&mut state.common, col)
+                        .map(move |res| Self::RequestLoaded(col, Box::new(res)));
                 };
             }
             CollectionTreeMsg::CreateCollection => {
-                Popup::create_collection(state);
+                Popup::create_collection(&mut state.common);
             }
             CollectionTreeMsg::OpenCollection => {
-                return open_collection_cmd(Self::OpenCollectionHandle);
+                return open_collection_cmd().map(Self::OpenCollectionHandle);
             }
             CollectionTreeMsg::OpenCollectionHandle(handle) => {
                 if let Some(handle) = handle {
-                    state.collections.insert(handle);
+                    collections.insert(handle);
                 }
             }
             CollectionTreeMsg::RequestLoaded(col, req) => {
@@ -67,7 +63,7 @@ impl CollectionTreeMsg {
             }
             CollectionTreeMsg::ActionComplete => (),
             CollectionTreeMsg::OpenSettings => {
-                Popup::app_settings(state);
+                Popup::app_settings(&mut state.common);
             }
         };
         Task::none()
@@ -79,10 +75,11 @@ fn handle_context_menu(
     key: CollectionKey,
     action: MenuAction,
 ) -> Task<CollectionTreeMsg> {
+    let common = &mut state.common;
     match action {
         MenuAction::NewRequest(folder_id) => {
             Popup::popup_name(
-                state,
+                common,
                 String::new(),
                 PopupNameAction::NewRequest(key, folder_id),
             );
@@ -90,24 +87,21 @@ fn handle_context_menu(
         }
         MenuAction::NewFolder(folder_id) => {
             Popup::popup_name(
-                state,
+                common,
                 String::new(),
                 PopupNameAction::CreateFolder(key, folder_id),
             );
             Task::none()
         }
-        MenuAction::DeleteFolder(folder_id) => {
-            builders::delete_folder_cmd(state, key, folder_id, move || {
-                CollectionTreeMsg::ActionComplete
-            })
-        }
+        MenuAction::DeleteFolder(folder_id) => builders::delete_folder_cmd(common, key, folder_id)
+            .map(move |_| CollectionTreeMsg::ActionComplete),
         MenuAction::RemoveCollection => {
-            state.collections.remove(key);
+            common.collections.remove(key);
             Task::none()
         }
         MenuAction::RenameFolder(name, folder_id) => {
             Popup::popup_name(
-                state,
+                common,
                 name.to_owned(),
                 PopupNameAction::RenameFolder(key, folder_id),
             );
@@ -115,7 +109,7 @@ fn handle_context_menu(
         }
         MenuAction::RenameCollection(name) => {
             Popup::popup_name(
-                state,
+                common,
                 name.to_owned(),
                 PopupNameAction::RenameCollection(key),
             );
@@ -123,25 +117,25 @@ fn handle_context_menu(
         }
         MenuAction::RenameRequest(name, req) => {
             Popup::popup_name(
-                state,
+                common,
                 name.to_owned(),
                 PopupNameAction::RenameRequest(key, req),
             );
             Task::none()
         }
-        MenuAction::DeleteRequest(req) => {
-            builders::delete_request_cmd(state, key, req, move || CollectionTreeMsg::ActionComplete)
-        }
+        MenuAction::DeleteRequest(req) => builders::delete_request_cmd(common, key, req)
+            .map(move |_| CollectionTreeMsg::ActionComplete),
         MenuAction::CopyPath(req) => {
-            if let Some(request) = state.collections.get_ref(CollectionRequest(key, req)) {
+            if let Some(request) = common.collections.get_ref(CollectionRequest(key, req)) {
                 clipboard::write(request.path.to_string_lossy().to_string())
             } else {
                 Task::none()
             }
         }
         MenuAction::OpenCollection => {
-            if let Some(col) = state.collections.get(key) {
-                state.open_tab(Tab::Collection(CollectionTab::new(key, col)));
+            if let Some(col) = common.collections.get(key) {
+                let tab = Tab::Collection(CollectionTab::new(key, col));
+                state.open_tab(tab);
             }
             Task::none()
         }
@@ -153,7 +147,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
-    let it = state.collections.iter().map(|(key, collection)| {
+    let it = state.common.collections.iter().map(|(key, collection)| {
         expandable(
             key,
             &collection.name,

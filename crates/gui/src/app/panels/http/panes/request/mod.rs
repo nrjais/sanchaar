@@ -90,22 +90,24 @@ impl RequestPaneMsg {
                 request.body = RawRequestBody::File(path);
             }
             Self::MulitpartOpenFilePicker(idx) => {
-                let task = open_file_dialog("Select File", move |handle| {
+                return open_file_dialog("Select File").map(move |handle| {
                     let path = handle.map(|p| p.path().to_path_buf());
                     RequestPaneMsg::MultipartFilesAction(FilePickerAction::FilePicked(idx, path))
                 });
-                return task;
             }
             Self::ChangeBodyType(ct) => request.change_body_type(ct),
             Self::AuthEditorAction(action) => action.update(request),
             Self::OpenFilePicker => {
-                let task = open_file_dialog("Select File", |path| {
+                return open_file_dialog("Select File").map(|path| {
                     RequestPaneMsg::ChangeBodyFile(path.map(|p| p.path().to_path_buf()))
                 });
-                return task;
             }
             Self::CreateScript(col) => {
-                Popup::popup_name(state, String::new(), PopupNameAction::NewScript(col));
+                Popup::popup_name(
+                    &mut state.common,
+                    String::new(),
+                    PopupNameAction::NewScript(col),
+                );
             }
         };
         Task::none()

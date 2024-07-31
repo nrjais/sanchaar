@@ -44,7 +44,7 @@ fn handle_hotkeys(
         return Task::none();
     }
 
-    if state.popup.is_some() {
+    if state.common.popup.is_some() {
         return Task::none();
     }
 
@@ -60,14 +60,14 @@ fn handle_hotkeys(
                 state.close_all_tabs();
             }
             "," if !modifiers.shift() => {
-                if state.popup.is_none() {
-                    Popup::app_settings(state);
+                if state.common.popup.is_none() {
+                    Popup::app_settings(&mut state.common);
                 }
             }
             ";" if !modifiers.shift() => {
                 if let Some(Tab::Http(tab)) = state.active_tab() {
                     let key = tab.collection_key();
-                    let collection = state.collections.get(key);
+                    let collection = state.common.collections.get(key);
                     if let Some(collection) = collection {
                         state.open_tab(Tab::Collection(CollectionTab::new(key, collection)));
                     }

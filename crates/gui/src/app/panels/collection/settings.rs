@@ -28,20 +28,16 @@ impl Message {
         let Some((key, Tab::Collection(tab))) = state.active_tab.zip(active_tab) else {
             return Task::none();
         };
+        let Some(collection) = state.common.collections.get_mut(tab.collection_key) else {
+            return Task::none();
+        };
 
         match self {
             Message::UpdateDefaultEnv(name) => {
-                let collection = tab.collection_key;
-                let env = state
-                    .collections
-                    .get(collection)
-                    .and_then(|col| col.environments.find_by_name(&name));
-
-                if let Some(collection) = state.collections.get_mut(collection) {
-                    tab.edited = true;
-                    tab.default_env = Some(name);
-                    collection.set_default_env(env);
-                }
+                let env = collection.environments.find_by_name(&name);
+                tab.edited = true;
+                tab.default_env = Some(name);
+                collection.set_default_env(env);
             }
             Message::UpdateHeaders(msg) => {
                 tab.edited = true;
@@ -52,11 +48,6 @@ impl Message {
                 tab.variables.update(msg);
             }
             Message::SaveChanges => {
-                let collection_key = tab.collection_key;
-                let Some(collection) = state.collections.get_mut(collection_key) else {
-                    return Task::none();
-                };
-
                 collection.default_env = tab
                     .default_env
                     .as_ref()
@@ -65,8 +56,7 @@ impl Message {
                 collection.variables = Arc::new(to_core_kv_list(&tab.variables));
                 collection.disable_ssl = tab.disable_ssl;
 
-                return save_collection_cmd(state, collection_key)
-                    .map(move |_| Message::Saved(key));
+                return save_collection_cmd(collection).map(move |_| Message::Saved(key));
             }
             Message::Saved(tab_key) => {
                 if let Some(Tab::Collection(tab)) = state.tabs.get_mut(&tab_key) {

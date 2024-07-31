@@ -45,7 +45,7 @@ impl HttpTabMsg {
 }
 
 pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg> {
-    let col = state.collections.get(tab.collection_key());
+    let col = state.common.collections.get(tab.collection_key());
 
     let url_bar = url_bar::view(tab).map(HttpTabMsg::Url);
     let action_bar = col.map(|col| action_bar::view(tab, col).map(HttpTabMsg::Actions));

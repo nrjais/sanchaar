@@ -28,7 +28,7 @@ impl PopupMsg {
             PopupMsg::RenamePopup(msg) => msg.update(state).map(PopupMsg::RenamePopup),
             PopupMsg::AppSettings(msg) => msg.update(state).map(PopupMsg::AppSettings),
             PopupMsg::ClosePopup => {
-                Popup::close(state);
+                Popup::close(&mut state.common);
                 Task::none()
             }
             PopupMsg::Ignore => Task::none(),

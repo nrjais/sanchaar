@@ -38,17 +38,22 @@ pub enum Tab {
 }
 
 #[derive(Debug)]
-pub struct AppState {
-    pub active_tab: Option<TabKey>,
-    tab_history: indexmap::IndexSet<TabKey>,
-    pub tabs: indexmap::IndexMap<TabKey, Tab>,
+pub struct CommonState {
     pub collections: Collections,
     pub client: reqwest::Client,
     pub client_no_ssl: reqwest::Client,
-    pub panes: pane_grid::State<SplitState>,
     pub popup: Option<Popup>,
-    pub theme: Theme,
     pub background_tasks: Vec<JobState>,
+}
+
+#[derive(Debug)]
+pub struct AppState {
+    pub common: CommonState,
+    pub active_tab: Option<TabKey>,
+    tab_history: indexmap::IndexSet<TabKey>,
+    pub tabs: indexmap::IndexMap<TabKey, Tab>,
+    pub panes: pane_grid::State<SplitState>,
+    pub theme: Theme,
 }
 
 impl AppState {
@@ -57,18 +62,20 @@ impl AppState {
             active_tab: None,
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
-            client: create_client(false),
-            client_no_ssl: create_client(true),
-            collections: Collections::default(),
+            common: CommonState {
+                client: create_client(false),
+                client_no_ssl: create_client(true),
+                collections: Collections::default(),
+                popup: None,
+                background_tasks: Vec::new(),
+            },
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
                 ratio: 0.15,
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
-            popup: None,
             theme: Theme::GruvboxDark,
-            background_tasks: Vec::new(),
         }
     }
 
@@ -139,11 +146,5 @@ impl AppState {
         self.tabs.clear();
         self.active_tab = None;
         self.tab_history.clear();
-    }
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
     }
 }

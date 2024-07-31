@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use components::{button_tab, button_tabs};
 use iced::widget::{horizontal_space, pick_list, text, Column, Row};
-use iced::{Task, Element, Theme};
+use iced::{Element, Task, Theme};
 
 use crate::state::popups::{AppSettingTabs, AppSettingsState, Popup};
 use crate::state::AppState;
@@ -16,13 +16,13 @@ pub enum Message {
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Task<Message> {
-        let Some(Popup::AppSettings(data)) = state.popup.as_mut() else {
+        let Some(Popup::AppSettings(data)) = state.common.popup.as_mut() else {
             return Task::none();
         };
 
         match self {
             Message::Done => {
-                state.popup = None;
+                state.common.popup = None;
             }
             Message::TabChange(tab) => {
                 data.active_tab = tab;

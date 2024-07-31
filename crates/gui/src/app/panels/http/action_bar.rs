@@ -35,16 +35,15 @@ impl ActionBarMsg {
                 };
 
                 let req = tab.collection_ref;
-                builders::rename_request_cmd(state, req, name.clone(), move || {
-                    ActionBarMsg::RequestRenamed(name.clone())
-                })
+                builders::rename_request_cmd(&mut state.common, req, name.clone())
+                    .map(move |_| ActionBarMsg::RequestRenamed(name.clone()))
             }
             ActionBarMsg::UpdateName(name) => {
                 tab.editing_name.replace(name);
                 Task::none()
             }
             ActionBarMsg::OpenEnvironments(key) => {
-                if let Some(col) = state.collections.get(key) {
+                if let Some(col) = state.common.collections.get(key) {
                     state.open_tab(Tab::Collection(CollectionTab::new(key, col)));
                 }
                 Task::none()
@@ -55,7 +54,7 @@ impl ActionBarMsg {
             }
             ActionBarMsg::SelectEnvironment(name) => {
                 let key = tab.collection_key();
-                if let Some(col) = state.collections.get_mut(key) {
+                if let Some(col) = state.common.collections.get_mut(key) {
                     col.update_active_env_by_name(&name);
                 };
                 Task::none()

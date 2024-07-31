@@ -4,7 +4,7 @@ use core::http::environment::EnvironmentKey;
 use core::http::CollectionKey;
 use std::path::PathBuf;
 
-use super::AppState;
+use super::CommonState;
 
 #[derive(Debug)]
 pub struct CreateCollectionState {
@@ -56,16 +56,16 @@ pub enum Popup {
     AppSettings(AppSettingsState),
 }
 
-fn open_popup(state: &mut AppState, popup: Popup) {
+fn open_popup(state: &mut CommonState, popup: Popup) {
     state.popup = Some(popup);
 }
 
 impl Popup {
-    pub fn close(state: &mut AppState) {
+    pub fn close(state: &mut CommonState) {
         state.popup.take();
     }
 
-    pub fn save_request(state: &mut AppState, tab: TabKey) {
+    pub fn save_request(state: &mut CommonState, tab: TabKey) {
         let popup = Self::SaveRequest(SaveRequestState {
             tab,
             name: String::new(),
@@ -75,12 +75,12 @@ impl Popup {
         open_popup(state, popup);
     }
 
-    pub fn popup_name(state: &mut AppState, name: String, action: PopupNameAction) {
+    pub fn popup_name(state: &mut CommonState, name: String, action: PopupNameAction) {
         let popup = Self::PopupName(PopupNameState { name, action });
         open_popup(state, popup);
     }
 
-    pub fn create_collection(state: &mut AppState) {
+    pub fn create_collection(state: &mut CommonState) {
         let popup = Self::CreateCollection(CreateCollectionState {
             name: String::new(),
             path: None,
@@ -88,7 +88,7 @@ impl Popup {
         open_popup(state, popup);
     }
 
-    pub fn app_settings(state: &mut AppState) {
+    pub fn app_settings(state: &mut CommonState) {
         let popup = Self::AppSettings(AppSettingsState {
             active_tab: AppSettingTabs::General,
         });

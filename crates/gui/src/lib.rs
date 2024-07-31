@@ -10,8 +10,8 @@ use state::AppState;
 
 mod app;
 mod commands;
-mod state;
 mod hotkeys;
+mod state;
 
 const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regular.ttf");
 const HACK_MONO_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFontMono-Regular.ttf");
@@ -29,5 +29,5 @@ pub fn main() -> Result<(), iced::Error> {
             min_size: Some(Size::new(800.0, 600.0)),
             ..Default::default()
         })
-        .run_with(|| (AppState::default(), init_command()))
+        .run_with(|| (AppState::new(), init_command()))
 }

@@ -22,7 +22,9 @@ pub enum Message {
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Task<Message> {
-        let Some(Popup::PopupName(data)) = state.popup.as_mut() else {
+        let common = &mut state.common;
+
+        let Some(Popup::PopupName(data)) = common.popup.as_mut() else {
             return Task::none();
         };
 
@@ -33,25 +35,25 @@ impl Message {
             }
             Message::Rename(name) => match data.action {
                 PopupNameAction::RenameCollection(col) => {
-                    state.collections.rename_collection(col, name);
+                    common.collections.rename_collection(col, name);
                     Task::done(Message::Done)
                 }
                 PopupNameAction::RenameFolder(col, folder_id) => {
-                    rename_folder_cmd(state, col, folder_id, name, || Message::Done)
+                    rename_folder_cmd(common, col, folder_id, name).map(|_| Message::Done)
                 }
                 PopupNameAction::CreateFolder(col, folder_id) => {
-                    create_folder_cmd(state, col, folder_id, name, || Message::Done)
+                    create_folder_cmd(common, col, folder_id, name).map(|_| Message::Done)
                 }
                 PopupNameAction::RenameRequest(col, req) => {
-                    rename_request_cmd(state, CollectionRequest(col, req), name, || Message::Done)
+                    rename_request_cmd(common, CollectionRequest(col, req), name)
+                        .map(|_| Message::Done)
                 }
                 PopupNameAction::NewRequest(col, folder) => {
-                    create_new_request_cmd(state, col, folder, name, Request::default(), |_| {
-                        Message::Done
-                    })
+                    create_new_request_cmd(common, col, folder, name, Request::default())
+                        .map(|_| Message::Done)
                 }
                 PopupNameAction::NewScript(col) => {
-                    create_script_cmd(state, col, name, || Message::Done)
+                    create_script_cmd(common, col, name).map(|_| Message::Done)
                 }
                 PopupNameAction::CreateEnvironment(tab) => {
                     if let Some(Tab::Collection(tab)) = state.get_tab_mut(tab) {
@@ -70,7 +72,7 @@ impl Message {
                 }
             },
             Message::Done => {
-                state.popup = None;
+                state.common.popup = None;
                 Task::none()
             }
         }

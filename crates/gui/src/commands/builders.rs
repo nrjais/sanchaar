@@ -5,7 +5,6 @@ use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::advanced::graphics::futures::MaybeSend;
 use iced::futures::TryFutureExt;
 use iced::Task;
 use rfd::AsyncFileDialog;
@@ -25,7 +24,7 @@ use core::transformers::request::transform_request;
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
 use crate::state::request::RequestPane;
 use crate::state::response::ResponseState;
-use crate::state::{AppState, RequestDirtyState, Tab, TabKey};
+use crate::state::{AppState, CommonState, RequestDirtyState, Tab, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum ResponseResult {
@@ -35,11 +34,11 @@ pub enum ResponseResult {
 }
 
 pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResult> {
-    let Some(Tab::Http(sel_tab)) = state.get_tab(tab) else {
+    let Some(Tab::Http(sel_tab)) = state.tabs.get_mut(&tab) else {
         return Task::none();
     };
 
-    let collection = state.collections.get(sel_tab.collection_ref.0);
+    let collection = state.common.collections.get(sel_tab.collection_ref.0);
 
     let mut request = sel_tab.request().to_request();
     if let Some(col) = collection {
@@ -51,19 +50,15 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResul
     let env = collection.map(|c| c.env_chain()).unwrap_or_default();
     let disable_ssl = collection.map(|c| c.disable_ssl).unwrap_or_default();
     let client = if disable_ssl {
-        state.client_no_ssl.clone()
+        state.common.client_no_ssl.clone()
     } else {
-        state.client.clone()
+        state.common.client.clone()
     };
 
     let req_fut = transform_request(client.clone(), request, env)
         .and_then(move |req| send_request(client, req));
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
-
-    let Some(Tab::Http(sel_tab)) = state.get_tab_mut(tab) else {
-        return Task::none();
-    };
 
     sel_tab.cancel_tasks();
     sel_tab.response.state = ResponseState::Executing;
@@ -87,30 +82,28 @@ pub fn save_request_cmd(req: &RequestPane, path: PathBuf) -> Task<Option<Arc<any
     })
 }
 
-pub fn save_tab_request_cmd<M: 'static + MaybeSend>(
+pub fn save_tab_request_cmd(
     state: &mut AppState,
     name: String,
     tab: TabKey,
     col: CollectionKey,
     fol: Option<FolderId>,
-    msg: impl Fn(Option<anyhow::Error>) -> M + 'static + MaybeSend,
-) -> Task<M> {
+) -> Task<Option<anyhow::Error>> {
     let Some(Tab::Http(sel_tab)) = state.get_tab(tab) else {
         return Task::none();
     };
     let req = sel_tab.request().to_request();
 
-    create_new_request_cmd(state, col, fol, name, req, msg)
+    create_new_request_cmd(&mut state.common, col, fol, name, req)
 }
 
-pub fn create_new_request_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn create_new_request_cmd(
+    state: &mut CommonState,
     col: CollectionKey,
     fol: Option<FolderId>,
     name: String,
     req: Request,
-    msg: impl Fn(Option<anyhow::Error>) -> M + 'static + MaybeSend,
-) -> Task<M> {
+) -> Task<Option<anyhow::Error>> {
     let Some(collection) = state.collections.get_mut(col) else {
         return Task::none();
     };
@@ -145,37 +138,34 @@ pub fn create_new_request_cmd<M: 'static + MaybeSend>(
     let encoded = encode_request(req).expect("Failed to encode request");
 
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
-        Ok(_) => msg(None),
+        Ok(_) => None,
         Err(e) => {
             log::error!("Error saving request: {:?}", e);
-            msg(Some(e))
+            Some(e)
         }
     })
 }
 
-pub(crate) fn create_collection_cmd<Message: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn create_collection_cmd(
+    state: &mut CommonState,
     name: String,
     path: PathBuf,
-    msg: impl Fn(Option<anyhow::Error>) -> Message + 'static + MaybeSend,
-) -> Task<Message> {
+) -> Task<Option<anyhow::Error>> {
     let col = state.collections.create_collection(name, path);
     let encoded = encode_collection(col);
     Task::perform(
         save_collection(col.path.clone(), encoded),
         move |r| match r {
-            Ok(_) => msg(None),
+            Ok(_) => None,
             Err(e) => {
                 log::error!("Error saving collection: {:?}", e);
-                msg(Some(e))
+                Some(e)
             }
         },
     )
 }
 
-pub fn open_collection_cmd<M: 'static + MaybeSend>(
-    on_done: impl Fn(Option<Collection>) -> M + 'static + MaybeSend,
-) -> Task<M> {
+pub fn open_collection_cmd() -> Task<Option<Collection>> {
     let fut = async {
         let handle = AsyncFileDialog::new()
             .set_title("Select Collection Folder")
@@ -189,14 +179,13 @@ pub fn open_collection_cmd<M: 'static + MaybeSend>(
         Some(col)
     };
 
-    Task::perform(fut, on_done)
+    Task::perform(fut, |r| r)
 }
 
-pub fn open_request_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn open_request_cmd(
+    state: &mut CommonState,
     col: CollectionRequest,
-    on_done: impl Fn(Option<(Request, String)>) -> M + 'static + MaybeSend,
-) -> Task<M> {
+) -> Task<Option<(Request, String)>> {
     let Some(req) = state.collections.get_ref(col) else {
         return Task::none();
     };
@@ -207,50 +196,43 @@ pub fn open_request_cmd<M: 'static + MaybeSend>(
     let fut = async move { read_request(&path).await };
 
     Task::perform(fut, move |res| match res {
-        Ok(req) => on_done(Some((req, name.clone()))),
+        Ok(req) => Some((req, name.clone())),
         Err(e) => {
             log::error!("Error opening request: {:?}", &e);
-            on_done(None)
+            None
         }
     })
 }
 
-pub(crate) fn delete_folder_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn delete_folder_cmd(
+    state: &mut CommonState,
     col: CollectionKey,
     folder_id: FolderId,
-    on_done: impl Fn() -> M + 'static + MaybeSend,
-) -> Task<M> {
+) -> Task<()> {
     let path = state.collections.delete_folder(col, folder_id);
     if let Some(path) = path {
-        Task::perform(fs::remove_dir_all(path), move |_| on_done())
+        Task::perform(fs::remove_dir_all(path), move |_| ())
     } else {
         Task::none()
     }
 }
 
-pub(crate) fn create_folder_cmd<Message: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn create_folder_cmd(
+    state: &mut CommonState,
     col: CollectionKey,
     folder_id: Option<FolderId>,
     name: String,
-    done: impl Fn() -> Message + 'static + MaybeSend,
-) -> Task<Message> {
+) -> Task<()> {
     let path = state.collections.create_folder_in(name, col, folder_id);
 
     if let Some(path) = path {
-        Task::perform(fs::create_dir_all(path), move |_| done())
+        Task::perform(fs::create_dir_all(path), move |_| ())
     } else {
         Task::none()
     }
 }
 
-pub(crate) fn create_script_cmd<Message: 'static + MaybeSend>(
-    state: &mut AppState,
-    col: CollectionKey,
-    name: String,
-    done: impl Fn() -> Message + 'static + MaybeSend,
-) -> Task<Message> {
+pub fn create_script_cmd(state: &mut CommonState, col: CollectionKey, name: String) -> Task<()> {
     let Some(path) = state.collections.create_script_in(col, name) else {
         return Task::none();
     };
@@ -264,14 +246,13 @@ pub(crate) fn create_script_cmd<Message: 'static + MaybeSend>(
         anyhow::Ok(())
     };
 
-    Task::perform(fut(), move |_| done())
+    Task::perform(fut(), move |_| ())
 }
 
-pub(crate) fn save_environments_cmd<Message: 'static + MaybeSend>(
+pub fn save_environments_cmd(
     collection: &mut Collection,
     deletions: &[EnvironmentKey],
-    done: impl Fn() -> Message + 'static + MaybeSend,
-) -> Task<Message> {
+) -> Task<()> {
     let encoded = encode_environments(&collection.environments);
     let mut delete_path = Vec::new();
 
@@ -295,7 +276,7 @@ pub(crate) fn save_environments_cmd<Message: 'static + MaybeSend>(
     };
     let fut = save_environments(collection.path.clone(), encoded).and_then(|_| delete_fut);
 
-    Task::perform(fut, move |_| done())
+    Task::perform(fut, move |_| ())
 }
 
 pub async fn load_collections_cmd() -> Vec<Collection> {
@@ -305,10 +286,7 @@ pub async fn load_collections_cmd() -> Vec<Collection> {
     })
 }
 
-pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
-    on_done: impl Fn(Vec<(TabKey, RequestDirtyState)>) -> M + 'static + MaybeSend,
-) -> Task<M> {
+pub fn check_dirty_requests_cmd(state: &mut AppState) -> Task<Vec<(TabKey, RequestDirtyState)>> {
     let mut to_check = Vec::new();
     for (key, tab) in state.tabs.iter_mut() {
         let Tab::Http(tab) = tab else {
@@ -319,7 +297,7 @@ pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
             continue;
         }
 
-        let Some(request_ref) = state.collections.get_ref(tab.collection_ref) else {
+        let Some(request_ref) = state.common.collections.get_ref(tab.collection_ref) else {
             tab.request_dirty_state = RequestDirtyState::Clean;
             continue;
         };
@@ -346,21 +324,20 @@ pub fn check_dirty_requests_cmd<M: 'static + MaybeSend>(
     }
 
     Task::perform(exec(to_check), move |res| match res {
-        Ok(dirty) => on_done(dirty),
+        Ok(dirty) => dirty,
         Err(e) => {
             log::error!("Error checking dirty requests: {:?}", e);
-            on_done(vec![])
+            vec![]
         }
     })
 }
 
-pub(crate) fn rename_folder_cmd<Message: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn rename_folder_cmd(
+    state: &mut CommonState,
     col: CollectionKey,
     folder_id: FolderId,
     name: String,
-    done: impl Fn() -> Message + 'static + MaybeSend,
-) -> Task<Message> {
+) -> Task<()> {
     let Some((old, new)) = state.collections.rename_folder(col, folder_id, name) else {
         return Task::none();
     };
@@ -369,16 +346,14 @@ pub(crate) fn rename_folder_cmd<Message: 'static + MaybeSend>(
         if let Err(e) = res {
             log::error!("Error renaming folder: {:?}", e);
         }
-        done()
     })
 }
 
-pub(crate) fn rename_request_cmd<Message: 'static + MaybeSend>(
-    state: &mut AppState,
+pub fn rename_request_cmd(
+    state: &mut CommonState,
     col: CollectionRequest,
     name: String,
-    done: impl Fn() -> Message + 'static + MaybeSend,
-) -> Task<Message> {
+) -> Task<()> {
     let Some((old, new)) = state.collections.rename_request(col, name) else {
         return Task::none();
     };
@@ -387,28 +362,18 @@ pub(crate) fn rename_request_cmd<Message: 'static + MaybeSend>(
         if let Err(e) = res {
             log::error!("Error renaming request: {:?}", e);
         }
-        done()
     })
 }
 
-pub(crate) fn delete_request_cmd<M: 'static + MaybeSend>(
-    state: &mut AppState,
-    col: CollectionKey,
-    req: RequestId,
-    action: impl Fn() -> M + 'static + MaybeSend,
-) -> Task<M> {
+pub fn delete_request_cmd(state: &mut CommonState, col: CollectionKey, req: RequestId) -> Task<()> {
     let Some(path) = state.collections.delete_request(col, req) else {
         return Task::none();
     };
 
-    Task::perform(fs::remove_file(path), move |_| action())
+    Task::perform(fs::remove_file(path), move |_| ())
 }
 
-pub fn save_collection_cmd(state: &mut AppState, collection_key: CollectionKey) -> Task<()> {
-    let Some(collection) = state.collections.get(collection_key) else {
-        return Task::none();
-    };
-
+pub fn save_collection_cmd(collection: &Collection) -> Task<()> {
     let encoded = encode_collection(collection);
     Task::perform(
         save_collection(collection.path.clone(), encoded),

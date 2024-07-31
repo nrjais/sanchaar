@@ -26,7 +26,9 @@ impl Message {
         let Some((key, Tab::Collection(tab))) = state.active_tab.zip(active_tab) else {
             return Task::none();
         };
-        let collection_key = tab.collection_key;
+        let Some(collection) = state.common.collections.get_mut(tab.collection_key) else {
+            return Task::none();
+        };
         let data = &mut tab.env_editor;
 
         match self {
@@ -39,14 +41,11 @@ impl Message {
                 }
             }
             Message::SaveEnvs => {
-                if let Some(collection) = state.collections.get_mut(collection_key) {
-                    for (key, env) in data.environments.iter() {
-                        collection.update_environment(*key, env.into());
-                    }
-                    return builders::save_environments_cmd(collection, &data.deleted, || {
-                        Message::Saved
-                    });
+                for (key, env) in data.environments.iter() {
+                    collection.update_environment(*key, env.into());
                 }
+                return builders::save_environments_cmd(collection, &data.deleted)
+                    .map(|_| Message::Saved);
             }
             Message::EnvUpdate(env, update) => {
                 if let Some(env) = data.environments.get_mut(&env) {
@@ -65,7 +64,7 @@ impl Message {
             }
             Message::CreatNewEnv => {
                 Popup::popup_name(
-                    state,
+                    &mut state.common,
                     String::new(),
                     PopupNameAction::CreateEnvironment(key),
                 );
@@ -77,7 +76,7 @@ impl Message {
                     .map(|env| env.name.clone())
                     .unwrap_or_default();
                 Popup::popup_name(
-                    state,
+                    &mut state.common,
                     name,
                     PopupNameAction::RenameEnvironment(key, env_key),
                 );
