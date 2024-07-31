@@ -79,8 +79,8 @@ fn side_bar(state: &AppState) -> Element<MainPageMsg> {
 }
 
 fn tab_panel(state: &AppState) -> Element<MainPageMsg> {
-    match state.active_tab.zip(state.active_tab()) {
-        Some((key, tab)) => tabs_view(state, key, tab),
+    match state.active_tab() {
+        Some(tab) => tabs_view(state, state.active_tab, tab),
         None => no_tabs_view(),
     }
 }

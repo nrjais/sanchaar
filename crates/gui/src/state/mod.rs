@@ -49,7 +49,7 @@ pub struct CommonState {
 #[derive(Debug)]
 pub struct AppState {
     pub common: CommonState,
-    pub active_tab: Option<TabKey>,
+    pub active_tab: TabKey,
     tab_history: indexmap::IndexSet<TabKey>,
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub panes: pane_grid::State<SplitState>,
@@ -59,7 +59,7 @@ pub struct AppState {
 impl AppState {
     pub fn new() -> Self {
         Self {
-            active_tab: None,
+            active_tab: TabKey::ZERO,
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
             common: CommonState {
@@ -80,7 +80,7 @@ impl AppState {
     }
 
     pub fn switch_tab(&mut self, tab: TabKey) {
-        self.active_tab = Some(tab);
+        self.active_tab = tab;
         self.tab_history.shift_remove(&tab);
         self.tab_history.insert(tab);
     }
@@ -115,11 +115,11 @@ impl AppState {
     }
 
     pub fn active_tab_mut(&mut self) -> Option<&mut Tab> {
-        self.tabs.get_mut(&self.active_tab?)
+        self.tabs.get_mut(&self.active_tab)
     }
 
     pub fn active_tab(&self) -> Option<&Tab> {
-        self.tabs.get(&self.active_tab?)
+        self.tabs.get(&self.active_tab)
     }
 
     pub fn cancel_tab_tasks(&mut self, tab: TabKey) {
@@ -144,7 +144,7 @@ impl AppState {
 
     pub(crate) fn close_all_tabs(&mut self) {
         self.tabs.clear();
-        self.active_tab = None;
+        self.active_tab = TabKey::ZERO;
         self.tab_history.clear();
     }
 }

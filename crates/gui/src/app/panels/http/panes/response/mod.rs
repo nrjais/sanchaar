@@ -14,8 +14,8 @@ pub enum ResponsePaneMsg {
 
 impl ResponsePaneMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
-        let active_tab = state.active_tab.zip(state.active_tab_mut());
-        let Some((active_tab, Tab::Http(tab))) = active_tab else {
+        let active_tab = state.active_tab;
+        let Some(Tab::Http(tab)) = state.tabs.get_mut(&active_tab) else {
             return Task::none();
         };
         match self {

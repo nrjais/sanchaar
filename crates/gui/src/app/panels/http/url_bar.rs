@@ -41,9 +41,7 @@ fn parse_path_params(url: &str) -> Option<Vec<String>> {
 
 impl UrlBarMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
-        let Some(active_tab) = state.active_tab else {
-            return Task::none();
-        };
+        let active_tab = state.active_tab;
         let Some(Tab::Http(tab)) = state.tabs.get_mut(&active_tab) else {
             return Task::none();
         };

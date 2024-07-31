@@ -61,7 +61,7 @@ fn handle_hotkeys(
         Key::Character(c) => char_hotkeys(c, modifiers, state),
         Key::Named(Named::Enter) => {
             let key = state.active_tab;
-            let Some((tab, key)) = key.and_then(|key| state.tabs.get_mut(&key)).zip(key) else {
+            let Some(tab) = state.tabs.get_mut(&key) else {
                 return Task::none();
             };
 
@@ -83,9 +83,7 @@ fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -
             Task::none()
         }
         "w" if !modifiers.shift() => {
-            if let Some(active) = state.active_tab {
-                state.close_tab(active);
-            }
+            state.close_tab(state.active_tab);
             Task::none()
         }
         "w" if modifiers.shift() => {
@@ -116,7 +114,7 @@ fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -
 
 fn save_tab(state: &mut AppState) -> Task<Message> {
     let key = state.active_tab;
-    let Some((tab, key)) = key.and_then(|key| state.tabs.get_mut(&key)).zip(key) else {
+    let Some(tab) = state.tabs.get_mut(&key) else {
         return Task::none();
     };
 

@@ -22,8 +22,7 @@ pub enum Message {
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Task<Message> {
-        let active_tab = state.active_tab.and_then(|key| state.tabs.get_mut(&key));
-        let Some(Tab::Collection(tab)) = active_tab else {
+        let Some(Tab::Collection(tab)) = state.tabs.get_mut(&state.active_tab) else {
             return Task::none();
         };
         let Some(collection) = state.common.collections.get_mut(tab.collection_key) else {
