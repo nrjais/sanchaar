@@ -5,14 +5,22 @@ use iced::{
 
 use crate::{
     app::AppMsg,
-    commands::builders::{send_request_cmd, ResponseResult},
-    state::{collection_tab::CollectionTab, popups::Popup, AppState, Tab, TabKey},
+    commands::builders::{
+        save_collection_cmd, save_environments_cmd, save_request_cmd, send_request_cmd,
+        ResponseResult,
+    },
+    state::{
+        collection_tab::{CollectionTab, CollectionTabId},
+        popups::Popup,
+        AppState, Tab, TabKey,
+    },
 };
 
 #[derive(Debug, Clone)]
 pub enum Message {
     Event(iced::Event),
     RequestResult(TabKey, ResponseResult),
+    Done,
 }
 
 impl Message {
@@ -29,6 +37,7 @@ impl Message {
                     tab.update_response(res);
                 }
             }
+            Message::Done => (),
         }
 
         Task::none()
@@ -49,43 +58,96 @@ fn handle_hotkeys(
     }
 
     match key {
-        Key::Character(c) => match c {
-            "t" if !modifiers.shift() => state.open_tab(Tab::Http(Default::default())),
-            "w" if !modifiers.shift() => {
-                if let Some(active) = state.active_tab {
-                    state.close_tab(active);
-                }
-            }
-            "w" if modifiers.shift() => {
-                state.close_all_tabs();
-            }
-            "," if !modifiers.shift() => {
-                if state.common.popup.is_none() {
-                    Popup::app_settings(&mut state.common);
-                }
-            }
-            ";" if !modifiers.shift() => {
-                if let Some(Tab::Http(tab)) = state.active_tab() {
-                    let key = tab.collection_key();
-                    let collection = state.common.collections.get(key);
-                    if let Some(collection) = collection {
-                        state.open_tab(Tab::Collection(CollectionTab::new(key, collection)));
-                    }
-                }
-            }
-
-            _ => (),
-        },
+        Key::Character(c) => char_hotkeys(c, modifiers, state),
         Key::Named(Named::Enter) => {
-            if let Some(tab) = state.active_tab {
-                let cb = move |r| Message::RequestResult(tab, r);
-                return send_request_cmd(state, tab).map(cb);
+            let key = state.active_tab;
+            let Some((tab, key)) = key.and_then(|key| state.tabs.get_mut(&key)).zip(key) else {
+                return Task::none();
+            };
+
+            if let Tab::Http(tab) = tab {
+                let cb = move |r| Message::RequestResult(key, r);
+                send_request_cmd(&mut state.common, tab).map(cb)
+            } else {
+                Task::none()
             }
         }
-        _ => (),
+        _ => Task::none(),
+    }
+}
+
+fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -> Task<Message> {
+    match c {
+        "t" if !modifiers.shift() => {
+            state.open_tab(Tab::Http(Default::default()));
+            Task::none()
+        }
+        "w" if !modifiers.shift() => {
+            if let Some(active) = state.active_tab {
+                state.close_tab(active);
+            }
+            Task::none()
+        }
+        "w" if modifiers.shift() => {
+            state.close_all_tabs();
+            Task::none()
+        }
+        "," if !modifiers.shift() => {
+            if state.common.popup.is_none() {
+                Popup::app_settings(&mut state.common);
+            }
+            Task::none()
+        }
+        ";" if !modifiers.shift() => {
+            if let Some(Tab::Http(tab)) = state.active_tab() {
+                let key = tab.collection_key();
+                let collection = state.common.collections.get(key);
+                if let Some(collection) = collection {
+                    state.open_tab(Tab::Collection(CollectionTab::new(key, collection)));
+                }
+            }
+            Task::none()
+        }
+
+        "s" if !modifiers.shift() => save_tab(state),
+        _ => Task::none(),
+    }
+}
+
+fn save_tab(state: &mut AppState) -> Task<Message> {
+    let key = state.active_tab;
+    let Some((tab, key)) = key.and_then(|key| state.tabs.get_mut(&key)).zip(key) else {
+        return Task::none();
     };
 
-    Task::none()
+    match tab {
+        Tab::Http(tab) => {
+            let req_ref = state
+                .common
+                .collections
+                .get_ref(tab.collection_ref)
+                .cloned();
+            req_ref
+                .map(|req| save_request_cmd(tab, req.path).map(|_| Message::Done))
+                .unwrap_or_else(|| {
+                    Popup::save_request(&mut state.common, key);
+                    Task::none()
+                })
+        }
+        Tab::Collection(tab) => {
+            let collection = state.common.collections.get_mut(tab.collection_key);
+            let cb = move |_| Message::Done;
+            let task = match tab.tab {
+                CollectionTabId::Settings => {
+                    collection.map(|c| save_collection_cmd(c, tab).map(cb))
+                }
+                CollectionTabId::Environments => {
+                    collection.map(|c| save_environments_cmd(c, &mut tab.env_editor).map(cb))
+                }
+            };
+            task.unwrap_or(Task::none())
+        }
+    }
 }
 
 pub fn subscription(_: &AppState) -> iced::Subscription<AppMsg> {

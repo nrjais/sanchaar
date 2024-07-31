@@ -77,6 +77,10 @@ impl HttpTab {
         &mut self.request
     }
 
+    pub fn mark_clean(&mut self) {
+        self.request_dirty_state = RequestDirtyState::Clean;
+    }
+
     pub fn check_dirty(&mut self) {
         self.request_dirty_state = RequestDirtyState::CheckIfDirty;
     }

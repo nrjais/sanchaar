@@ -41,11 +41,7 @@ impl Message {
                 }
             }
             Message::SaveEnvs => {
-                for (key, env) in data.environments.iter() {
-                    collection.update_environment(*key, env.into());
-                }
-                return builders::save_environments_cmd(collection, &data.deleted)
-                    .map(|_| Message::Saved);
+                return builders::save_environments_cmd(collection, data).map(|_| Message::Saved);
             }
             Message::EnvUpdate(env, update) => {
                 if let Some(env) = data.environments.get_mut(&env) {
@@ -59,9 +55,7 @@ impl Message {
                 data.deleted.push(env);
                 data.selected_env = None;
             }
-            Message::Saved => {
-                data.edited = false;
-            }
+            Message::Saved => (),
             Message::CreatNewEnv => {
                 Popup::popup_name(
                     &mut state.common,

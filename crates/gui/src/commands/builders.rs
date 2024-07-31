@@ -1,4 +1,3 @@
-use core::http::environment::EnvironmentKey;
 use core::http::KeyValList;
 use core::persistence::environment::{encode_environments, save_environments};
 use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
@@ -22,9 +21,10 @@ use core::persistence::request::{encode_request, read_request, save_req_to_file}
 use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
-use crate::state::request::RequestPane;
+use crate::state::collection_tab::{CollectionTab, EnvironmentEditor};
 use crate::state::response::ResponseState;
-use crate::state::{AppState, CommonState, RequestDirtyState, Tab, TabKey};
+use crate::state::utils::to_core_kv_list;
+use crate::state::{AppState, CommonState, HttpTab, RequestDirtyState, Tab, TabKey};
 
 #[derive(Debug, Clone)]
 pub enum ResponseResult {
@@ -33,14 +33,10 @@ pub enum ResponseResult {
     Cancelled,
 }
 
-pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResult> {
-    let Some(Tab::Http(sel_tab)) = state.tabs.get_mut(&tab) else {
-        return Task::none();
-    };
+pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<ResponseResult> {
+    let collection = state.collections.get(tab.collection_ref.0);
 
-    let collection = state.common.collections.get(sel_tab.collection_ref.0);
-
-    let mut request = sel_tab.request().to_request();
+    let mut request = tab.request().to_request();
     if let Some(col) = collection {
         let mut headers = KeyValList::clone(&col.headers);
         headers.extend(request.headers);
@@ -50,9 +46,9 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResul
     let env = collection.map(|c| c.env_chain()).unwrap_or_default();
     let disable_ssl = collection.map(|c| c.disable_ssl).unwrap_or_default();
     let client = if disable_ssl {
-        state.common.client_no_ssl.clone()
+        state.client_no_ssl.clone()
     } else {
-        state.common.client.clone()
+        state.client.clone()
     };
 
     let req_fut = transform_request(client.clone(), request, env)
@@ -60,9 +56,9 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResul
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
 
-    sel_tab.cancel_tasks();
-    sel_tab.response.state = ResponseState::Executing;
-    sel_tab.add_task(cancel_tx);
+    tab.cancel_tasks();
+    tab.response.state = ResponseState::Executing;
+    tab.add_task(cancel_tx);
 
     Task::perform(req_fut, move |r| match r {
         TaskResult::Completed(Ok(res)) => ResponseResult::Completed(res),
@@ -71,8 +67,10 @@ pub fn send_request_cmd(state: &mut AppState, tab: TabKey) -> Task<ResponseResul
     })
 }
 
-pub fn save_request_cmd(req: &RequestPane, path: PathBuf) -> Task<Option<Arc<anyhow::Error>>> {
-    let encoded = encode_request(req.to_request()).expect("Failed to encode request");
+pub fn save_request_cmd(tab: &mut HttpTab, path: PathBuf) -> Task<Option<Arc<anyhow::Error>>> {
+    tab.mark_clean();
+
+    let encoded = encode_request(tab.request().to_request()).expect("Failed to encode request");
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => None,
         Err(e) => {
@@ -89,10 +87,11 @@ pub fn save_tab_request_cmd(
     col: CollectionKey,
     fol: Option<FolderId>,
 ) -> Task<Option<anyhow::Error>> {
-    let Some(Tab::Http(sel_tab)) = state.get_tab(tab) else {
+    let Some(Tab::Http(tab)) = state.get_tab_mut(tab) else {
         return Task::none();
     };
-    let req = sel_tab.request().to_request();
+    tab.mark_clean();
+    let req = tab.request().to_request();
 
     create_new_request_cmd(&mut state.common, col, fol, name, req)
 }
@@ -251,12 +250,16 @@ pub fn create_script_cmd(state: &mut CommonState, col: CollectionKey, name: Stri
 
 pub fn save_environments_cmd(
     collection: &mut Collection,
-    deletions: &[EnvironmentKey],
+    data: &mut EnvironmentEditor,
 ) -> Task<()> {
+    data.edited = false;
+    for (key, env) in data.environments.iter() {
+        collection.update_environment(*key, env.into());
+    }
     let encoded = encode_environments(&collection.environments);
     let mut delete_path = Vec::new();
 
-    for key in deletions {
+    for key in &data.deleted {
         let env = collection.delete_environment(*key);
         if let Some(env) = env {
             delete_path.push(
@@ -373,7 +376,16 @@ pub fn delete_request_cmd(state: &mut CommonState, col: CollectionKey, req: Requ
     Task::perform(fs::remove_file(path), move |_| ())
 }
 
-pub fn save_collection_cmd(collection: &Collection) -> Task<()> {
+pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab) -> Task<()> {
+    tab.edited = false;
+    collection.default_env = tab
+        .default_env
+        .as_ref()
+        .and_then(|name| collection.environments.find_by_name(name));
+    collection.headers = Arc::new(to_core_kv_list(&tab.headers));
+    collection.variables = Arc::new(to_core_kv_list(&tab.variables));
+    collection.disable_ssl = tab.disable_ssl;
+
     let encoded = encode_collection(collection);
     Task::perform(
         save_collection(collection.path.clone(), encoded),

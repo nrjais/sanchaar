@@ -7,9 +7,11 @@ macro_rules! new_id_type {
         $vis struct $name(u64);
 
         impl $name {
+            pub const ZERO: Self = Self(0);
+
             pub fn new() -> Self {
                 use std::sync::atomic::{AtomicU64, Ordering};
-                static COUNTER: AtomicU64 = AtomicU64::new(0);
+                static COUNTER: AtomicU64 = AtomicU64::new(1);
                 Self(COUNTER.fetch_add(1, Ordering::Relaxed))
             }
         }

@@ -41,8 +41,10 @@ fn parse_path_params(url: &str) -> Option<Vec<String>> {
 
 impl UrlBarMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
-        let active = state.active_tab.zip(state.active_tab_mut());
-        let Some((active_tab, Tab::Http(tab))) = active else {
+        let Some(active_tab) = state.active_tab else {
+            return Task::none();
+        };
+        let Some(Tab::Http(tab)) = state.tabs.get_mut(&active_tab) else {
             return Task::none();
         };
 
@@ -67,28 +69,24 @@ impl UrlBarMsg {
                 }
             }
             UrlBarMsg::SendRequest => {
-                return send_request_cmd(state, active_tab)
+                return send_request_cmd(&mut state.common, tab)
                     .map(move |r| UrlBarMsg::RequestResult(active_tab, r));
             }
             UrlBarMsg::SaveRequest => {
-                let Some(Tab::Http(tab)) = state.active_tab() else {
-                    return Task::none();
-                };
-
                 let req_ref = state.common.collections.get_ref(tab.collection_ref);
                 if let Some(req_res) = req_ref {
                     let path = req_res.path.clone();
-                    return save_request_cmd(tab.request(), path).map(|_| Self::RequestSaved);
+                    return save_request_cmd(tab, path).map(|_| Self::RequestSaved);
                 } else {
                     Popup::save_request(&mut state.common, active_tab);
                 }
             }
-            UrlBarMsg::RequestSaved => tab.check_dirty(),
             UrlBarMsg::RequestResult(tab, res) => {
                 if let Some(Tab::Http(tab)) = state.get_tab_mut(tab) {
                     tab.update_response(res)
                 }
             }
+            UrlBarMsg::RequestSaved => (),
         }
         Task::none()
     }

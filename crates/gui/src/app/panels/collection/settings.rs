@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use components::{icon, icons, key_value_editor, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon};
 use iced::{
     padding,
@@ -9,7 +7,7 @@ use iced::{
 
 use crate::{
     commands::builders::save_collection_cmd,
-    state::{collection_tab::CollectionTab, utils::to_core_kv_list, AppState, Tab, TabKey},
+    state::{collection_tab::CollectionTab, AppState, Tab},
 };
 
 #[derive(Debug, Clone)]
@@ -18,14 +16,14 @@ pub enum Message {
     UpdateHeaders(KeyValUpdateMsg),
     UpdateVariables(KeyValUpdateMsg),
     SaveChanges,
-    Saved(TabKey),
+    Saved,
     DisableSSL(bool),
 }
 
 impl Message {
     pub fn update(self, state: &mut AppState) -> Task<Message> {
         let active_tab = state.active_tab.and_then(|key| state.tabs.get_mut(&key));
-        let Some((key, Tab::Collection(tab))) = state.active_tab.zip(active_tab) else {
+        let Some(Tab::Collection(tab)) = active_tab else {
             return Task::none();
         };
         let Some(collection) = state.common.collections.get_mut(tab.collection_key) else {
@@ -48,25 +46,13 @@ impl Message {
                 tab.variables.update(msg);
             }
             Message::SaveChanges => {
-                collection.default_env = tab
-                    .default_env
-                    .as_ref()
-                    .and_then(|name| collection.environments.find_by_name(name));
-                collection.headers = Arc::new(to_core_kv_list(&tab.headers));
-                collection.variables = Arc::new(to_core_kv_list(&tab.variables));
-                collection.disable_ssl = tab.disable_ssl;
-
-                return save_collection_cmd(collection).map(move |_| Message::Saved(key));
-            }
-            Message::Saved(tab_key) => {
-                if let Some(Tab::Collection(tab)) = state.tabs.get_mut(&tab_key) {
-                    tab.edited = false;
-                }
+                return save_collection_cmd(collection, tab).map(move |_| Message::Saved);
             }
             Message::DisableSSL(disabled) => {
                 tab.edited = true;
                 tab.disable_ssl = disabled;
             }
+            Message::Saved => (),
         };
 
         Task::none()
