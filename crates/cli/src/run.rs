@@ -1,12 +1,12 @@
 use colored_json::prelude::ToColoredJson;
 use core::{
-    client::{create_client, send_request, Response},
+    client::{create_client, send_request, ContentType, Response},
     http::environment::EnvironmentChain,
     persistence::request::read_request,
     transformers::request::transform_request,
     utils::fmt_duration,
 };
-use std::{env, path::PathBuf};
+use std::{env, path::PathBuf, sync::Arc};
 
 use humansize::{format_size, BINARY};
 
@@ -58,17 +58,18 @@ pub async fn run(root: PathBuf, req: PathBuf, verbose: bool) -> anyhow::Result<(
     }
 
     println!();
+    let data = Arc::unwrap_or_clone(body.data.clone());
     match body.content_type {
-        core::client::ContentType::Json => {
-            let json = String::from_utf8(body.data)?;
+        ContentType::Json => {
+            let json = String::from_utf8(data)?;
             println!("{}", json.to_colored_json_auto()?);
         }
-        core::client::ContentType::Text => {
-            let text = String::from_utf8(body.data)?;
+        ContentType::Text => {
+            let text = String::from_utf8(data)?;
             println!("{}", text);
         }
-        core::client::ContentType::Buffer => {
-            let hex = hex::encode(body.data);
+        ContentType::Buffer => {
+            let hex = hex::encode(data);
             println!("Hex:\n{}", hex);
         }
     }

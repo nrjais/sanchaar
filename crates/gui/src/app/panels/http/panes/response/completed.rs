@@ -1,4 +1,5 @@
 use core::utils::fmt_duration;
+use std::sync::Arc;
 
 use humansize::{format_size, BINARY};
 use iced::widget::{button, container, text, Column, Row};
@@ -8,6 +9,8 @@ use components::{
     button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
 };
 
+use crate::commands::builders::write_file_cmd;
+use crate::commands::dialog::create_file_dialog;
 use crate::state::response::ResponseTabId;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 use crate::state::HttpTab;
@@ -18,29 +21,41 @@ pub enum CompletedMsg {
     CodeViewerMsg(CodeEditorMsg),
     SetBodyMode(BodyMode),
     CopyBodyToClipboard,
+    SaveResponse,
+    SaveToFile(Option<Arc<rfd::FileHandle>>),
+    Done,
 }
 
 impl CompletedMsg {
-    pub fn update(self, active_tab: &mut HttpTab) -> Task<CompletedMsg> {
+    pub fn update(self, tab: &mut HttpTab) -> Task<CompletedMsg> {
+        let ResponseState::Completed(ref mut res) = tab.response.state else {
+            return Task::none();
+        };
+
         match self {
-            Self::TabChanged(tab) => {
-                active_tab.response.active_tab = tab;
+            CompletedMsg::TabChanged(key) => {
+                tab.response.active_tab = key;
             }
-            Self::CodeViewerMsg(msg) => {
-                if let ResponseState::Completed(ref mut res) = active_tab.response.state {
-                    msg.update(res.selected_content_mut());
-                }
+            CompletedMsg::CodeViewerMsg(msg) => {
+                msg.update(res.selected_content_mut());
             }
-            Self::SetBodyMode(mode) => {
-                if let ResponseState::Completed(ref mut res) = active_tab.response.state {
-                    res.mode = mode;
-                }
+            CompletedMsg::SetBodyMode(mode) => {
+                res.mode = mode;
             }
             CompletedMsg::CopyBodyToClipboard => {
-                if let ResponseState::Completed(ref res) = active_tab.response.state {
-                    return clipboard::write(res.selected_content().text());
+                return clipboard::write(res.selected_content().text());
+            }
+            CompletedMsg::SaveResponse => {
+                return create_file_dialog("Save response body")
+                    .map(|path| CompletedMsg::SaveToFile(path));
+            }
+            CompletedMsg::SaveToFile(path) => {
+                if let Some(path) = path {
+                    let body = &res.result.body.data;
+                    return write_file_cmd(Arc::clone(body), path).map(|_| CompletedMsg::Done);
                 }
             }
+            CompletedMsg::Done => (),
         }
         Task::none()
     }
@@ -96,6 +111,12 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
                 .padding([2, 4])
                 .style(button::secondary)
                 .on_press(CompletedMsg::CopyBodyToClipboard),
+        )
+        .push(
+            button(text("Save").size(size))
+                .padding([2, 4])
+                .style(button::secondary)
+                .on_press(CompletedMsg::SaveResponse),
         )
         .spacing(8);
 

@@ -6,8 +6,9 @@ use std::sync::Arc;
 
 use iced::futures::TryFutureExt;
 use iced::Task;
-use rfd::AsyncFileDialog;
+use rfd::{AsyncFileDialog, FileHandle};
 use tokio::fs;
+use tokio::io::AsyncWriteExt;
 
 use core::client::send_request;
 use core::http::collection::Collection;
@@ -77,6 +78,19 @@ pub fn save_request_cmd(tab: &mut HttpTab, path: PathBuf) -> Task<Option<Arc<any
             log::error!("Error saving request: {:?}", e);
             Some(Arc::new(e))
         }
+    })
+}
+
+pub fn write_file_cmd(data: Arc<Vec<u8>>, path: Arc<FileHandle>) -> Task<()> {
+    async fn fut(data: Arc<Vec<u8>>, path: Arc<FileHandle>) -> anyhow::Result<()> {
+        let mut file = fs::File::create(path.path()).await?;
+        file.write_all(&data).await?;
+        Ok(())
+    }
+
+    Task::perform(fut(data, path), move |r| match r {
+        Ok(_) => (),
+        Err(e) => log::error!("Error saving file: {:?}", e),
     })
 }
 

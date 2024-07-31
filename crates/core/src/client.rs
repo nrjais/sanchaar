@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use reqwest::{header::HeaderMap, Client, Request, StatusCode};
 
@@ -12,7 +12,7 @@ pub enum ContentType {
 #[derive(Debug, Clone)]
 pub struct ResponseBody {
     pub content_type: ContentType,
-    pub data: Vec<u8>,
+    pub data: Arc<Vec<u8>>,
 }
 
 #[derive(Debug, Clone)]
@@ -39,15 +39,15 @@ pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Respon
     let body: ResponseBody = match content_type {
         "application/json" => ResponseBody {
             content_type: ContentType::Json,
-            data: res.bytes().await?.to_vec(),
+            data: res.bytes().await?.to_vec().into(),
         },
         "text/plain" => ResponseBody {
             content_type: ContentType::Text,
-            data: res.bytes().await?.to_vec(),
+            data: res.bytes().await?.to_vec().into(),
         },
         _ => ResponseBody {
             content_type: ContentType::Buffer,
-            data: res.bytes().await?.to_vec(),
+            data: res.bytes().await?.to_vec().into(),
         },
     };
 
