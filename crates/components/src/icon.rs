@@ -42,6 +42,7 @@ pub mod icons {
     pub const Plus: NerdIcon = NerdIcon('󰐕');
     pub const Delete: NerdIcon = NerdIcon('󰆴');
     pub const CheckBold: NerdIcon = NerdIcon('󰸞');
+    pub const Wand: NerdIcon = NerdIcon('');
     pub const Pencil: NerdIcon = NerdIcon('󰏫');
     pub const Gear: NerdIcon = NerdIcon('󰒓');
     pub const Import: NerdIcon = NerdIcon('󰋺');

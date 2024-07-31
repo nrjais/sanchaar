@@ -40,6 +40,7 @@ pub enum RequestPaneMsg {
     ChangePreRequestScript(Option<String>),
     OpenFilePicker,
     CreateScript(CollectionKey),
+    FormatBody,
 }
 
 impl RequestPaneMsg {
@@ -96,6 +97,7 @@ impl RequestPaneMsg {
                 });
             }
             Self::ChangeBodyType(ct) => request.change_body_type(ct),
+            Self::FormatBody => request.format_body(),
             Self::AuthEditorAction(action) => action.update(request),
             Self::OpenFilePicker => {
                 return open_file_dialog("Select File").map(|path| {

@@ -2,9 +2,11 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use body_types::*;
+use components::editor::Content;
 use components::KeyValList;
-use components::{self, editor, KeyFileList};
+use components::{self, KeyFileList};
 use core::http::request::{Auth, Method, Request, RequestBody};
+use serde_json::Value;
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
 
@@ -39,11 +41,11 @@ pub enum RawAuthType {
     #[default]
     None,
     Basic {
-        username: editor::Content,
-        password: editor::Content,
+        username: Content,
+        password: Content,
     },
     Bearer {
-        token: editor::Content,
+        token: Content,
     },
 }
 
@@ -65,11 +67,11 @@ impl RawAuthType {
         match auth {
             Auth::None => RawAuthType::None,
             Auth::Basic { username, password } => RawAuthType::Basic {
-                username: editor::Content::with_text(&username),
-                password: editor::Content::with_text(&password),
+                username: Content::with_text(&username),
+                password: Content::with_text(&password),
             },
             Auth::Bearer { token } => RawAuthType::Bearer {
-                token: editor::Content::with_text(&token),
+                token: Content::with_text(&token),
             },
         }
     }
@@ -95,9 +97,9 @@ pub enum RawRequestBody {
     None,
     Form(KeyValList),
     Multipart(KeyValList, KeyFileList),
-    Json(editor::Content),
-    XML(editor::Content),
-    Text(editor::Content),
+    Json(Content),
+    XML(Content),
+    Text(Content),
     File(Option<PathBuf>),
 }
 
@@ -120,9 +122,9 @@ impl RawRequestBody {
     fn from_request_body(body: RequestBody) -> RawRequestBody {
         match body {
             RequestBody::Form(form) => RawRequestBody::Form(from_core_kv_list(&form, false)),
-            RequestBody::Json(json) => RawRequestBody::Json(editor::Content::with_text(&json)),
-            RequestBody::XML(xml) => RawRequestBody::XML(editor::Content::with_text(&xml)),
-            RequestBody::Text(text) => RawRequestBody::Text(editor::Content::with_text(&text)),
+            RequestBody::Json(json) => RawRequestBody::Json(Content::with_text(&json)),
+            RequestBody::XML(xml) => RawRequestBody::XML(Content::with_text(&xml)),
+            RequestBody::Text(text) => RawRequestBody::Text(Content::with_text(&text)),
             RequestBody::File(file) => RawRequestBody::File(file.clone()),
             RequestBody::Multipart { params, files } => RawRequestBody::Multipart(
                 from_core_kv_list(&params, false),
@@ -153,7 +155,7 @@ impl RawRequestBody {
 
 #[derive(Debug)]
 pub struct RequestPane {
-    pub url_content: editor::Content,
+    pub url_content: Content,
     pub method: Method,
     pub headers: KeyValList,
     pub body: RawRequestBody,
@@ -187,11 +189,11 @@ impl RequestPane {
         self.auth = match auth_type {
             auth_types::NONE => RawAuthType::None,
             auth_types::BASIC => RawAuthType::Basic {
-                username: editor::Content::new(),
-                password: editor::Content::new(),
+                username: Content::new(),
+                password: Content::new(),
             },
             auth_types::BEARER => RawAuthType::Bearer {
-                token: editor::Content::new(),
+                token: Content::new(),
             },
             _ => RawAuthType::None,
         };
@@ -214,7 +216,7 @@ impl RequestPane {
 
     pub fn from(request: Request) -> RequestPane {
         RequestPane {
-            url_content: editor::Content::with_text(&request.url),
+            url_content: Content::with_text(&request.url),
             method: request.method,
             headers: from_core_kv_list(&request.headers, false),
             body: RawRequestBody::from_request_body(request.body),
@@ -224,6 +226,20 @@ impl RequestPane {
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),
             pre_request: request.pre_request,
+        }
+    }
+
+    pub fn format_body(&mut self) {
+        match &mut self.body {
+            RawRequestBody::Json(content) => {
+                let text = content.text();
+                let json = serde_json::from_str::<Value>(&text)
+                    .and_then(|j| serde_json::to_string_pretty(&j));
+                if let Ok(formatted) = json {
+                    *content = Content::with_text(&formatted);
+                }
+            }
+            _ => {}
         }
     }
 }

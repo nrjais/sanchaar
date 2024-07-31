@@ -22,9 +22,10 @@ pub mod utils;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SplitState {
-    First,
     // Left or Top
-    Second, // Right or Bottom
+    First,
+    // Right or Bottom
+    Second,
 }
 
 core::new_id_type! {

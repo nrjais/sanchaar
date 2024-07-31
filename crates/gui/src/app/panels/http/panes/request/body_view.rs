@@ -1,7 +1,8 @@
 use super::{body_editor, RequestPaneMsg};
 use crate::state::request::RawRequestBody;
 use components::{
-    icon, icons, key_value_editor, multi_file_picker, ContentType, KeyFileList, KeyValList,
+    icon, icon_button, icons, key_value_editor, multi_file_picker, tooltip, ContentType,
+    KeyFileList, KeyValList,
 };
 use iced::{
     widget::{
@@ -12,9 +13,20 @@ use iced::{
 use std::path::PathBuf;
 
 pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
+    let actions = match body {
+        RawRequestBody::Json(_) | RawRequestBody::XML(_) => Some(tooltip(
+            "Prettify",
+            icon_button(icons::Wand, None, Some(4))
+                .style(button::text)
+                .on_press(RequestPaneMsg::FormatBody),
+        )),
+        _ => None,
+    };
+
     let header = Row::new()
         .push(text(format!("Content Type: {}", body.as_str())))
         .push(horizontal_space())
+        .push_maybe(actions)
         .push(
             pick_list(
                 RawRequestBody::all_variants(),
@@ -23,6 +35,7 @@ pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
             )
             .padding([2, 6]),
         )
+        .spacing(8)
         .height(Length::Shrink)
         .align_y(iced::Alignment::Center);
 
