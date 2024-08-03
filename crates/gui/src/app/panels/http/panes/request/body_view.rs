@@ -10,9 +10,12 @@ use iced::{
     },
     Element, Length,
 };
-use std::path::PathBuf;
+use std::{collections::HashSet, path::PathBuf, sync::Arc};
 
-pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
+pub fn body_tab(
+    body: &RawRequestBody,
+    vars: Arc<HashSet<String>>,
+) -> iced::Element<RequestPaneMsg> {
     let actions = match body {
         RawRequestBody::Json(_) | RawRequestBody::XML(_) => Some(tooltip(
             "Prettify",
@@ -43,8 +46,8 @@ pub fn body_tab(body: &RawRequestBody) -> iced::Element<RequestPaneMsg> {
         RawRequestBody::Json(content) => body_editor::view(content, ContentType::Json),
         RawRequestBody::XML(content) => body_editor::view(content, ContentType::XML),
         RawRequestBody::Text(content) => body_editor::view(content, ContentType::Text),
-        RawRequestBody::Form(values) => form(values),
-        RawRequestBody::Multipart(values, files) => multipart_editor(values, files),
+        RawRequestBody::Form(values) => form(values, Arc::clone(&vars)),
+        RawRequestBody::Multipart(values, files) => multipart_editor(values, files, vars),
         RawRequestBody::File(path) => file(path),
         RawRequestBody::None => no_body(),
     };
@@ -75,8 +78,8 @@ fn file(path: &Option<PathBuf>) -> Element<RequestPaneMsg> {
         .into()
 }
 
-fn form(values: &KeyValList) -> Element<RequestPaneMsg> {
-    scrollable(key_value_editor(values).on_change(RequestPaneMsg::FormBodyEditAction))
+fn form(values: &KeyValList, vars: Arc<HashSet<String>>) -> Element<RequestPaneMsg> {
+    scrollable(key_value_editor(values, &vars).on_change(RequestPaneMsg::FormBodyEditAction))
         .height(Length::Fill)
         .width(Length::Fill)
         .into()
@@ -95,10 +98,11 @@ fn no_body<'a>() -> Element<'a, RequestPaneMsg> {
 fn multipart_editor<'a>(
     values: &'a KeyValList,
     files: &'a KeyFileList,
+    vars: Arc<HashSet<String>>,
 ) -> Element<'a, RequestPaneMsg> {
     let params = Column::new()
         .push("Params")
-        .push(key_value_editor(values).on_change(RequestPaneMsg::MultipartParamsAction))
+        .push(key_value_editor(values, &vars).on_change(RequestPaneMsg::MultipartParamsAction))
         .width(Length::Fill)
         .spacing(4);
 

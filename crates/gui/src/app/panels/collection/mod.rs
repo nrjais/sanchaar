@@ -1,6 +1,8 @@
 pub mod env_editor;
 mod settings;
 
+use core::http::collection::Collection;
+
 use components::{button_tab, button_tabs};
 use iced::widget::{text, Column};
 use iced::Length;
@@ -32,10 +34,12 @@ impl CollectionTabMsg {
     }
 }
 
-pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, CollectionTabMsg> {
+pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, CollectionTabMsg> {
     let tab_content = match tab.tab {
-        CollectionTabId::Environments => env_editor::view(tab).map(CollectionTabMsg::EnvEditor),
-        CollectionTabId::Settings => settings::view(tab).map(CollectionTabMsg::Settings),
+        CollectionTabId::Environments => {
+            env_editor::view(tab, col).map(CollectionTabMsg::EnvEditor)
+        }
+        CollectionTabId::Settings => settings::view(tab, col).map(CollectionTabMsg::Settings),
     };
 
     let tabs = button_tabs(

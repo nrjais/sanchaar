@@ -1,6 +1,9 @@
 use core::http::collection::Collection;
 use core::http::CollectionKey;
+use std::collections::HashSet;
+use std::env::var;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
 use iced::{widget::text, Length, Task};
@@ -116,19 +119,21 @@ impl RequestPaneMsg {
     }
 }
 
-fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
+fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Element<RequestPaneMsg> {
     let has_params = request.path_params.size() > 0;
     let path = has_params.then(|| {
         Column::new()
             .push("Path Params")
-            .push(key_value_editor(&request.path_params).on_change(RequestPaneMsg::PathParams))
+            .push(
+                key_value_editor(&request.path_params, &vars).on_change(RequestPaneMsg::PathParams),
+            )
             .width(Length::Fill)
             .spacing(4)
     });
 
     let query = Column::new()
         .push("Query Params")
-        .push(key_value_editor(&request.query_params).on_change(RequestPaneMsg::Queries))
+        .push(key_value_editor(&request.query_params, &vars).on_change(RequestPaneMsg::Queries))
         .spacing(4)
         .width(Length::Fill);
 
@@ -138,11 +143,14 @@ fn params_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
         .into()
 }
 
-fn headers_view(request: &RequestPane) -> iced::Element<RequestPaneMsg> {
+fn headers_view(
+    request: &RequestPane,
+    vars: Arc<HashSet<String>>,
+) -> iced::Element<RequestPaneMsg> {
     scrollable(
         Column::new()
             .push("Headers")
-            .push(key_value_editor(&request.headers).on_change(RequestPaneMsg::Headers))
+            .push(key_value_editor(&request.headers, &vars).on_change(RequestPaneMsg::Headers))
             .width(Length::Fill)
             .spacing(4),
     )
@@ -202,17 +210,21 @@ fn script_view<'a>(
         .into()
 }
 
-pub(crate) fn view<'a>(
+pub fn view<'a>(
     tab: &'a HttpTab,
     col: Option<&'a Collection>,
 ) -> iced::Element<'a, RequestPaneMsg> {
     let request = tab.request();
 
+    let vars = col.map(|c| c.env_chain().all_var_set()).unwrap_or_default();
+
     let tab_content = match request.tab {
-        ReqTabId::Params => params_view(request),
-        ReqTabId::Headers => headers_view(request),
-        ReqTabId::Auth => auth_view(request).map(RequestPaneMsg::AuthEditorAction),
-        ReqTabId::Body => body_tab(&request.body),
+        ReqTabId::Params => params_view(request, Arc::clone(&vars)),
+        ReqTabId::Headers => headers_view(request, Arc::clone(&vars)),
+        ReqTabId::Auth => {
+            auth_view(request, Arc::clone(&vars)).map(RequestPaneMsg::AuthEditorAction)
+        }
+        ReqTabId::Body => body_tab(&request.body, vars),
         ReqTabId::PreRequest => script_view(col, tab),
     };
 

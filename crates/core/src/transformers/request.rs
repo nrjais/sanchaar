@@ -13,7 +13,6 @@ use crate::http::{
     request::{Auth, Method, Request, RequestBody},
     KeyFileList, KeyValList, KeyValue,
 };
-use crate::parsers;
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()

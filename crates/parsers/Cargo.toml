@@ -1,11 +1,10 @@
 [package]
-name = "components"
+name = "parsers"
 version.workspace = true
 authors.workspace = true
 description.workspace = true
 edition.workspace = true
 
 [dependencies]
-iced.workspace = true
-iced_core.workspace = true
-parsers.workspace = true
+pest = { workspace = true }
+pest_derive = { workspace = true }

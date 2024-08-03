@@ -24,7 +24,9 @@ impl PanelMsg {
 pub fn view<'a>(state: &'a AppState, tab: &'a Tab) -> iced::Element<'a, PanelMsg> {
     let req = match tab {
         Tab::Http(tab) => http::view(state, tab).map(PanelMsg::HttpTab),
-        Tab::Collection(tab) => collection::view(tab).map(PanelMsg::CollectionTab),
+        Tab::Collection(tab) => {
+            let col = state.common.collections.get(tab.collection_key).unwrap();
+            collection::view(tab, col).map(PanelMsg::CollectionTab)},
     };
 
     container::Container::new(req)

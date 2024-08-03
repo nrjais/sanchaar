@@ -1,3 +1,5 @@
+use std::{collections::HashSet, sync::Arc};
+
 use components::{icon, icons, line_editor, LineEditorMsg};
 use iced::{
     widget::{center, container, horizontal_space, pick_list, text, Column, Row},
@@ -47,7 +49,7 @@ fn field_row<'a>(
         .into()
 }
 
-pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
+pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<AuthEditorMsg> {
     let auth = &request.auth;
     let header = Row::new()
         .push(text(format!("Auth Method: {}", auth.as_str())))
@@ -63,7 +65,7 @@ pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
         .height(Length::Shrink)
         .align_y(iced::Alignment::Center);
 
-    let body: Element<AuthEditorMsg> = auth_body(auth);
+    let body: Element<AuthEditorMsg> = auth_body(auth, vars);
 
     Column::new()
         .push(header)
@@ -72,16 +74,20 @@ pub fn auth_view(request: &RequestPane) -> Element<AuthEditorMsg> {
         .into()
 }
 
-fn auth_body(auth: &RawAuthType) -> Element<AuthEditorMsg> {
+fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEditorMsg> {
     match auth {
         RawAuthType::Basic { username, password } => Column::new()
             .push(field_row(
                 "Username",
-                line_editor(username).on_action(AuthEditorMsg::BasicUsername),
+                line_editor(username)
+                    .on_action(AuthEditorMsg::BasicUsername)
+                    .vars(Arc::clone(&vars)),
             ))
             .push(field_row(
                 "Password",
-                line_editor(password).on_action(AuthEditorMsg::BasicPassword),
+                line_editor(password)
+                    .on_action(AuthEditorMsg::BasicPassword)
+                    .vars(Arc::clone(&vars)),
             ))
             .height(Length::Fill)
             .spacing(4)
@@ -89,7 +95,9 @@ fn auth_body(auth: &RawAuthType) -> Element<AuthEditorMsg> {
         RawAuthType::Bearer { token } => Column::new()
             .push(field_row(
                 "Token",
-                line_editor(token).on_action(AuthEditorMsg::BearerToken),
+                line_editor(token)
+                    .on_action(AuthEditorMsg::BearerToken)
+                    .vars(Arc::clone(&vars)),
             ))
             .height(Length::Fill)
             .spacing(4)

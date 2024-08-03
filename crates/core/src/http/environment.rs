@@ -1,6 +1,10 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
-use crate::{new_id_type, parsers::parse_template};
+use crate::new_id_type;
+use parsers::{parse_template, Token};
 
 use super::KeyValList;
 
@@ -96,8 +100,6 @@ impl Environment {
     }
 }
 
-const ENV_PREFIX: &str = "env.";
-
 #[derive(Debug, Clone, Default)]
 pub struct EnvironmentChain {
     dotenv: Arc<KeyValList>,
@@ -129,19 +131,26 @@ impl EnvironmentChain {
             .map(|kv| kv.value.to_owned())
     }
 
+    pub fn all_var_set(&self) -> Arc<HashSet<String>> {
+        let mut set = HashSet::new();
+        for vars in self.vars.iter().chain([&self.dotenv]) {
+            for kv in vars.iter() {
+                set.insert(kv.name.clone());
+            }
+        }
+        Arc::new(set)
+    }
+
     fn replace_dotenv(&self, source: &str) -> String {
         let mut buffer = String::new();
         for span in parse_template(source) {
             match span.token {
-                crate::parsers::Token::Text(text) => buffer.push_str(&text),
-                crate::parsers::Token::Variable(var) => {
-                    let value = var
-                        .strip_prefix(ENV_PREFIX)
-                        .and_then(|var| Self::get_named(var, &self.dotenv))
-                        .unwrap_or(var);
+                Token::Text(text) => buffer.push_str(&text),
+                Token::Variable(var) => {
+                    let value = Self::get_named(&var, &self.dotenv).unwrap_or(var);
                     buffer.push_str(value.as_str());
                 }
-                crate::parsers::Token::Escaped(text) => {
+                Token::Escaped(text) => {
                     buffer.push_str(&text);
                 }
             }
@@ -151,15 +160,12 @@ impl EnvironmentChain {
 
     pub fn get(&self, name: &str) -> Option<String> {
         let name = name.trim_ascii();
-        name.strip_prefix(ENV_PREFIX)
-            .and_then(|name| Self::get_named(name, &self.dotenv))
-            .or_else(|| {
-                self.vars
-                    .iter()
-                    .rev()
-                    .find_map(|vars| Self::get_named(name, vars))
-                    .to_owned()
-                    .map(|s| self.replace_dotenv(&s))
-            })
+        Self::get_named(&name, &self.dotenv).or_else(|| {
+            self.vars
+                .iter()
+                .find_map(|vars| Self::get_named(name, vars))
+                .to_owned()
+                .map(|s| self.replace_dotenv(&s))
+        })
     }
 }

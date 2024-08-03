@@ -2,6 +2,7 @@ use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row}
 use iced::{Alignment, Element, Length, Task};
 
 use components::{icon, icons, key_value_editor, tooltip, NerdIcon};
+use core::http::collection::Collection;
 use core::http::environment::EnvironmentKey;
 
 use crate::commands::builders;
@@ -93,7 +94,7 @@ fn icon_button<'a>(
     )
 }
 
-pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
+pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Message> {
     let editor = &tab.env_editor;
     let environments = &editor.environments;
 
@@ -128,11 +129,13 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
         .width(Length::Fill)
         .align_y(Alignment::Center);
 
+    let vars = col.dotenv_env_chain().all_var_set();
     let editor = selected
         .and_then(|s| environments.get(&s).map(|e| (e, s)))
         .map(|(env, selected)| {
             let update_env = move |u| Message::EnvUpdate(selected, u);
-            scrollable(key_value_editor(&env.variables).on_change(update_env)).width(Length::Fill)
+            scrollable(key_value_editor(&env.variables, &vars).on_change(update_env))
+                .width(Length::Fill)
         });
 
     Column::new()

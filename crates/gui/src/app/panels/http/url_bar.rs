@@ -9,6 +9,7 @@ use reqwest::Url;
 use strum::VariantArray;
 
 use components::{icon, icons, line_editor, LineEditorMsg, NerdIcon};
+use core::http::collection::Collection;
 use core::http::request::Method;
 
 use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
@@ -97,7 +98,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
     })
 }
 
-pub fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
+pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, UrlBarMsg> {
     let request = tab.request();
     let executing = tab.response.is_executing();
 
@@ -113,13 +114,17 @@ pub fn view(tab: &HttpTab) -> Element<UrlBarMsg> {
         ..pick_list::default(theme, pick_list::Status::Active)
     });
 
-    let url = line_editor(&request.url_content)
+    let mut url = line_editor(&request.url_content)
         .placeholder("https://example.com")
         .style(move |t: &iced::Theme, _| editor::Style {
             border,
             ..editor::default(t, editor::Status::Active)
         })
         .on_action(UrlBarMsg::UrlChanged);
+
+    if let Some(col) = col {
+        url = url.vars(col.env_chain().all_var_set());
+    }
 
     let on_press = if executing {
         None

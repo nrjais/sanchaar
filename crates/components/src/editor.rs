@@ -1,5 +1,6 @@
 mod content;
 mod editor;
+pub mod highlighters;
 mod undo_stack;
 use iced_core::text::{self, highlighter};
 

@@ -773,6 +773,7 @@ version = "0.1.0-prerelease.1"
 dependencies = [
  "iced",
  "iced_core",
+ "parsers",
 ]
 
 [[package]]
@@ -795,8 +796,7 @@ dependencies = [
  "iced",
  "indexmap",
  "mime_guess",
- "pest",
- "pest_derive",
+ "parsers",
  "regex",
  "reqwest",
  "serde",
@@ -2956,6 +2956,14 @@ dependencies = [
  "redox_syscall 0.5.3",
  "smallvec",
  "windows-targets 0.52.6",
+]
+
+[[package]]
+name = "parsers"
+version = "0.1.0-prerelease.1"
+dependencies = [
+ "pest",
+ "pest_derive",
 ]
 
 [[package]]

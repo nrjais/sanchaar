@@ -332,8 +332,21 @@ impl Collection {
 
         EnvironmentChain::from_iter(
             Arc::clone(&self.dotenv),
-            [Arc::clone(&self.variables), env].into_iter(),
+            [env, Arc::clone(&self.variables)].into_iter(),
         )
+    }
+
+    pub fn collection_env_chain(&self) -> EnvironmentChain {
+        let env = self
+            .get_active_environment()
+            .map(|e| e.vars())
+            .unwrap_or_default();
+
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env].into_iter())
+    }
+
+    pub fn dotenv_env_chain(&self) -> EnvironmentChain {
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [].into_iter())
     }
 }
 

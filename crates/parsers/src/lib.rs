@@ -18,7 +18,7 @@ pub struct Span {
 }
 
 #[derive(Parser)]
-#[grammar = "parsers/template.pest"]
+#[grammar = "template.pest"]
 struct TemplateParser;
 
 pub fn parse_template(text: &str) -> Vec<Span> {

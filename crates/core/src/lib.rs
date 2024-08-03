@@ -5,4 +5,3 @@ pub mod persistence;
 pub mod transformers;
 pub mod assertions;
 pub mod utils;
-pub mod parsers;

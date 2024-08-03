@@ -178,7 +178,7 @@ fn read_dotenv(path: &PathBuf) -> KeyValList {
     let vars = vars
         .filter_map(|r| r.ok())
         .map(|(k, v)| KeyValue {
-            name: k,
+            name: format!("env.{k}"),
             value: v,
             disabled: false,
         })

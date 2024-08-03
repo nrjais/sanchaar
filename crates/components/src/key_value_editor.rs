@@ -4,7 +4,9 @@ use iced::{
     widget::{button, checkbox, component, container, text_input, Component, Row},
     Border, Element, Theme,
 };
+use std::collections::HashSet;
 use std::ops::Not;
+use std::sync::Arc;
 
 use crate::editor;
 use crate::{line_editor, tooltip, LineEditorMsg};
@@ -139,6 +141,7 @@ pub struct KeyValEditor<'a, M> {
     values: &'a KeyValList,
     on_change: Option<Box<dyn Fn(KeyValUpdateMsg) -> M + 'a>>,
     padding: Padding,
+    vars: Arc<HashSet<String>>,
 }
 
 impl<'a, M: Clone> KeyValEditor<'a, M> {
@@ -154,6 +157,11 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
         self.padding = padding.into();
         self
     }
+
+    pub fn vars(mut self, vars: Arc<HashSet<String>>) -> Self {
+        self.vars = vars;
+        self
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -164,11 +172,15 @@ pub enum KeyValUpdateMsg {
     Remove(usize),
 }
 
-pub fn key_value_editor<M>(values: &KeyValList) -> KeyValEditor<'_, M> {
+pub fn key_value_editor<'a, M>(
+    values: &'a KeyValList,
+    vars: &Arc<HashSet<String>>,
+) -> KeyValEditor<'a, M> {
     KeyValEditor {
         values,
         on_change: None,
         padding: padding::right(8),
+        vars: Arc::clone(vars),
     }
 }
 
@@ -235,6 +247,7 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
                         ..editor::default(t, s)
                     })
                     .on_action(move |a| KeyValUpdateMsg::ValueChanged(idx, a))
+                    .vars(Arc::clone(&self.vars))
                     .size(size),
             )
             .width(Length::FillPortion(3));

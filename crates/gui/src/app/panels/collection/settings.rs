@@ -1,3 +1,6 @@
+use core::http::collection::Collection;
+use std::{collections::HashSet, sync::Arc};
+
 use components::{icon, icons, key_value_editor, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon};
 use iced::{
     padding,
@@ -72,11 +75,11 @@ fn icon_button<'a>(
     )
 }
 
-pub fn headers_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
+pub fn headers_view<'a>(vals: &'a KeyValList, vars: Arc<HashSet<String>>) -> Element<'a, Message> {
     Column::new()
         .push("Collection Headers")
         .push(
-            key_value_editor(vals)
+            key_value_editor(vals, &vars)
                 .on_change(Message::UpdateHeaders)
                 .padding(padding::all(0)),
         )
@@ -85,11 +88,14 @@ pub fn headers_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
         .into()
 }
 
-pub fn variables_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
+pub fn variables_view<'a>(
+    vals: &'a KeyValList,
+    vars: Arc<HashSet<String>>,
+) -> Element<'a, Message> {
     Column::new()
         .push("Collection Variables")
         .push(
-            key_value_editor(vals)
+            key_value_editor(vals, &vars)
                 .on_change(Message::UpdateVariables)
                 .padding(padding::all(0)),
         )
@@ -98,13 +104,15 @@ pub fn variables_view<'a>(vals: &'a KeyValList) -> Element<'a, Message> {
         .into()
 }
 
-pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
+pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Message> {
     let environments = &tab.env_editor.environments;
     let envs: Vec<_> = environments
         .iter()
         .map(|(_, env)| env.name.clone())
         .collect();
 
+    let header_vars = col.env_chain().all_var_set();
+    let collection_vars = col.collection_env_chain().all_var_set();
     let default_env_name = tab.default_env.as_ref();
 
     let action_bar = Row::new()
@@ -144,8 +152,8 @@ pub fn view<'a>(tab: &'a CollectionTab) -> Element<'a, Message> {
             .push(action_bar)
             .push(default_env)
             .push(disable_ssl)
-            .push(variables_view(&tab.variables))
-            .push(headers_view(&tab.headers))
+            .push(variables_view(&tab.variables, collection_vars))
+            .push(headers_view(&tab.headers, header_vars))
             .spacing(8)
             .width(Length::Fill)
             .height(Length::Shrink)
