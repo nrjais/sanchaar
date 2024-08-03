@@ -1,7 +1,6 @@
 use core::http::collection::Collection;
 use core::http::CollectionKey;
 use std::collections::HashSet;
-use std::env::var;
 use std::path::PathBuf;
 use std::sync::Arc;
 

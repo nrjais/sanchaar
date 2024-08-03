@@ -52,7 +52,7 @@ fn field_row<'a>(
 pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<AuthEditorMsg> {
     let auth = &request.auth;
     let header = Row::new()
-        .push(text(format!("Auth Method: {}", auth.as_str())))
+        .push(text("Auth Method"))
         .push(horizontal_space())
         .push(
             pick_list(

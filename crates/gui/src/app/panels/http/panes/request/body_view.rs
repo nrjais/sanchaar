@@ -27,7 +27,7 @@ pub fn body_tab(
     };
 
     let header = Row::new()
-        .push(text(format!("Content Type: {}", body.as_str())))
+        .push(text("Content Type"))
         .push(horizontal_space())
         .push_maybe(actions)
         .push(
