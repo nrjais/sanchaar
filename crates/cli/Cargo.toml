@@ -6,13 +6,13 @@ description.workspace = true
 edition.workspace = true
 
 [dependencies]
-core = { workspace = true }
-tokio = { workspace = true }
-clap = { workspace = true }
-anyhow = { workspace = true }
-humansize = { workspace = true }
-serde_json = { workspace = true }
-reqwest = { workspace = true }
-hcl-rs = { workspace = true }
+core.workspace = true
+tokio.workspace = true
+clap.workspace = true
+anyhow.workspace = true
+humansize.workspace = true
+serde_json.workspace = true
+reqwest.workspace = true
+hcl-rs.workspace = true
 colored_json = "5.0"
 hex = "0.4"

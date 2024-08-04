@@ -1,23 +1,25 @@
-use collection_tab::CollectionTab;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
 use iced::Theme;
 use indexmap::IndexMap;
+use reqwest_cookie_store::CookieStoreRwLock;
+use tabs::collection_tab::CollectionTab;
+use tabs::cookies_tab::CookiesTab;
 
-use core::client::create_client;
+use core::client::{create_client, create_cookie_store};
 use core::http::{CollectionRequest, Collections};
-pub use http_tab::*;
+use std::sync::Arc;
+pub use tabs::http_tab::*;
 
 use crate::commands::JobState;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 
-pub mod collection_tab;
 pub mod environment;
-pub mod http_tab;
 pub mod popups;
 pub mod request;
 pub mod response;
+pub mod tabs;
 pub mod utils;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -36,6 +38,7 @@ core::new_id_type! {
 pub enum Tab {
     Http(HttpTab),
     Collection(CollectionTab),
+    CookieStore(CookiesTab),
 }
 
 #[derive(Debug)]
@@ -45,6 +48,7 @@ pub struct CommonState {
     pub client_no_ssl: reqwest::Client,
     pub popup: Option<Popup>,
     pub background_tasks: Vec<JobState>,
+    pub cookie_store: Arc<CookieStoreRwLock>,
 }
 
 #[derive(Debug)]
@@ -59,13 +63,15 @@ pub struct AppState {
 
 impl AppState {
     pub fn new() -> Self {
+        let store = create_cookie_store();
         Self {
             active_tab: TabKey::ZERO,
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
             common: CommonState {
-                client: create_client(false),
-                client_no_ssl: create_client(true),
+                client: create_client(false, Arc::clone(&store)),
+                client_no_ssl: create_client(true, Arc::clone(&store)),
+                cookie_store: store,
                 collections: Collections::default(),
                 popup: None,
                 background_tasks: Vec::new(),

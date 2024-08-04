@@ -6,8 +6,8 @@ use core::http::collection::Collection;
 use core::http::environment::EnvironmentKey;
 
 use crate::commands::builders;
-use crate::state::collection_tab::CollectionTab;
 use crate::state::popups::{Popup, PopupNameAction};
+use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::{AppState, Tab};
 
 #[derive(Debug, Clone)]

@@ -5,7 +5,7 @@ use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column
 use iced::{widget::button, Element, Length, Task};
 
 use crate::commands::builders;
-use crate::state::collection_tab::CollectionTab;
+use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::{AppState, HttpTab, Tab};
 
 #[derive(Debug, Clone)]

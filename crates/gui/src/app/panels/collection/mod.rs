@@ -8,7 +8,7 @@ use iced::widget::{text, Column};
 use iced::Length;
 use iced::{Element, Task};
 
-use crate::state::collection_tab::{CollectionTab, CollectionTabId};
+use crate::state::tabs::collection_tab::{CollectionTab, CollectionTabId};
 use crate::state::{AppState, Tab};
 
 #[derive(Debug, Clone)]

@@ -36,6 +36,7 @@ pub mod icons {
     use super::NerdIcon;
 
     pub const TriangleRight: NerdIcon = NerdIcon('');
+    pub const Cookie: NerdIcon = NerdIcon('󰆘');
     pub const TriangleDown: NerdIcon = NerdIcon('');
     pub const CloseBox: NerdIcon = NerdIcon('󰅗');
     pub const PlusBox: NerdIcon = NerdIcon('󰐖');

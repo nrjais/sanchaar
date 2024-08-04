@@ -1,6 +1,7 @@
 use std::{sync::Arc, time::Duration};
 
 use reqwest::{header::HeaderMap, Client, Request, StatusCode};
+use reqwest_cookie_store::CookieStoreRwLock;
 
 #[derive(Debug, Clone)]
 pub enum ContentType {
@@ -62,9 +63,14 @@ pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Respon
     })
 }
 
-pub fn create_client(disable_verification: bool) -> reqwest::Client {
+pub fn create_cookie_store() -> Arc<CookieStoreRwLock> {
+    Arc::new(CookieStoreRwLock::default())
+}
+
+pub fn create_client(disable_verification: bool, store: Arc<CookieStoreRwLock>) -> reqwest::Client {
     reqwest::Client::builder()
         .danger_accept_invalid_certs(disable_verification)
+        .cookie_provider(store)
         .build()
         .expect("Failed to create client")
 }

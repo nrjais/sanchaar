@@ -8,8 +8,9 @@ use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef}
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
 use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
-use crate::state::collection_tab::CollectionTab;
 use crate::state::popups::{Popup, PopupNameAction};
+use crate::state::tabs::collection_tab::CollectionTab;
+use crate::state::tabs::cookies_tab::CookiesTab;
 use crate::state::{AppState, HttpTab, Tab};
 
 #[derive(Debug, Clone)]
@@ -24,6 +25,7 @@ pub enum CollectionTreeMsg {
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
     OpenSettings,
+    OpenCookies,
 }
 
 impl CollectionTreeMsg {
@@ -64,6 +66,9 @@ impl CollectionTreeMsg {
             CollectionTreeMsg::ActionComplete => (),
             CollectionTreeMsg::OpenSettings => {
                 Popup::app_settings(&mut state.common);
+            }
+            CollectionTreeMsg::OpenCookies => {
+                state.open_tab(Tab::CookieStore(CookiesTab::new(&state.common)));
             }
         };
         Task::none()
@@ -160,6 +165,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
 
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
     let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
+    let cookies = icon_button(icons::Cookie).on_press(CollectionTreeMsg::OpenCookies);
     let settings = icon_button(icons::Gear).on_press(CollectionTreeMsg::OpenSettings);
 
     Column::new()
@@ -168,6 +174,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
                 Row::new()
                     .push(tooltip("Create Collection", create_col))
                     .push(tooltip("Open Collection", open_col))
+                    .push(tooltip("Cookies", cookies))
                     .push(tooltip("Settings", settings))
                     .width(Length::Shrink)
                     .spacing(4),

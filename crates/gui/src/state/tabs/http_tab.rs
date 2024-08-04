@@ -10,8 +10,8 @@ use crate::state::SplitState;
 use core::http::request::Request;
 use core::http::{CollectionKey, CollectionRequest};
 
-use super::request::RequestPane;
-use super::response::{BodyMode, CompletedResponse, ResponseState};
+use crate::state::request::RequestPane;
+use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestDirtyState {

@@ -10,7 +10,8 @@ use iced::{
 
 use crate::{
     commands::builders::save_collection_cmd,
-    state::{collection_tab::CollectionTab, AppState, Tab},
+    state::tabs::collection_tab::CollectionTab,
+    state::{AppState, Tab},
 };
 
 #[derive(Debug, Clone)]

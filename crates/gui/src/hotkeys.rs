@@ -10,8 +10,8 @@ use crate::{
         ResponseResult,
     },
     state::{
-        collection_tab::{CollectionTab, CollectionTabId},
         popups::Popup,
+        tabs::collection_tab::{CollectionTab, CollectionTabId},
         AppState, Tab, TabKey,
     },
 };
@@ -145,6 +145,7 @@ fn save_tab(state: &mut AppState) -> Task<Message> {
             };
             task.unwrap_or(Task::none())
         }
+        Tab::CookieStore(_) => Task::none(),
     }
 }
 

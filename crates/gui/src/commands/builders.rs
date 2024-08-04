@@ -22,8 +22,8 @@ use core::persistence::request::{encode_request, read_request, save_req_to_file}
 use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{cancellable_task, TaskResult};
-use crate::state::collection_tab::{CollectionTab, EnvironmentEditor};
 use crate::state::response::ResponseState;
+use crate::state::tabs::collection_tab::{CollectionTab, EnvironmentEditor};
 use crate::state::utils::to_core_kv_list;
 use crate::state::{AppState, CommonState, HttpTab, RequestDirtyState, Tab, TabKey};
 

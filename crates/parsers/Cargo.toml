@@ -6,5 +6,5 @@ description.workspace = true
 edition.workspace = true
 
 [dependencies]
-pest = { workspace = true }
-pest_derive = { workspace = true }
+pest.workspace = true
+pest_derive.workspace = true
