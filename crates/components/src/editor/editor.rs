@@ -251,13 +251,6 @@ impl Focus {
     }
 }
 
-impl<Highlighter: text::Highlighter> State<Highlighter> {
-    /// Returns whether the [`TextEditor`] is currently focused or not.
-    pub fn is_focused(&self) -> bool {
-        self.focus.is_some()
-    }
-}
-
 impl<Highlighter: text::Highlighter> operation::Focusable for State<Highlighter> {
     fn is_focused(&self) -> bool {
         self.focus.is_some()
@@ -543,7 +536,7 @@ where
         defaults: &renderer::Style,
         layout: Layout<'_>,
         cursor: mouse::Cursor,
-        viewport: &Rectangle,
+        _viewport: &Rectangle,
     ) {
         let bounds = layout.bounds();
 
@@ -582,15 +575,26 @@ where
             style.background,
         );
 
-        let position = bounds.position() + Vector::new(self.padding.left, self.padding.top);
+        let position = bounds.position()
+            + Vector::new(self.padding.left, self.padding.top)
+            + Vector::new(style.border.width, style.border.width);
+        let border_consumed = style.border.width * 2.0;
+        let padding_h_consumed = self.padding.left + self.padding.right;
+        let padding_v_consumed = self.padding.top + self.padding.bottom;
+
+        let bounds = Rectangle {
+            x: bounds.x + style.border.width + self.padding.left,
+            y: bounds.y + style.border.width + self.padding.top,
+            width: bounds.width - border_consumed - padding_h_consumed,
+            height: bounds.height - border_consumed - padding_v_consumed,
+        };
 
         if internal.editor.is_empty() {
             if let Some(placeholder) = self.placeholder.clone() {
                 renderer.fill_text(
                     Text {
                         content: placeholder.into_owned(),
-                        bounds: bounds.size() - Size::new(self.padding.right, self.padding.bottom),
-
+                        bounds: bounds.size(),
                         size: self.text_size.unwrap_or_else(|| renderer.default_size()),
                         line_height: self.line_height,
                         font,
@@ -601,15 +605,14 @@ where
                     },
                     position,
                     style.placeholder,
-                    *viewport,
+                    bounds,
                 );
             }
         } else {
-            renderer.fill_editor(&internal.editor, position, defaults.text_color, *viewport);
+            renderer.fill_editor(&internal.editor, position, defaults.text_color, bounds);
         }
 
-        let translation = Vector::new(bounds.x + self.padding.left, bounds.y + self.padding.top);
-
+        let translation = Vector::new(bounds.x, bounds.y);
         if let Some(focus) = state.focus.as_ref() {
             match internal.editor.cursor() {
                 Cursor::Caret(position) if focus.is_cursor_visible() => {

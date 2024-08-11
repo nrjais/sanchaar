@@ -117,10 +117,6 @@ impl AppState {
         self.tabs.get_mut(&key)
     }
 
-    pub fn get_tab(&self, key: TabKey) -> Option<&Tab> {
-        self.tabs.get(&key)
-    }
-
     pub fn active_tab_mut(&mut self) -> Option<&mut Tab> {
         self.tabs.get_mut(&self.active_tab)
     }
