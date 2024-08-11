@@ -45,7 +45,7 @@ pub fn view<'a>(tab: &'a CookiesTab) -> Element<'a, CookieTabMsg> {
         table_value("Path"),
         table_value("Secure"),
     ];
-    let content = table(headers, cookies);
+    let content = table(headers, cookies, [2, 3, 2, 1, 1]);
 
     Column::new()
         .push(text("Cookies"))

@@ -24,6 +24,7 @@ pub fn table_str<'a, M: 'a>(val: &'a str) -> Element<'a, M> {
 pub fn table<'a, M: 'a, const W: usize>(
     headers: [Element<'a, M>; W],
     values: impl IntoIterator<Item = [Element<'a, M>; W]>,
+    widths: [u16; W],
 ) -> Element<'a, M> {
     let spacing = 2;
     let mut values_col = Column::new()
@@ -33,16 +34,16 @@ pub fn table<'a, M: 'a, const W: usize>(
 
     let mut row = Row::new().spacing(spacing).padding(spacing);
 
-    for header in headers {
-        row = row.push(container(header).width(Length::FillPortion(1)));
+    for (header, w) in headers.into_iter().zip(widths.iter()) {
+        row = row.push(container(header).width(Length::FillPortion(1.max(*w))));
     }
     values_col = values_col.push(row).push(horizontal_line(1));
 
     for vals in values {
         let mut row = Row::new().spacing(spacing).padding(spacing);
 
-        for val in vals {
-            row = row.push(container(val).width(Length::FillPortion(1)));
+        for (val, w) in vals.into_iter().zip(widths.iter()) {
+            row = row.push(container(val).width(Length::FillPortion(1.max(*w))));
         }
 
         values_col = values_col.push(row).push(horizontal_line(1));
