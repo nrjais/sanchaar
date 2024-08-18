@@ -575,26 +575,14 @@ where
             style.background,
         );
 
-        let position = bounds.position()
-            + Vector::new(self.padding.left, self.padding.top)
-            + Vector::new(style.border.width, style.border.width);
-        let border_consumed = style.border.width * 2.0;
-        let padding_h_consumed = self.padding.left + self.padding.right;
-        let padding_v_consumed = self.padding.top + self.padding.bottom;
-
-        let bounds = Rectangle {
-            x: bounds.x + style.border.width + self.padding.left,
-            y: bounds.y + style.border.width + self.padding.top,
-            width: bounds.width - border_consumed - padding_h_consumed,
-            height: bounds.height - border_consumed - padding_v_consumed,
-        };
+        let text_bounds = bounds.shrink(self.padding);
 
         if internal.editor.is_empty() {
             if let Some(placeholder) = self.placeholder.clone() {
                 renderer.fill_text(
                     Text {
                         content: placeholder.into_owned(),
-                        bounds: bounds.size(),
+                        bounds: text_bounds.size(),
                         size: self.text_size.unwrap_or_else(|| renderer.default_size()),
                         line_height: self.line_height,
                         font,
@@ -603,16 +591,22 @@ where
                         shaping: text::Shaping::Advanced,
                         wrapping: text::Wrapping::WordOrGlyph,
                     },
-                    position,
+                    text_bounds.position(),
                     style.placeholder,
-                    bounds,
+                    text_bounds,
                 );
             }
         } else {
-            renderer.fill_editor(&internal.editor, position, defaults.text_color, bounds);
+            renderer.fill_editor(
+                &internal.editor,
+                text_bounds.position(),
+                defaults.text_color,
+                text_bounds,
+            );
         }
 
-        let translation = Vector::new(bounds.x, bounds.y);
+        let translation = text_bounds.position() - Point::ORIGIN;
+
         if let Some(focus) = state.focus.as_ref() {
             match internal.editor.cursor() {
                 Cursor::Caret(position) if focus.is_cursor_visible() => {
@@ -628,15 +622,10 @@ where
                         ),
                     );
 
-                    if let Some(clipped_cursor) = bounds.intersection(&cursor) {
+                    if let Some(clipped_cursor) = text_bounds.intersection(&cursor) {
                         renderer.fill_quad(
                             renderer::Quad {
-                                bounds: Rectangle {
-                                    x: clipped_cursor.x.floor(),
-                                    y: clipped_cursor.y,
-                                    width: clipped_cursor.width,
-                                    height: clipped_cursor.height,
-                                },
+                                bounds: clipped_cursor,
                                 ..renderer::Quad::default()
                             },
                             style.value,
@@ -646,7 +635,7 @@ where
                 Cursor::Selection(ranges) => {
                     for range in ranges
                         .into_iter()
-                        .filter_map(|range| bounds.intersection(&(range + translation)))
+                        .filter_map(|range| text_bounds.intersection(&(range + translation)))
                     {
                         renderer.fill_quad(
                             renderer::Quad {
@@ -688,7 +677,7 @@ where
         tree: &mut widget::Tree,
         _layout: Layout<'_>,
         _renderer: &Renderer,
-        operation: &mut dyn widget::Operation<()>,
+        operation: &mut dyn widget::Operation,
     ) {
         let state = tree.state.downcast_mut::<State<Highlighter>>();
 
