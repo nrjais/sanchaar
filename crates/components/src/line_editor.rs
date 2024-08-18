@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use iced::advanced::widget;
 use iced::widget::{component, Component};
 use iced::{Element, Length, Pixels, Theme};
 use iced_core::text::editor::{Action, Edit};
@@ -15,6 +16,7 @@ pub struct LineEditor<'a, M> {
     pub editable: bool,
     pub placeholder: Option<&'a str>,
     pub var_set: Arc<HashSet<String>>,
+    id: Option<widget::Id>,
     text_size: Option<Pixels>,
     style: StyleFn<'a, Theme>,
 }
@@ -53,6 +55,11 @@ impl<'a, M: 'a> LineEditor<'a, M> {
         self.var_set = vars;
         self
     }
+
+    pub fn id(mut self, id: widget::Id) -> Self {
+        self.id = Some(id);
+        self
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -84,6 +91,7 @@ pub fn line_editor<'a, M>(code: &'a editor::Content) -> LineEditor<'a, M> {
         text_size: None,
         style: Box::new(|t, s| editor::default(t, s)),
         var_set: HashSet::new().into(),
+        id: None,
     }
 }
 
@@ -114,6 +122,12 @@ impl<'a, M> Component<M> for LineEditor<'a, M> {
 
         let editor = if let Some(size) = self.text_size {
             editor.size(size)
+        } else {
+            editor
+        };
+
+        let editor = if let Some(id) = self.id.as_ref() {
+            editor.id(id.clone())
         } else {
             editor
         };

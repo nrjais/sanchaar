@@ -50,6 +50,7 @@ where
     on_edit: Option<Box<dyn Fn(ContentAction) -> Message + 'a>>,
     highlighter_settings: Highlighter::Settings,
     highlighter_format: fn(&Highlighter::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,
+    id: Option<widget::Id>,
 }
 
 impl<'a, Message, Theme, Renderer> TextEditor<'a, highlighter::PlainText, Message, Theme, Renderer>
@@ -74,6 +75,7 @@ where
             on_edit: None,
             highlighter_settings: (),
             highlighter_format: |_highlight, _theme| highlighter::Format::default(),
+            id: None,
         }
     }
 }
@@ -178,6 +180,7 @@ where
             on_edit: self.on_edit,
             highlighter_settings: settings,
             highlighter_format: to_format,
+            id: self.id,
         }
     }
 
@@ -206,6 +209,12 @@ where
     #[must_use]
     pub fn class(mut self, class: impl Into<Theme::Class<'a>>) -> Self {
         self.class = class.into();
+        self
+    }
+
+    /// Sets the id of the [`TextEditor`].
+    pub fn id(mut self, id: widget::Id) -> Self {
+        self.id = Some(id);
         self
     }
 }
@@ -681,7 +690,7 @@ where
     ) {
         let state = tree.state.downcast_mut::<State<Highlighter>>();
 
-        operation.focusable(state, None);
+        operation.focusable(state, self.id.as_ref());
     }
 }
 

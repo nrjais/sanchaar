@@ -116,6 +116,7 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
 
     let mut url = line_editor(&request.url_content)
         .placeholder("https://example.com")
+        .id(request.url_id.clone())
         .style(move |t: &iced::Theme, _| editor::Style {
             border,
             ..editor::default(t, editor::Status::Active)

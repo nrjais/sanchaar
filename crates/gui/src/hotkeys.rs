@@ -1,5 +1,7 @@
 use iced::{
+    advanced::widget::{operate, operation::focusable::focus},
     keyboard::{self, key::Named, Event, Key},
+    widget::focus_previous,
     Task,
 };
 
@@ -72,6 +74,7 @@ fn handle_hotkeys(
                 Task::none()
             }
         }
+        Key::Named(Named::Escape) => focus_previous(),
         _ => Task::none(),
     }
 }
@@ -108,6 +111,12 @@ fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -
         }
 
         "s" if !modifiers.shift() => save_tab(state),
+        "l" if !modifiers.shift() => {
+            if let Some(Tab::Http(tab)) = state.active_tab() {
+                return operate(focus(tab.request().url_id.clone()));
+            }
+            Task::none()
+        },
         _ => Task::none(),
     }
 }

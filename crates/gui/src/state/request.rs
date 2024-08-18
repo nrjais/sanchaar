@@ -5,6 +5,7 @@ use body_types::*;
 use components::editor::Content;
 use components::KeyValList;
 use components::{self, KeyFileList};
+use iced::advanced::widget;
 use core::http::request::{Auth, Method, Request, RequestBody};
 use serde_json::Value;
 
@@ -155,6 +156,7 @@ impl RawRequestBody {
 
 #[derive(Debug)]
 pub struct RequestPane {
+    pub url_id: widget::Id,
     pub url_content: Content,
     pub method: Method,
     pub headers: KeyValList,
@@ -216,6 +218,7 @@ impl RequestPane {
 
     pub fn from(request: Request) -> RequestPane {
         RequestPane {
+            url_id: widget::Id::unique(),
             url_content: Content::with_text(&request.url),
             method: request.method,
             headers: from_core_kv_list(&request.headers, false),
