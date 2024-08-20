@@ -4,6 +4,7 @@ use iced_core::text::Wrapping;
 
 use crate::editor::{self, text_editor, ContentAction};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
     Json,
     Text,

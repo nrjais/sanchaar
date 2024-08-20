@@ -72,6 +72,7 @@ pest_derive = "2.7"
 clap = { version = "4.5", features = ["derive"] }
 reqwest_cookie_store = "0.8.0"
 cookie_store = "0.21.0"
+jsonpath-rust = "0.7.0"
 components = { path = "crates/components" }
 core = { path = "crates/core" }
 parsers = { path = "crates/parsers" }

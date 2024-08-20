@@ -21,3 +21,4 @@ log.workspace = true
 indexmap.workspace = true
 reqwest_cookie_store.workspace = true
 cookie_store.workspace = true
+jsonpath-rust.workspace = true

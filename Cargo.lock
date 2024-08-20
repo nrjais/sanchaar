@@ -1629,6 +1629,7 @@ dependencies = [
  "humansize",
  "iced",
  "indexmap",
+ "jsonpath-rust",
  "log",
  "reqwest",
  "reqwest_cookie_store",
@@ -2183,6 +2184,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1868808506b929d7b0cfa8f75951347aa71bb21144b7791bae35d9bccfcfe37a"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "jsonpath-rust"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d64f9886fc067a709ab27faf63b7d3f4d1ec570a700705408b0b0683e2f43897"
+dependencies = [
+ "pest",
+ "pest_derive",
+ "regex",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

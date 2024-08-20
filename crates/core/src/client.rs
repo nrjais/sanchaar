@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Duration};
 use reqwest::{header::HeaderMap, Client, Request, StatusCode};
 use reqwest_cookie_store::CookieStoreRwLock;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
     Json,
     Text,
@@ -14,6 +14,12 @@ pub enum ContentType {
 pub struct ResponseBody {
     pub content_type: ContentType,
     pub data: Arc<Vec<u8>>,
+}
+
+impl ResponseBody {
+    pub fn is_json(&self) -> bool {
+        self.content_type == ContentType::Json
+    }
 }
 
 #[derive(Debug, Clone)]

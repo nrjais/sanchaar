@@ -2,7 +2,7 @@ use core::utils::fmt_duration;
 use std::sync::Arc;
 
 use humansize::{format_size, BINARY};
-use iced::widget::{button, container, text, Column, Row};
+use iced::widget::{button, container, text, text_input, Column, Row};
 use iced::{clipboard, Alignment, Border, Color, Element, Task, Theme};
 
 use components::{
@@ -24,6 +24,7 @@ pub enum CompletedMsg {
     SaveResponse,
     SaveToFile(Option<Arc<rfd::FileHandle>>),
     Done,
+    JsonPathFilter(String),
 }
 
 impl CompletedMsg {
@@ -56,6 +57,10 @@ impl CompletedMsg {
                 }
             }
             CompletedMsg::Done => (),
+            CompletedMsg::JsonPathFilter(filter) => {
+                res.json_path_filter = filter;
+                res.apply_json_path_filter();
+            }
         }
         Task::none()
     }
@@ -97,6 +102,11 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         )
         .spacing(2);
 
+    let json_path_filter = text_input("JSONPath filter", &cr.json_path_filter)
+        .on_input(CompletedMsg::JsonPathFilter)
+        .padding(2)
+        .size(14);
+
     let action_bar = Row::new()
         .push(container(actions).style(|theme: &Theme| {
             container::Style {
@@ -121,9 +131,17 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         .spacing(8);
 
     let content = cr.selected_content();
+    let is_json = cr.result.body.is_json();
+    let content_type = if is_json {
+        ContentType::Json
+    } else {
+        ContentType::Text
+    };
+
     Column::new()
         .push(action_bar)
-        .push(code_editor(content, ContentType::Json).on_action(CompletedMsg::CodeViewerMsg))
+        .push(code_editor(content, content_type).on_action(CompletedMsg::CodeViewerMsg))
+        .push_maybe(is_json.then_some(json_path_filter))
         .spacing(4)
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
