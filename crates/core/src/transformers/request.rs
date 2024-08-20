@@ -87,10 +87,7 @@ pub async fn transform_request(
 
     let env = &env;
 
-    let url = replace_env_vars(&url, env);
-    let url = Url::parse(&url).context("Failed to parse URL")?;
-    let url = replace_path_params(url, path_params, env);
-
+    let url = process_url(url, env, path_params)?;
     let mut builder = client.request(req_method(method), url);
 
     builder = req_headers(builder, headers, env);
@@ -99,6 +96,28 @@ pub async fn transform_request(
     builder = req_body(builder, body, env).await;
 
     builder.build().context("Failed to build request")
+}
+
+fn process_url(url: String, env: &EnvironmentChain, path_params: KeyValList) -> Result<Url, anyhow::Error> {
+    let url = replace_env_vars(&url, env);
+    let normalized_url = normalize_url(&url);
+    let url = Url::parse(&normalized_url).context("Failed to parse URL")?;
+    let url = replace_path_params(url, path_params, env);
+    Ok(url)
+}
+
+fn normalize_url(url: &str) -> String {
+    if url.starts_with("http://") || url.starts_with("https://") {
+        return url.to_string();
+    }
+
+    let normalized = if url.starts_with("localhost") || url.starts_with("127.0.0.1") {
+        format!("http://{}", url)
+    } else {
+        format!("https://{}", url)
+    };
+
+    normalized
 }
 
 fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
