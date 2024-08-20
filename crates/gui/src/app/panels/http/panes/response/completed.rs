@@ -102,10 +102,9 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         )
         .spacing(2);
 
-    let json_path_filter = text_input("JSONPath filter", &cr.json_path_filter)
+    let json_path_filter = text_input("$.filter", &cr.json_path_filter)
         .on_input(CompletedMsg::JsonPathFilter)
-        .padding(2)
-        .size(14);
+        .on_paste(CompletedMsg::JsonPathFilter);
 
     let action_bar = Row::new()
         .push(container(actions).style(|theme: &Theme| {

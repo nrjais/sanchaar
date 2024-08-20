@@ -6,67 +6,6 @@ use parsers::Token;
 
 use crate::colors;
 
-#[derive(Debug, Clone, Default, PartialEq)]
-pub struct SearchHighlighterSettings {
-    pub search: String,
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct SearchHighlighter {
-    search: String,
-    current_line: usize,
-    format: Format<iced::Font>,
-}
-
-impl Highlighter for SearchHighlighter {
-    type Settings = SearchHighlighterSettings;
-
-    type Highlight = Format<iced::Font>;
-
-    type Iterator<'a> = Box<dyn Iterator<Item = (Range<usize>, Format<iced::Font>)> + 'a>;
-
-    fn new(settings: &Self::Settings) -> Self {
-        Self {
-            current_line: 0,
-            search: settings.search.clone(),
-            format: Format {
-                color: Some(colors::LIGHT_BLUE),
-                font: None,
-            },
-        }
-    }
-
-    fn update(&mut self, new_settings: &Self::Settings) {
-        self.current_line = 0;
-        self.search = new_settings.search.clone();
-    }
-
-    fn change_line(&mut self, _line: usize) {
-        self.current_line = 0;
-    }
-
-    fn highlight_line(&mut self, line: &str) -> Self::Iterator<'_> {
-        let mut ranges = Vec::new();
-
-        let mut start = 0;
-
-        while let Some(start_index) = line[start..].find(&self.search) {
-            let start_index = start + start_index;
-            let end_index = start_index + self.search.len();
-
-            ranges.push((start_index..end_index, self.format));
-
-            start = end_index;
-        }
-
-        Box::new(ranges.into_iter())
-    }
-
-    fn current_line(&self) -> usize {
-        self.current_line
-    }
-}
-
 pub trait IsDefineVariable: Clone + PartialEq {
     fn is_define_variable(&self, name: &str) -> bool;
 }
