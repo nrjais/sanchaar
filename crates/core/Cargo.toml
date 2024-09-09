@@ -22,3 +22,4 @@ indexmap.workspace = true
 dotenvy.workspace = true
 reqwest_cookie_store.workspace = true
 parsers.workspace = true
+serde_with.workspace = true

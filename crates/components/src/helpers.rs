@@ -1,5 +1,5 @@
 use iced::{
-    widget::{container, text, tooltip::Position, Container, Tooltip},
+    widget::{container, text, tooltip::Position, Container, TextInput, Tooltip},
     Border, Element, Length, Theme,
 };
 
@@ -27,4 +27,14 @@ pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tool
             .padding([2, 4]),
         Position::Bottom,
     )
+}
+
+pub fn text_input<'a, M: Clone + 'a>(
+    placeholder: &'a str,
+    value: &'a str,
+    on_change: impl Fn(String) -> M + 'a + Clone,
+) -> TextInput<'a, M> {
+    iced::widget::text_input(placeholder, value)
+        .on_input(on_change.clone())
+        .on_paste(on_change)
 }

@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
 use crate::http::{KeyValList, KeyValue};
@@ -8,6 +9,7 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::ops::Not;
 use tokio::fs;
+use serde_with::{serde_as, DurationMilliSeconds};
 
 use super::environment::read_environments;
 use super::{
@@ -15,12 +17,21 @@ use super::{
     JS_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION,
 };
 
+fn default_timeout() -> Duration {
+    Duration::from_secs(300)
+}
+
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncodedCollection {
     pub name: String,
     pub version: Version,
     #[serde(default, skip_serializing_if = "Not::not")]
     pub disable_cert_verification: bool,
+    #[serde(default = "default_timeout")]
+    #[serde_as(as = "DurationMilliSeconds")]
+    pub timeout: Duration,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_environment: Option<String>,
     #[serde(default)]
     pub headers: Vec<EncodedKeyValue>,
@@ -61,6 +72,7 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
             name: "Sanchaar".to_string(),
             version: Version::V1,
             disable_cert_verification: false,
+            timeout: Duration::from_secs(300),
             default_environment: None,
             headers: vec![],
             variables: vec![],
@@ -156,18 +168,21 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         .as_deref()
         .and_then(|n| environments.find_by_name(n));
 
-    Ok(Collection::new(
-        collection.name,
+    Ok(Collection {
+        name: collection.name,
         entries,
         scripts,
         path,
         environments,
+        headers: decode_key_values(collection.headers).into(),
+        variables: decode_key_values(collection.variables).into(),
+        dotenv: dotenv.into(),
+        disable_ssl: collection.disable_cert_verification,
         default_env,
-        decode_key_values(collection.headers).into(),
-        decode_key_values(collection.variables).into(),
-        dotenv.into(),
-        collection.disable_cert_verification,
-    ))
+        active_environment: default_env,
+        timeout: collection.timeout,
+        expanded: false,
+    })
 }
 
 fn read_dotenv(path: &PathBuf) -> KeyValList {
@@ -270,6 +285,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
         name: collection.name.clone(),
         version: Version::V1,
         disable_cert_verification: collection.disable_ssl,
+        timeout: collection.timeout,
         default_environment: collection
             .default_env
             .and_then(|env| collection.environments.get(env))

@@ -6,6 +6,7 @@ use crate::{
     persistence::{HCL_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION},
 };
 use std::sync::Arc;
+use std::time::Duration;
 use std::{ops::Not, path::PathBuf};
 
 new_id_type! {
@@ -61,37 +62,10 @@ pub struct Collection {
     pub variables: Arc<KeyValList>,
     pub dotenv: Arc<KeyValList>,
     pub disable_ssl: bool,
+    pub timeout: Duration,
 }
 
 impl Collection {
-    pub fn new(
-        name: String,
-        entries: Vec<Entry>,
-        scripts: Vec<Script>,
-        path: PathBuf,
-        environments: Environments,
-        default_env: Option<EnvironmentKey>,
-        headers: Arc<KeyValList>,
-        variables: Arc<KeyValList>,
-        dotenv: Arc<KeyValList>,
-        disable_ssl: bool,
-    ) -> Self {
-        Self {
-            name,
-            entries,
-            path,
-            environments,
-            scripts,
-            expanded: false,
-            active_environment: default_env,
-            default_env,
-            headers,
-            variables,
-            dotenv,
-            disable_ssl,
-        }
-    }
-
     fn iter_mut(&mut self) -> IterMut {
         IterMut {
             stack: self.entries.iter_mut().collect::<Vec<_>>(),
@@ -365,6 +339,7 @@ impl Default for Collection {
             variables: Default::default(),
             dotenv: Default::default(),
             disable_ssl: false,
+            timeout: Duration::from_secs(300),
         }
     }
 }

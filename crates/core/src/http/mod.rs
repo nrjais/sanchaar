@@ -172,18 +172,11 @@ impl Collections {
 
     pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
         let path = path.join(&name);
-        let collection = Collection::new(
+        let collection = Collection {
             name,
-            Vec::new(),
-            Vec::new(),
             path,
-            Environments::new(),
-            None,
-            Default::default(),
-            Default::default(),
-            Default::default(),
-            false,
-        );
+            ..Default::default()
+        };
 
         self.dirty();
 

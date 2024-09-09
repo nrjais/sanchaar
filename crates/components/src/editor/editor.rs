@@ -333,9 +333,9 @@ where
         internal.editor.update(
             limits.shrink(self.padding).max(),
             self.font.unwrap_or_else(|| renderer.default_font()),
-            self.wrapping,
             self.text_size.unwrap_or_else(|| renderer.default_size()),
             self.line_height,
+            self.wrapping,
             state.highlighter.borrow_mut().deref_mut(),
         );
 

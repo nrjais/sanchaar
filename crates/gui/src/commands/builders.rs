@@ -399,6 +399,7 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
     collection.headers = Arc::new(to_core_kv_list(&tab.headers));
     collection.variables = Arc::new(to_core_kv_list(&tab.variables));
     collection.disable_ssl = tab.disable_ssl;
+    collection.timeout = tab.timeout;
 
     let encoded = encode_collection(collection);
     Task::perform(

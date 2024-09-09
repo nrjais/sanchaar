@@ -1,6 +1,7 @@
 [package]
 name = "Sanchaar"
 default-run = "sanchaar"
+edition = "2021"
 
 [package.metadata.bundle]
 name = "Sanchaar"
@@ -73,6 +74,7 @@ clap = { version = "4.5", features = ["derive"] }
 reqwest_cookie_store = "0.8.0"
 cookie_store = "0.21.0"
 jsonpath-rust = "0.7.0"
+serde_with = "3.9.0"
 components = { path = "crates/components" }
 core = { path = "crates/core" }
 parsers = { path = "crates/parsers" }

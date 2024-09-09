@@ -1,5 +1,7 @@
 name = "TestBench"
 version = "V1"
+disable_cert_verification = true
+timeout = 3000
 default_environment = "Dev"
 headers = [
   {

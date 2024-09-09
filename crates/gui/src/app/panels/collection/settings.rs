@@ -1,7 +1,9 @@
 use core::http::collection::Collection;
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::HashSet, sync::Arc, time::Duration};
 
-use components::{icon, icons, key_value_editor, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon};
+use components::{
+    icon, icons, key_value_editor, text_input, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon,
+};
 use iced::{
     padding,
     widget::{button, horizontal_space, pick_list, scrollable, text, toggler, Column, Row},
@@ -22,6 +24,7 @@ pub enum Message {
     SaveChanges,
     Saved,
     DisableSSL(bool),
+    UpdateTimeout(String),
 }
 
 impl Message {
@@ -54,6 +57,13 @@ impl Message {
             Message::DisableSSL(disabled) => {
                 tab.edited = true;
                 tab.disable_ssl = disabled;
+            }
+            Message::UpdateTimeout(update) => {
+                if let Ok(millis) = update.parse() {
+                    tab.edited = true;
+                    tab.timeout_str = update;
+                    tab.timeout = Duration::from_millis(millis);
+                }
             }
             Message::Saved => (),
         };
@@ -143,7 +153,19 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
     let disable_ssl = Row::new()
         .push("Disable SSL Certificate Verification")
         .push(horizontal_space().width(Length::FillPortion(4)))
-        .push(toggler(None, tab.disable_ssl, Message::DisableSSL).size(20))
+        .push(toggler(None as Option<&str>, tab.disable_ssl, Message::DisableSSL).size(20))
+        .spacing(4)
+        .width(Length::Fill)
+        .align_y(Alignment::Center);
+
+    let timeout = Row::new()
+        .push("Default Timeout (ms)")
+        .push(horizontal_space().width(Length::FillPortion(4)))
+        .push(text_input(
+            "Millis",
+            &tab.timeout_str,
+            Message::UpdateTimeout,
+        ))
         .spacing(4)
         .width(Length::Fill)
         .align_y(Alignment::Center);
@@ -153,6 +175,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
             .push(action_bar)
             .push(default_env)
             .push(disable_ssl)
+            .push(timeout)
             .push(variables_view(&tab.variables, collection_vars))
             .push(headers_view(&tab.headers, header_vars))
             .spacing(8)

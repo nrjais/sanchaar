@@ -1,5 +1,5 @@
 use core::http::{collection::Collection, environment::EnvironmentKey, CollectionKey};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::Duration};
 
 use components::KeyValList;
 
@@ -33,6 +33,8 @@ pub struct CollectionTab {
     pub headers: KeyValList,
     pub variables: KeyValList,
     pub disable_ssl: bool,
+    pub timeout: Duration,
+    pub timeout_str: String,
     pub edited: bool,
 }
 
@@ -58,6 +60,8 @@ impl CollectionTab {
                 edited: false,
             },
             disable_ssl: col.disable_ssl,
+            timeout: col.timeout,
+            timeout_str: col.timeout.as_millis().to_string(),
             edited: false,
         }
     }
