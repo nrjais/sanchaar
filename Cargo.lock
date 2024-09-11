@@ -1308,9 +1308,9 @@ dependencies = [
 
 [[package]]
 name = "error-code"
-version = "3.2.0"
+version = "3.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0474425d51df81997e2f90a21591180b38eccf27292d755f3e30750225c175b"
+checksum = "a5d9305ccc6942a704f4335694ecd3de2ea531b114ac2d51f5f843750787a92f"
 
 [[package]]
 name = "etagere"
@@ -2032,7 +2032,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -2046,7 +2046,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "bitflags 2.6.0",
  "bytes",
@@ -2065,7 +2065,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "futures",
  "iced_core",
@@ -2079,7 +2079,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "bitflags 2.6.0",
  "bytemuck",
@@ -2098,7 +2098,7 @@ dependencies = [
 [[package]]
 name = "iced_highlighter"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "iced_core",
  "once_cell",
@@ -2108,7 +2108,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -2120,7 +2120,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "bytes",
  "iced_core",
@@ -2132,7 +2132,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2147,7 +2147,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "bitflags 2.6.0",
  "bytemuck",
@@ -2166,7 +2166,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "iced_highlighter",
  "iced_renderer",
@@ -2182,7 +2182,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.13.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#e7eb2d104e7201c896ce50e5db41ed476bce2ba5"
+source = "git+https://github.com/nrjais/iced?branch=editor#794e479a19b2bd4281c51851233729f298fd10cd"
 dependencies = [
  "iced_futures",
  "iced_graphics",
@@ -3767,9 +3767,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.12"
+version = "0.23.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c58f8c84392efc0a126acce10fa59ff7b3d2ac06ab451a33f2741989b806b044"
+checksum = "f2dabaac7466917e566adb06783a81ca48944c6898a1b08b9374106dd671f4c8"
 dependencies = [
  "once_cell",
  "rustls-pki-types",
@@ -4694,9 +4694,9 @@ checksum = "1df77b101bcc4ea3d78dafc5ad7e4f58ceffe0b2b16bf446aeb50b6cb4157656"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.12"
+version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+checksum = "e91b56cd4cadaeb79bbf1a5645f6b4f8dc5bde8834ad5894a8db35fda9efa1fe"
 
 [[package]]
 name = "unicode-linebreak"

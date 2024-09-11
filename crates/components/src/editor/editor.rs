@@ -872,7 +872,11 @@ impl<Message> Update<Message> {
                         let cursor_position =
                             cursor_position - Vector::new(padding.top, padding.left);
 
-                        let click = mouse::Click::new(cursor_position, state.last_click);
+                        let click = mouse::Click::new(
+                            cursor_position,
+                            mouse::Button::Left,
+                            state.last_click,
+                        );
 
                         Some(Update::Click(click))
                     } else if state.focus.is_some() {

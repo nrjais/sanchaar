@@ -153,7 +153,11 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
     let disable_ssl = Row::new()
         .push("Disable SSL Certificate Verification")
         .push(horizontal_space().width(Length::FillPortion(4)))
-        .push(toggler(None as Option<&str>, tab.disable_ssl, Message::DisableSSL).size(20))
+        .push(
+            toggler(tab.disable_ssl)
+                .on_toggle(Message::DisableSSL)
+                .size(20),
+        )
         .spacing(4)
         .width(Length::Fill)
         .align_y(Alignment::Center);
