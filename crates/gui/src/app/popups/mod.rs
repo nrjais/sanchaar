@@ -1,5 +1,6 @@
 use iced::widget::container::Style;
 use iced::widget::{button, container, horizontal_space, text, Column, Row};
+use iced::Length::{Fill, Shrink};
 use iced::{border, Alignment, Element, Task};
 
 use crate::state::popups::Popup;
@@ -61,7 +62,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
     };
 
     let buttons = Row::new()
-        .push(horizontal_space())
+        // .push(horizontal_space())
         .push(
             button("Cancel")
                 .style(button::secondary)
@@ -72,7 +73,8 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
                 .style(button::primary)
                 .on_press_maybe(done_msg),
         )
-        .width(iced::Length::Fill)
+        .width(Fill)
+        .height(Shrink)
         .align_y(Alignment::End)
         .spacing(8);
 
@@ -81,8 +83,8 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             .push(text(title).size(20))
             .push(content)
             .push(buttons)
-            .width(iced::Length::Shrink)
-            .height(iced::Length::Shrink)
+            .width(Shrink)
+            .height(Shrink)
             .spacing(12),
     )
     .padding(16)

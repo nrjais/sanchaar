@@ -1,5 +1,6 @@
 use components::editor;
 use iced::widget::{vertical_rule, Button, Row};
+use iced::Length::{Fill, Shrink};
 use iced::{border, Border};
 use iced::{
     widget::{button, container, pick_list},
@@ -133,25 +134,22 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
         Some(UrlBarMsg::SendRequest)
     };
 
-    let buttons = Row::new()
-        .push(icon_button(icons::Send).on_press_maybe(on_press))
-        .push(vertical_rule(1))
-        .push(
-            icon_button(icons::ContentSave)
-                .on_press(UrlBarMsg::SaveRequest)
-                .style(|t, s| button::Style {
-                    border: border::rounded(border::right(4)),
-                    ..button::primary(t, s)
-                }),
-        );
-
     container(
         Row::new()
             .push(method)
             .push(url)
-            .push(buttons)
-            .height(iced::Length::Shrink)
-            .width(iced::Length::Fill),
+            .push(icon_button(icons::Send).on_press_maybe(on_press))
+            .push(vertical_rule(1))
+            .push(
+                icon_button(icons::ContentSave)
+                    .on_press(UrlBarMsg::SaveRequest)
+                    .style(|t, s| button::Style {
+                        border: border::rounded(border::right(4)),
+                        ..button::primary(t, s)
+                    }),
+            )
+            .height(Shrink)
+            .width(Fill),
     )
     .style(|theme| {
         let base = container::bordered_box(theme);
