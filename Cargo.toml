@@ -49,7 +49,7 @@ iced = { git = "https://github.com/nrjais/iced", features = [
 iced_core = { git = "https://github.com/nrjais/iced", features = [
     "advanced",
 ], branch = "editor" }
-rfd = { version = "0.14", default-features = false, features = [
+rfd = { version = "0.15", default-features = false, features = [
     "xdg-portal",
     "tokio",
 ] }
@@ -66,8 +66,8 @@ log = "0.4"
 regex = "1.10"
 hcl-rs = "0.18"
 similar = "2.5"
-indexmap = "2.2.6"
-dotenvy = "0.15.7"
+indexmap = "2.6"
+dotenvy = "0.15.3"
 pest = "2.7"
 pest_derive = "2.7"
 clap = { version = "4.5", features = ["derive"] }
