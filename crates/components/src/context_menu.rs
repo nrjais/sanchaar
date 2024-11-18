@@ -1,7 +1,7 @@
 use iced::advanced::widget::{tree, Operation};
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::widget::{button, column, container, text};
-use iced::{event, mouse, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector};
+use iced::{mouse, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector};
 
 use crate::min_dimension::min_width;
 
@@ -152,7 +152,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
             .operate(&mut tree.children[0], layout, renderer, operation);
     }
 
-    fn on_event(
+    fn update(
         &mut self,
         tree: &mut widget::Tree,
         event: Event,
@@ -162,7 +162,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
-    ) -> event::Status {
+    ) {
         let state = tree.state.downcast_mut::<State>();
 
         match &event {
@@ -174,7 +174,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
             _ => (),
         }
 
-        self.base.as_widget_mut().on_event(
+        self.base.as_widget_mut().update(
             &mut tree.children[0],
             event,
             layout,
@@ -304,7 +304,7 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
             .operate(self.tree, layout, renderer, operation);
     }
 
-    fn on_event(
+    fn update(
         &mut self,
         event: Event,
         layout: Layout<'_>,
@@ -312,7 +312,7 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
-    ) -> event::Status {
+    ) {
         if let Event::Mouse(mouse::Event::ButtonPressed(_)) = &event {
             if cursor.position_over(layout.bounds()).is_none() {
                 *self.state = State::Closed;
@@ -325,7 +325,7 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
             }
         }
 
-        self.content.as_widget_mut().on_event(
+        self.content.as_widget_mut().update(
             self.tree,
             event,
             layout,
@@ -334,7 +334,7 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
             clipboard,
             shell,
             &layout.bounds(),
-        )
+        );
     }
 
     fn mouse_interaction(

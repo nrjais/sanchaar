@@ -4,7 +4,7 @@
 
 use iced::advanced::widget::tree;
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
-use iced::{event, mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
+use iced::{mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
 use iced_core::widget::Operation;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -134,7 +134,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
             .operate(tree, layout, renderer, operation);
     }
 
-    fn on_event(
+    fn update(
         &mut self,
         tree: &mut widget::Tree,
         event: Event,
@@ -144,8 +144,8 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
-    ) -> event::Status {
-        self.second_pass.as_widget_mut().on_event(
+    ) {
+        self.second_pass.as_widget_mut().update(
             tree, event, layout, cursor, renderer, clipboard, shell, viewport,
         )
     }

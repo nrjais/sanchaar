@@ -62,7 +62,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
     };
 
     let buttons = Row::new()
-        // .push(horizontal_space())
+        .push(horizontal_space())
         .push(
             button("Cancel")
                 .style(button::secondary)
