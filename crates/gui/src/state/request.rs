@@ -5,8 +5,8 @@ use body_types::*;
 use components::editor::Content;
 use components::KeyValList;
 use components::{self, KeyFileList};
-use iced::advanced::widget;
 use core::http::request::{Auth, Method, Request, RequestBody};
+use iced::advanced::widget;
 use serde_json::Value;
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};

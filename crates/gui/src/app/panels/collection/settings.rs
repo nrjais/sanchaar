@@ -91,8 +91,8 @@ pub fn headers_view<'a>(vals: &'a KeyValList, vars: Arc<HashSet<String>>) -> Ele
         .push("Collection Headers")
         .push(
             key_value_editor(vals, &vars)
-                .on_change(Message::UpdateHeaders)
-                .padding(padding::all(0)),
+                .padding(padding::all(0))
+                .on_change(Message::UpdateHeaders),
         )
         .spacing(4)
         .width(Length::Fill)
@@ -107,8 +107,8 @@ pub fn variables_view<'a>(
         .push("Collection Variables")
         .push(
             key_value_editor(vals, &vars)
-                .on_change(Message::UpdateVariables)
-                .padding(padding::all(0)),
+                .padding(padding::all(0))
+                .on_change(Message::UpdateVariables),
         )
         .spacing(4)
         .width(Length::Fill)

@@ -98,7 +98,11 @@ pub async fn transform_request(
     builder.build().context("Failed to build request")
 }
 
-fn process_url(url: String, env: &EnvironmentChain, path_params: KeyValList) -> Result<Url, anyhow::Error> {
+fn process_url(
+    url: String,
+    env: &EnvironmentChain,
+    path_params: KeyValList,
+) -> Result<Url, anyhow::Error> {
     let url = replace_env_vars(&url, env);
     let normalized_url = normalize_url(&url);
     let url = Url::parse(&normalized_url).context("Failed to parse URL")?;

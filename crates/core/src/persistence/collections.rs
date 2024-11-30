@@ -7,9 +7,9 @@ use crate::persistence::Version;
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, DurationMilliSeconds};
 use std::ops::Not;
 use tokio::fs;
-use serde_with::{serde_as, DurationMilliSeconds};
 
 use super::environment::read_environments;
 use super::{

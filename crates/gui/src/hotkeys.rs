@@ -116,7 +116,7 @@ fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -
                 return operate(focus(tab.request().url_id.clone()));
             }
             Task::none()
-        },
+        }
         _ => Task::none(),
     }
 }

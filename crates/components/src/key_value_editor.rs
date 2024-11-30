@@ -1,7 +1,7 @@
 use iced::widget::{column, text};
 use iced::{border, padding, Background, Length, Padding};
 use iced::{
-    widget::{button, checkbox, component, container, text_input, Component, Row},
+    widget::{button, checkbox, container, text_input, Row},
     Border, Element, Theme,
 };
 use std::collections::HashSet;
@@ -137,22 +137,13 @@ impl KeyValList {
     }
 }
 
-pub struct KeyValEditor<'a, M> {
+pub struct KeyValEditor<'a> {
     values: &'a KeyValList,
-    on_change: Option<Box<dyn Fn(KeyValUpdateMsg) -> M + 'a>>,
     padding: Padding,
     vars: Arc<HashSet<String>>,
 }
 
-impl<'a, M: Clone> KeyValEditor<'a, M> {
-    pub fn on_change<F>(mut self, f: F) -> Self
-    where
-        F: 'static + Fn(KeyValUpdateMsg) -> M,
-    {
-        self.on_change = Some(Box::new(f));
-        self
-    }
-
+impl<'a> KeyValEditor<'a> {
     pub fn padding(mut self, padding: impl Into<Padding>) -> Self {
         self.padding = padding.into();
         self
@@ -162,38 +153,12 @@ impl<'a, M: Clone> KeyValEditor<'a, M> {
         self.vars = vars;
         self
     }
-}
 
-#[derive(Debug, Clone)]
-pub enum KeyValUpdateMsg {
-    Toggled(usize, bool),
-    NameChanged(usize, String),
-    ValueChanged(usize, LineEditorMsg),
-    Remove(usize),
-}
-
-pub fn key_value_editor<'a, M>(
-    values: &'a KeyValList,
-    vars: &Arc<HashSet<String>>,
-) -> KeyValEditor<'a, M> {
-    KeyValEditor {
-        values,
-        on_change: None,
-        padding: padding::right(8),
-        vars: Arc::clone(vars),
-    }
-}
-
-impl<'a, M> Component<M> for KeyValEditor<'a, M> {
-    type State = ();
-
-    type Event = KeyValUpdateMsg;
-
-    fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
-        self.on_change.as_ref().map(|f| f(event))
+    pub fn on_change<M: Clone + 'a>(self, f: impl Fn(KeyValUpdateMsg) -> M + 'a) -> Element<'a, M> {
+        self.view().map(f)
     }
 
-    fn view(&self, _state: &Self::State) -> Element<Self::Event> {
+    fn view(self) -> Element<'a, KeyValUpdateMsg> {
         let size = 14;
         let spacing = 2;
 
@@ -306,8 +271,149 @@ impl<'a, M> Component<M> for KeyValEditor<'a, M> {
     }
 }
 
-impl<'a, M: Clone + 'a> From<KeyValEditor<'a, M>> for Element<'a, M> {
-    fn from(val: KeyValEditor<'a, M>) -> Self {
-        component(val)
+#[derive(Debug, Clone)]
+pub enum KeyValUpdateMsg {
+    Toggled(usize, bool),
+    NameChanged(usize, String),
+    ValueChanged(usize, LineEditorMsg),
+    Remove(usize),
+}
+
+pub fn key_value_editor<'a>(
+    values: &'a KeyValList,
+    vars: &Arc<HashSet<String>>,
+) -> KeyValEditor<'a> {
+    KeyValEditor {
+        values,
+        padding: padding::right(8),
+        vars: Arc::clone(vars),
     }
 }
+
+// impl<'a, M> Component<M> for KeyValEditor<'a, M> {
+//     type State = ();
+
+//     type Event = KeyValUpdateMsg;
+
+//     fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
+//         self.on_change.as_ref().map(|f| f(event))
+//     }
+
+//     fn view(&self, _state: &Self::State) -> Element<Self::Event> {
+//         let size = 14;
+//         let spacing = 2;
+
+//         let values = &self.values.values();
+//         let last_idx = values.len() - 1;
+//         let values = values.iter().enumerate().map(|(idx, kv)| {
+//             let border = Border::default();
+//             let enabled = checkbox("", !kv.disabled)
+//                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
+//                 .size(size)
+//                 .spacing(spacing);
+
+//             let remove = button(container(icon(icons::Delete).size(size + 4)))
+//                 .padding(0)
+//                 .style(button::text)
+//                 .on_press_maybe(if idx < self.values.values().len() - 1 {
+//                     Some(KeyValUpdateMsg::Remove(idx))
+//                 } else {
+//                     None
+//                 });
+
+//             let actions = self.values.fixed.not().then(|| {
+//                 container(
+//                     Row::new()
+//                         .push(tooltip("Enabled", enabled))
+//                         .push(tooltip("Delete", remove))
+//                         .align_y(iced::Alignment::Center)
+//                         .spacing(8),
+//                 )
+//                 .style(container::rounded_box)
+//                 .padding([2, 8])
+//             });
+
+//             let input_style = move |theme: &Theme, status: text_input::Status| text_input::Style {
+//                 border,
+//                 ..text_input::default(theme, status)
+//             };
+
+//             let name = text_input("Name", &kv.name)
+//                 .style(input_style)
+//                 .on_input(move |name| KeyValUpdateMsg::NameChanged(idx, name))
+//                 .on_paste(move |name| KeyValUpdateMsg::NameChanged(idx, name))
+//                 .size(size)
+//                 .width(Length::FillPortion(2));
+
+//             let value = container(
+//                 line_editor(&kv.value)
+//                     .placeholder("Value")
+//                     .style(move |t, s| editor::Style {
+//                         border,
+//                         ..editor::default(t, s)
+//                     })
+//                     .on_action(move |a| KeyValUpdateMsg::ValueChanged(idx, a))
+//                     .vars(Arc::clone(&self.vars))
+//                     .size(size),
+//             )
+//             .width(Length::FillPortion(3));
+
+//             container(
+//                 Row::new()
+//                     .push(name)
+//                     .push(value)
+//                     .push_maybe(actions)
+//                     .spacing(spacing),
+//             )
+//             .style(move |t| {
+//                 let last = idx == last_idx;
+//                 let style = container::bordered_box(t);
+
+//                 let radius = if last {
+//                     border::bottom(2)
+//                 } else {
+//                     border::radius(0)
+//                 };
+
+//                 container::Style {
+//                     border: style.border.rounded(radius),
+//                     ..style
+//                 }
+//             })
+//             .padding(1)
+//             .into()
+//         });
+
+//         let header = container(
+//             Row::new()
+//                 .push(text("Name").size(size).width(Length::FillPortion(2)))
+//                 .push(text("Value").size(size).width(Length::FillPortion(3)))
+//                 .push(text("Actions").size(size).width(Length::Shrink))
+//                 .spacing(4)
+//                 .padding([2, 4]),
+//         )
+//         .style(|t: &Theme| container::Style {
+//             background: Some(Background::Color(
+//                 t.extended_palette().background.weak.color,
+//             )),
+//             border: Border::default()
+//                 .width(1)
+//                 .color(t.extended_palette().background.strong.color)
+//                 .rounded(border::top(2)),
+//             ..container::transparent(t)
+//         })
+//         .into();
+
+//         column([header])
+//             .extend(values)
+//             .padding(self.padding)
+//             .width(Length::Fill)
+//             .into()
+//     }
+// }
+
+// impl<'a, M: Clone + 'a> From<KeyValEditor<'a, M>> for Element<'a, M> {
+//     fn from(val: KeyValEditor<'a, M>) -> Self {
+//         component(val)
+//     }
+// }
