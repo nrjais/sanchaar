@@ -1,4 +1,3 @@
-use iced::widget::{component, Component};
 use iced::{highlighter, Element, Font, Length};
 use iced_core::text::Wrapping;
 
@@ -11,25 +10,33 @@ pub enum ContentType {
     XML,
 }
 
-pub struct CodeEditor<'a, M> {
+pub struct CodeEditor<'a> {
     pub code: &'a editor::Content,
     pub content_type: ContentType,
-    pub on_action: Option<Box<dyn Fn(CodeEditorMsg) -> M>>,
     pub editable: bool,
 }
 
-impl<'a, M: 'a> CodeEditor<'a, M> {
-    pub fn on_action<F>(mut self, f: F) -> CodeEditor<'a, M>
-    where
-        F: 'static + Fn(CodeEditorMsg) -> M,
-    {
-        self.on_action = Some(Box::new(f));
-        self
-    }
-
+impl<'a> CodeEditor<'a> {
     pub fn editable(mut self) -> Self {
         self.editable = true;
         self
+    }
+
+    pub fn view(self) -> Element<'a, CodeEditorMsg> {
+        text_editor(&self.code)
+            .height(Length::Fill)
+            .font(Font::MONOSPACE)
+            .wrapping(Wrapping::WordOrGlyph)
+            .on_action(move |ac| CodeEditorMsg::EditorAction(ac, self.editable))
+            .highlight(
+                self.content_type.to_extension(),
+                highlighter::Theme::SolarizedDark,
+            )
+            .into()
+    }
+
+    pub fn map<M: Clone + 'a>(self, f: impl Fn(CodeEditorMsg) -> M + 'a) -> Element<'a, M> {
+        self.view().map(f)
     }
 }
 
@@ -60,39 +67,10 @@ impl CodeEditorMsg {
     }
 }
 
-pub fn code_editor<M>(code: &editor::Content, content_type: ContentType) -> CodeEditor<'_, M> {
+pub fn code_editor<'a>(code: &'a editor::Content, content_type: ContentType) -> CodeEditor<'a> {
     CodeEditor {
         code,
         content_type,
-        on_action: None,
         editable: false,
-    }
-}
-
-impl<'a, M> Component<M> for CodeEditor<'a, M> {
-    type State = ();
-    type Event = CodeEditorMsg;
-
-    fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
-        self.on_action.as_ref().map(|on_action| on_action(event))
-    }
-
-    fn view(&self, _state: &Self::State) -> Element<Self::Event> {
-        text_editor(&self.code)
-            .height(Length::Fill)
-            .font(Font::MONOSPACE)
-            .wrapping(Wrapping::WordOrGlyph)
-            .on_action(|ac| CodeEditorMsg::EditorAction(ac, self.editable))
-            .highlight(
-                self.content_type.to_extension(),
-                highlighter::Theme::SolarizedDark,
-            )
-            .into()
-    }
-}
-
-impl<'a, M: 'a> From<CodeEditor<'a, M>> for Element<'a, M> {
-    fn from(val: CodeEditor<'a, M>) -> Self {
-        component(val)
     }
 }

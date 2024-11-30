@@ -80,14 +80,14 @@ fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEdit
             .push(field_row(
                 "Username",
                 line_editor(username)
-                    .on_action(AuthEditorMsg::BasicUsername)
-                    .vars(Arc::clone(&vars)),
+                    .vars(Arc::clone(&vars))
+                    .map(AuthEditorMsg::BasicUsername),
             ))
             .push(field_row(
                 "Password",
                 line_editor(password)
-                    .on_action(AuthEditorMsg::BasicPassword)
-                    .vars(Arc::clone(&vars)),
+                    .vars(Arc::clone(&vars))
+                    .map(AuthEditorMsg::BasicPassword),
             ))
             .height(Length::Fill)
             .spacing(4)
@@ -96,8 +96,8 @@ fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEdit
             .push(field_row(
                 "Token",
                 line_editor(token)
-                    .on_action(AuthEditorMsg::BearerToken)
-                    .vars(Arc::clone(&vars)),
+                    .vars(Arc::clone(&vars))
+                    .map(AuthEditorMsg::BearerToken),
             ))
             .height(Length::Fill)
             .spacing(4)

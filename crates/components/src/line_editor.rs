@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use iced::advanced::widget;
-use iced::widget::{component, Component};
 use iced::{Element, Length, Pixels, Theme};
 use iced_core::text::editor::{Action, Edit};
 use iced_core::text::Wrapping;
@@ -10,9 +9,8 @@ use iced_core::text::Wrapping;
 use crate::editor::highlighters::TemplHighlighterSettings;
 use crate::editor::{self, highlighters, text_editor, ContentAction, Status, StyleFn};
 
-pub struct LineEditor<'a, M> {
+pub struct LineEditor<'a> {
     pub code: &'a editor::Content,
-    pub on_action: Option<Box<dyn Fn(LineEditorMsg) -> M>>,
     pub editable: bool,
     pub placeholder: Option<&'a str>,
     pub var_set: Arc<HashSet<String>>,
@@ -21,15 +19,7 @@ pub struct LineEditor<'a, M> {
     style: StyleFn<'a, Theme>,
 }
 
-impl<'a, M: 'a> LineEditor<'a, M> {
-    pub fn on_action<F>(mut self, f: F) -> LineEditor<'a, M>
-    where
-        F: 'static + Fn(LineEditorMsg) -> M,
-    {
-        self.on_action = Some(Box::new(f));
-        self
-    }
-
+impl<'a> LineEditor<'a> {
     pub fn editable(mut self) -> Self {
         self.editable = true;
         self
@@ -60,59 +50,21 @@ impl<'a, M: 'a> LineEditor<'a, M> {
         self.id = Some(id);
         self
     }
-}
 
-#[derive(Debug, Clone)]
-pub enum LineEditorMsg {
-    EditorAction(ContentAction, bool),
-}
-
-impl LineEditorMsg {
-    pub fn update(self, state: &mut editor::Content) {
-        match self {
-            Self::EditorAction(action, editable) => {
-                let newline = matches!(action, ContentAction::Action(Action::Edit(Edit::Enter)));
-                let allowed = !newline || editable;
-
-                if allowed || !action.is_edit() {
-                    state.perform(action);
-                }
-            }
-        }
-    }
-}
-
-pub fn line_editor<'a, M>(code: &'a editor::Content) -> LineEditor<'a, M> {
-    LineEditor {
-        code,
-        on_action: None,
-        editable: false,
-        placeholder: None,
-        text_size: None,
-        style: Box::new(|t, s| editor::default(t, s)),
-        var_set: HashSet::new().into(),
-        id: None,
-    }
-}
-
-impl<'a, M> Component<M> for LineEditor<'a, M> {
-    type State = ();
-    type Event = LineEditorMsg;
-
-    fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
-        self.on_action.as_ref().map(|on_action| on_action(event))
+    pub fn map<M: Clone + 'a>(self, f: impl Fn(LineEditorMsg) -> M + 'a) -> Element<'a, M> {
+        self.view().map(f)
     }
 
-    fn view(&self, _state: &Self::State) -> Element<Self::Event> {
+    pub fn view(self) -> Element<'a, LineEditorMsg> {
         let editor = text_editor(&self.code)
             .height(Length::Shrink)
             .wrapping(Wrapping::WordOrGlyph)
-            .style(|t, s| (self.style)(t, s))
+            .style(self.style)
             .highlight_with::<highlighters::TemplHighlighter<Arc<HashSet<String>>>>(
                 TemplHighlighterSettings::new(Arc::clone(&self.var_set)),
                 |f, _| *f,
             )
-            .on_action(|ac| LineEditorMsg::EditorAction(ac, self.editable));
+            .on_action(move |ac| LineEditorMsg::EditorAction(ac, self.editable));
 
         let editor = if let Some(placeholder) = self.placeholder {
             editor.placeholder(placeholder)
@@ -136,11 +88,34 @@ impl<'a, M> Component<M> for LineEditor<'a, M> {
     }
 }
 
-impl<'a, M> From<LineEditor<'a, M>> for Element<'a, M>
-where
-    M: 'a,
-{
-    fn from(val: LineEditor<'a, M>) -> Self {
-        component(val)
+#[derive(Debug, Clone)]
+pub enum LineEditorMsg {
+    EditorAction(ContentAction, bool),
+}
+
+impl LineEditorMsg {
+    pub fn update(self, state: &mut editor::Content) {
+        match self {
+            Self::EditorAction(action, editable) => {
+                let newline = matches!(action, ContentAction::Action(Action::Edit(Edit::Enter)));
+                let allowed = !newline || editable;
+
+                if allowed || !action.is_edit() {
+                    state.perform(action);
+                }
+            }
+        }
+    }
+}
+
+pub fn line_editor(code: &editor::Content) -> LineEditor {
+    LineEditor {
+        code,
+        editable: false,
+        placeholder: None,
+        text_size: None,
+        style: Box::new(|t, s| editor::default(t, s)),
+        var_set: HashSet::new().into(),
+        id: None,
     }
 }

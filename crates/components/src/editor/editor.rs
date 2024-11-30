@@ -52,7 +52,6 @@ use iced_core::{
 };
 
 use std::cell::RefCell;
-use std::fmt;
 use std::ops::DerefMut;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -331,13 +330,6 @@ impl Focus {
         self.is_window_focused
             && ((self.now - self.updated_at).as_millis() / Self::CURSOR_BLINK_INTERVAL_MILLIS) % 2
                 == 0
-    }
-}
-
-impl<Highlighter: text::Highlighter> State<Highlighter> {
-    /// Returns whether the [`TextEditor`] is currently focused or not.
-    pub fn is_focused(&self) -> bool {
-        self.focus.is_some()
     }
 }
 

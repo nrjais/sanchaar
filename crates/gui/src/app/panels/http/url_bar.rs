@@ -121,12 +121,13 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
         .style(move |t: &iced::Theme, _| editor::Style {
             border,
             ..editor::default(t, editor::Status::Active)
-        })
-        .on_action(UrlBarMsg::UrlChanged);
+        });
 
     if let Some(col) = col {
         url = url.vars(col.env_chain().all_var_set());
     }
+
+    let url = url.map(UrlBarMsg::UrlChanged);
 
     let on_press = if executing {
         None
