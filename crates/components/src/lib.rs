@@ -30,5 +30,7 @@ pub use line_editor::{line_editor, LineEditor, LineEditorMsg};
 pub use lines::{horizontal_line, vertical_line};
 pub use min_dimension::{min_height, min_width, MinDimension};
 pub use modal::modal;
-pub use multi_file_picker::{multi_file_picker, FilePickerAction, KeyFile, KeyFileList};
+pub use multi_file_picker::{
+    multi_file_picker, FilePickerAction, FilePickerUpdateMsg, KeyFile, KeyFileList,
+};
 pub use table::{table, table_str, table_value};

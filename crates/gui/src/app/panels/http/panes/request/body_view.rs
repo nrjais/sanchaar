@@ -108,10 +108,7 @@ fn multipart_editor<'a>(
 
     let file_picker = Column::new()
         .push("Files")
-        .push(
-            multi_file_picker(files, RequestPaneMsg::MulitpartOpenFilePicker)
-                .on_change(RequestPaneMsg::MultipartFilesAction),
-        )
+        .push(multi_file_picker(files).map(RequestPaneMsg::MultipartFilesAction))
         .width(Length::Fill)
         .spacing(4);
 

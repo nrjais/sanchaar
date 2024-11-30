@@ -1,7 +1,7 @@
 use iced::widget::{column, text};
 use iced::{padding, Background, Length};
 use iced::{
-    widget::{button, checkbox, component, container, text_input, Component, Row},
+    widget::{button, checkbox, container, text_input, Row},
     Border, Element, Theme,
 };
 use std::ops::Not;
@@ -128,22 +128,6 @@ impl KeyFileList {
     }
 }
 
-pub struct MultiFilePicker<'a, M> {
-    values: &'a KeyFileList,
-    on_change: Option<Box<dyn Fn(FilePickerAction) -> M + 'a>>,
-    on_file_picker: Box<dyn Fn(usize) -> M + 'a>,
-}
-
-impl<'a, M: Clone> MultiFilePicker<'a, M> {
-    pub fn on_change<F>(mut self, f: F) -> Self
-    where
-        F: 'static + Fn(FilePickerAction) -> M,
-    {
-        self.on_change = Some(Box::new(f));
-        self
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum FilePickerAction {
     Toggled(usize, bool),
@@ -158,146 +142,116 @@ pub enum FilePickerUpdateMsg {
     OpenFilePicker(usize),
 }
 
-pub fn multi_file_picker<M: Clone>(
-    values: &KeyFileList,
-    on_file_picker: impl Fn(usize) -> M + 'static,
-) -> MultiFilePicker<'_, M> {
-    MultiFilePicker {
-        values,
-        on_change: None,
-        on_file_picker: Box::new(on_file_picker),
-    }
-}
+pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerUpdateMsg> {
+    let size = 14;
+    let spacing = 2;
 
-impl<'a, M> Component<M> for MultiFilePicker<'a, M> {
-    type State = ();
+    use FilePickerUpdateMsg::*;
+    let values = values.values().iter().enumerate().map(|(idx, kv)| {
+        let border = Border::default();
+        let enabled = checkbox("", !kv.disabled)
+            .on_toggle(move |enabled| Action(FilePickerAction::Toggled(idx, enabled)))
+            .size(size)
+            .spacing(spacing);
 
-    type Event = FilePickerUpdateMsg;
-
-    fn update(&mut self, _state: &mut Self::State, event: Self::Event) -> Option<M> {
-        match event {
-            FilePickerUpdateMsg::OpenFilePicker(idx) => Some((self.on_file_picker)(idx)),
-            FilePickerUpdateMsg::Action(action) => self.on_change.as_ref().map(|f| f(action)),
-        }
-    }
-
-    fn view(&self, _state: &Self::State) -> Element<Self::Event> {
-        let size = 14;
-        let spacing = 2;
-
-        use FilePickerUpdateMsg::*;
-        let values = self.values.values().iter().enumerate().map(|(idx, kv)| {
-            let border = Border::default();
-            let enabled = checkbox("", !kv.disabled)
-                .on_toggle(move |enabled| Action(FilePickerAction::Toggled(idx, enabled)))
-                .size(size)
-                .spacing(spacing);
-
-            let remove = button(container(icon(icons::Delete).size(size + 4)))
-                .padding(0)
-                .style(button::text)
-                .on_press_maybe(if idx < self.values.values().len() - 1 {
-                    Some(Action(FilePickerAction::Remove(idx)))
-                } else {
-                    None
-                });
-
-            let actions = self.values.fixed.not().then(|| {
-                container(
-                    Row::new()
-                        .push(tooltip("Enabled", enabled))
-                        .push(tooltip("Delete", remove))
-                        .align_y(iced::Alignment::Center)
-                        .spacing(8),
-                )
-                .style(container::rounded_box)
-                .padding([2, 8])
+        let remove = button(container(icon(icons::Delete).size(size + 4)))
+            .padding(0)
+            .style(button::text)
+            .on_press_maybe(if idx < values.values().len() - 1 {
+                Some(Action(FilePickerAction::Remove(idx)))
+            } else {
+                None
             });
 
-            let input_style = move |theme: &Theme, status: text_input::Status| text_input::Style {
-                border,
-                ..text_input::default(theme, status)
-            };
-
-            let name = text_input("", &kv.name)
-                .style(input_style)
-                .on_input(move |name| Action(FilePickerAction::NameChanged(idx, name)))
-                .on_paste(move |name| Action(FilePickerAction::NameChanged(idx, name)))
-                .size(size)
-                .width(Length::FillPortion(2));
-
-            let path = kv
-                .path
-                .as_ref()
-                .and_then(|p| p.to_str())
-                .unwrap_or("Select a file");
-
-            const MAX_LEN: usize = 15;
-            let ellipsis = if path.len() > MAX_LEN {
-                format!("...{}", &path[path.len() - MAX_LEN..])
-            } else {
-                path.to_owned()
-            };
-
-            let value = container(
-                Row::new()
-                    .push(tooltip(
-                        "File picker",
-                        button(icon(icons::FolderOpen).size(size))
-                            .on_press(FilePickerUpdateMsg::OpenFilePicker(idx))
-                            .style(button::primary)
-                            .padding([2, 6]),
-                    ))
-                    // TODO: Ellipsis long file path, show tooltip on hover
-                    .push(tooltip(path, text(ellipsis).size(size)))
-                    .height(Length::Fill)
-                    .spacing(spacing)
-                    .align_y(iced::Alignment::Center),
-            )
-            .width(Length::FillPortion(3));
-
+        let actions = values.fixed.not().then(|| {
             container(
                 Row::new()
-                    .push(name)
-                    .push(value)
-                    .push_maybe(actions)
-                    .height(Length::Shrink)
-                    .spacing(spacing),
+                    .push(tooltip("Enabled", enabled))
+                    .push(tooltip("Delete", remove))
+                    .align_y(iced::Alignment::Center)
+                    .spacing(8),
             )
-            .style(container::bordered_box)
-            .padding(1)
-            .into()
+            .style(container::rounded_box)
+            .padding([2, 8])
         });
 
-        let header = container(
+        let input_style = move |theme: &Theme, status: text_input::Status| text_input::Style {
+            border,
+            ..text_input::default(theme, status)
+        };
+
+        let name = text_input("", &kv.name)
+            .style(input_style)
+            .on_input(move |name| Action(FilePickerAction::NameChanged(idx, name)))
+            .on_paste(move |name| Action(FilePickerAction::NameChanged(idx, name)))
+            .size(size)
+            .width(Length::FillPortion(2));
+
+        let path = kv
+            .path
+            .as_ref()
+            .and_then(|p| p.to_str())
+            .unwrap_or("Select a file");
+
+        const MAX_LEN: usize = 15;
+        let ellipsis = if path.len() > MAX_LEN {
+            format!("...{}", &path[path.len() - MAX_LEN..])
+        } else {
+            path.to_owned()
+        };
+
+        let value = container(
             Row::new()
-                .push(text("Name").size(size).width(Length::FillPortion(2)))
-                .push(text("File").size(size).width(Length::FillPortion(3)))
-                .push(text("Actions").size(size).width(Length::Shrink))
-                .spacing(4)
-                .padding([2, 4]),
+                .push(tooltip(
+                    "File picker",
+                    button(icon(icons::FolderOpen).size(size))
+                        .on_press(FilePickerUpdateMsg::OpenFilePicker(idx))
+                        .style(button::primary)
+                        .padding([2, 6]),
+                ))
+                // TODO: Ellipsis long file path, show tooltip on hover
+                .push(tooltip(path, text(ellipsis).size(size)))
+                .height(Length::Fill)
+                .spacing(spacing)
+                .align_y(iced::Alignment::Center),
         )
-        .style(|t: &Theme| container::Style {
-            background: Some(Background::Color(
-                t.extended_palette().background.weak.color,
-            )),
-            border: Border::default()
-                .width(1)
-                .color(t.extended_palette().background.strong.color),
-            ..container::transparent(t)
-        })
-        .into();
+        .width(Length::FillPortion(3));
 
-        column([header])
-            .extend(values)
-            .width(Length::Fill)
-            .padding(padding::right(8))
-            .into()
-    }
-}
+        container(
+            Row::new()
+                .push(name)
+                .push(value)
+                .push_maybe(actions)
+                .height(Length::Shrink)
+                .spacing(spacing),
+        )
+        .style(container::bordered_box)
+        .padding(1)
+        .into()
+    });
 
-impl<'a, M: Clone + 'a> From<MultiFilePicker<'a, M>> for Element<'a, M> {
-    fn from(val: MultiFilePicker<'a, M>) -> Self {
-        component(val)
-    }
+    let header = container(
+        Row::new()
+            .push(text("Name").size(size).width(Length::FillPortion(2)))
+            .push(text("File").size(size).width(Length::FillPortion(3)))
+            .push(text("Actions").size(size).width(Length::Shrink))
+            .spacing(4)
+            .padding([2, 4]),
+    )
+    .style(|t: &Theme| container::Style {
+        background: Some(Background::Color(
+            t.extended_palette().background.weak.color,
+        )),
+        border: Border::default()
+            .width(1)
+            .color(t.extended_palette().background.strong.color),
+        ..container::transparent(t)
+    })
+    .into();
+
+    column([header])
+        .extend(values)
+        .width(Length::Fill)
+        .padding(padding::right(8))
+        .into()
 }

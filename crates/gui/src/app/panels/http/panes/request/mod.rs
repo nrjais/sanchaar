@@ -12,11 +12,11 @@ use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::request::ReqTabId;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
-use components::CodeEditorMsg;
 use components::{
     button_tab, button_tabs, icon_button, icons, key_value_editor, tooltip, FilePickerAction,
     KeyValUpdateMsg,
 };
+use components::{CodeEditorMsg, FilePickerUpdateMsg};
 
 use self::auth_editor::{auth_view, AuthEditorMsg};
 use self::body_view::body_tab;
@@ -35,8 +35,7 @@ pub enum RequestPaneMsg {
     AuthEditorAction(AuthEditorMsg),
     FormBodyEditAction(KeyValUpdateMsg),
     MultipartParamsAction(KeyValUpdateMsg),
-    MultipartFilesAction(FilePickerAction),
-    MulitpartOpenFilePicker(usize),
+    MultipartFilesAction(FilePickerUpdateMsg),
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
     ChangePreRequestScript(Option<String>),
@@ -84,19 +83,21 @@ impl RequestPaneMsg {
                     params.update(action);
                 }
             }
-            Self::MultipartFilesAction(action) => {
+            Self::MultipartFilesAction(FilePickerUpdateMsg::OpenFilePicker(idx)) => {
+                return open_file_dialog("Select File").map(move |handle| {
+                    let path = handle.map(|p| p.path().to_path_buf());
+                    RequestPaneMsg::MultipartFilesAction(FilePickerUpdateMsg::Action(
+                        FilePickerAction::FilePicked(idx, path),
+                    ))
+                });
+            }
+            Self::MultipartFilesAction(FilePickerUpdateMsg::Action(action)) => {
                 if let RawRequestBody::Multipart(_, files) = &mut request.body {
                     files.update(action);
                 }
             }
             Self::ChangeBodyFile(path) => {
                 request.body = RawRequestBody::File(path);
-            }
-            Self::MulitpartOpenFilePicker(idx) => {
-                return open_file_dialog("Select File").map(move |handle| {
-                    let path = handle.map(|p| p.path().to_path_buf());
-                    RequestPaneMsg::MultipartFilesAction(FilePickerAction::FilePicked(idx, path))
-                });
             }
             Self::ChangeBodyType(ct) => request.change_body_type(ct),
             Self::FormatBody => request.format_body(),
