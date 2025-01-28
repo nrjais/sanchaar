@@ -145,7 +145,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
     ) {
         let state = tree.state.downcast_mut::<State>();
 
-        operation.custom(state, None);
+        operation.custom(None, layout.bounds(), state);
 
         self.base
             .as_widget()
