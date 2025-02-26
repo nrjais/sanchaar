@@ -432,7 +432,7 @@ where
     fn update(
         &mut self,
         tree: &mut widget::Tree,
-        event: Event,
+        event: &Event,
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         _renderer: &Renderer,
@@ -465,6 +465,7 @@ where
             Event::Window(window::Event::RedrawRequested(now)) => {
                 if let Some(focus) = &mut state.focus {
                     if focus.is_window_focused {
+                        let now = now.clone();
                         focus.now = now;
 
                         let millis_until_redraw = Focus::CURSOR_BLINK_INTERVAL_MILLIS
@@ -943,7 +944,7 @@ enum Update<Message> {
 
 impl<Message> Update<Message> {
     fn from_event<H: Highlighter>(
-        event: Event,
+        event: &Event,
         state: &State<H>,
         bounds: Rectangle,
         padding: Padding,
@@ -1011,9 +1012,9 @@ impl<Message> Update<Message> {
                 };
 
                 let key_press = KeyPress {
-                    key,
-                    modifiers,
-                    text,
+                    key: key.clone(),
+                    modifiers: modifiers.clone(),
+                    text: text.clone(),
                     status,
                 };
 

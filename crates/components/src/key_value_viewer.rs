@@ -29,7 +29,7 @@ pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a,
                     .color(colors::DARK_GREY)
                     .width(Length::FillPortion(3)),
             )
-            .padding(spacing)
+            .padding(spacing as u16)
             .spacing(spacing);
 
         values_col = values_col.push(row).push(horizontal_line(1));

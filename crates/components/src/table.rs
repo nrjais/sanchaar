@@ -32,7 +32,7 @@ pub fn table<'a, M: 'a, const W: usize>(
         .padding(padding::Padding::from([4, 12]).left(0))
         .width(Length::Fill);
 
-    let mut row = Row::new().spacing(spacing).padding(spacing);
+    let mut row = Row::new().spacing(spacing).padding(spacing as u16);
 
     for (header, w) in headers.into_iter().zip(widths.iter()) {
         row = row.push(container(header).width(Length::FillPortion(1.max(*w))));
@@ -40,7 +40,7 @@ pub fn table<'a, M: 'a, const W: usize>(
     values_col = values_col.push(row).push(horizontal_line(1));
 
     for vals in values {
-        let mut row = Row::new().spacing(spacing).padding(spacing);
+        let mut row = Row::new().spacing(spacing).padding(spacing as u16);
 
         for (val, w) in vals.into_iter().zip(widths.iter()) {
             row = row.push(container(val).width(Length::FillPortion(1.max(*w))));

@@ -16,7 +16,7 @@ pub fn icon<'a>(icon: NerdIcon) -> Text<'a, Theme, Renderer> {
 
 pub fn icon_button<'a, M: 'a>(
     ico: NerdIcon,
-    size: Option<u16>,
+    size: Option<u32>,
     padding: Option<u16>,
 ) -> Button<'a, M> {
     let ico = match size {
