@@ -17,7 +17,7 @@ const HACK_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFont-Regula
 const HACK_MONO_REG_BYTES: &[u8] = include_bytes!("../../../fonts/HackNerdFontMono-Regular.ttf");
 
 pub fn main() -> Result<(), iced::Error> {
-    iced::application("Sanchaar", app::update, app::view)
+    iced::application(|| (AppState::new(), init_command()), app::update, app::view)
         .theme(|s| s.theme.clone())
         .antialiasing(true)
         .subscription(hotkeys::subscription)
@@ -29,5 +29,6 @@ pub fn main() -> Result<(), iced::Error> {
             min_size: Some(Size::new(800.0, 600.0)),
             ..Default::default()
         })
-        .run_with(|| (AppState::new(), init_command()))
+        .title("Sanchaar")
+        .run()
 }
