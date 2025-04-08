@@ -41,8 +41,8 @@ use iced_core::mouse;
 use iced_core::renderer;
 use iced_core::text::editor::{Cursor, Editor as _};
 use iced_core::text::highlighter::{self, Highlighter};
-use iced_core::text::Wrapping;
 use iced_core::text::{self, LineHeight, Text};
+use iced_core::text::{Alignment, Wrapping};
 use iced_core::widget::operation;
 use iced_core::widget::{self, Widget};
 use iced_core::{keyboard, SmolStr};
@@ -683,8 +683,8 @@ where
                         size: self.text_size.unwrap_or_else(|| renderer.default_size()),
                         line_height: self.line_height,
                         font,
-                        horizontal_alignment: alignment::Horizontal::Left,
-                        vertical_alignment: alignment::Vertical::Top,
+                        align_x: Alignment::Left,
+                        align_y: alignment::Vertical::Top,
                         shaping: text::Shaping::Advanced,
                         wrapping: self.wrapping,
                     },

@@ -6,32 +6,32 @@ use parsers::Token;
 
 use crate::colors;
 
-pub trait IsDefineVariable: Clone + PartialEq {
-    fn is_define_variable(&self, name: &str) -> bool;
+pub trait IsDefined: Clone + PartialEq {
+    fn is_defined(&self, name: &str) -> bool;
 }
 
-impl IsDefineVariable for Arc<HashSet<String>> {
-    fn is_define_variable(&self, name: &str) -> bool {
+impl IsDefined for Arc<HashSet<String>> {
+    fn is_defined(&self, name: &str) -> bool {
         self.contains(name)
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct TemplHighlighterSettings<T: IsDefineVariable>(T);
+pub struct TemplHighlighterSettings<T: IsDefined>(T);
 
-impl<T: IsDefineVariable> TemplHighlighterSettings<T> {
+impl<T: IsDefined> TemplHighlighterSettings<T> {
     pub fn new(vars: T) -> Self {
         Self(vars)
     }
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct TemplHighlighter<T: IsDefineVariable> {
+pub struct TemplHighlighter<T: IsDefined> {
     vars: T,
     current_line: usize,
 }
 
-impl<T: IsDefineVariable + 'static> Highlighter for TemplHighlighter<T> {
+impl<T: IsDefined + 'static> Highlighter for TemplHighlighter<T> {
     type Settings = TemplHighlighterSettings<T>;
 
     type Highlight = Format<iced::Font>;
@@ -61,7 +61,7 @@ impl<T: IsDefineVariable + 'static> Highlighter for TemplHighlighter<T> {
         for span in parsed {
             match span.token {
                 Token::Variable(name) => {
-                    let color = if self.vars.is_define_variable(&name) {
+                    let color = if self.vars.is_defined(&name) {
                         colors::LIGHT_GREEN
                     } else {
                         colors::RED
