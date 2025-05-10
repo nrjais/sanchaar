@@ -203,18 +203,22 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
     fn overlay<'b>(
         &'b mut self,
         tree: &'b mut widget::Tree,
-        layout: Layout<'_>,
+        layout: Layout<'b>,
         renderer: &Renderer,
+        viewport: &Rectangle,
         translation: Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         let state = tree.state.downcast_mut::<State>();
 
         let (first, second) = tree.children.split_at_mut(1);
 
-        let base = self
-            .base
-            .as_widget_mut()
-            .overlay(&mut first[0], layout, renderer, translation);
+        let base = self.base.as_widget_mut().overlay(
+            &mut first[0],
+            layout,
+            renderer,
+            viewport,
+            translation,
+        );
 
         let overlay = state.open().map(|position| {
             overlay::Element::new(Box::new(Overlay {
@@ -335,21 +339,5 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
             shell,
             &layout.bounds(),
         );
-    }
-
-    fn mouse_interaction(
-        &self,
-        layout: Layout<'_>,
-        cursor: mouse::Cursor,
-        viewport: &Rectangle,
-        renderer: &Renderer,
-    ) -> iced::advanced::mouse::Interaction {
-        self.content
-            .as_widget()
-            .mouse_interaction(self.tree, layout, cursor, viewport, renderer)
-    }
-
-    fn is_over(&self, layout: Layout<'_>, _renderer: &Renderer, cursor_position: Point) -> bool {
-        layout.bounds().contains(cursor_position)
     }
 }

@@ -5,7 +5,7 @@
 use iced::advanced::widget::tree;
 use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
 use iced::{mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
-use iced_core::widget::Operation;
+use iced_core::widget::{Operation, Tree};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Dimension {
@@ -165,14 +165,15 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
 
     fn overlay<'b>(
         &'b mut self,
-        tree: &'b mut widget::Tree,
-        layout: Layout<'_>,
+        tree: &'b mut Tree,
+        layout: Layout<'b>,
         renderer: &Renderer,
+        viewport: &Rectangle,
         translation: Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         self.second_pass
             .as_widget_mut()
-            .overlay(tree, layout, renderer, translation)
+            .overlay(tree, layout, renderer, viewport, translation)
     }
 }
 
