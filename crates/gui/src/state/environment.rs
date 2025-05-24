@@ -39,6 +39,6 @@ impl From<&Env> for Environment {
 
 pub fn environment_keyvals(envs: &Environments) -> BTreeMap<EnvironmentKey, Env> {
     envs.entries()
-        .map(|(key, env)| (*key, Env::from(env)))
+        .map(|(key, env)| (key, Env::from(env)))
         .collect()
 }

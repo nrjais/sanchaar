@@ -13,7 +13,7 @@ use components::{icon, icons, line_editor, LineEditorMsg, NerdIcon};
 use core::http::collection::Collection;
 use core::http::request::Method;
 
-use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
+use crate::commands::builders::{send_request_cmd, ResponseResult};
 use crate::state::popups::Popup;
 use crate::state::{AppState, HttpTab, Tab, TabKey};
 
@@ -23,7 +23,6 @@ pub enum UrlBarMsg {
     UrlChanged(LineEditorMsg),
     SendRequest,
     SaveRequest,
-    RequestSaved,
     RequestResult(TabKey, ResponseResult),
 }
 
@@ -73,20 +72,15 @@ impl UrlBarMsg {
                     .map(move |r| UrlBarMsg::RequestResult(active_tab, r));
             }
             UrlBarMsg::SaveRequest => {
-                let req_ref = state.common.collections.get_ref(tab.collection_ref);
-                if let Some(req_res) = req_ref {
-                    let path = req_res.path.clone();
-                    return save_request_cmd(tab, path).map(|_| Self::RequestSaved);
-                } else {
-                    Popup::save_request(&mut state.common, active_tab);
-                }
+                // Database mode: Requests are saved automatically
+                // Just show the save request popup for new requests
+                Popup::save_request(&mut state.common, active_tab);
             }
             UrlBarMsg::RequestResult(tab, res) => {
                 if let Some(Tab::Http(tab)) = state.get_tab_mut(tab) {
                     tab.update_response(res)
                 }
             }
-            UrlBarMsg::RequestSaved => (),
         }
         Task::none()
     }

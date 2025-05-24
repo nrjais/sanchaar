@@ -2,14 +2,12 @@ use crate::state::TabKey;
 use core::http::collection::{FolderId, RequestId};
 use core::http::environment::EnvironmentKey;
 use core::http::CollectionKey;
-use std::path::PathBuf;
 
 use super::CommonState;
 
 #[derive(Debug)]
 pub struct CreateCollectionState {
     pub name: String,
-    pub path: Option<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -83,7 +81,6 @@ impl Popup {
     pub fn create_collection(state: &mut CommonState) {
         let popup = Self::CreateCollection(CreateCollectionState {
             name: String::new(),
-            path: None,
         });
         open_popup(state, popup);
     }

@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::ffi::OsStr;
 use std::ops::Not;
 
 use iced::widget::{
@@ -148,9 +147,8 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
     let col_name = collection
         .zip(data.folder_id)
         .and_then(|(c, f)| c.folder(f))
-        .map(|f| f.path.as_os_str())
-        .or_else(|| collection.map(|c| c.path.as_os_str()))
-        .and_then(OsStr::to_str)
+        .map(|f| f.name.as_str())
+        .or_else(|| collection.map(|c| c.name.as_str()))
         .unwrap_or("Select Collection");
 
     let path = Row::new()

@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 
 use indexmap::IndexMap;
+use serde::{Deserialize, Serialize};
 
-use crate::http::collection::{Collection, RequestId, RequestRef};
+use crate::http::collection::{Collection, RequestId, RequestRef, Script};
 use crate::http::environment::Environments;
 
 use self::collection::FolderId;
@@ -16,14 +17,14 @@ crate::new_id_type! {
     pub struct CollectionKey;
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyValue {
     pub disabled: bool,
     pub name: String,
     pub value: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyValList(Vec<KeyValue>);
 
 impl KeyValList {
@@ -57,14 +58,14 @@ impl IntoIterator for KeyValList {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyFile {
     pub name: String,
     pub path: Option<PathBuf>,
     pub disabled: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyFileList(Vec<KeyFile>);
 
 impl KeyFileList {
@@ -153,38 +154,27 @@ impl Collections {
         }
     }
 
-    pub fn rename_request(
-        &mut self,
-        req: CollectionRequest,
-        new: String,
-    ) -> Option<(PathBuf, PathBuf)> {
-        self.get_mut(req.0)?.rename_request(req.1, &new)
+    pub fn rename_request(&mut self, req: CollectionRequest, new: String) -> bool {
+        self.get_mut(req.0)
+            .map(|c| c.rename_request(req.1, &new))
+            .unwrap_or(false)
     }
 
-    pub fn rename_folder(
-        &mut self,
-        col: CollectionKey,
-        id: FolderId,
-        new: String,
-    ) -> Option<(PathBuf, PathBuf)> {
-        self.get_mut(col)?.rename_folder(id, &new)
+    pub fn rename_folder(&mut self, col: CollectionKey, id: FolderId, new: String) -> bool {
+        self.get_mut(col)
+            .map(|c| c.rename_folder(id, &new))
+            .unwrap_or(false)
     }
 
-    pub fn create_collection(&mut self, name: String, path: PathBuf) -> &Collection {
-        let path = path.join(&name);
-        let collection = Collection {
-            name,
-            path,
-            ..Default::default()
-        };
+    pub fn create_collection(&mut self, name: String) -> CollectionKey {
+        let collection_id = uuid::Uuid::new_v4().to_string();
+        let collection = Collection::new(name, collection_id);
 
         self.dirty();
 
         let key = CollectionKey::new();
         self.entries.insert(key, collection);
-        self.entries
-            .get(&key)
-            .expect("Inserted collection not found")
+        key
     }
 
     fn dirty(&mut self) {
@@ -196,24 +186,20 @@ impl Collections {
         self.entries.values().cloned().collect()
     }
 
-    pub fn delete_folder(
-        &mut self,
-        col: CollectionKey,
-        folder_id: collection::FolderId,
-    ) -> Option<PathBuf> {
+    pub fn delete_folder(&mut self, col: CollectionKey, folder_id: FolderId) -> bool {
         self.with_collection_mut(col, |collection| collection.delete_folder(folder_id))
-            .flatten()
+            .unwrap_or(false)
     }
 
     pub fn create_folder_in(
         &mut self,
         name: String,
         col: CollectionKey,
-        folder_id: Option<collection::FolderId>,
-    ) -> Option<PathBuf> {
+        folder_id: Option<FolderId>,
+    ) -> Option<FolderId> {
         self.entries
             .get_mut(&col)
-            .and_then(|collection| collection.create_folder(name, folder_id))
+            .map(|collection| collection.create_folder(name, folder_id))
     }
 
     pub fn remove(&mut self, col: CollectionKey) {
@@ -223,19 +209,25 @@ impl Collections {
 
     pub fn create_env(&mut self, col: CollectionKey, name: String) -> Option<EnvironmentKey> {
         let collection = self.get_mut(col)?;
-
         Some(collection.environments.create(name))
     }
 
-    pub fn delete_request(&mut self, col: CollectionKey, req: RequestId) -> Option<PathBuf> {
-        self.get_mut(col)?.delete_request(req)
+    pub fn delete_request(&mut self, col: CollectionKey, req: RequestId) -> bool {
+        self.get_mut(col)
+            .map(|c| c.delete_request(req))
+            .unwrap_or(false)
     }
 
-    pub fn create_script_in(&mut self, col: CollectionKey, name: String) -> Option<PathBuf> {
-        self.get_mut(col)?.create_script(name)
+    pub fn create_script_in(
+        &mut self,
+        col: CollectionKey,
+        name: String,
+        content: String,
+    ) -> Option<String> {
+        self.get_mut(col).map(|c| c.create_script(name, content))
     }
 
-    pub fn get_script_path(&self, col: CollectionKey, s: &str) -> Option<PathBuf> {
-        self.entries.get(&col)?.get_script_path(s)
+    pub fn get_script(&self, col: CollectionKey, name: &str) -> Option<&Script> {
+        self.entries.get(&col)?.get_script(name)
     }
 }

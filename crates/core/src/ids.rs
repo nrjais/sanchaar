@@ -4,15 +4,25 @@ macro_rules! new_id_type {
         $(#[$outer])*
         #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
         #[repr(transparent)]
-        $vis struct $name(u64);
+        $vis struct $name(uuid::Uuid);
 
         impl $name {
-            pub const ZERO: Self = Self(0);
+            pub const ZERO: Self = Self(uuid::Uuid::nil());
 
             pub fn new() -> Self {
-                use std::sync::atomic::{AtomicU64, Ordering};
-                static COUNTER: AtomicU64 = AtomicU64::new(1);
-                Self(COUNTER.fetch_add(1, Ordering::Relaxed))
+                Self(uuid::Uuid::new_v4())
+            }
+
+            pub fn from_string(s: String) -> Self {
+                Self(uuid::Uuid::parse_str(&s).unwrap_or(uuid::Uuid::nil()))
+            }
+
+            pub fn as_str(&self) -> String {
+                self.0.to_string()
+            }
+
+            pub fn to_string(&self) -> String {
+                self.0.to_string()
             }
         }
 
@@ -25,6 +35,25 @@ macro_rules! new_id_type {
         impl std::default::Default for $name {
             fn default() -> Self {
                 Self::new()
+            }
+        }
+
+        impl serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                self.0.to_string().serialize(serializer)
+            }
+        }
+
+        impl<'de> serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                let s = String::deserialize(deserializer)?;
+                Ok(Self::from_string(s))
             }
         }
 

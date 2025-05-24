@@ -5,6 +5,7 @@ use strum::{Display, EnumString};
 use crate::http::{KeyValList, KeyValue};
 
 pub mod collections;
+pub mod database;
 pub mod environment;
 pub mod request;
 

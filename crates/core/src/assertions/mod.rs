@@ -9,10 +9,10 @@ use hcl::{
     structure::{BlockBuilder, BodyBuilder},
     BlockLabel, Identifier, Value,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display, EnumString, Serialize, Deserialize)]
 pub enum MatchType {
     Null,
     Undefined,
@@ -24,7 +24,7 @@ pub enum MatchType {
     Empty,
 }
 
-#[derive(Debug, Clone, PartialEq, Display)]
+#[derive(Debug, Clone, PartialEq, Display, Serialize, Deserialize)]
 pub enum Matcher {
     Eq(Value),
     Ne(Value),
@@ -48,7 +48,7 @@ pub enum Matcher {
     IsNot(MatchType),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Condition {
     key: String,
     matcher: Matcher,
@@ -107,13 +107,14 @@ impl Matcher {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Assertion {
     Status(Vec<Condition>),
     Duration(Vec<Condition>),
     Headers(Vec<Condition>),
     Body(Vec<Condition>),
 }
+
 impl Assertion {
     fn name(&self) -> String {
         match self {
@@ -125,7 +126,7 @@ impl Assertion {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct Assertions(pub Vec<Assertion>);
 
 impl<'de> Deserialize<'de> for Assertions {

@@ -1,5 +1,4 @@
 use core::http::collection::Collection;
-use core::persistence::collections;
 use iced::Task;
 use std::time::Instant;
 
@@ -102,14 +101,10 @@ fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
-    let collections = state.common.collections.get_collections_for_save();
-    Task::perform(collections::save(collections), |result| match result {
-        Ok(_) => TaskMsg::Completed(BackgroundTask::SaveCollections),
-        Err(e) => {
-            log::error!("Error saving collections: {:?}", e);
-            TaskMsg::Completed(BackgroundTask::SaveCollections)
-        }
-    })
+    // In database mode, collections are saved automatically
+    // Just mark the task as completed
+    state.common.collections.dirty = false;
+    Task::done(TaskMsg::Completed(BackgroundTask::SaveCollections))
 }
 
 fn check_dirty_requests(state: &mut AppState) -> Task<TaskMsg> {
@@ -126,5 +121,7 @@ pub fn background(state: &mut AppState) -> Task<TaskMsg> {
 }
 
 pub fn init_command() -> Task<AppMsg> {
-    Task::perform(load_collections_cmd(), TaskMsg::CollectionsLoaded).map(AppMsg::Command)
+    load_collections_cmd()
+        .map(TaskMsg::CollectionsLoaded)
+        .map(AppMsg::Command)
 }

@@ -5,6 +5,8 @@ use std::{
 
 use crate::new_id_type;
 use parsers::{parse_template, Token};
+use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
 use super::KeyValList;
 
@@ -12,7 +14,7 @@ new_id_type! {
     pub struct EnvironmentKey;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Environments {
     envs: HashMap<EnvironmentKey, Environment>,
 }
@@ -34,8 +36,8 @@ impl Environments {
         self.envs.get(&id)
     }
 
-    pub fn get_mut(&mut self, id: &EnvironmentKey) -> Option<&mut Environment> {
-        self.envs.get_mut(id)
+    pub fn get_mut(&mut self, id: EnvironmentKey) -> Option<&mut Environment> {
+        self.envs.get_mut(&id)
     }
 
     pub fn insert(&mut self, env: Environment) -> EnvironmentKey {
@@ -48,8 +50,8 @@ impl Environments {
         self.envs.insert(id, env);
     }
 
-    pub fn entries(&self) -> impl Iterator<Item = (&EnvironmentKey, &Environment)> {
-        self.envs.iter()
+    pub fn entries(&self) -> impl Iterator<Item = (EnvironmentKey, &Environment)> {
+        self.envs.iter().map(|(k, v)| (*k, v))
     }
 
     pub fn is_empty(&self) -> bool {
@@ -73,9 +75,11 @@ impl Environments {
     }
 }
 
-#[derive(Debug, Clone)]
+#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Environment {
     pub name: String,
+    #[serde_as(as = "Arc<_>")]
     pub variables: Arc<KeyValList>,
 }
 

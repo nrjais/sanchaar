@@ -1,13 +1,13 @@
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::Direction;
 use iced::widget::{button, column, container, row, text, Button, Column, Row, Scrollable};
-use iced::{clipboard, padding, Element, Length, Task};
+use iced::{padding, Element, Length, Task};
 
 use components::{context_menu, horizontal_line, icon, icons, menu_item, tooltip, NerdIcon};
-use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
+use core::http::collection::{Entry, FolderId, RequestId, RequestRef};
 use core::http::{request::Request, CollectionKey, CollectionRequest};
 
-use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
+use crate::commands::builders::{self, open_request_cmd};
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::cookies_tab::CookiesTab;
@@ -20,7 +20,6 @@ pub enum CollectionTreeMsg {
     OpenRequest(CollectionRequest),
     CreateCollection,
     OpenCollection,
-    OpenCollectionHandle(Option<Collection>),
     RequestLoaded(CollectionRequest, Box<Option<(Request, String)>>),
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
@@ -34,44 +33,47 @@ impl CollectionTreeMsg {
         match self {
             CollectionTreeMsg::ToggleExpandCollection(key) => {
                 collections.with_collection_mut(key, |collection| collection.toggle_expand());
+                Task::none()
             }
             CollectionTreeMsg::ToggleFolder(col, id) => {
                 collections.with_collection_mut(col, |collection| collection.toggle_folder(id));
+                Task::none()
             }
             CollectionTreeMsg::OpenRequest(col) => {
                 if !state.switch_to_tab(col) {
                     return open_request_cmd(&mut state.common, col)
                         .map(move |res| Self::RequestLoaded(col, Box::new(res)));
                 };
+                Task::none()
             }
             CollectionTreeMsg::CreateCollection => {
                 Popup::create_collection(&mut state.common);
+                Task::none()
             }
             CollectionTreeMsg::OpenCollection => {
-                return open_collection_cmd().map(Self::OpenCollectionHandle);
-            }
-            CollectionTreeMsg::OpenCollectionHandle(handle) => {
-                if let Some(handle) = handle {
-                    collections.insert(handle);
-                }
+                // Database mode: Opening collections from disk is not supported
+                // Collections are loaded automatically from database
+                Task::none()
             }
             CollectionTreeMsg::RequestLoaded(col, req) => {
                 if let Some((req, name)) = *req {
                     state.open_tab(Tab::Http(HttpTab::new(&name, req, col)));
                 }
+                Task::none()
             }
             CollectionTreeMsg::ContextMenu(col, action) => {
                 return handle_context_menu(state, col, action);
             }
-            CollectionTreeMsg::ActionComplete => (),
+            CollectionTreeMsg::ActionComplete => Task::none(),
             CollectionTreeMsg::OpenSettings => {
                 Popup::app_settings(&mut state.common);
+                Task::none()
             }
             CollectionTreeMsg::OpenCookies => {
                 state.open_tab(Tab::CookieStore(CookiesTab::new(&state.common)));
+                Task::none()
             }
-        };
-        Task::none()
+        }
     }
 }
 
@@ -130,12 +132,9 @@ fn handle_context_menu(
         }
         MenuAction::DeleteRequest(req) => builders::delete_request_cmd(common, key, req)
             .map(move |_| CollectionTreeMsg::ActionComplete),
-        MenuAction::CopyPath(req) => {
-            if let Some(request) = common.collections.get_ref(CollectionRequest(key, req)) {
-                clipboard::write(request.path.to_string_lossy().to_string())
-            } else {
-                Task::none()
-            }
+        MenuAction::CopyPath(_req) => {
+            // Database mode: No file paths to copy
+            Task::none()
         }
         MenuAction::OpenCollection => {
             if let Some(col) = common.collections.get(key) {

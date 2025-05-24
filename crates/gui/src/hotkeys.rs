@@ -8,8 +8,7 @@ use iced::{
 use crate::{
     app::AppMsg,
     commands::builders::{
-        save_collection_cmd, save_environments_cmd, save_request_cmd, send_request_cmd,
-        ResponseResult,
+        save_collection_cmd, save_environments_cmd, send_request_cmd, ResponseResult,
     },
     state::{
         popups::Popup,
@@ -128,18 +127,11 @@ fn save_tab(state: &mut AppState) -> Task<Message> {
     };
 
     match tab {
-        Tab::Http(tab) => {
-            let req_ref = state
-                .common
-                .collections
-                .get_ref(tab.collection_ref)
-                .cloned();
-            req_ref
-                .map(|req| save_request_cmd(tab, req.path).map(|_| Message::Done))
-                .unwrap_or_else(|| {
-                    Popup::save_request(&mut state.common, key);
-                    Task::none()
-                })
+        Tab::Http(_tab) => {
+            // Database mode: Requests are saved automatically
+            // Just show the save request popup for new requests
+            Popup::save_request(&mut state.common, key);
+            Task::none()
         }
         Tab::Collection(tab) => {
             let collection = state.common.collections.get_mut(tab.collection_key);

@@ -1,97 +1,92 @@
 [package]
 name = "Sanchaar"
-default-run = "sanchaar"
 edition = "2021"
+default-run = "sanchaar"
 
 [package.metadata.bundle]
 name = "Sanchaar"
 identifier = "com.nrjais.sanchaar"
 icon = [
-    "assets/16x16.png",
-    "assets/16x16@2x.png",
-    "assets/32x32.png",
-    "assets/32x32@2x.png",
-    "assets/64x64.png",
-    "assets/64x64@2x.png",
-    "assets/128x128.png",
-    "assets/128x128@2x.png",
-    "assets/256x256.png",
-    "assets/256x256@2x.png",
-    "assets/512x512.png",
-    "assets/512x512@2x.png",
+  "assets/16x16.png",
+  "assets/16x16@2x.png",
+  "assets/32x32.png",
+  "assets/32x32@2x.png",
+  "assets/64x64.png",
+  "assets/64x64@2x.png",
+  "assets/128x128.png",
+  "assets/128x128@2x.png",
+  "assets/256x256.png",
+  "assets/256x256@2x.png",
+  "assets/512x512.png",
+  "assets/512x512@2x.png",
 ]
-
-[workspace.package]
-authors = ["Neeraj Jaiswal <me@nrjais.com>"]
-description = "A fast offline REST API Client"
-version = "0.1.0-prerelease.1"
-edition = "2021"
 
 [workspace]
 members = [
-    "crates/gui",
-    "crates/cli",
-    "crates/components",
-    "crates/core",
-    "crates/parsers",
+  "crates/components",
+  "crates/core",
+  "crates/gui",
+  "crates/parsers",
 ]
 
+[workspace.package]
+version = "0.1.0-prerelease.1"
+authors = ["Neeraj Jaiswal <me@nrjais.com>"]
+edition = "2021"
+description = "A fast offline REST API Client"
+
 [workspace.dependencies]
-iced = { git = "https://github.com/nrjais/iced", features = [
-    "tokio",
-    "web-colors",
-    "highlighter",
-    "debug",
-    "advanced",
-    "lazy",
-    "wgpu",
-], branch = "editor" }
-iced_core = { git = "https://github.com/nrjais/iced", features = [
-    "advanced",
-], branch = "editor" }
-rfd = { version = "0.15", default-features = false, features = [
-    "xdg-portal",
-    "tokio",
-] }
-tokio = { version = "1.36", features = ["fs", "macros", "io-util"] }
-strum = { version = "0.27", features = ["derive"] }
-reqwest = { version = "0.12", features = ["stream", "multipart"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 anyhow = "1.0"
-mime_guess = "2.0"
-humansize = "2.1"
+clap = { version = "4.5", features = ["derive"] }
+components = { path = "crates/components" }
+cookie_store = "0.21.0"
+core = { path = "crates/core" }
 directories = "6.0"
-log = "0.4"
-regex = "1.10"
-hcl-rs = "0.18"
-similar = "2.5"
-indexmap = "2.7"
 dotenvy = "0.15.3"
+hcl-rs = "0.18"
+humansize = "2.1"
+iced = { branch = "editor", features = [
+  "advanced",
+  "debug",
+  "highlighter",
+  "lazy",
+  "tokio",
+  "web-colors",
+  "wgpu",
+], git = "https://github.com/nrjais/iced" }
+iced_core = { branch = "editor", features = [
+  "advanced",
+], git = "https://github.com/nrjais/iced" }
+indexmap = "2.9"
+jsonpath-rust = "0.7.0"
+log = "0.4"
+mime_guess = "2.0"
+parsers = { path = "crates/parsers" }
 pest = "2.7"
 pest_derive = "2.7"
-clap = { version = "4.5", features = ["derive"] }
+regex = "1.10"
+reqwest = { version = "0.12", features = ["multipart", "stream"] }
 reqwest_cookie_store = "0.8.0"
-cookie_store = "0.21.0"
-jsonpath-rust = "0.7.0"
+rfd = { version = "0.15", default-features = false, features = [
+  "tokio",
+  "xdg-portal",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 serde_with = "3.9.0"
-components = { path = "crates/components" }
-core = { path = "crates/core" }
-parsers = { path = "crates/parsers" }
-
-[dependencies]
-cli = { path = "crates/cli" }
-gui = { path = "crates/gui" }
+similar = "2.5"
+strum = { version = "0.27", features = ["derive"] }
+tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
 
 [[bin]]
 name = "sanchaar"
 
-[[bin]]
-name = "sanchaar-cli"
+[dependencies]
+gui = { path = "crates/gui" }
 
 [profile.dev]
-incremental = true
 debug = 0
+incremental = true
 
 [profile.dev.package."*"]
 opt-level = 3

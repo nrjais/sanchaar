@@ -1,13 +1,9 @@
 use std::borrow::Cow;
-use std::path::PathBuf;
-use std::sync::Arc;
 
-use iced::widget::{button, horizontal_space, text, text_input, Column, Row};
+use iced::widget::{horizontal_space, text, text_input, Column, Row};
 use iced::{Element, Task};
-use rfd::FileHandle;
 
 use crate::commands::builders;
-use crate::commands::dialog::open_folder_dialog;
 use crate::state::popups::CreateCollectionState;
 use crate::state::popups::Popup::CreateCollection;
 use crate::state::AppState;
@@ -16,9 +12,7 @@ use crate::state::AppState;
 pub enum Message {
     Done,
     NameChanged(String),
-    OpenDialog,
-    FolderSelected(Option<Arc<FileHandle>>),
-    CreateCollection(String, PathBuf),
+    CreateCollection(String),
 }
 
 impl Message {
@@ -32,16 +26,8 @@ impl Message {
                 data.name = name;
                 Task::none()
             }
-            Message::OpenDialog => {
-                open_folder_dialog("Select location").map(Message::FolderSelected)
-            }
-            Message::FolderSelected(handle) => {
-                data.path = handle.map(|h| h.path().to_owned());
-                Task::none()
-            }
-            Message::CreateCollection(name, path) => {
-                builders::create_collection_cmd(&mut state.common, name, path)
-                    .map(|_| Message::Done)
+            Message::CreateCollection(name) => {
+                builders::create_collection_cmd(&mut state.common, name).map(|_| Message::Done)
             }
             Message::Done => {
                 state.common.popup = None;
@@ -59,9 +45,7 @@ pub fn done(data: &CreateCollectionState) -> Option<Message> {
     if data.name.is_empty() {
         None
     } else {
-        data.path
-            .as_ref()
-            .map(|path| Message::CreateCollection(data.name.clone(), path.clone()))
+        Some(Message::CreateCollection(data.name.clone()))
     }
 }
 
@@ -79,30 +63,5 @@ pub(crate) fn view<'a>(
         )
         .spacing(4);
 
-    let path = Row::new()
-        .push(text("Location"))
-        .push(horizontal_space())
-        .push(
-            button(
-                text(
-                    data.path
-                        .as_ref()
-                        .and_then(|p| p.to_str())
-                        .unwrap_or("Browse location"),
-                )
-                .size(16),
-            )
-            .style(button::text)
-            .padding([2, 6])
-            .on_press(Message::OpenDialog),
-        )
-        .align_y(iced::Alignment::Center)
-        .spacing(4);
-
-    Column::new()
-        .push(name)
-        .push(path)
-        .spacing(4)
-        .width(300)
-        .into()
+    Column::new().push(name).spacing(4).width(300).into()
 }
