@@ -1,7 +1,6 @@
 [package]
 name = "Sanchaar"
 edition = "2021"
-default-run = "sanchaar"
 
 [package.metadata.bundle]
 name = "Sanchaar"
@@ -25,7 +24,6 @@ icon = [
 members = [
   "crates/components",
   "crates/core",
-  "crates/gui",
   "crates/parsers",
 ]
 
@@ -76,13 +74,28 @@ serde_json = "1.0"
 serde_with = "3.9.0"
 similar = "2.5"
 strum = { version = "0.27", features = ["derive"] }
-tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
-
-[[bin]]
-name = "sanchaar"
+tokio = { version = "1.45", features = ["fs", "io-util", "macros"] }
 
 [dependencies]
-gui = { path = "crates/gui" }
+anyhow.workspace = true
+components.workspace = true
+cookie_store.workspace = true
+core.workspace = true
+dioxus-devtools = { version = "0.7.0-alpha.0", git = "https://github.com/DioxusLabs/dioxus", rev = "937e9b978935b1daa59d79f4e073cf39a5c4e662" }
+humansize.workspace = true
+iced.workspace = true
+indexmap.workspace = true
+jsonpath-rust.workspace = true
+log.workspace = true
+reqwest.workspace = true
+reqwest_cookie_store.workspace = true
+rfd.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+strum.workspace = true
+subsecond = { version = "0.7.0-alpha.0", git = "https://github.com/DioxusLabs/dioxus", rev = "937e9b978935b1daa59d79f4e073cf39a5c4e662" }
+tokio.workspace = true
+uuid = { version = "1.0", features = ["v4"] }
 
 [profile.dev]
 debug = 0
@@ -90,3 +103,13 @@ incremental = true
 
 [profile.dev.package."*"]
 opt-level = 3
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
