@@ -5,7 +5,7 @@ use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;
 use crate::{commands, hotkeys};
-use crate::{commands::TaskMsg, AppState};
+use crate::{commands::TaskMsg, state::AppState};
 
 mod collection_tree;
 mod content_section;

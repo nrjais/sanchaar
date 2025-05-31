@@ -1,10 +1,10 @@
-use iced::widget::container::Style;
-use iced::widget::{button, container, horizontal_space, text, Column, Row};
 use iced::Length::{Fill, Shrink};
-use iced::{border, Alignment, Element, Task};
+use iced::widget::container::Style;
+use iced::widget::{Column, Row, button, container, horizontal_space, text};
+use iced::{Alignment, Element, Task, border};
 
-use crate::state::popups::Popup;
 use crate::state::AppState;
+use crate::state::popups::Popup;
 
 mod app_settings;
 mod create_collection;
@@ -39,7 +39,7 @@ impl PopupMsg {
 
 pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> {
     let (title, content, done_msg) = match popup {
-        Popup::CreateCollection(ref data) => (
+        Popup::CreateCollection(data) => (
             create_collection::title(),
             create_collection::view(state, data).map(PopupMsg::CreateCollection),
             create_collection::done(data).map(PopupMsg::CreateCollection),

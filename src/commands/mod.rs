@@ -5,8 +5,7 @@ use std::time::Instant;
 
 use crate::{
     app::AppMsg,
-    state::{RequestDirtyState, Tab, TabKey},
-    AppState,
+    state::{AppState, RequestDirtyState, Tab, TabKey},
 };
 
 use self::builders::{check_dirty_requests_cmd, load_collections_cmd};

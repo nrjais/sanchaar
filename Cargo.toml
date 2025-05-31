@@ -1,24 +1,30 @@
 [package]
 name = "Sanchaar"
-default-run = "sanchaar"
-edition = "2021"
+edition = "2024"
 
 [package.metadata.bundle]
 name = "Sanchaar"
 identifier = "com.nrjais.sanchaar"
 icon = [
-    "assets/16x16.png",
-    "assets/16x16@2x.png",
-    "assets/32x32.png",
-    "assets/32x32@2x.png",
-    "assets/64x64.png",
-    "assets/64x64@2x.png",
-    "assets/128x128.png",
-    "assets/128x128@2x.png",
-    "assets/256x256.png",
-    "assets/256x256@2x.png",
-    "assets/512x512.png",
-    "assets/512x512@2x.png",
+  "assets/16x16.png",
+  "assets/16x16@2x.png",
+  "assets/32x32.png",
+  "assets/32x32@2x.png",
+  "assets/64x64.png",
+  "assets/64x64@2x.png",
+  "assets/128x128.png",
+  "assets/128x128@2x.png",
+  "assets/256x256.png",
+  "assets/256x256@2x.png",
+  "assets/512x512.png",
+  "assets/512x512@2x.png",
+]
+
+[workspace]
+members = [
+  "crates/components",
+  "crates/core",
+  "crates/parsers",
 ]
 
 [workspace.package]
@@ -26,15 +32,6 @@ authors = ["Neeraj Jaiswal <me@nrjais.com>"]
 description = "A fast offline REST API Client"
 version = "0.1.0-prerelease.1"
 edition = "2021"
-
-[workspace]
-members = [
-    "crates/gui",
-    "crates/cli",
-    "crates/components",
-    "crates/core",
-    "crates/parsers",
-]
 
 [workspace.dependencies]
 iced = { git = "https://github.com/nrjais/iced", features = [
@@ -66,28 +63,40 @@ log = "0.4"
 regex = "1.10"
 hcl-rs = "0.18"
 similar = "2.5"
+cookie_store = "0.21"
 indexmap = "2.7"
-dotenvy = "0.15.3"
+jsonpath-rust = "0.7"
+reqwest_cookie_store = "0.8"
 pest = "2.7"
 pest_derive = "2.7"
-clap = { version = "4.5", features = ["derive"] }
-reqwest_cookie_store = "0.8.0"
-cookie_store = "0.21.0"
-jsonpath-rust = "0.7.0"
+dotenvy = "0.15.3"
 serde_with = "3.9.0"
+clap = { version = "4.5", features = ["derive"] }
 components = { path = "crates/components" }
 core = { path = "crates/core" }
 parsers = { path = "crates/parsers" }
 
+[features]
+debug = ["iced/hot"]
+
 [dependencies]
-cli = { path = "crates/cli" }
-gui = { path = "crates/gui" }
-
-[[bin]]
-name = "sanchaar"
-
-[[bin]]
-name = "sanchaar-cli"
+anyhow.workspace = true
+components.workspace = true
+cookie_store.workspace = true
+core.workspace = true
+humansize.workspace = true
+iced.workspace = true
+indexmap.workspace = true
+jsonpath-rust.workspace = true
+log.workspace = true
+reqwest.workspace = true
+reqwest_cookie_store.workspace = true
+rfd.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+strum.workspace = true
+tokio.workspace = true
+uuid = { version = "1.0", features = ["v4"] }
 
 [profile.dev]
 incremental = true
