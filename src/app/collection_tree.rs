@@ -171,7 +171,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
     let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
     let cookies = icon_button(icons::Cookie).on_press(CollectionTreeMsg::OpenCookies);
-    let history = icon_button(icons::CheckBold).on_press(CollectionTreeMsg::OpenHistory);
+    let history = icon_button(icons::History).on_press(CollectionTreeMsg::OpenHistory);
     let settings = icon_button(icons::Gear).on_press(CollectionTreeMsg::OpenSettings);
 
     Column::new()

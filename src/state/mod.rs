@@ -101,7 +101,7 @@ impl AppState {
             },
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
-                ratio: 0.15,
+                ratio: 0.20,
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),

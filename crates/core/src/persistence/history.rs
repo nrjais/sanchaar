@@ -36,6 +36,18 @@ pub struct HistoryEntry {
 }
 
 #[derive(Debug, Clone)]
+pub struct HistoryEntrySummary {
+    pub id: i64,
+    pub timestamp: DateTime<Utc>,
+    pub method: String,
+    pub url: String,
+    pub response_status: i32,
+    pub response_duration_ms: i64,
+    pub response_size_bytes: i64,
+    pub collection_name: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub struct HistoryDatabase {
     pool: SqlitePool,
 }
@@ -79,6 +91,43 @@ impl HistoryDatabase {
         let _ = sqlx::query(
             r#"
             ALTER TABLE history ADD COLUMN response_content_type TEXT DEFAULT 'buffer'
+            "#,
+        )
+        .execute(&pool)
+        .await;
+
+        let _ = sqlx::query(
+            r#"
+            CREATE VIRTUAL TABLE IF NOT EXISTS history_fts USING fts5(
+                id UNINDEXED,
+                method,
+                url,
+                body,
+                description,
+                content='history',
+                content_rowid='id'
+            )
+            "#,
+        )
+        .execute(&pool)
+        .await;
+
+        let _ = sqlx::query(
+            r#"
+            CREATE TRIGGER IF NOT EXISTS history_fts_insert AFTER INSERT ON history BEGIN
+                INSERT INTO history_fts(id, method, url, body, description)
+                VALUES (new.id, new.method, new.url, new.body, new.description);
+            END
+            "#,
+        )
+        .execute(&pool)
+        .await;
+
+        let _ = sqlx::query(
+            r#"
+            CREATE TRIGGER IF NOT EXISTS history_fts_delete AFTER DELETE ON history BEGIN
+                DELETE FROM history_fts WHERE id = old.id;
+            END
             "#,
         )
         .execute(&pool)
@@ -195,6 +244,110 @@ impl HistoryDatabase {
                 response_content_type: row
                     .try_get("response_content_type")
                     .unwrap_or_else(|_| "buffer".to_string()),
+                collection_name: row.try_get("collection_name")?,
+            };
+            entries.push(entry);
+        }
+
+        Ok(entries)
+    }
+
+    pub async fn get_history_summary(
+        &self,
+        limit: Option<i64>,
+    ) -> Result<Vec<HistoryEntrySummary>> {
+        let limit = limit.unwrap_or(100);
+
+        let rows = sqlx::query(
+            r#"
+            SELECT
+                id,
+                timestamp,
+                method,
+                url,
+                response_status,
+                response_duration_ms,
+                response_size_bytes,
+                collection_name
+            FROM history
+            ORDER BY timestamp DESC
+            LIMIT ?
+            "#,
+        )
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut entries = Vec::new();
+        for row in rows {
+            let timestamp_str: String = row.try_get("timestamp")?;
+            let timestamp = DateTime::parse_from_rfc3339(&timestamp_str)?.with_timezone(&Utc);
+
+            let entry = HistoryEntrySummary {
+                id: row.try_get("id")?,
+                timestamp,
+                method: row.try_get("method")?,
+                url: row.try_get("url")?,
+                response_status: row.try_get("response_status")?,
+                response_duration_ms: row.try_get("response_duration_ms")?,
+                response_size_bytes: row.try_get("response_size_bytes")?,
+                collection_name: row.try_get("collection_name")?,
+            };
+            entries.push(entry);
+        }
+
+        Ok(entries)
+    }
+
+    pub async fn search_history_summary(
+        &self,
+        query: &str,
+        limit: Option<i64>,
+    ) -> Result<Vec<HistoryEntrySummary>> {
+        let limit = limit.unwrap_or(100);
+
+        if query.trim().is_empty() {
+            // If no search query, return regular summary
+            return self.get_history_summary(Some(limit)).await;
+        }
+
+        // Use FTS for full-text search
+        let rows = sqlx::query(
+            r#"
+            SELECT
+                h.id,
+                h.timestamp,
+                h.method,
+                h.url,
+                h.response_status,
+                h.response_duration_ms,
+                h.response_size_bytes,
+                h.collection_name
+            FROM history h
+            INNER JOIN history_fts fts ON h.id = fts.id
+            WHERE history_fts MATCH ?
+            ORDER BY h.timestamp DESC
+            LIMIT ?
+            "#,
+        )
+        .bind(query)
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut entries = Vec::new();
+        for row in rows {
+            let timestamp_str: String = row.try_get("timestamp")?;
+            let timestamp = DateTime::parse_from_rfc3339(&timestamp_str)?.with_timezone(&Utc);
+
+            let entry = HistoryEntrySummary {
+                id: row.try_get("id")?,
+                timestamp,
+                method: row.try_get("method")?,
+                url: row.try_get("url")?,
+                response_status: row.try_get("response_status")?,
+                response_duration_ms: row.try_get("response_duration_ms")?,
+                response_size_bytes: row.try_get("response_size_bytes")?,
                 collection_name: row.try_get("collection_name")?,
             };
             entries.push(entry);

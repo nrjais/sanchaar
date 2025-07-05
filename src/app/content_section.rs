@@ -42,7 +42,7 @@ impl MainPageMsg {
             Self::Panel(msg) => msg.update(state).map(Self::Panel),
             Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
             Self::SplitResize(ResizeEvent { split, ratio }) => {
-                if ratio > 0.1 && ratio < 0.3 {
+                if ratio > 0.20 && ratio < 0.35 {
                     state.panes.resize(split, ratio);
                 }
                 Task::none()

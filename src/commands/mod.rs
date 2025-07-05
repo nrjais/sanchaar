@@ -1,6 +1,6 @@
 use core::http::collection::Collection;
 use core::persistence::collections;
-use core::persistence::history::{HistoryDatabase, get_history_db_path};
+use core::persistence::history::{HistoryDatabase, HistoryEntrySummary, get_history_db_path};
 use iced::Task;
 use log::info;
 use std::time::Instant;
@@ -29,6 +29,7 @@ pub enum BackgroundTask {
     CheckDirtyRequests,
     InitializeHistory,
     LoadHistory,
+    SearchHistory,
 }
 
 fn remove_task(state: &mut AppState, task: BackgroundTask) {
@@ -74,7 +75,8 @@ pub enum TaskMsg {
     Completed(BackgroundTask),
     UpdateDirtyTabs(Vec<(TabKey, RequestDirtyState)>),
     HistoryInitialized(Option<HistoryDatabase>),
-    HistoryLoaded(Vec<core::persistence::history::HistoryEntry>),
+    HistoryLoaded(Vec<HistoryEntrySummary>),
+    SearchHistoryCompleted(Vec<HistoryEntrySummary>),
 }
 
 impl TaskMsg {
@@ -104,6 +106,16 @@ impl TaskMsg {
                 for tab in state.tabs.values_mut() {
                     if let Tab::History(history_tab) = tab {
                         history_tab.set_entries(entries.clone());
+                        history_tab.set_searching(false);
+                    }
+                }
+            }
+            TaskMsg::SearchHistoryCompleted(entries) => {
+                task_done(state, BackgroundTask::SearchHistory);
+                for tab in state.tabs.values_mut() {
+                    if let Tab::History(history_tab) = tab {
+                        history_tab.set_entries(entries.clone());
+                        history_tab.set_searching(false);
                     }
                 }
             }
@@ -150,6 +162,12 @@ fn load_history(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
+    if let Some(Tab::History(tab)) = state.active_tab() {
+        if !tab.search_query.trim().is_empty() {
+            return Task::none();
+        }
+    }
+
     if !schedule_task(state, task, 5) {
         return Task::none();
     }
@@ -159,11 +177,60 @@ fn load_history(state: &mut AppState) -> Task<TaskMsg> {
     };
 
     Task::future(async move {
-        match history_db.get_history(Some(100)).await {
+        match history_db.get_history_summary(Some(100)).await {
             Ok(entries) => TaskMsg::HistoryLoaded(entries),
             Err(e) => {
                 log::error!("Error loading history: {e:?}");
                 TaskMsg::Completed(BackgroundTask::LoadHistory)
+            }
+        }
+    })
+}
+
+fn search_history(state: &mut AppState) -> Task<TaskMsg> {
+    let task = BackgroundTask::SearchHistory;
+
+    let history_tab_open = state
+        .active_tab()
+        .map(|tab| matches!(tab, Tab::History(_)))
+        .unwrap_or(false);
+
+    if !history_tab_open {
+        return Task::none();
+    }
+
+    let (search_query, should_search) = if let Some(Tab::History(tab)) = state.active_tab_mut() {
+        let should_search = tab.should_trigger_search() && !tab.search_query.trim().is_empty();
+        if should_search {
+            tab.clear_search_timer();
+            tab.set_searching(true);
+        }
+        (tab.search_query.clone(), should_search)
+    } else {
+        return Task::none();
+    };
+
+    if !should_search {
+        return Task::none();
+    }
+
+    if !schedule_task(state, task, 0) {
+        return Task::none();
+    }
+
+    let Some(history_db) = state.common.history_db.clone() else {
+        return Task::none();
+    };
+
+    Task::future(async move {
+        match history_db
+            .search_history_summary(&search_query, Some(100))
+            .await
+        {
+            Ok(entries) => TaskMsg::SearchHistoryCompleted(entries),
+            Err(e) => {
+                log::error!("Error searching history: {e:?}");
+                TaskMsg::Completed(BackgroundTask::SearchHistory)
             }
         }
     })
@@ -174,6 +241,7 @@ pub fn background(state: &mut AppState) -> Task<TaskMsg> {
         save_open_collections(state),
         check_dirty_requests(state),
         load_history(state),
+        search_history(state),
     ])
 }
 
