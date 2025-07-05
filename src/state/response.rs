@@ -51,26 +51,24 @@ impl CompletedResponse {
         }
     }
 
-    pub fn apply_json_path_filter(&mut self) -> Option<()> {
+    pub fn apply_json_path_filter(&mut self) {
         self.filtered_content = None;
         if self.json_path_filter.trim().is_empty() {
-            return None;
+            return;
         }
 
         let filtered = self.value.as_ref().and_then(|json| {
-            let path = JsonPath::try_from(self.json_path_filter.as_str()).ok()?;
-            let filtered = path.find(json);
-            let filtered = match filtered {
-                Value::Array(arr) if arr.len() == 1 => arr.first().unwrap().clone(),
-                Value::Null => return None,
-                _ => filtered,
-            };
-            serde_json::to_string_pretty(&filtered).ok()
+            let filtered = json.query(&self.json_path_filter).ok()?;
+            if filtered.len() == 1 {
+                serde_json::to_string_pretty(&filtered[0]).ok()
+            } else {
+                serde_json::to_string_pretty(&filtered).ok()
+            }
         });
+
         if let Some(json) = filtered {
             self.filtered_content = Some(editor::Content::with_text(&json));
         }
-        Some(())
     }
 
     pub fn new(res: client::Response) -> Self {

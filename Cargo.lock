@@ -2337,9 +2337,9 @@ checksum = "9e9e814853c1f5f3d6b38bc08a304f2865a09f711b642f74956f394de37dd2c8"
 
 [[package]]
 name = "jsonpath-rust"
-version = "0.7.5"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c00ae348f9f8fd2d09f82a98ca381c60df9e0820d8d79fce43e649b4dc3128b"
+checksum = "7d057f8fd19e20c3f14d3663983397155739b6bc1148dc5cd4c4a1a5b3130eb0"
 dependencies = [
  "pest",
  "pest_derive",

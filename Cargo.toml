@@ -60,7 +60,7 @@ iced_core = { branch = "editor", features = [
 ], git = "https://github.com/nrjais/iced" }
 indexmap = "2.10"
 jsonformat = "2.1.0"
-jsonpath-rust = "0.7"
+jsonpath-rust = "1.0"
 log = "0.4"
 mime_guess = "2.0"
 parsers = { path = "crates/parsers" }
