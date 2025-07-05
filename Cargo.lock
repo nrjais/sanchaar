@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "Sanchaar"
-version = "0.0.0"
+version = "0.1.0-prerelease.1"
 dependencies = [
  "anyhow",
  "components",
@@ -13,6 +13,7 @@ dependencies = [
  "humansize",
  "iced",
  "indexmap 2.10.0",
+ "jsonformat",
  "jsonpath-rust",
  "log",
  "reqwest",
@@ -2327,6 +2328,12 @@ dependencies = [
  "once_cell",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "jsonformat"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e9e814853c1f5f3d6b38bc08a304f2865a09f711b642f74956f394de37dd2c8"
 
 [[package]]
 name = "jsonpath-rust"

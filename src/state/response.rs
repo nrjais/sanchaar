@@ -87,7 +87,7 @@ fn pretty_body(body: &[u8]) -> (String, Option<String>, Option<Value>) {
     let value = serde_json::from_slice::<Value>(body).ok();
     let json = value
         .as_ref()
-        .and_then(|v| serde_json::to_string_pretty(&v).ok());
+        .map(|_v| jsonformat::format(&raw, jsonformat::Indentation::TwoSpace));
 
     (raw, json, value)
 }

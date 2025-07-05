@@ -1,6 +1,9 @@
 [package]
 name = "Sanchaar"
-edition = "2024"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
 
 [package.metadata.bundle]
 name = "Sanchaar"
@@ -28,56 +31,54 @@ members = [
 ]
 
 [workspace.package]
-authors = ["Neeraj Jaiswal <me@nrjais.com>"]
-description = "A fast offline REST API Client"
 version = "0.1.0-prerelease.1"
-edition = "2021"
+authors = ["Neeraj Jaiswal <me@nrjais.com>"]
+edition = "2024"
+description = "A fast offline REST API Client"
 
 [workspace.dependencies]
-iced = { git = "https://github.com/nrjais/iced", features = [
-    "tokio",
-    "web-colors",
-    "highlighter",
-    "debug",
-    "advanced",
-    "lazy",
-    "wgpu",
-], branch = "editor" }
-iced_core = { git = "https://github.com/nrjais/iced", features = [
-    "advanced",
-], branch = "editor" }
-rfd = { version = "0.15", default-features = false, features = [
-    "xdg-portal",
-    "tokio",
-] }
-tokio = { version = "1.36", features = ["fs", "macros", "io-util"] }
-strum = { version = "0.27", features = ["derive"] }
-reqwest = { version = "0.12", features = ["stream", "multipart"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 anyhow = "1.0"
-mime_guess = "2.0"
-humansize = "2.1"
-directories = "6.0"
-log = "0.4"
-regex = "1.10"
-hcl-rs = "0.18"
-similar = "2.5"
-cookie_store = "0.21"
-indexmap = "2.7"
-jsonpath-rust = "0.7"
-reqwest_cookie_store = "0.8"
-pest = "2.7"
-pest_derive = "2.7"
-dotenvy = "0.15.3"
-serde_with = "3.9.0"
 clap = { version = "4.5", features = ["derive"] }
 components = { path = "crates/components" }
+cookie_store = "0.21"
 core = { path = "crates/core" }
+directories = "6.0"
+dotenvy = "0.15.3"
+hcl-rs = "0.18"
+humansize = "2.1"
+iced = { branch = "editor", features = [
+  "advanced",
+  "debug",
+  "highlighter",
+  "lazy",
+  "tokio",
+  "web-colors",
+  "wgpu",
+], git = "https://github.com/nrjais/iced" }
+iced_core = { branch = "editor", features = [
+  "advanced",
+], git = "https://github.com/nrjais/iced" }
+indexmap = "2.10"
+jsonformat = "2.1.0"
+jsonpath-rust = "0.7"
+log = "0.4"
+mime_guess = "2.0"
 parsers = { path = "crates/parsers" }
-
-[features]
-debug = ["iced/hot"]
+pest = "2.7"
+pest_derive = "2.7"
+regex = "1.10"
+reqwest = { version = "0.12", features = ["multipart", "stream"] }
+reqwest_cookie_store = "0.8"
+rfd = { version = "0.15", default-features = false, features = [
+  "tokio",
+  "xdg-portal",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_with = "3.9.0"
+similar = "2.5"
+strum = { version = "0.27", features = ["derive"] }
+tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
 
 [dependencies]
 anyhow.workspace = true
@@ -87,6 +88,7 @@ core.workspace = true
 humansize.workspace = true
 iced.workspace = true
 indexmap.workspace = true
+jsonformat.workspace = true
 jsonpath-rust.workspace = true
 log.workspace = true
 reqwest.workspace = true
@@ -98,9 +100,12 @@ strum.workspace = true
 tokio.workspace = true
 uuid = { version = "1.0", features = ["v4"] }
 
+[features]
+default = ["iced/hot"]
+
 [profile.dev]
-incremental = true
 debug = 0
+incremental = true
 
 [profile.dev.package."*"]
 opt-level = 3
