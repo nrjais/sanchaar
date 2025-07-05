@@ -1,19 +1,19 @@
 use components::editor;
-use iced::widget::{vertical_rule, Button, Row};
 use iced::Length::{Fill, Shrink};
-use iced::{border, Border};
+use iced::widget::{Button, Row, vertical_rule};
+use iced::{Border, border};
 use iced::{
-    widget::{button, container, pick_list},
     Element, Task,
+    widget::{button, container, pick_list},
 };
 use reqwest::Url;
 use strum::VariantArray;
 
-use components::{icon, icons, line_editor, LineEditorMsg, NerdIcon};
+use components::{LineEditorMsg, NerdIcon, icon, icons, line_editor};
 use core::http::collection::Collection;
 use core::http::request::Method;
 
-use crate::commands::builders::{save_request_cmd, send_request_cmd, ResponseResult};
+use crate::commands::builders::{ResponseResult, save_request_cmd, send_request_cmd};
 use crate::state::popups::Popup;
 use crate::state::{AppState, HttpTab, Tab, TabKey};
 
@@ -81,8 +81,8 @@ impl UrlBarMsg {
                     Popup::save_request(&mut state.common, active_tab);
                 }
             }
-            UrlBarMsg::RequestResult(tab, res) => {
-                if let Some(Tab::Http(tab)) = state.get_tab_mut(tab) {
+            UrlBarMsg::RequestResult(tab_key, res) => {
+                if let Some(Tab::Http(tab)) = state.get_tab_mut(tab_key) {
                     tab.update_response(res)
                 }
             }

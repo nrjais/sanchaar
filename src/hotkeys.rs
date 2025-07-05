@@ -1,20 +1,20 @@
 use iced::{
-    advanced::widget::{operate, operation::focusable::focus},
-    keyboard::{self, key::Named, Event, Key},
-    widget::focus_previous,
     Task,
+    advanced::widget::{operate, operation::focusable::focus},
+    keyboard::{self, Event, Key, key::Named},
+    widget::focus_previous,
 };
 
 use crate::{
     app::AppMsg,
     commands::builders::{
-        save_collection_cmd, save_environments_cmd, save_request_cmd, send_request_cmd,
-        ResponseResult,
+        ResponseResult, save_collection_cmd, save_environments_cmd, save_request_cmd,
+        send_request_cmd,
     },
     state::{
+        AppState, HttpTab, Tab, TabKey,
         popups::Popup,
         tabs::collection_tab::{CollectionTab, CollectionTabId},
-        AppState, Tab, TabKey,
     },
 };
 
@@ -82,7 +82,7 @@ fn handle_hotkeys(
 fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -> Task<Message> {
     match c {
         "t" if !modifiers.shift() => {
-            state.open_tab(Tab::Http(Default::default()));
+            state.open_tab(Tab::Http(HttpTab::default()));
             Task::none()
         }
         "w" if !modifiers.shift() => {
@@ -155,6 +155,7 @@ fn save_tab(state: &mut AppState) -> Task<Message> {
             task.unwrap_or(Task::none())
         }
         Tab::CookieStore(_) => Task::none(),
+        Tab::History(_) => Task::none(),
     }
 }
 

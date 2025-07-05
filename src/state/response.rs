@@ -101,7 +101,7 @@ pub enum ResponseState {
     #[default]
     Idle,
     Executing,
-    Completed(CompletedResponse),
+    Completed(Box<CompletedResponse>),
     Failed(Arc<anyhow::Error>),
 }
 

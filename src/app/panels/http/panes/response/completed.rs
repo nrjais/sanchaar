@@ -48,7 +48,7 @@ impl CompletedMsg {
             }
             CompletedMsg::SaveResponse => {
                 return create_file_dialog("Save response body")
-                    .map(|path| CompletedMsg::SaveToFile(path));
+                    .map(CompletedMsg::SaveToFile);
             }
             CompletedMsg::SaveToFile(path) => {
                 if let Some(path) = path {

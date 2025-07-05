@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
 
@@ -5,7 +6,7 @@ use crate::assertions::Assertions;
 
 use super::{KeyFileList, KeyValList};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RequestBody {
     Multipart {
         params: KeyValList,
@@ -19,7 +20,7 @@ pub enum RequestBody {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Auth {
     None,
     Basic { username: String, password: String },

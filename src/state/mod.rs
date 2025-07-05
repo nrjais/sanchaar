@@ -1,13 +1,15 @@
+use iced::Theme;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
-use iced::Theme;
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
 use tabs::collection_tab::CollectionTab;
 use tabs::cookies_tab::CookiesTab;
+use tabs::history_tab::HistoryTab;
 
 use core::client::{create_client, create_cookie_store};
 use core::http::{CollectionRequest, Collections};
+use core::persistence::history::HistoryDatabase;
 use std::sync::Arc;
 pub use tabs::http_tab::*;
 
@@ -36,9 +38,10 @@ core::new_id_type! {
 
 #[derive(Debug)]
 pub enum Tab {
-    Http(HttpTab),
+    Http(Box<HttpTab>),
     Collection(CollectionTab),
     CookieStore(CookiesTab),
+    History(HistoryTab),
 }
 
 #[derive(Debug)]
@@ -49,6 +52,7 @@ pub struct CommonState {
     pub popup: Option<Popup>,
     pub background_tasks: Vec<JobState>,
     pub cookie_store: Arc<CookieStoreRwLock>,
+    pub history_db: Option<HistoryDatabase>,
 }
 
 #[derive(Debug)]
@@ -59,6 +63,12 @@ pub struct AppState {
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub panes: pane_grid::State<SplitState>,
     pub theme: Theme,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AppState {
@@ -75,6 +85,7 @@ impl AppState {
                 collections: Collections::default(),
                 popup: None,
                 background_tasks: Vec::new(),
+                history_db: None,
             },
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,

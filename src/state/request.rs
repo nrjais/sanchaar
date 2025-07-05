@@ -233,16 +233,13 @@ impl RequestPane {
     }
 
     pub fn format_body(&mut self) {
-        match &mut self.body {
-            RawRequestBody::Json(content) => {
-                let text = content.text();
-                let json = serde_json::from_str::<Value>(&text)
-                    .and_then(|j| serde_json::to_string_pretty(&j));
-                if let Ok(formatted) = json {
-                    *content = Content::with_text(&formatted);
-                }
+        if let RawRequestBody::Json(content) = &mut self.body {
+            let text = content.text();
+            let json = serde_json::from_str::<Value>(&text)
+                .and_then(|j| serde_json::to_string_pretty(&j));
+            if let Ok(formatted) = json {
+                *content = Content::with_text(&formatted);
             }
-            _ => {}
         }
     }
 }

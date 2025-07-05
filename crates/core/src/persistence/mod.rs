@@ -6,6 +6,7 @@ use crate::http::{KeyValList, KeyValue};
 
 pub mod collections;
 pub mod environment;
+pub mod history;
 pub mod request;
 
 pub const HCL_SUFFIX: &str = "hcl";
@@ -16,6 +17,7 @@ pub const COLLECTION_ROOT_FILE: &str = "collection.hcl";
 pub const ENVIRONMENTS: &str = "environments";
 pub const SCRIPTS: &str = "scripts";
 pub const REQUESTS: &str = "requests";
+pub const HISTORY_DB: &str = "history.db";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EncodedKeyValue {

@@ -117,9 +117,7 @@ pub fn variables_view<'a>(
 
 pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Message> {
     let environments = &tab.env_editor.environments;
-    let envs: Vec<_> = environments
-        .iter()
-        .map(|(_, env)| env.name.clone())
+    let envs: Vec<_> = environments.values().map(|env| env.name.clone())
         .collect();
 
     let header_vars = col.env_chain().all_var_set();

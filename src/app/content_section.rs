@@ -2,16 +2,17 @@ use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::text::Shaping::Advanced;
-use iced::widget::{container, pane_grid, text, Column, PaneGrid};
-use iced::{padding, Color, Element, Font, Length, Task};
+use iced::widget::{Column, PaneGrid, container, pane_grid, text};
+use iced::{Color, Element, Font, Length, Task, padding};
 
 use crate::app::panels::PanelMsg;
 
 use crate::app::{collection_tree, panels};
 use crate::state::tabs::collection_tab::CollectionTab;
+use crate::state::tabs::history_tab::HistoryTab;
 use crate::state::{AppState, HttpTab, SplitState, Tab, TabKey};
 use components::{
-    bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons, CardTab, TabBarAction,
+    CardTab, TabBarAction, bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons,
 };
 use core::http::request::Method;
 
@@ -23,6 +24,7 @@ pub enum MainPageMsg {
     Panel(PanelMsg),
     CollectionTree(CollectionTreeMsg),
     SplitResize(ResizeEvent),
+    OpenHistoryTab,
 }
 
 impl MainPageMsg {
@@ -32,7 +34,7 @@ impl MainPageMsg {
                 use TabBarAction::*;
                 match action {
                     ChangeTab(tab) => state.switch_tab(tab),
-                    NewTab => state.open_tab(Tab::Http(Default::default())),
+                    NewTab => state.open_tab(Tab::Http(HttpTab::default())),
                     CloseTab(key) => state.close_tab(key),
                 }
                 Task::none()
@@ -40,9 +42,22 @@ impl MainPageMsg {
             Self::Panel(msg) => msg.update(state).map(Self::Panel),
             Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
             Self::SplitResize(ResizeEvent { split, ratio }) => {
-                // Only allow resizing if the ratio is min 0.15 and max 0.3
                 if ratio > 0.1 && ratio < 0.3 {
                     state.panes.resize(split, ratio);
+                }
+                Task::none()
+            }
+            Self::OpenHistoryTab => {
+                let existing_tab = state
+                    .tabs
+                    .iter()
+                    .find(|(_, tab)| matches!(tab, Tab::History(_)))
+                    .map(|(key, _)| *key);
+
+                if let Some(tab) = existing_tab {
+                    state.switch_tab(tab);
+                } else {
+                    state.open_tab(Tab::History(HistoryTab::new()));
                 }
                 Task::none()
             }
@@ -110,6 +125,7 @@ fn tabs_view<'a>(
             Tab::Http(tab) => tab_card(*key, tab),
             Tab::Collection(tab) => col_tab(*key, tab),
             Tab::CookieStore(_) => cookie_tab(*key),
+            Tab::History(tab) => history_tab(*key, tab),
         })
         .collect();
 
@@ -128,6 +144,10 @@ fn col_tab(key: TabKey, tab: &CollectionTab) -> CardTab<TabKey> {
 
 fn cookie_tab<'a>(key: TabKey) -> CardTab<'a, TabKey> {
     card_tab(key, icon(icons::Cookie), text("Cookies"))
+}
+
+fn history_tab<'a>(key: TabKey, tab: &'a HistoryTab) -> CardTab<'a, TabKey> {
+    card_tab(key, icon(icons::CheckBold), text(&tab.name))
 }
 
 fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {

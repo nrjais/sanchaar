@@ -1,27 +1,24 @@
-use core::http::KeyValList;
 use core::persistence::environment::{encode_environments, save_environments};
 use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::futures::TryFutureExt;
 use iced::Task;
+use iced::futures::TryFutureExt;
 use rfd::{AsyncFileDialog, FileHandle};
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
 use core::client::send_request;
-use core::http::collection::Collection;
-use core::http::{
-    collection::{Entry, FolderId, RequestId, RequestRef},
-    request::Request,
-    CollectionKey, CollectionRequest,
-};
+use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
+use core::http::request::Request;
+use core::http::{CollectionKey, CollectionRequest, KeyValList};
 use core::persistence::collections::{self, encode_collection, open_collection, save_collection};
+use core::persistence::history::HistoryDatabase;
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
-use crate::commands::cancellable_task::{cancellable_task, TaskResult};
+use crate::commands::cancellable_task::{TaskResult, cancellable_task};
 use crate::state::response::ResponseState;
 use crate::state::tabs::collection_tab::{CollectionTab, EnvironmentEditor};
 use crate::state::utils::to_core_kv_list;
@@ -52,8 +49,27 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
         state.client.clone()
     };
 
+    let history_db = state.history_db.clone();
+    let collection_name = collection.map(|c| c.name.clone());
+    let request_for_history = request.clone();
+
     let req_fut = transform_request(client.clone(), request, env)
-        .and_then(move |req| send_request(client, req));
+        .and_then(move |req| send_request(client, req))
+        .and_then(move |response| async move {
+            if let Some(db) = history_db {
+                if let Err(e) = save_request_to_history(
+                    &db,
+                    &request_for_history,
+                    &response,
+                    collection_name.as_deref(),
+                )
+                .await
+                {
+                    log::error!("Failed to save request to history: {e}");
+                }
+            }
+            Ok(response)
+        });
 
     let (cancel_tx, req_fut) = cancellable_task(req_fut);
 
@@ -68,6 +84,18 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
     })
 }
 
+async fn save_request_to_history(
+    history_db: &HistoryDatabase,
+    request: &Request,
+    response: &core::client::Response,
+    collection_name: Option<&str>,
+) -> anyhow::Result<()> {
+    history_db
+        .save_request_response(request, response, collection_name)
+        .await?;
+    Ok(())
+}
+
 pub fn save_request_cmd(tab: &mut HttpTab, path: PathBuf) -> Task<Option<Arc<anyhow::Error>>> {
     tab.mark_clean();
 
@@ -75,7 +103,7 @@ pub fn save_request_cmd(tab: &mut HttpTab, path: PathBuf) -> Task<Option<Arc<any
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => None,
         Err(e) => {
-            log::error!("Error saving request: {:?}", e);
+            log::error!("Error saving request: {e:?}");
             Some(Arc::new(e))
         }
     })
@@ -90,7 +118,7 @@ pub fn write_file_cmd(data: Arc<Vec<u8>>, path: Arc<FileHandle>) -> Task<()> {
 
     Task::perform(fut(data, path), move |r| match r {
         Ok(_) => (),
-        Err(e) => log::error!("Error saving file: {:?}", e),
+        Err(e) => log::error!("Error saving file: {e:?}"),
     })
 }
 
@@ -153,7 +181,7 @@ pub fn create_new_request_cmd(
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => None,
         Err(e) => {
-            log::error!("Error saving request: {:?}", e);
+            log::error!("Error saving request: {e:?}");
             Some(e)
         }
     })
@@ -171,7 +199,7 @@ pub fn create_collection_cmd(
         move |r| match r {
             Ok(_) => None,
             Err(e) => {
-                log::error!("Error saving collection: {:?}", e);
+                log::error!("Error saving collection: {e:?}");
                 Some(e)
             }
         },
@@ -298,7 +326,7 @@ pub fn save_environments_cmd(
 
 pub async fn load_collections_cmd() -> Vec<Collection> {
     collections::load().await.unwrap_or_else(|e| {
-        log::error!("Error loading http: {:?}", e);
+        log::error!("Error loading http: {e:?}");
         vec![]
     })
 }
@@ -343,7 +371,7 @@ pub fn check_dirty_requests_cmd(state: &mut AppState) -> Task<Vec<(TabKey, Reque
     Task::perform(exec(to_check), move |res| match res {
         Ok(dirty) => dirty,
         Err(e) => {
-            log::error!("Error checking dirty requests: {:?}", e);
+            log::error!("Error checking dirty requests: {e:?}");
             vec![]
         }
     })
@@ -361,7 +389,7 @@ pub fn rename_folder_cmd(
 
     Task::perform(fs::rename(old, new), move |res| {
         if let Err(e) = res {
-            log::error!("Error renaming folder: {:?}", e);
+            log::error!("Error renaming folder: {e:?}");
         }
     })
 }
@@ -377,7 +405,7 @@ pub fn rename_request_cmd(
 
     Task::perform(fs::rename(old, new), move |res| {
         if let Err(e) = res {
-            log::error!("Error renaming request: {:?}", e);
+            log::error!("Error renaming request: {e:?}");
         }
     })
 }
@@ -407,7 +435,7 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
         move |r| match r {
             Ok(_) => (),
             Err(e) => {
-                log::error!("Error saving collection: {:?}", e);
+                log::error!("Error saving collection: {e:?}");
             }
         },
     )
