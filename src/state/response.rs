@@ -57,13 +57,19 @@ impl CompletedResponse {
             return None;
         }
 
-        if let Some(json) = &self.value {
+        let filtered = self.value.as_ref().and_then(|json| {
             let path = JsonPath::try_from(self.json_path_filter.as_str()).ok()?;
             let filtered = path.find(json);
-            let filtered_json = serde_json::to_string_pretty(&filtered).unwrap_or_default();
-            self.filtered_content = Some(editor::Content::with_text(&filtered_json));
+            let filtered = match filtered {
+                Value::Array(arr) if arr.len() == 1 => arr.first().unwrap().clone(),
+                Value::Null => return None,
+                _ => filtered,
+            };
+            serde_json::to_string_pretty(&filtered).ok()
+        });
+        if let Some(json) = filtered {
+            self.filtered_content = Some(editor::Content::with_text(&json));
         }
-
         Some(())
     }
 
