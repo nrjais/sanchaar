@@ -44,6 +44,18 @@ pub enum Tab {
     History(HistoryTab),
 }
 
+impl Tab {
+    pub fn matches_type(&self, other: &Tab) -> bool {
+        match (self, other) {
+            (Tab::Http(_), Tab::Http(_)) => true,
+            (Tab::Collection(_), Tab::Collection(_)) => true,
+            (Tab::CookieStore(_), Tab::CookieStore(_)) => true,
+            (Tab::History(_), Tab::History(_)) => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct CommonState {
     pub collections: Collections,
@@ -101,6 +113,20 @@ impl AppState {
         self.active_tab = tab;
         self.tab_history.shift_remove(&tab);
         self.tab_history.insert(tab);
+    }
+
+    pub fn open_unique_tab(&mut self, tab: Tab) {
+        let existing_tab = self
+            .tabs
+            .iter()
+            .find(|(_, t)| t.matches_type(&tab))
+            .map(|(key, _)| *key);
+
+        if let Some(key) = existing_tab {
+            self.switch_tab(key);
+        } else {
+            self.open_tab(tab);
+        }
     }
 
     pub fn open_tab(&mut self, tab: Tab) {

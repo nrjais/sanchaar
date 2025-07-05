@@ -11,6 +11,7 @@ use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::cookies_tab::CookiesTab;
+use crate::state::tabs::history_tab::HistoryTab;
 use crate::state::{AppState, HttpTab, Tab};
 
 #[derive(Debug, Clone)]
@@ -69,12 +70,10 @@ impl CollectionTreeMsg {
                 Popup::app_settings(&mut state.common);
             }
             CollectionTreeMsg::OpenCookies => {
-                state.open_tab(Tab::CookieStore(CookiesTab::new(&state.common)));
+                state.open_unique_tab(Tab::CookieStore(CookiesTab::new(&state.common)));
             }
             CollectionTreeMsg::OpenHistory => {
-                use crate::state::tabs::history_tab::HistoryTab;
-                let history_tab = HistoryTab::new();
-                state.open_tab(Tab::History(history_tab));
+                state.open_unique_tab(Tab::History(HistoryTab::new()));
             }
         };
         Task::none()
