@@ -3,8 +3,8 @@ use iced::widget::pane_grid::Configuration;
 use tokio::sync::oneshot;
 
 use crate::commands::builders::ResponseResult;
-use crate::state::response::ResponsePane;
 use crate::state::SplitState;
+use crate::state::response::ResponsePane;
 use core::http::request::Request;
 use core::http::{CollectionKey, CollectionRequest};
 
@@ -30,19 +30,9 @@ pub struct HttpTab {
     pub request_dirty_state: RequestDirtyState,
 }
 
-impl Default for HttpTab {
-    fn default() -> Self {
-        HttpTab::new(
-            "Untitled",
-            Default::default(),
-            CollectionRequest(Default::default(), Default::default()),
-        )
-    }
-}
-
 impl HttpTab {
-    pub fn new(name: &str, request: Request, req_ref: CollectionRequest) -> Self {
-        Self {
+    pub fn new(name: &str, request: Request, req_ref: CollectionRequest) -> Box<Self> {
+        Box::new(Self {
             name: name.to_owned(),
             collection_ref: req_ref,
             request: RequestPane::from(request),
@@ -56,7 +46,22 @@ impl HttpTab {
             }),
             editing_name: None,
             request_dirty_state: RequestDirtyState::Clean,
-        }
+        })
+    }
+
+    pub fn default() -> Box<Self> {
+        Self::new("Untitled", Default::default(), Default::default())
+    }
+
+    pub fn from_history(
+        name: &str,
+        request: Request,
+        response: core::client::Response,
+        req_ref: CollectionRequest,
+    ) -> Box<Self> {
+        let mut tab = Self::new(name, request, req_ref);
+        tab.response.state = ResponseState::Completed(Box::new(CompletedResponse::new(response)));
+        tab
     }
 
     pub fn is_request_dirty(&self) -> bool {
@@ -101,7 +106,8 @@ impl HttpTab {
         self.cancel_tasks();
         match result {
             ResponseResult::Completed(res) => {
-                self.response.state = ResponseState::Completed(CompletedResponse::new(res));
+                self.response.state =
+                    ResponseState::Completed(Box::new(CompletedResponse::new(res)));
             }
             ResponseResult::Error(e) => {
                 self.response.state = ResponseState::Failed(e);

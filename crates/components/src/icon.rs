@@ -1,9 +1,7 @@
 use iced::{
-    widget::{button, container, text, Button, Text},
     Alignment::Center,
-    Font,
-    Length::{self},
-    Renderer, Theme,
+    Font, Length, Renderer, Theme,
+    widget::{Button, Text, button, container, text},
 };
 
 pub fn icon<'a>(icon: NerdIcon) -> Text<'a, Theme, Renderer> {
@@ -57,4 +55,5 @@ pub mod icons {
     pub const API: NerdIcon = NerdIcon('󱂛');
     pub const Folder: NerdIcon = NerdIcon('󰉋');
     pub const FolderOpen: NerdIcon = NerdIcon('󰝰');
+    pub const History: NerdIcon = NerdIcon('󰋚');
 }

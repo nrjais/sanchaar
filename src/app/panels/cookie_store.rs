@@ -31,7 +31,7 @@ pub fn view<'a>(tab: &'a CookiesTab) -> Element<'a, CookieTabMsg> {
                 table_value(
                     cookie
                         .secure()
-                        .map(|s| s.then_some("Secure").unwrap_or("Insecure"))
+                        .map(|s| if s { "Secure" } else { "Insecure" })
                         .unwrap_or_default(),
                 ),
             ]

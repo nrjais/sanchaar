@@ -1,6 +1,6 @@
-use std::{sync::Arc, time::Duration};
+use std::{str::FromStr, sync::Arc, time::Duration};
 
-use reqwest::{header::HeaderMap, Client, Request, StatusCode};
+use reqwest::{Client, Request, StatusCode, header::HeaderMap};
 use reqwest_cookie_store::CookieStoreRwLock;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8,6 +8,35 @@ pub enum ContentType {
     Json,
     Text,
     Buffer,
+}
+
+impl ContentType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ContentType::Json => "json",
+            ContentType::Text => "text",
+            ContentType::Buffer => "buffer",
+        }
+    }
+}
+
+impl ToString for ContentType {
+    fn to_string(&self) -> String {
+        self.as_str().to_string()
+    }
+}
+
+impl FromStr for ContentType {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "json" => Ok(ContentType::Json),
+            "text" => Ok(ContentType::Text),
+            "buffer" => Ok(ContentType::Buffer),
+            _ => Err(anyhow::anyhow!("Invalid content type: {}", s)),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

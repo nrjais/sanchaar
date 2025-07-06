@@ -100,9 +100,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let selected = editor.selected_env;
 
-    let env_tabs: Vec<_> = environments
-        .iter()
-        .map(|(_, env)| env.name.clone())
+    let env_tabs: Vec<_> = environments.values().map(|env| env.name.clone())
         .collect();
 
     let selected_name = selected

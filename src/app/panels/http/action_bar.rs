@@ -102,7 +102,7 @@ fn environment_view(col: &Collection, key: CollectionKey) -> Element<'_, ActionB
         .map(|(_, env)| &env.name)
         .collect::<Vec<_>>();
 
-    let env_placeholder = if envs.len() > 0 {
+    let env_placeholder = if !envs.is_empty() {
         "Select Environment"
     } else {
         "No Environments"

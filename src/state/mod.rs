@@ -1,13 +1,15 @@
+use iced::Theme;
 use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
-use iced::Theme;
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
 use tabs::collection_tab::CollectionTab;
 use tabs::cookies_tab::CookiesTab;
+use tabs::history_tab::HistoryTab;
 
 use core::client::{create_client, create_cookie_store};
 use core::http::{CollectionRequest, Collections};
+use core::persistence::history::HistoryDatabase;
 use std::sync::Arc;
 pub use tabs::http_tab::*;
 
@@ -36,9 +38,22 @@ core::new_id_type! {
 
 #[derive(Debug)]
 pub enum Tab {
-    Http(HttpTab),
+    Http(Box<HttpTab>),
     Collection(CollectionTab),
     CookieStore(CookiesTab),
+    History(HistoryTab),
+}
+
+impl Tab {
+    pub fn matches_type(&self, other: &Tab) -> bool {
+        match (self, other) {
+            (Tab::Http(_), Tab::Http(_)) => true,
+            (Tab::Collection(_), Tab::Collection(_)) => true,
+            (Tab::CookieStore(_), Tab::CookieStore(_)) => true,
+            (Tab::History(_), Tab::History(_)) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -49,6 +64,7 @@ pub struct CommonState {
     pub popup: Option<Popup>,
     pub background_tasks: Vec<JobState>,
     pub cookie_store: Arc<CookieStoreRwLock>,
+    pub history_db: Option<HistoryDatabase>,
 }
 
 #[derive(Debug)]
@@ -59,6 +75,12 @@ pub struct AppState {
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub panes: pane_grid::State<SplitState>,
     pub theme: Theme,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AppState {
@@ -75,10 +97,11 @@ impl AppState {
                 collections: Collections::default(),
                 popup: None,
                 background_tasks: Vec::new(),
+                history_db: None,
             },
             panes: pane_grid::State::with_configuration(Configuration::Split {
                 axis: pane_grid::Axis::Vertical,
-                ratio: 0.15,
+                ratio: 0.20,
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
@@ -90,6 +113,20 @@ impl AppState {
         self.active_tab = tab;
         self.tab_history.shift_remove(&tab);
         self.tab_history.insert(tab);
+    }
+
+    pub fn open_unique_tab(&mut self, tab: Tab) {
+        let existing_tab = self
+            .tabs
+            .iter()
+            .find(|(_, t)| t.matches_type(&tab))
+            .map(|(key, _)| *key);
+
+        if let Some(key) = existing_tab {
+            self.switch_tab(key);
+        } else {
+            self.open_tab(tab);
+        }
     }
 
     pub fn open_tab(&mut self, tab: Tab) {

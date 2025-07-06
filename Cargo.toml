@@ -38,6 +38,7 @@ description = "A fast offline REST API Client"
 
 [workspace.dependencies]
 anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
 components = { path = "crates/components" }
 cookie_store = "0.21"
@@ -77,11 +78,18 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = "3.9.0"
 similar = "2.5"
+sqlx = { version = "0.8", features = [
+  "chrono",
+  "runtime-tokio-native-tls",
+  "sqlite",
+  "uuid",
+] }
 strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
 
 [dependencies]
 anyhow.workspace = true
+chrono.workspace = true
 components.workspace = true
 cookie_store.workspace = true
 core.workspace = true
@@ -96,6 +104,7 @@ reqwest_cookie_store.workspace = true
 rfd.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sqlx.workspace = true
 strum.workspace = true
 tokio.workspace = true
 uuid = { version = "1.0", features = ["v4"] }

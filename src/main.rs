@@ -18,7 +18,7 @@ fn main() {
     match app() {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("{e}");
             std::process::exit(1);
         }
     };
@@ -38,7 +38,7 @@ pub fn app() -> Result<(), iced::Error> {
     .window(window::Settings {
         size: Size::new(1024.0, 768.0),
         position: Position::Specific(Point::ORIGIN),
-        min_size: Some(Size::new(800.0, 600.0)),
+        min_size: Some(Size::new(900.0, 600.0)),
         ..Default::default()
     })
     .title("Sanchaar")

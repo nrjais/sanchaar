@@ -1,12 +1,7 @@
 use std::path::PathBuf;
 
 use indexmap::IndexMap;
-
-use crate::http::collection::{Collection, RequestId, RequestRef};
-use crate::http::environment::Environments;
-
-use self::collection::FolderId;
-use self::environment::EnvironmentKey;
+use serde::{Deserialize, Serialize};
 
 pub mod collection;
 pub mod environment;
@@ -16,14 +11,17 @@ crate::new_id_type! {
     pub struct CollectionKey;
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+pub use self::collection::*;
+pub use self::environment::*;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KeyValue {
     pub disabled: bool,
     pub name: String,
     pub value: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyValList(Vec<KeyValue>);
 
 impl KeyValList {
@@ -57,14 +55,14 @@ impl IntoIterator for KeyValList {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyFile {
     pub name: String,
     pub path: Option<PathBuf>,
     pub disabled: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Default, Eq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Serialize, Deserialize)]
 pub struct KeyFileList(Vec<KeyFile>);
 
 impl KeyFileList {
@@ -92,6 +90,12 @@ impl IntoIterator for KeyFileList {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CollectionRequest(pub CollectionKey, pub RequestId);
+
+impl Default for CollectionRequest {
+    fn default() -> Self {
+        Self(CollectionKey::ZERO, RequestId::ZERO)
+    }
+}
 
 #[derive(Debug, Default)]
 pub struct Collections {
