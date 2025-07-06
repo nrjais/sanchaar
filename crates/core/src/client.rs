@@ -1,4 +1,4 @@
-use std::{str::FromStr, sync::Arc, time::Duration};
+use std::{str::FromStr, sync::Arc, time::{Duration, Instant}};
 
 use reqwest::{Client, Request, StatusCode, header::HeaderMap};
 use reqwest_cookie_store::CookieStoreRwLock;
@@ -61,7 +61,7 @@ pub struct Response {
 }
 
 pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Response> {
-    let start = std::time::Instant::now();
+    let start = Instant::now();
     let res = client.execute(req).await?;
     let duration = start.elapsed();
     let status = res.status();
