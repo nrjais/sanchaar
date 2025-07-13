@@ -3,6 +3,29 @@ use std::{str::FromStr, sync::Arc, time::Duration};
 use reqwest::{Client, Request, StatusCode, header::HeaderMap};
 use reqwest_cookie_store::CookieStoreRwLock;
 
+fn is_json_content_type(content_type: &str) -> bool {
+    let content_type = content_type.to_lowercase();
+    let main_type = content_type.split(';').next().unwrap_or("").trim();
+    matches!(main_type, "application/json" | "text/json") || main_type.ends_with("+json")
+}
+
+fn is_text_content_type(content_type: &str) -> bool {
+    let content_type = content_type.to_lowercase();
+    let main_type = content_type.split(';').next().unwrap_or("").trim();
+
+    matches!(
+        main_type,
+        "text/plain"
+            | "text/html"
+            | "text/css"
+            | "text/javascript"
+            | "text/csv"
+            | "text/xml"
+            | "text/yaml"
+            | "text/markdown"
+    ) || main_type.starts_with("text/")
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
     Json,
@@ -72,19 +95,23 @@ pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Respon
         .and_then(|v| v.to_str().ok())
         .unwrap_or_default();
 
-    let body: ResponseBody = match content_type {
-        "application/json" => ResponseBody {
+    let data = res.bytes().await?.to_vec().into();
+
+    let body: ResponseBody = if is_json_content_type(&content_type) {
+        ResponseBody {
             content_type: ContentType::Json,
-            data: res.bytes().await?.to_vec().into(),
-        },
-        "text/plain" => ResponseBody {
+            data,
+        }
+    } else if is_text_content_type(&content_type) {
+        ResponseBody {
             content_type: ContentType::Text,
-            data: res.bytes().await?.to_vec().into(),
-        },
-        _ => ResponseBody {
+            data,
+        }
+    } else {
+        ResponseBody {
             content_type: ContentType::Buffer,
-            data: res.bytes().await?.to_vec().into(),
-        },
+            data,
+        }
     };
 
     let size_bytes = body.data.len();
@@ -108,4 +135,73 @@ pub fn create_client(disable_verification: bool, store: Arc<CookieStoreRwLock>) 
         .cookie_provider(store)
         .build()
         .expect("Failed to create client")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_json_content_type_detection() {
+        // Standard JSON types
+        assert!(is_json_content_type("application/json"));
+        assert!(is_json_content_type("text/json"));
+
+        // JSON with charset
+        assert!(is_json_content_type("application/json; charset=utf-8"));
+        assert!(is_json_content_type("application/json;charset=utf-8"));
+
+        // Specific JSON variants
+        assert!(is_json_content_type("application/ld+json"));
+        assert!(is_json_content_type("application/hal+json"));
+        assert!(is_json_content_type("application/vnd.api+json"));
+        assert!(is_json_content_type("application/problem+json"));
+        assert!(is_json_content_type("application/merge-patch+json"));
+        assert!(is_json_content_type("application/json-patch+json"));
+
+        // Generic +json types
+        assert!(is_json_content_type("application/vnd.github.v3+json"));
+        assert!(is_json_content_type("application/custom+json"));
+
+        // Case insensitive
+        assert!(is_json_content_type("APPLICATION/JSON"));
+        assert!(is_json_content_type("Application/Json"));
+
+        // Not JSON
+        assert!(!is_json_content_type("text/plain"));
+        assert!(!is_json_content_type("text/html"));
+        assert!(!is_json_content_type("application/xml"));
+        assert!(!is_json_content_type("application/octet-stream"));
+    }
+
+    #[test]
+    fn test_text_content_type_detection() {
+        // Standard text types
+        assert!(is_text_content_type("text/plain"));
+        assert!(is_text_content_type("text/html"));
+        assert!(is_text_content_type("text/css"));
+        assert!(is_text_content_type("text/javascript"));
+        assert!(is_text_content_type("text/csv"));
+        assert!(is_text_content_type("text/xml"));
+        assert!(is_text_content_type("text/yaml"));
+        assert!(is_text_content_type("text/markdown"));
+
+        // Text with charset
+        assert!(is_text_content_type("text/plain; charset=utf-8"));
+        assert!(is_text_content_type("text/html;charset=iso-8859-1"));
+
+        // Generic text/ types
+        assert!(is_text_content_type("text/custom"));
+        assert!(is_text_content_type("text/whatever"));
+
+        // Case insensitive
+        assert!(is_text_content_type("TEXT/PLAIN"));
+        assert!(is_text_content_type("Text/Html"));
+
+        // Not text
+        assert!(!is_text_content_type("application/json"));
+        assert!(!is_text_content_type("application/xml"));
+        assert!(!is_text_content_type("image/png"));
+        assert!(!is_text_content_type("application/octet-stream"));
+    }
 }
