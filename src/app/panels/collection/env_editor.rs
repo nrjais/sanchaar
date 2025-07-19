@@ -1,7 +1,7 @@
-use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
+use iced::widget::{Column, Row, button, horizontal_space, pick_list, scrollable};
 use iced::{Alignment, Element, Length, Task};
 
-use components::{icon, icons, key_value_editor, tooltip, NerdIcon};
+use components::{NerdIcon, icon, icons, key_value_editor, tooltip};
 use core::http::collection::Collection;
 use core::http::environment::EnvironmentKey;
 
@@ -100,8 +100,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let selected = editor.selected_env;
 
-    let env_tabs: Vec<_> = environments.values().map(|env| env.name.clone())
-        .collect();
+    let env_tabs: Vec<_> = environments.values().map(|env| env.name.clone()).collect();
 
     let selected_name = selected
         .and_then(|key| environments.get(&key))
@@ -111,9 +110,9 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
         .push("Edit Environments")
         .push(horizontal_space().width(Length::FillPortion(3)))
         .push(icon_button("Create New", icons::Plus, Message::CreatNewEnv))
-        .push_maybe(selected.map(|s| icon_button("Rename", icons::Pencil, Message::RenameEnv(s))))
-        .push_maybe(selected.map(|s| icon_button("Delete", icons::Delete, Message::DeleteEnv(s))))
-        .push_maybe(editor.edited.then_some(icon_button(
+        .push(selected.map(|s| icon_button("Rename", icons::Pencil, Message::RenameEnv(s))))
+        .push(selected.map(|s| icon_button("Delete", icons::Delete, Message::DeleteEnv(s))))
+        .push(editor.edited.then_some(icon_button(
             "Save Changes",
             icons::ContentSave,
             Message::SaveEnvs,
@@ -138,7 +137,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     Column::new()
         .push(action_bar)
-        .push_maybe(editor)
+        .push(editor)
         .spacing(8)
         .width(Length::Fill)
         .height(Length::Fill)

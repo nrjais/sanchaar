@@ -165,7 +165,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
     let col_selector = container(
         Row::new()
             .push(col_selector(state, data))
-            .push_maybe(folder_selector),
+            .push(folder_selector),
     )
     .width(Length::Fill)
     .max_height(500)

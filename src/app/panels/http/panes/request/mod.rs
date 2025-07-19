@@ -137,7 +137,7 @@ fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Eleme
         .spacing(4)
         .width(Length::Fill);
 
-    scrollable(Column::new().push(query).push_maybe(path).spacing(8))
+    scrollable(Column::new().push(query).push(path).spacing(8))
         .height(Length::Fill)
         .width(Length::Fill)
         .into()

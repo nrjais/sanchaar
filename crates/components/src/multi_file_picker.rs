@@ -1,8 +1,8 @@
 use iced::widget::{column, text};
-use iced::{padding, Background, Length};
+use iced::{Background, Length, padding};
 use iced::{
-    widget::{button, checkbox, container, text_input, Row},
     Border, Element, Theme,
+    widget::{Row, button, checkbox, container, text_input},
 };
 use std::ops::Not;
 use std::path::PathBuf;
@@ -221,7 +221,7 @@ pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerU
             Row::new()
                 .push(name)
                 .push(value)
-                .push_maybe(actions)
+                .push(actions)
                 .height(Length::Shrink)
                 .spacing(spacing),
         )

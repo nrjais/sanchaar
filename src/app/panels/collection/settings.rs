@@ -2,12 +2,11 @@ use core::http::collection::Collection;
 use std::{collections::HashSet, sync::Arc, time::Duration};
 
 use components::{
-    icon, icons, key_value_editor, text_input, tooltip, KeyValList, KeyValUpdateMsg, NerdIcon,
+    KeyValList, KeyValUpdateMsg, NerdIcon, icon, icons, key_value_editor, text_input, tooltip,
 };
 use iced::{
-    padding,
-    widget::{button, horizontal_space, pick_list, scrollable, text, toggler, Column, Row},
-    Alignment, Element, Length, Task,
+    Alignment, Element, Length, Task, padding,
+    widget::{Column, Row, button, horizontal_space, pick_list, scrollable, text, toggler},
 };
 
 use crate::{
@@ -117,8 +116,7 @@ pub fn variables_view<'a>(
 
 pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Message> {
     let environments = &tab.env_editor.environments;
-    let envs: Vec<_> = environments.values().map(|env| env.name.clone())
-        .collect();
+    let envs: Vec<_> = environments.values().map(|env| env.name.clone()).collect();
 
     let header_vars = col.env_chain().all_var_set();
     let collection_vars = col.collection_env_chain().all_var_set();
@@ -127,7 +125,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
     let action_bar = Row::new()
         .push(text("Collection Settings").size(18))
         .push(horizontal_space().width(Length::FillPortion(1)))
-        .push_maybe(tab.edited.then_some(icon_button(
+        .push(tab.edited.then_some(icon_button(
             "Save Changes",
             icons::ContentSave,
             Message::SaveChanges,

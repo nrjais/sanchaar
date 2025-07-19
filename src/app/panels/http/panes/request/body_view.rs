@@ -29,7 +29,7 @@ pub fn body_tab(
     let header = Row::new()
         .push(text("Content Type"))
         .push(horizontal_space())
-        .push_maybe(actions)
+        .push(actions)
         .push(
             pick_list(
                 RawRequestBody::all_variants(),

@@ -76,7 +76,7 @@ pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg
 
     let req_res = container(req_res).padding(padding::top(4));
     Column::new()
-        .push_maybe(action_bar)
+        .push(action_bar)
         .push(url_bar)
         .push(req_res)
         .height(iced::Length::Fill)

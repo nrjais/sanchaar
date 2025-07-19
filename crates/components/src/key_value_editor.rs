@@ -1,15 +1,15 @@
 use iced::widget::{column, text};
-use iced::{border, padding, Background, Length, Padding};
+use iced::{Background, Length, Padding, border, padding};
 use iced::{
-    widget::{button, checkbox, container, text_input, Row},
     Border, Element, Theme,
+    widget::{Row, button, checkbox, container, text_input},
 };
 use std::collections::HashSet;
 use std::ops::Not;
 use std::sync::Arc;
 
 use crate::editor;
-use crate::{line_editor, tooltip, LineEditorMsg};
+use crate::{LineEditorMsg, line_editor, tooltip};
 
 use super::{icon, icons};
 
@@ -221,7 +221,7 @@ impl<'a> KeyValEditor<'a> {
                 Row::new()
                     .push(name)
                     .push(value)
-                    .push_maybe(actions)
+                    .push(actions)
                     .spacing(spacing),
             )
             .style(move |t| {
