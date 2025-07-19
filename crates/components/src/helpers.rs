@@ -1,6 +1,7 @@
 use iced::{
-    widget::{container, text, tooltip::Position, Container, TextInput, Tooltip},
-    Border, Element, Length, Theme,
+    Border, Element, Font, Length, Theme,
+    font::Weight,
+    widget::{Container, TextInput, Tooltip, container, text, tooltip::Position},
 };
 
 pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
@@ -37,4 +38,13 @@ pub fn text_input<'a, M: Clone + 'a>(
     iced::widget::text_input(placeholder, value)
         .on_input(on_change.clone())
         .on_paste(on_change)
+}
+
+pub fn bold<'a, M: 'a>(txt: &'a str) -> Element<'a, M> {
+    text(txt)
+        .font(Font {
+            weight: Weight::Bold,
+            ..Font::DEFAULT
+        })
+        .into()
 }

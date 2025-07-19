@@ -1,6 +1,8 @@
-use components::{table, table_value};
-use iced::widget::{text, Column};
+use components::bold;
+use cookie_store::Cookie;
 use iced::Length;
+use iced::widget::text::Wrapping;
+use iced::widget::{scrollable, table, text};
 use iced::{Element, Task};
 
 use crate::state::tabs::cookies_tab::CookiesTab;
@@ -19,39 +21,32 @@ impl CookieTabMsg {
 }
 
 pub fn view<'a>(tab: &'a CookiesTab) -> Element<'a, CookieTabMsg> {
-    let cookies = tab
-        .cookies()
-        .into_iter()
-        .map(|cookie| -> [Element<'a, CookieTabMsg>; 5] {
-            [
-                table_value(cookie.name()),
-                table_value(cookie.value()),
-                table_value(cookie.domain().unwrap_or_default()),
-                table_value(cookie.path().unwrap_or_default()),
-                table_value(
-                    cookie
-                        .secure()
-                        .map(|s| if s { "Secure" } else { "Insecure" })
-                        .unwrap_or_default(),
-                ),
-            ]
+    let columns = [
+        table::column(bold("Name"), |cookie: Cookie<'static>| {
+            text(cookie.name().to_string())
         })
-        .collect::<Vec<_>>();
-
-    let headers = [
-        table_value("Name"),
-        table_value("Value"),
-        table_value("Domain"),
-        table_value("Path"),
-        table_value("Secure"),
+        .width(Length::FillPortion(1)),
+        table::column(bold("Value"), |cookie: Cookie<'static>| {
+            text(cookie.value().to_string()).wrapping(Wrapping::Glyph)
+        })
+        .width(Length::FillPortion(2)),
+        table::column(bold("Domain"), |cookie: Cookie<'static>| {
+            text(cookie.domain().unwrap_or_default().to_string())
+        })
+        .width(Length::FillPortion(1)),
+        table::column(bold("Path"), |cookie: Cookie<'static>| {
+            text(cookie.path().unwrap_or_default().to_string())
+        }),
+        table::column(bold("Secure"), |cookie: Cookie<'static>| {
+            text(
+                cookie
+                    .secure()
+                    .map(|s| if s { "Secure" } else { "Insecure" })
+                    .unwrap_or_default()
+                    .to_string(),
+            )
+        }),
     ];
-    let content = table(headers, cookies, [2, 3, 2, 1, 1]);
 
-    Column::new()
-        .push(text("Cookies"))
-        .push(content)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .spacing(8)
-        .into()
+    scrollable(table(columns, tab.cookies())).into()
 }

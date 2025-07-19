@@ -1,9 +1,10 @@
 use chrono::{DateTime, Local};
-use components::{colors, icon, icon_button, icons, table, tooltip};
+use components::{bold, colors, icon, icon_button, icons, tooltip};
 use core::persistence::history::{HistoryEntry, HistoryEntrySummary};
 use core::utils::fmt_duration;
 use humansize::{BINARY, format_size};
-use iced::widget::{Space, button, column, row, text, text_input};
+use iced::widget::text::Wrapping;
+use iced::widget::{Space, button, column, row, scrollable, table, text, text_input};
 use iced::{Element, Length, Task};
 use std::time::Duration;
 
@@ -164,23 +165,8 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
         };
         Element::from(text(message))
     } else {
-        let headers = [
-            text("Method").size(14).into(),
-            text("URL").size(14).into(),
-            text("Status").size(14).into(),
-            text("Duration").size(14).into(),
-            text("Size").size(14).into(),
-            text("Time").size(14).into(),
-            text("Actions").size(14).into(),
-        ];
-
-        let rows = tab
-            .entries
-            .iter()
-            .map(|entry| {
-                let local_time: DateTime<Local> = entry.timestamp.into();
-                let duration = Duration::from_millis(entry.response_duration_ms as u64);
-
+        let columns = [
+            table::column(bold("Method"), |entry: &HistoryEntrySummary| {
                 let method_color = match entry.method.as_str() {
                     "GET" => colors::GREEN,
                     "POST" => colors::BLUE,
@@ -189,7 +175,14 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
                     "PATCH" => colors::PURPLE,
                     _ => colors::DARK_GREY,
                 };
-
+                text(entry.method.to_string()).color(method_color)
+            })
+            .width(Length::FillPortion(2)),
+            table::column(bold("URL"), |entry: &HistoryEntrySummary| {
+                text(entry.url.to_string()).wrapping(Wrapping::Glyph)
+            })
+            .width(Length::FillPortion(6)),
+            table::column(bold("Status"), |entry: &HistoryEntrySummary| {
                 let status_color = match entry.response_status {
                     200..=299 => colors::GREEN,
                     300..=399 => colors::ORANGE,
@@ -197,8 +190,26 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
                     500..=599 => colors::DARK_RED,
                     _ => colors::DARK_GREY,
                 };
-
-                let actions = row![
+                text(entry.response_status.to_string()).color(status_color)
+            })
+            .width(Length::FillPortion(2)),
+            table::column(bold("Duration"), |entry: &HistoryEntrySummary| {
+                let duration = Duration::from_millis(entry.response_duration_ms as u64);
+                text(fmt_duration(duration))
+            })
+            .width(Length::FillPortion(2)),
+            table::column(bold("Size"), |entry: &HistoryEntrySummary| {
+                let size = format_size(entry.response_size_bytes as u64, BINARY);
+                text(size)
+            })
+            .width(Length::FillPortion(2)),
+            table::column(bold("Time"), |entry: &HistoryEntrySummary| {
+                let local_time: DateTime<Local> = entry.timestamp.into();
+                text(local_time.format("%m/%d %H:%M:%S").to_string())
+            })
+            .width(Length::FillPortion(3)),
+            table::column(bold("Actions"), |entry: &HistoryEntrySummary| {
+                row![
                     tooltip(
                         "Open in new tab",
                         button(icon(icons::Send))
@@ -212,30 +223,12 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
                             .style(button::danger)
                             .on_press(HistoryTabMsg::DeleteEntry(entry.id))
                     ),
-                ];
-
-                [
-                    text(&entry.method).size(14).color(method_color).into(),
-                    text(&entry.url).size(14).into(),
-                    text(entry.response_status.to_string())
-                        .size(14)
-                        .color(status_color)
-                        .into(),
-                    text(fmt_duration(duration)).size(14).into(),
-                    text(format_size(entry.response_size_bytes as u64, BINARY))
-                        .size(14)
-                        .into(),
-                    text(local_time.format("%m/%d %H:%M:%S").to_string())
-                        .size(14)
-                        .into(),
-                    actions.into(),
                 ]
             })
-            .collect::<Vec<_>>();
+            .width(Length::FillPortion(2)),
+        ];
 
-        let widths = [8, 30, 8, 10, 10, 15, 15];
-
-        Element::from(table(headers, rows, widths))
+        Element::from(scrollable(table(columns, &tab.entries)))
     };
 
     column![search_row, content]
