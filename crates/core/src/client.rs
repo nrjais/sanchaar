@@ -129,10 +129,16 @@ pub fn create_cookie_store() -> Arc<CookieStoreRwLock> {
     Arc::new(CookieStoreRwLock::default())
 }
 
-pub fn create_client(disable_verification: bool, store: Arc<CookieStoreRwLock>) -> reqwest::Client {
-    reqwest::Client::builder()
+pub fn create_client(
+    disable_verification: bool,
+    store: Option<Arc<CookieStoreRwLock>>,
+) -> reqwest::Client {
+    let mut builder = reqwest::Client::builder();
+    if let Some(store) = store {
+        builder = builder.cookie_provider(store);
+    }
+    builder
         .danger_accept_invalid_certs(disable_verification)
-        .cookie_provider(store)
         .build()
         .expect("Failed to create client")
 }

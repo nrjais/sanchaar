@@ -28,6 +28,8 @@ pub struct EncodedCollection {
     pub version: Version,
     #[serde(default, skip_serializing_if = "Not::not")]
     pub disable_cert_verification: bool,
+    #[serde(default, skip_serializing_if = "Not::not")]
+    pub disable_cookie_store: bool,
     #[serde(default = "default_timeout")]
     #[serde_as(as = "DurationMilliSeconds")]
     pub timeout: Duration,
@@ -72,6 +74,7 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
             name: "Sanchaar".to_string(),
             version: Version::V1,
             disable_cert_verification: false,
+            disable_cookie_store: false,
             timeout: Duration::from_secs(300),
             default_environment: None,
             headers: vec![],
@@ -178,6 +181,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         variables: decode_key_values(collection.variables).into(),
         dotenv: dotenv.into(),
         disable_ssl: collection.disable_cert_verification,
+        disable_cookie_store: collection.disable_cookie_store,
         default_env,
         active_environment: default_env,
         timeout: collection.timeout,
@@ -285,6 +289,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
         name: collection.name.clone(),
         version: Version::V1,
         disable_cert_verification: collection.disable_ssl,
+        disable_cookie_store: collection.disable_cookie_store,
         timeout: collection.timeout,
         default_environment: collection
             .default_env

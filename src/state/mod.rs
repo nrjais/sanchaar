@@ -91,8 +91,8 @@ impl AppState {
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
             common: CommonState {
-                client: create_client(false, Arc::clone(&store)),
-                client_no_ssl: create_client(true, Arc::clone(&store)),
+                client: create_client(false, Some(Arc::clone(&store))),
+                client_no_ssl: create_client(true, Some(Arc::clone(&store))),
                 cookie_store: store,
                 collections: Collections::default(),
                 popup: None,

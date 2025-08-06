@@ -63,6 +63,7 @@ pub struct Collection {
     pub dotenv: Arc<KeyValList>,
     pub disable_ssl: bool,
     pub timeout: Duration,
+    pub disable_cookie_store: bool,
 }
 
 impl Collection {
@@ -340,6 +341,7 @@ impl Default for Collection {
             dotenv: Default::default(),
             disable_ssl: false,
             timeout: Duration::from_secs(300),
+            disable_cookie_store: false,
         }
     }
 }

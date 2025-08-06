@@ -43,7 +43,13 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
 
     let env = collection.map(|c| c.env_chain()).unwrap_or_default();
     let disable_ssl = collection.map(|c| c.disable_ssl).unwrap_or_default();
-    let client = if disable_ssl {
+    let disable_cookie_store = collection
+        .map(|c| c.disable_cookie_store)
+        .unwrap_or_default();
+
+    let client = if disable_cookie_store {
+        core::client::create_client(disable_ssl, None)
+    } else if disable_ssl {
         state.client_no_ssl.clone()
     } else {
         state.client.clone()
@@ -427,6 +433,7 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
     collection.headers = Arc::new(to_core_kv_list(&tab.headers));
     collection.variables = Arc::new(to_core_kv_list(&tab.variables));
     collection.disable_ssl = tab.disable_ssl;
+    collection.disable_cookie_store = tab.disable_cookie_store;
     collection.timeout = tab.timeout;
 
     let encoded = encode_collection(collection);

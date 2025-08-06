@@ -23,6 +23,7 @@ pub enum Message {
     SaveChanges,
     Saved,
     DisableSSL(bool),
+    DisableCookieStore(bool),
     UpdateTimeout(String),
 }
 
@@ -56,6 +57,10 @@ impl Message {
             Message::DisableSSL(disabled) => {
                 tab.edited = true;
                 tab.disable_ssl = disabled;
+            }
+            Message::DisableCookieStore(disabled) => {
+                tab.edited = true;
+                tab.disable_cookie_store = disabled;
             }
             Message::UpdateTimeout(update) => {
                 if let Ok(millis) = update.parse() {
@@ -158,6 +163,18 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
         .width(Length::Fill)
         .align_y(Alignment::Center);
 
+    let disable_cookie_store = Row::new()
+        .push("Disable Cookie Store")
+        .push(horizontal_space().width(Length::FillPortion(4)))
+        .push(
+            toggler(tab.disable_cookie_store)
+                .on_toggle(Message::DisableCookieStore)
+                .size(20),
+        )
+        .spacing(4)
+        .width(Length::Fill)
+        .align_y(Alignment::Center);
+
     let timeout = Row::new()
         .push("Default Timeout (ms)")
         .push(horizontal_space().width(Length::FillPortion(4)))
@@ -175,6 +192,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
             .push(action_bar)
             .push(default_env)
             .push(disable_ssl)
+            .push(disable_cookie_store)
             .push(timeout)
             .push(variables_view(&tab.variables, collection_vars))
             .push(headers_view(&tab.headers, header_vars))
