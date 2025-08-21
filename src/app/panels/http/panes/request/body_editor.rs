@@ -1,8 +1,8 @@
-use components::{code_editor, editor::Content, ContentType};
+use components::{ContentType, code_editor, editor::Content};
 
 use crate::app::panels::http::panes::request::RequestPaneMsg;
-use iced::widget::container;
 use iced::Element;
+use iced::widget::container;
 
 pub fn view(content: &Content, content_type: ContentType) -> Element<RequestPaneMsg> {
     container(

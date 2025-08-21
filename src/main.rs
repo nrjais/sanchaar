@@ -1,3 +1,4 @@
+#![allow(mismatched_lifetime_syntaxes)]
 pub mod app;
 pub mod commands;
 pub mod hotkeys;

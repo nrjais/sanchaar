@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::http::environment::{Environment, Environments};
 use crate::http::KeyValList;
+use crate::http::environment::{Environment, Environments};
 
 use super::ENVIRONMENTS;
-use super::{EncodedKeyValue, Version, HCL_EXTENSION};
+use super::{EncodedKeyValue, HCL_EXTENSION, Version};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EncodedEnvironment {

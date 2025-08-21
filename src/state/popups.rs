@@ -1,7 +1,7 @@
 use crate::state::TabKey;
+use core::http::CollectionKey;
 use core::http::collection::{FolderId, RequestId};
 use core::http::environment::EnvironmentKey;
-use core::http::CollectionKey;
 use std::path::PathBuf;
 
 use super::CommonState;

@@ -3,11 +3,11 @@ use std::sync::Arc;
 
 use iced::advanced::widget;
 use iced::{Element, Length, Pixels, Theme};
-use iced_core::text::editor::{Action, Edit};
 use iced_core::text::Wrapping;
+use iced_core::text::editor::{Action, Edit};
 
 use crate::editor::highlighters::TemplHighlighterSettings;
-use crate::editor::{self, highlighters, text_editor, ContentAction, Status, StyleFn};
+use crate::editor::{self, ContentAction, Status, StyleFn, highlighters, text_editor};
 
 pub struct LineEditor<'a> {
     pub code: &'a editor::Content,
@@ -56,7 +56,7 @@ impl<'a> LineEditor<'a> {
     }
 
     pub fn view(self) -> Element<'a, LineEditorMsg> {
-        let editor = text_editor(&self.code)
+        let editor = text_editor(self.code)
             .height(Length::Shrink)
             .wrapping(Wrapping::WordOrGlyph)
             .style(self.style)
@@ -108,13 +108,13 @@ impl LineEditorMsg {
     }
 }
 
-pub fn line_editor(code: &editor::Content) -> LineEditor {
+pub fn line_editor<'a>(code: &'a editor::Content) -> LineEditor<'a> {
     LineEditor {
         code,
         editable: false,
         placeholder: None,
         text_size: None,
-        style: Box::new(|t, s| editor::default(t, s)),
+        style: Box::new(editor::default),
         var_set: HashSet::new().into(),
         id: None,
     }

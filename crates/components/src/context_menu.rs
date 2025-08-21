@@ -194,10 +194,11 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         _viewport: &Rectangle,
         _renderer: &Renderer,
     ) -> mouse::Interaction {
-        cursor
-            .is_over(layout.bounds())
-            .then_some(mouse::Interaction::Pointer)
-            .unwrap_or_default()
+        if cursor.is_over(layout.bounds()) {
+            mouse::Interaction::Pointer
+        } else {
+            Default::default()
+        }
     }
 
     fn overlay<'b>(
@@ -317,16 +318,16 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) {
-        if let Event::Mouse(mouse::Event::ButtonPressed(_)) = &event {
-            if cursor.position_over(layout.bounds()).is_none() {
-                *self.state = State::Closed;
-            }
+        if let Event::Mouse(mouse::Event::ButtonPressed(_)) = &event
+            && cursor.position_over(layout.bounds()).is_none()
+        {
+            *self.state = State::Closed;
         }
 
-        if let Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) = &event {
-            if cursor.position_over(layout.bounds()).is_some() {
-                *self.state = State::Closed;
-            }
+        if let Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) = &event
+            && cursor.position_over(layout.bounds()).is_some()
+        {
+            *self.state = State::Closed;
         }
 
         self.content.as_widget_mut().update(

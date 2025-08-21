@@ -1,8 +1,8 @@
 use components::{bordered_left, bordered_right};
 use iced::padding;
 use iced::widget::pane_grid::ResizeEvent;
-use iced::widget::{pane_grid, Column, PaneGrid};
-use iced::{widget::container, Element, Task};
+use iced::widget::{Column, PaneGrid, pane_grid};
+use iced::{Element, Task, widget::container};
 
 use crate::state::{AppState, HttpTab, SplitState, Tab};
 

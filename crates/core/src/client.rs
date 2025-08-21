@@ -1,4 +1,4 @@
-use std::{str::FromStr, sync::Arc, time::Duration};
+use std::{fmt::Display, str::FromStr, sync::Arc, time::Duration};
 
 use reqwest::{Client, Request, StatusCode, header::HeaderMap};
 use reqwest_cookie_store::CookieStoreRwLock;
@@ -43,9 +43,9 @@ impl ContentType {
     }
 }
 
-impl ToString for ContentType {
-    fn to_string(&self) -> String {
-        self.as_str().to_string()
+impl Display for ContentType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -97,12 +97,12 @@ pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Respon
 
     let data = res.bytes().await?.to_vec().into();
 
-    let body: ResponseBody = if is_json_content_type(&content_type) {
+    let body: ResponseBody = if is_json_content_type(content_type) {
         ResponseBody {
             content_type: ContentType::Json,
             data,
         }
-    } else if is_text_content_type(&content_type) {
+    } else if is_text_content_type(content_type) {
         ResponseBody {
             content_type: ContentType::Text,
             data,

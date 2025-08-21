@@ -1,19 +1,19 @@
 use core::utils::fmt_duration;
 use std::sync::Arc;
 
-use humansize::{format_size, BINARY};
-use iced::widget::{button, container, text, text_input, Column, Row};
-use iced::{clipboard, Alignment, Border, Color, Element, Task, Theme};
+use humansize::{BINARY, format_size};
+use iced::widget::{Column, Row, button, container, text, text_input};
+use iced::{Alignment, Border, Color, Element, Task, Theme, clipboard};
 
 use components::{
-    button_tab, button_tabs, code_editor, key_value_viewer, CodeEditorMsg, ContentType,
+    CodeEditorMsg, ContentType, button_tab, button_tabs, code_editor, key_value_viewer,
 };
 
 use crate::commands::builders::write_file_cmd;
 use crate::commands::dialog::create_file_dialog;
+use crate::state::HttpTab;
 use crate::state::response::ResponseTabId;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
-use crate::state::HttpTab;
 
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {
@@ -47,8 +47,7 @@ impl CompletedMsg {
                 return clipboard::write(res.selected_content().text());
             }
             CompletedMsg::SaveResponse => {
-                return create_file_dialog("Save response body")
-                    .map(CompletedMsg::SaveToFile);
+                return create_file_dialog("Save response body").map(CompletedMsg::SaveToFile);
             }
             CompletedMsg::SaveToFile(path) => {
                 if let Some(path) = path {

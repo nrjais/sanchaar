@@ -1,5 +1,5 @@
-use crate::state::{response::ResponseState, AppState, HttpTab, Tab};
-use iced::{widget::center, Element, Task};
+use crate::state::{AppState, HttpTab, Tab, response::ResponseState};
+use iced::{Element, Task, widget::center};
 
 mod completed;
 mod executing;

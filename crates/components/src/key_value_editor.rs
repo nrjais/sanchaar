@@ -39,7 +39,7 @@ impl KeyValue {
 
     pub fn is_value_empty(&self) -> bool {
         let lines = self.value.line_count();
-        lines == 1 && self.value.line(0).map_or(true, |line| line.text.is_empty())
+        lines == 1 && self.value.line(0).is_none_or(|line| line.text.is_empty())
     }
 
     pub fn is_empty(&self) -> bool {

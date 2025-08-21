@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::app::panels::http::panes::response::ResponsePaneMsg;
 use components::{icon, icons};
-use iced::widget::{container, text, Column, Row};
+use iced::widget::{Column, Row, container, text};
 
 pub fn view<'a>(e: Arc<anyhow::Error>) -> iced::Element<'a, ResponsePaneMsg> {
     let error_icon = icon(icons::Error).size(60.0);

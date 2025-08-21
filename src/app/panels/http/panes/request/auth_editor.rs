@@ -1,9 +1,9 @@
 use std::{collections::HashSet, sync::Arc};
 
-use components::{icon, icons, line_editor, LineEditorMsg};
+use components::{LineEditorMsg, icon, icons, line_editor};
 use iced::{
-    widget::{center, container, horizontal_space, pick_list, text, Column, Row},
     Element, Length,
+    widget::{Column, Row, center, container, horizontal_space, pick_list, text},
 };
 
 use crate::state::request::{RawAuthType, RequestPane};

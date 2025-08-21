@@ -3,16 +3,16 @@ use std::ffi::OsStr;
 use std::ops::Not;
 
 use iced::widget::{
-    button, container, horizontal_space, scrollable, text, text_input, Column, Row,
+    Column, Row, button, container, horizontal_space, scrollable, text, text_input,
 };
 use iced::{Element, Length, Task};
 
-use core::http::collection::{Collection, Entry, Folder, FolderId};
 use core::http::CollectionKey;
+use core::http::collection::{Collection, Entry, Folder, FolderId};
 
 use crate::commands::builders::save_tab_request_cmd;
-use crate::state::popups::{Popup, SaveRequestState};
 use crate::state::AppState;
+use crate::state::popups::{Popup, SaveRequestState};
 
 #[derive(Debug, Clone)]
 pub enum Message {

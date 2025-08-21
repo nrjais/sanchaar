@@ -228,7 +228,7 @@ fn less_than_or_equal(actual: Option<&Value>, expected: f64) -> MatcherResult {
     }
 }
 
-fn in_list(actual: Option<&Value>, expected: &Vec<Value>) -> MatcherResult {
+fn in_list(actual: Option<&Value>, expected: &[Value]) -> MatcherResult {
     let actual = actual.unwrap_or(&Value::Null);
 
     if expected.contains(actual) {
@@ -236,13 +236,13 @@ fn in_list(actual: Option<&Value>, expected: &Vec<Value>) -> MatcherResult {
     } else {
         MatcherResult::Failed(description(
             "to be in",
-            &Value::Array(expected.clone()),
+            &Value::Array(expected.to_owned()),
             Some(actual),
         ))
     }
 }
 
-fn not_in_list(actual: Option<&Value>, expected: &Vec<Value>) -> MatcherResult {
+fn not_in_list(actual: Option<&Value>, expected: &[Value]) -> MatcherResult {
     let actual = actual.unwrap_or(&Value::Null);
 
     if !expected.contains(actual) {
@@ -250,7 +250,7 @@ fn not_in_list(actual: Option<&Value>, expected: &Vec<Value>) -> MatcherResult {
     } else {
         MatcherResult::Failed(description(
             "to not be in",
-            &Value::Array(expected.clone()),
+            &Value::Array(expected.to_owned()),
             Some(actual),
         ))
     }

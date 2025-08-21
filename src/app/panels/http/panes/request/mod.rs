@@ -1,24 +1,24 @@
-use core::http::collection::Collection;
 use core::http::CollectionKey;
+use core::http::collection::Collection;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::widget::{button, horizontal_space, pick_list, scrollable, Column, Row};
-use iced::{widget::text, Length, Task};
+use iced::widget::{Column, Row, button, horizontal_space, pick_list, scrollable};
+use iced::{Length, Task, widget::text};
 
 use crate::commands::dialog::open_file_dialog;
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::request::ReqTabId;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
-use components::{
-    button_tab, button_tabs, icon_button, icons, key_value_editor, tooltip, FilePickerAction,
-    KeyValUpdateMsg,
-};
 use components::{CodeEditorMsg, FilePickerUpdateMsg};
+use components::{
+    FilePickerAction, KeyValUpdateMsg, button_tab, button_tabs, icon_button, icons,
+    key_value_editor, tooltip,
+};
 
-use self::auth_editor::{auth_view, AuthEditorMsg};
+use self::auth_editor::{AuthEditorMsg, auth_view};
 use self::body_view::body_tab;
 
 mod auth_editor;

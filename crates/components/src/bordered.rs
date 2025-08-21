@@ -1,5 +1,5 @@
-use iced::widget::Row;
 use iced::Element;
+use iced::widget::Row;
 
 use crate::vertical_line;
 

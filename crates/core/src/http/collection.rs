@@ -1,5 +1,5 @@
-use super::environment::{Environment, EnvironmentChain, EnvironmentKey};
 use super::KeyValList;
+use super::environment::{Environment, EnvironmentChain, EnvironmentKey};
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
@@ -133,14 +133,14 @@ impl Collection {
 
     pub fn rename_request(&mut self, id: RequestId, name: &str) -> Option<(PathBuf, PathBuf)> {
         for entry in self.iter_mut() {
-            if let Entry::Item(item) = entry {
-                if item.id == id {
-                    let old_path = item.path.clone();
-                    let new_path = item.path.with_file_name(format!("{name}{HCL_EXTENSION}"));
-                    item.name = name.to_string();
-                    item.path.clone_from(&new_path);
-                    return Some((old_path, new_path));
-                }
+            if let Entry::Item(item) = entry
+                && item.id == id
+            {
+                let old_path = item.path.clone();
+                let new_path = item.path.with_file_name(format!("{name}{HCL_EXTENSION}"));
+                item.name = name.to_string();
+                item.path.clone_from(&new_path);
+                return Some((old_path, new_path));
             }
         }
         None
@@ -148,14 +148,14 @@ impl Collection {
 
     pub fn rename_folder(&mut self, id: FolderId, name: &str) -> Option<(PathBuf, PathBuf)> {
         for entry in self.iter_mut() {
-            if let Entry::Folder(item) = entry {
-                if item.id == id {
-                    let old_path = item.path.clone();
-                    let new_path = item.path.with_file_name(name);
-                    item.name = name.to_string();
-                    item.path.clone_from(&new_path);
-                    return Some((old_path, new_path));
-                }
+            if let Entry::Folder(item) = entry
+                && item.id == id
+            {
+                let old_path = item.path.clone();
+                let new_path = item.path.with_file_name(name);
+                item.name = name.to_string();
+                item.path.clone_from(&new_path);
+                return Some((old_path, new_path));
             }
         }
         None
@@ -163,10 +163,10 @@ impl Collection {
 
     pub fn get_ref(&self, id: RequestId) -> Option<&RequestRef> {
         for entry in self.iter() {
-            if let Entry::Item(item) = entry {
-                if item.id == id {
-                    return Some(item);
-                }
+            if let Entry::Item(item) = entry
+                && item.id == id
+            {
+                return Some(item);
             }
         }
         None
@@ -245,11 +245,11 @@ impl Collection {
 
             let iter = entries.iter_mut();
             for entry in iter {
-                if let Entry::Item(request) = entry {
-                    if request.id == id {
-                        path = Some(request.path.clone());
-                        break;
-                    }
+                if let Entry::Item(request) = entry
+                    && request.id == id
+                {
+                    path = Some(request.path.clone());
+                    break;
                 }
             }
             if path.is_some() {
@@ -304,10 +304,7 @@ impl Collection {
             .map(|e| e.vars())
             .unwrap_or_default();
 
-        EnvironmentChain::from_iter(
-            Arc::clone(&self.dotenv),
-            [env, Arc::clone(&self.variables)].into_iter(),
-        )
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env, Arc::clone(&self.variables)])
     }
 
     pub fn collection_env_chain(&self) -> EnvironmentChain {
@@ -316,11 +313,11 @@ impl Collection {
             .map(|e| e.vars())
             .unwrap_or_default();
 
-        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env].into_iter())
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env])
     }
 
     pub fn dotenv_env_chain(&self) -> EnvironmentChain {
-        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [].into_iter())
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [])
     }
 }
 
@@ -374,12 +371,12 @@ impl<'a> Iterator for Iter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let node = self.stack.pop()?;
-        return match node {
+        match node {
             Entry::Folder(Folder { entries, .. }) => {
                 self.stack.extend(entries.iter());
                 Some(node)
             }
             Entry::Item(_) => Some(node),
-        };
+        }
     }
 }

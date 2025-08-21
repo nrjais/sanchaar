@@ -1,3 +1,4 @@
+#![allow(mismatched_lifetime_syntaxes)]
 pub mod assertions;
 pub mod client;
 pub mod http;

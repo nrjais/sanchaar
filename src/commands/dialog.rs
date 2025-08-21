@@ -1,7 +1,7 @@
 use std::{convert::identity, sync::Arc};
 
-use iced::futures::FutureExt;
 use iced::Task;
+use iced::futures::FutureExt;
 use rfd::{AsyncFileDialog, FileHandle};
 
 pub fn open_folder_dialog(title: &str) -> Task<Option<Arc<FileHandle>>> {

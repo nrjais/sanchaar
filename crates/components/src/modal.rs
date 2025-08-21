@@ -1,4 +1,4 @@
-use iced::widget::{center, container, mouse_area, opaque, Stack};
+use iced::widget::{Stack, center, container, mouse_area, opaque};
 use iced::{Color, Element};
 
 pub fn modal<'a, Message: Clone + 'a>(

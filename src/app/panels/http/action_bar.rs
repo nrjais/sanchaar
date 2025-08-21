@@ -1,8 +1,8 @@
-use components::{icons, NerdIcon};
-use core::http::collection::Collection;
+use components::{NerdIcon, icons};
 use core::http::CollectionKey;
-use iced::widget::{horizontal_space, pick_list, text, text_input, Button, Column, Row};
-use iced::{widget::button, Element, Length, Task};
+use core::http::collection::Collection;
+use iced::widget::{Button, Column, Row, horizontal_space, pick_list, text, text_input};
+use iced::{Element, Length, Task, widget::button};
 
 use crate::commands::builders;
 use crate::state::tabs::collection_tab::CollectionTab;

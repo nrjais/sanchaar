@@ -2,16 +2,16 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use mime::{APPLICATION_JSON, TEXT_PLAIN, TEXT_XML};
-use mime_guess::{mime, Mime};
+use mime_guess::{Mime, mime};
 use reqwest::multipart::Part;
-use reqwest::{header::CONTENT_TYPE, multipart::Form};
 use reqwest::{RequestBuilder, Url};
+use reqwest::{header::CONTENT_TYPE, multipart::Form};
 use tokio::fs::File;
 
 use crate::http::environment::EnvironmentChain;
 use crate::http::{
-    request::{Auth, Method, Request, RequestBody},
     KeyFileList, KeyValList, KeyValue,
+    request::{Auth, Method, Request, RequestBody},
 };
 
 fn param_enabled(param: &KeyValue) -> bool {
@@ -115,13 +115,11 @@ fn normalize_url(url: &str) -> String {
         return url.to_string();
     }
 
-    let normalized = if url.starts_with("localhost") || url.starts_with("127.0.0.1") {
+    if url.starts_with("localhost") || url.starts_with("127.0.0.1") {
         format!("http://{}", url)
     } else {
         format!("https://{}", url)
-    };
-
-    normalized
+    }
 }
 
 fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
@@ -149,8 +147,7 @@ fn replace_path_params(mut url: Url, params: KeyValList, env: &EnvironmentChain)
 
     for seg in segs {
         buffer.push('/');
-        if seg.starts_with(':') {
-            let name = &seg[1..];
+        if let Some(name) = seg.strip_prefix(':') {
             let value = params
                 .iter()
                 .rev()

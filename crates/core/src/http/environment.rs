@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::new_id_type;
-use parsers::{parse_template, Token};
+use parsers::{Token, parse_template};
 
 use super::KeyValList;
 
@@ -124,7 +124,7 @@ impl EnvironmentChain {
         }
     }
 
-    fn get_named<'a>(name: &str, list: &'a KeyValList) -> Option<String> {
+    fn get_named(name: &str, list: &KeyValList) -> Option<String> {
         list.iter()
             .rev()
             .find(|kv| kv.name == name)
@@ -160,7 +160,7 @@ impl EnvironmentChain {
 
     pub fn get(&self, name: &str) -> Option<String> {
         let name = name.trim_ascii();
-        Self::get_named(&name, &self.dotenv).or_else(|| {
+        Self::get_named(name, &self.dotenv).or_else(|| {
             self.vars
                 .iter()
                 .find_map(|vars| Self::get_named(name, vars))

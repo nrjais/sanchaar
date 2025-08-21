@@ -162,10 +162,10 @@ fn load_history(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
-    if let Some(Tab::History(tab)) = state.active_tab() {
-        if !tab.search_query.trim().is_empty() {
-            return Task::none();
-        }
+    if let Some(Tab::History(tab)) = state.active_tab()
+        && !tab.search_query.trim().is_empty()
+    {
+        return Task::none();
     }
 
     if !schedule_task(state, task, 5) {

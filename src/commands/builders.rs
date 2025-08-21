@@ -56,17 +56,16 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
     let req_fut = transform_request(client.clone(), request, env)
         .and_then(move |req| send_request(client, req))
         .and_then(move |response| async move {
-            if let Some(db) = history_db {
-                if let Err(e) = save_request_to_history(
+            if let Some(db) = history_db
+                && let Err(e) = save_request_to_history(
                     &db,
                     &request_for_history,
                     &response,
                     collection_name.as_deref(),
                 )
                 .await
-                {
-                    log::error!("Failed to save request to history: {e}");
-                }
+            {
+                log::error!("Failed to save request to history: {e}");
             }
             Ok(response)
         });

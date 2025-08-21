@@ -4,8 +4,8 @@ mod settings;
 use core::http::collection::Collection;
 
 use components::{button_tab, button_tabs};
-use iced::widget::{text, Column};
 use iced::Length;
+use iced::widget::{Column, text};
 use iced::{Element, Task};
 
 use crate::state::tabs::collection_tab::{CollectionTab, CollectionTabId};

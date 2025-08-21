@@ -1,4 +1,4 @@
-use pest::{iterators::Pairs, Parser};
+use pest::{Parser, iterators::Pairs};
 use pest_derive::Parser;
 
 // Token types for the parser
@@ -46,25 +46,22 @@ fn add_template_tokens(pairs: Pairs<Rule>, tokens: &mut Vec<Span>) {
                 let span = pair.as_span();
                 let inner = pair.into_inner();
                 for inner_pair in inner {
-                    match inner_pair.as_rule() {
-                        Rule::ident => {
-                            let var = inner_pair.as_str().to_string();
-                            if var.starts_with('!') {
-                                let text = format!("{{{}}}", &var[1..]);
-                                tokens.push(Span {
-                                    token: Token::Escaped(text),
-                                    start: span.start(),
-                                    end: span.end(),
-                                });
-                            } else {
-                                tokens.push(Span {
-                                    token: Token::Variable(var),
-                                    start: span.start(),
-                                    end: span.end(),
-                                });
-                            }
+                    if inner_pair.as_rule() == Rule::ident {
+                        let var = inner_pair.as_str().to_string();
+                        if let Some(var) = var.strip_prefix('!') {
+                            let text = format!("{{{}}}", var);
+                            tokens.push(Span {
+                                token: Token::Escaped(text),
+                                start: span.start(),
+                                end: span.end(),
+                            });
+                        } else {
+                            tokens.push(Span {
+                                token: Token::Variable(var),
+                                start: span.start(),
+                                end: span.end(),
+                            });
                         }
-                        _ => (),
                     }
                 }
             }

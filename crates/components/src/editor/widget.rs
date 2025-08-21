@@ -463,19 +463,18 @@ where
                 }
             }
             Event::Window(window::Event::RedrawRequested(now)) => {
-                if let Some(focus) = &mut state.focus {
-                    if focus.is_window_focused {
-                        let now = now.clone();
-                        focus.now = now;
+                if let Some(focus) = &mut state.focus
+                    && focus.is_window_focused
+                {
+                    let now = *now;
+                    focus.now = now;
 
-                        let millis_until_redraw = Focus::CURSOR_BLINK_INTERVAL_MILLIS
-                            - (now - focus.updated_at).as_millis()
-                                % Focus::CURSOR_BLINK_INTERVAL_MILLIS;
+                    let millis_until_redraw = Focus::CURSOR_BLINK_INTERVAL_MILLIS
+                        - (now - focus.updated_at).as_millis()
+                            % Focus::CURSOR_BLINK_INTERVAL_MILLIS;
 
-                        shell.request_redraw_at(
-                            now + Duration::from_millis(millis_until_redraw as u64),
-                        );
-                    }
+                    shell
+                        .request_redraw_at(now + Duration::from_millis(millis_until_redraw as u64));
                 }
             }
             _ => {}
@@ -869,16 +868,16 @@ impl<Message> Binding<Message> {
             keyboard::Key::Named(key::Named::Backspace)
                 if modifiers.alt() && !modifiers.command() =>
             {
-                return Some(Self::Delete(Motion::WordLeft));
+                Some(Self::Delete(Motion::WordLeft))
             }
             keyboard::Key::Named(key::Named::Backspace)
                 if !modifiers.alt() && modifiers.command() =>
             {
-                return Some(Self::Delete(Motion::Home));
+                Some(Self::Delete(Motion::Home))
             }
             keyboard::Key::Named(key::Named::Backspace) => Some(Self::Backspace),
             keyboard::Key::Named(key::Named::Delete) if modifiers.alt() && !modifiers.command() => {
-                return Some(Self::Delete(Motion::WordRight));
+                Some(Self::Delete(Motion::WordRight))
             }
             keyboard::Key::Named(key::Named::Delete) => Some(Self::DeleteNext),
             keyboard::Key::Named(key::Named::Escape) => Some(Self::Unfocus),
@@ -888,14 +887,12 @@ impl<Message> Binding<Message> {
                 Some(Self::Paste)
             }
             keyboard::Key::Character("z") if modifiers.command() && !modifiers.shift() => {
-                return Some(Self::Undo);
+                Some(Self::Undo)
             }
             keyboard::Key::Character("z") if modifiers.command() && modifiers.shift() => {
-                return Some(Self::Redo);
+                Some(Self::Redo)
             }
-            keyboard::Key::Character("y") if modifiers.control() => {
-                return Some(Self::Redo);
-            }
+            keyboard::Key::Character("y") if modifiers.control() => Some(Self::Redo),
             keyboard::Key::Character("a") if modifiers.command() => Some(Self::SelectAll),
             _ => {
                 if let Some(text) = text {
@@ -1013,7 +1010,7 @@ impl<Message> Update<Message> {
 
                 let key_press = KeyPress {
                     key: key.clone(),
-                    modifiers: modifiers.clone(),
+                    modifiers: *modifiers,
                     text: text.clone(),
                     status,
                 };

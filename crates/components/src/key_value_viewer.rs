@@ -1,7 +1,7 @@
 use iced::advanced::text::Wrapping;
 use iced::padding;
-use iced::widget::{container, scrollable, text, Column};
-use iced::{widget::Row, Element, Length};
+use iced::widget::{Column, container, scrollable, text};
+use iced::{Element, Length, widget::Row};
 
 use crate::{colors, horizontal_line};
 

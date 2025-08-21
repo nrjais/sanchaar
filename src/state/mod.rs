@@ -46,13 +46,13 @@ pub enum Tab {
 
 impl Tab {
     pub fn matches_type(&self, other: &Tab) -> bool {
-        match (self, other) {
-            (Tab::Http(_), Tab::Http(_)) => true,
-            (Tab::Collection(_), Tab::Collection(_)) => true,
-            (Tab::CookieStore(_), Tab::CookieStore(_)) => true,
-            (Tab::History(_), Tab::History(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Tab::Http(_), Tab::Http(_))
+                | (Tab::Collection(_), Tab::Collection(_))
+                | (Tab::CookieStore(_), Tab::CookieStore(_))
+                | (Tab::History(_), Tab::History(_))
+        )
     }
 }
 

@@ -1,7 +1,7 @@
 use std::{collections::HashSet, ops::Range, sync::Arc};
 
 use iced::highlighter::Highlight;
-use iced_core::text::{highlighter::Format, Highlighter};
+use iced_core::text::{Highlighter, highlighter::Format};
 use parsers::Token;
 
 use crate::colors;
@@ -59,23 +59,20 @@ impl<T: IsDefined + 'static> Highlighter for TemplHighlighter<T> {
         let parsed = parsers::parse_template(line);
 
         for span in parsed {
-            match span.token {
-                Token::Variable(name) => {
-                    let color = if self.vars.is_defined(&name) {
-                        colors::LIGHT_GREEN
-                    } else {
-                        colors::RED
-                    };
+            if let Token::Variable(name) = span.token {
+                let color = if self.vars.is_defined(&name) {
+                    colors::LIGHT_GREEN
+                } else {
+                    colors::RED
+                };
 
-                    ranges.push((
-                        span.start..span.end,
-                        Format {
-                            color: Some(color),
-                            font: None,
-                        },
-                    ));
-                }
-                _ => (),
+                ranges.push((
+                    span.start..span.end,
+                    Format {
+                        color: Some(color),
+                        font: None,
+                    },
+                ));
             }
         }
 
@@ -98,13 +95,13 @@ trait ToFormat {
 
 impl ToFormat for Format<iced::Font> {
     fn to_format(&self) -> Format<iced::Font> {
-        self.clone()
+        *self
     }
 }
 
 impl ToFormat for Highlight {
     fn to_format(&self) -> Format<iced::Font> {
-        Highlight::to_format(&self)
+        Highlight::to_format(self)
     }
 }
 

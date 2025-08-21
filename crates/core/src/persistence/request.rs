@@ -13,7 +13,7 @@ use crate::http::request::{Auth, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList, KeyValList};
 use crate::persistence::Version;
 
-use super::{decode_key_values, encode_key_values, EncodedKeyFile, EncodedKeyValue};
+use super::{EncodedKeyFile, EncodedKeyValue, decode_key_values, encode_key_values};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum EncodedMethod {

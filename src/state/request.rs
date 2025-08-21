@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use body_types::*;
-use components::editor::Content;
 use components::KeyValList;
+use components::editor::Content;
 use components::{self, KeyFileList};
 use core::http::request::{Auth, Method, Request, RequestBody};
 use iced::advanced::widget;
@@ -235,8 +235,8 @@ impl RequestPane {
     pub fn format_body(&mut self) {
         if let RawRequestBody::Json(content) = &mut self.body {
             let text = content.text();
-            let json = serde_json::from_str::<Value>(&text)
-                .and_then(|j| serde_json::to_string_pretty(&j));
+            let json =
+                serde_json::from_str::<Value>(&text).and_then(|j| serde_json::to_string_pretty(&j));
             if let Ok(formatted) = json {
                 *content = Content::with_text(&formatted);
             }

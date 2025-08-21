@@ -1,11 +1,11 @@
 use std::borrow::Cow;
 
 use components::{button_tab, button_tabs};
-use iced::widget::{horizontal_space, pick_list, text, Column, Row};
+use iced::widget::{Column, Row, horizontal_space, pick_list, text};
 use iced::{Element, Task, Theme};
 
-use crate::state::popups::{AppSettingTabs, AppSettingsState, Popup};
 use crate::state::AppState;
+use crate::state::popups::{AppSettingTabs, AppSettingsState, Popup};
 
 #[derive(Debug, Clone)]
 pub enum Message {

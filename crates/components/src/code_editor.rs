@@ -1,7 +1,7 @@
-use iced::{highlighter, Element, Font, Length};
+use iced::{Element, Font, Length, highlighter};
 use iced_core::text::Wrapping;
 
-use crate::editor::{self, text_editor, ContentAction};
+use crate::editor::{self, ContentAction, text_editor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
@@ -23,7 +23,7 @@ impl<'a> CodeEditor<'a> {
     }
 
     pub fn view(self) -> Element<'a, CodeEditorMsg> {
-        text_editor(&self.code)
+        text_editor(self.code)
             .height(Length::Fill)
             .font(Font::MONOSPACE)
             .wrapping(Wrapping::WordOrGlyph)

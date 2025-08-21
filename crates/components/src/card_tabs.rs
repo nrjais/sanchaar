@@ -1,10 +1,10 @@
 use crate::{horizontal_line, icon, icons};
 use iced::widget::button::Status;
-use iced::widget::{horizontal_space, Column};
-use iced::{border, Background};
+use iced::widget::{Column, horizontal_space};
+use iced::{Background, border};
 use iced::{
-    widget::{button, Row, Text},
     Center, Element,
+    widget::{Row, Text, button},
 };
 
 #[derive(Debug, Clone)]

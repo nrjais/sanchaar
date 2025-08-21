@@ -49,7 +49,7 @@ impl HttpTab {
         })
     }
 
-    pub fn default() -> Box<Self> {
+    pub fn new_def() -> Box<Self> {
         Self::new("Untitled", Default::default(), Default::default())
     }
 

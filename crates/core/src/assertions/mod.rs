@@ -6,8 +6,8 @@ use std::collections::HashMap;
 
 use anyhow::Context;
 use hcl::{
-    structure::{BlockBuilder, BodyBuilder},
     BlockLabel, Identifier, Value,
+    structure::{BlockBuilder, BodyBuilder},
 };
 use serde::Deserialize;
 use strum::{Display, EnumString};

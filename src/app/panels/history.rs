@@ -17,7 +17,7 @@ pub enum HistoryTabMsg {
     OpenEntry(i64),
     DeleteEntry(i64),
     ClearHistory,
-    OpenHistoryEntry(Option<HistoryEntry>),
+    OpenHistoryEntry(Option<Box<HistoryEntry>>),
     SearchChanged(String),
     LoadComplete(Vec<HistoryEntrySummary>),
     ClearSearch,
@@ -31,7 +31,9 @@ impl HistoryTabMsg {
                 if let Some(db) = history_db {
                     return Task::future(async move {
                         match db.get_history_by_id(id).await {
-                            Ok(Some(entry)) => HistoryTabMsg::OpenHistoryEntry(Some(entry)),
+                            Ok(Some(entry)) => {
+                                HistoryTabMsg::OpenHistoryEntry(Some(Box::new(entry)))
+                            }
                             Ok(None) => HistoryTabMsg::OpenHistoryEntry(None),
                             Err(e) => {
                                 log::error!("Error loading history entry: {e:?}");
@@ -43,14 +45,14 @@ impl HistoryTabMsg {
                 Task::none()
             }
             HistoryTabMsg::OpenHistoryEntry(entry) => {
-                if let Some(entry) = entry {
-                    if let (Ok(request), Ok(response)) = (entry.to_request(), entry.to_response()) {
-                        let tab_name = format!("{} {}", entry.method, entry.url);
-                        let collection_ref = CollectionRequest::default();
-                        let new_tab =
-                            HttpTab::from_history(&tab_name, request, response, collection_ref);
-                        state.open_tab(Tab::Http(new_tab));
-                    }
+                if let Some(entry) = entry
+                    && let (Ok(request), Ok(response)) = (entry.to_request(), entry.to_response())
+                {
+                    let tab_name = format!("{} {}", entry.method, entry.url);
+                    let collection_ref = CollectionRequest::default();
+                    let new_tab =
+                        HttpTab::from_history(&tab_name, request, response, collection_ref);
+                    state.open_tab(Tab::Http(new_tab));
                 }
                 Task::none()
             }

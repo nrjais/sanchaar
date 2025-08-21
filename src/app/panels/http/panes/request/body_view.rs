@@ -1,14 +1,14 @@
-use super::{body_editor, RequestPaneMsg};
+use super::{RequestPaneMsg, body_editor};
 use crate::state::request::RawRequestBody;
 use components::{
-    icon, icon_button, icons, key_value_editor, multi_file_picker, tooltip, ContentType,
-    KeyFileList, KeyValList,
+    ContentType, KeyFileList, KeyValList, icon, icon_button, icons, key_value_editor,
+    multi_file_picker, tooltip,
 };
 use iced::{
-    widget::{
-        button, center, container, horizontal_space, pick_list, scrollable, text, Column, Row,
-    },
     Element, Length,
+    widget::{
+        Column, Row, button, center, container, horizontal_space, pick_list, scrollable, text,
+    },
 };
 use std::{collections::HashSet, path::PathBuf, sync::Arc};
 

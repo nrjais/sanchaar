@@ -34,7 +34,7 @@ impl MainPageMsg {
                 use TabBarAction::*;
                 match action {
                     ChangeTab(tab) => state.switch_tab(tab),
-                    NewTab => state.open_tab(Tab::Http(HttpTab::default())),
+                    NewTab => state.open_tab(Tab::Http(HttpTab::new_def())),
                     CloseTab(key) => state.close_tab(key),
                 }
                 Task::none()

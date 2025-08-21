@@ -1,5 +1,5 @@
-use iced::widget::{button, center, container, text, Column};
 use iced::Length;
+use iced::widget::{Column, button, center, container, text};
 
 use crate::app::panels::http::panes::response::ResponsePaneMsg;
 use components::{icon, icons};

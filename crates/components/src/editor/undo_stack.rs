@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use iced_core::text::editor::{Action, Edit};
 use iced_core::text::Editor;
+use iced_core::text::editor::{Action, Edit};
 
 type Cursor = (usize, usize);
 
@@ -80,10 +80,10 @@ impl UndoStack {
                         Edit::Delete => action.char_after_cursor,
                         _ => None,
                     };
-                    if !paste_prev_selection(action, content) {
-                        if let Some(char) = char {
-                            content.perform(Action::Edit(Edit::Insert(char)));
-                        }
+                    if !paste_prev_selection(action, content)
+                        && let Some(char) = char
+                    {
+                        content.perform(Action::Edit(Edit::Insert(char)));
                     }
                 }
             }

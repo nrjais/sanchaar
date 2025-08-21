@@ -1,8 +1,8 @@
-use core::http::request::Request;
 use core::http::CollectionRequest;
+use core::http::request::Request;
 use std::borrow::Cow;
 
-use iced::widget::{horizontal_space, text, text_input, Column, Row};
+use iced::widget::{Column, Row, horizontal_space, text, text_input};
 use iced::{Element, Task};
 
 use crate::commands::builders::{
@@ -62,11 +62,11 @@ impl Message {
                     Task::done(Message::Done)
                 }
                 PopupNameAction::RenameEnvironment(tab, env_key) => {
-                    if let Some(Tab::Collection(tab)) = state.get_tab_mut(tab) {
-                        if let Some(mut env) = tab.remove_env(env_key) {
-                            env.name = name;
-                            tab.add_env(env);
-                        }
+                    if let Some(Tab::Collection(tab)) = state.get_tab_mut(tab)
+                        && let Some(mut env) = tab.remove_env(env_key)
+                    {
+                        env.name = name;
+                        tab.add_env(env);
                     }
                     Task::done(Message::Done)
                 }

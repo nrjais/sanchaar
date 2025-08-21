@@ -1,12 +1,12 @@
+use iced::Alignment::Center;
 use iced::border::{left, top};
 use iced::widget::button::Status;
 use iced::widget::{horizontal_space, vertical_space};
-use iced::Alignment::Center;
-use iced::{border, Length};
 use iced::{
-    widget::{button, Column, Row, Text},
     Element,
+    widget::{Column, Row, Text, button},
 };
+use iced::{Length, border};
 
 use crate::horizontal_line;
 use crate::min_dimension::min_width;

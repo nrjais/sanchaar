@@ -7,14 +7,14 @@ use crate::persistence::Version;
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DurationMilliSeconds};
+use serde_with::{DurationMilliSeconds, serde_as};
 use std::ops::Not;
 use tokio::fs;
 
 use super::environment::read_environments;
 use super::{
-    decode_key_values, encode_key_values, EncodedKeyValue, COLLECTION_ROOT_FILE, HCL_EXTENSION,
-    JS_EXTENSION, REQUESTS, SCRIPTS, TS_EXTENSION,
+    COLLECTION_ROOT_FILE, EncodedKeyValue, HCL_EXTENSION, JS_EXTENSION, REQUESTS, SCRIPTS,
+    TS_EXTENSION, decode_key_values, encode_key_values,
 };
 
 fn default_timeout() -> Duration {
@@ -185,7 +185,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     })
 }
 
-fn read_dotenv(path: &PathBuf) -> KeyValList {
+fn read_dotenv(path: &Path) -> KeyValList {
     let Ok(vars) = dotenvy::from_filename_iter(path.join(".env")) else {
         return KeyValList::new();
     };
