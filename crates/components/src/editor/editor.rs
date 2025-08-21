@@ -32,7 +32,7 @@
 //! }
 //! ```
 
-use iced::{alignment, window, Point};
+use iced::{Point, alignment, window};
 use iced_core::clipboard::{self, Clipboard};
 use iced_core::event::Event;
 use iced_core::keyboard::key;
@@ -45,11 +45,11 @@ use iced_core::text::{self, LineHeight, Text};
 use iced_core::text::{Alignment, Wrapping};
 use iced_core::widget::operation;
 use iced_core::widget::{self, Widget};
-use iced_core::{keyboard, SmolStr};
 use iced_core::{
     Background, Border, Color, Element, Length, Padding, Pixels, Rectangle, Shell, Size, Theme,
     Vector,
 };
+use iced_core::{SmolStr, keyboard};
 
 use std::cell::RefCell;
 use std::ops::DerefMut;
@@ -378,7 +378,7 @@ where
     }
 
     fn layout(
-        &self,
+        &mut self,
         tree: &mut widget::Tree,
         renderer: &Renderer,
         limits: &layout::Limits,
@@ -770,7 +770,7 @@ where
     }
 
     fn operate(
-        &self,
+        &mut self,
         tree: &mut widget::Tree,
         layout: Layout<'_>,
         _renderer: &Renderer,

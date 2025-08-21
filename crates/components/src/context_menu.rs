@@ -1,7 +1,7 @@
-use iced::advanced::widget::{tree, Operation};
-use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
+use iced::advanced::widget::{Operation, tree};
+use iced::advanced::{Clipboard, Layout, Shell, Widget, layout, overlay, renderer, widget};
 use iced::widget::{button, column, container, text};
-use iced::{mouse, Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector};
+use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector, mouse};
 
 use crate::min_dimension::min_width;
 
@@ -89,13 +89,13 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
     }
 
     fn layout(
-        &self,
+        &mut self,
         tree: &mut widget::Tree,
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         self.base
-            .as_widget()
+            .as_widget_mut()
             .layout(&mut tree.children[0], renderer, limits)
     }
 
@@ -132,12 +132,12 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         vec![widget::Tree::new(&self.base), widget::Tree::new(&self.menu)]
     }
 
-    fn diff(&self, tree: &mut widget::Tree) {
-        tree.diff_children(&[&self.base, &self.menu]);
+    fn diff(&mut self, tree: &mut widget::Tree) {
+        tree.diff_children(&mut [self.base.as_widget_mut(), self.menu.as_widget_mut()]);
     }
 
     fn operate(
-        &self,
+        &mut self,
         tree: &mut iced::advanced::widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
@@ -148,7 +148,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         operation.custom(None, layout.bounds(), state);
 
         self.base
-            .as_widget()
+            .as_widget_mut()
             .operate(&mut tree.children[0], layout, renderer, operation);
     }
 
@@ -257,7 +257,7 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
 
         let node = self
             .content
-            .as_widget()
+            .as_widget_mut()
             .layout(self.tree, renderer, &limits);
 
         let viewport = Rectangle::new(Point::ORIGIN, bounds);

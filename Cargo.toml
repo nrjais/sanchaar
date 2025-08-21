@@ -41,11 +41,11 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
 components = { path = "crates/components" }
-cookie_store = "0.21"
+cookie_store = "0.22"
 core = { path = "crates/core" }
 directories = "6.0"
 dotenvy = "0.15.3"
-hcl-rs = "0.18"
+hcl-rs = "0.19"
 humansize = "2.1"
 iced = { branch = "editor", features = [
   "advanced",
@@ -69,7 +69,7 @@ pest = "2.7"
 pest_derive = "2.7"
 regex = "1.10"
 reqwest = { version = "0.12", features = ["multipart", "stream"] }
-reqwest_cookie_store = "0.8"
+reqwest_cookie_store = "0.9"
 rfd = { version = "0.15", default-features = false, features = [
   "tokio",
   "xdg-portal",

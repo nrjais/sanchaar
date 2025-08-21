@@ -3,8 +3,8 @@
 //! Layout from first pass is used to set the limits for the second pass
 
 use iced::advanced::widget::tree;
-use iced::advanced::{layout, overlay, renderer, widget, Clipboard, Layout, Shell, Widget};
-use iced::{mouse, Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector};
+use iced::advanced::{Clipboard, Layout, Shell, Widget, layout, overlay, renderer, widget};
+use iced::{Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector, mouse};
 use iced_core::widget::{Operation, Tree};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -62,16 +62,15 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
     }
 
     fn layout(
-        &self,
+        &mut self,
         tree: &mut widget::Tree,
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        let layout = self.first_pass.as_widget().layout(
-            &mut widget::Tree::new(&self.first_pass),
-            renderer,
-            limits,
-        );
+        let layout = self
+            .first_pass
+            .as_widget_mut()
+            .layout(tree, renderer, limits);
 
         let bounds = layout.bounds();
 
@@ -87,7 +86,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
         };
 
         self.second_pass
-            .as_widget()
+            .as_widget_mut()
             .layout(tree, renderer, &new_limits)
     }
 
@@ -118,19 +117,19 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
         self.second_pass.as_widget().children()
     }
 
-    fn diff(&self, tree: &mut widget::Tree) {
-        self.second_pass.as_widget().diff(tree);
+    fn diff(&mut self, tree: &mut widget::Tree) {
+        self.second_pass.as_widget_mut().diff(tree);
     }
 
     fn operate(
-        &self,
+        &mut self,
         tree: &mut iced::advanced::widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
         operation: &mut dyn Operation<()>,
     ) {
         self.second_pass
-            .as_widget()
+            .as_widget_mut()
             .operate(tree, layout, renderer, operation);
     }
 
