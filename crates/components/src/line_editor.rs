@@ -97,10 +97,14 @@ impl LineEditorMsg {
     pub fn update(self, state: &mut editor::Content) {
         match self {
             Self::EditorAction(action, editable) => {
-                let newline = matches!(action, ContentAction::Action(Action::Edit(Edit::Enter)));
-                let allowed = !newline || editable;
+                let block = matches!(
+                    action,
+                    ContentAction::Action(Action::Edit(Edit::Enter))
+                        | ContentAction::Action(Action::Scroll { .. })
+                );
+                let allowed = !action.is_edit() || editable;
 
-                if allowed || !action.is_edit() {
+                if allowed && !block {
                     state.perform(action);
                 }
             }
@@ -111,7 +115,7 @@ impl LineEditorMsg {
 pub fn line_editor<'a>(code: &'a editor::Content) -> LineEditor<'a> {
     LineEditor {
         code,
-        editable: false,
+        editable: true,
         placeholder: None,
         text_size: None,
         style: Box::new(editor::default),
