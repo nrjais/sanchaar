@@ -187,4 +187,8 @@ impl AppState {
         self.active_tab = TabKey::ZERO;
         self.tab_history.clear();
     }
+
+    pub fn theme(&self) -> Theme {
+        self.theme.clone()
+    }
 }

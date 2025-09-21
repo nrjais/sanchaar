@@ -132,8 +132,8 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         vec![widget::Tree::new(&self.base), widget::Tree::new(&self.menu)]
     }
 
-    fn diff(&mut self, tree: &mut widget::Tree) {
-        tree.diff_children(&mut [self.base.as_widget_mut(), self.menu.as_widget_mut()]);
+    fn diff(&self, tree: &mut widget::Tree) {
+        tree.diff_children(&[self.base.as_widget(), self.menu.as_widget()]);
     }
 
     fn operate(

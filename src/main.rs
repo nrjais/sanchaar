@@ -31,7 +31,7 @@ pub fn app() -> Result<(), iced::Error> {
         app::update,
         app::view,
     )
-    .theme(|s| s.theme.clone())
+    .theme(AppState::theme)
     .antialiasing(true)
     .subscription(hotkeys::subscription)
     .font(Cow::from(HACK_REG_BYTES))

@@ -117,8 +117,8 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
         self.second_pass.as_widget().children()
     }
 
-    fn diff(&mut self, tree: &mut widget::Tree) {
-        self.second_pass.as_widget_mut().diff(tree);
+    fn diff(&self, tree: &mut widget::Tree) {
+        self.second_pass.as_widget().diff(tree);
     }
 
     fn operate(
