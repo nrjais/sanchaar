@@ -1,7 +1,7 @@
 use iced::Alignment::Center;
 use iced::border::{left, top};
 use iced::widget::button::Status;
-use iced::widget::{horizontal_space, vertical_space};
+use iced::widget::space;
 use iced::{
     Element,
     widget::{Column, Row, Text, button},
@@ -93,8 +93,8 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
     if let Some(suffix) = suffix {
         tabs_row.extend([
             vertical
-                .then(vertical_space)
-                .unwrap_or(horizontal_space())
+                .then(space::vertical)
+                .unwrap_or(space::horizontal())
                 .into(),
             suffix,
         ]);

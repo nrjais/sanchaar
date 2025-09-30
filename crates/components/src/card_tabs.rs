@@ -1,6 +1,6 @@
 use crate::{horizontal_line, icon, icons};
 use iced::widget::button::Status;
-use iced::widget::{Column, horizontal_space};
+use iced::widget::{Column, space};
 use iced::{Background, border};
 use iced::{
     Center, Element,
@@ -82,7 +82,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                     _ => button::text(theme, status),
                 }),
         )
-        .push(horizontal_space());
+        .push(space::horizontal());
 
     if let Some(suffix) = suffix {
         tabs_row = tabs_row.push(suffix);

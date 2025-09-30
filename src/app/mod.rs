@@ -11,6 +11,7 @@ mod collection_tree;
 mod content_section;
 mod panels;
 mod popups;
+pub mod bottom_bar;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {

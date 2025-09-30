@@ -2,9 +2,7 @@ use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::ops::Not;
 
-use iced::widget::{
-    Column, Row, button, container, horizontal_space, scrollable, text, text_input,
-};
+use iced::widget::{Column, Row, button, container, scrollable, space, text, text_input};
 use iced::{Element, Length, Task};
 
 use core::http::CollectionKey;
@@ -135,7 +133,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
 
     let name = Row::new()
         .push(text("Name"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(
             text_input("Name", &data.name)
                 .on_input(Message::NameChanged)
@@ -155,7 +153,7 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
 
     let path = Row::new()
         .push(text("Location"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(text(col_name).size(12))
         .align_y(iced::Alignment::Center)
         .spacing(4);

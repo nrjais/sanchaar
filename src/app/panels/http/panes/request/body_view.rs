@@ -7,7 +7,7 @@ use components::{
 use iced::{
     Element, Length,
     widget::{
-        Column, Row, button, center, container, horizontal_space, pick_list, scrollable, text,
+        Column, Row, button, center, container, space, pick_list, scrollable, text,
     },
 };
 use std::{collections::HashSet, path::PathBuf, sync::Arc};
@@ -28,7 +28,7 @@ pub fn body_tab(
 
     let header = Row::new()
         .push(text("Content Type"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(actions)
         .push(
             pick_list(

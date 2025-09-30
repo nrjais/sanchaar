@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use components::{button_tab, button_tabs};
-use iced::widget::{Column, Row, horizontal_space, pick_list, text};
+use iced::widget::{Column, Row, space, pick_list, text};
 use iced::{Element, Task, Theme};
 
 use crate::state::AppState;
@@ -66,7 +66,7 @@ fn general_tab(state: &AppState) -> Element<Message> {
     let size = 14;
     let theme = Row::new()
         .push(text("Theme"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(pick_list(Theme::ALL, Some(&state.theme), Message::ChangeTheme).text_size(size))
         .align_y(iced::Alignment::Center);
 

@@ -1,6 +1,6 @@
 use components::editor;
 use iced::Length::{Fill, Shrink};
-use iced::widget::{Button, Row, vertical_rule};
+use iced::widget::{Button, Row, rule};
 use iced::{Border, border};
 use iced::{
     Element, Task,
@@ -140,7 +140,7 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
             .push(method)
             .push(url)
             .push(icon_button(icons::Send).on_press_maybe(on_press))
-            .push(vertical_rule(1))
+            .push(rule::vertical(1))
             .push(
                 icon_button(icons::ContentSave)
                     .on_press(UrlBarMsg::SaveRequest)

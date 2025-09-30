@@ -1,6 +1,6 @@
 use iced::Length::{Fill, Shrink};
 use iced::widget::container::Style;
-use iced::widget::{Column, Row, button, container, horizontal_space, text};
+use iced::widget::{Column, Row, button, container, space, text};
 use iced::{Alignment, Element, Task, border};
 
 use crate::state::AppState;
@@ -62,7 +62,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
     };
 
     let buttons = Row::new()
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(
             button("Cancel")
                 .style(button::secondary)

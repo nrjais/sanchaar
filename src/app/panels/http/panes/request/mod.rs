@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::widget::{Column, Row, button, horizontal_space, pick_list, scrollable};
+use iced::widget::{Column, Row, button, space, pick_list, scrollable};
 use iced::{Length, Task, widget::text};
 
 use crate::commands::dialog::open_file_dialog;
@@ -185,7 +185,7 @@ fn script_view<'a>(
         )
         .push(
             Row::new()
-                .push(horizontal_space())
+                .push(space::horizontal())
                 .push(tooltip(
                     "New Script",
                     icon_button(icons::Plus, Some(20), Some(12))
@@ -200,7 +200,7 @@ fn script_view<'a>(
                         )
                         .style(button::secondary),
                 ))
-                .push(horizontal_space())
+                .push(space::horizontal())
                 .width(Length::Fill)
                 .align_y(iced::Alignment::Center)
                 .spacing(4),

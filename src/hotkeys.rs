@@ -2,7 +2,7 @@ use iced::{
     Task,
     advanced::widget::{operate, operation::focusable::focus},
     keyboard::{self, Event, Key, key::Named},
-    widget::focus_previous,
+    widget::operation::focus_previous,
 };
 
 use crate::{

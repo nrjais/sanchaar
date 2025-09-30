@@ -6,7 +6,7 @@ use components::{
 };
 use iced::{
     Alignment, Element, Length, Task, padding,
-    widget::{Column, Row, button, horizontal_space, pick_list, scrollable, text, toggler},
+    widget::{Column, Row, button, space, pick_list, scrollable, text, toggler},
 };
 
 use crate::{
@@ -124,7 +124,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let action_bar = Row::new()
         .push(text("Collection Settings").size(18))
-        .push(horizontal_space().width(Length::FillPortion(1)))
+        .push(space::horizontal().width(Length::FillPortion(1)))
         .push(tab.edited.then_some(icon_button(
             "Save Changes",
             icons::ContentSave,
@@ -136,7 +136,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let default_env = Row::new()
         .push("Default Environment")
-        .push(horizontal_space().width(Length::FillPortion(4)))
+        .push(space::horizontal().width(Length::FillPortion(4)))
         .push(
             pick_list(envs, default_env_name, Message::UpdateDefaultEnv)
                 .width(Length::FillPortion(1))
@@ -148,7 +148,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let disable_ssl = Row::new()
         .push("Disable SSL Certificate Verification")
-        .push(horizontal_space().width(Length::FillPortion(4)))
+        .push(space::horizontal().width(Length::FillPortion(4)))
         .push(
             toggler(tab.disable_ssl)
                 .on_toggle(Message::DisableSSL)
@@ -160,7 +160,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let timeout = Row::new()
         .push("Default Timeout (ms)")
-        .push(horizontal_space().width(Length::FillPortion(4)))
+        .push(space::horizontal().width(Length::FillPortion(4)))
         .push(text_input(
             "Millis",
             &tab.timeout_str,

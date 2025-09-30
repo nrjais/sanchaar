@@ -3,7 +3,7 @@ use std::{collections::HashSet, sync::Arc};
 use components::{LineEditorMsg, icon, icons, line_editor};
 use iced::{
     Element, Length,
-    widget::{Column, Row, center, container, horizontal_space, pick_list, text},
+    widget::{Column, Row, center, container, space, pick_list, text},
 };
 
 use crate::state::request::{RawAuthType, RequestPane};
@@ -44,7 +44,7 @@ fn field_row<'a>(
 ) -> Element<'a, AuthEditorMsg> {
     Row::new()
         .push(text(label))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(field)
         .into()
 }
@@ -53,7 +53,7 @@ pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<A
     let auth = &request.auth;
     let header = Row::new()
         .push(text("Auth Method"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(
             pick_list(
                 RawAuthType::all_variants(),

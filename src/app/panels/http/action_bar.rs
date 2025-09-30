@@ -1,7 +1,7 @@
 use components::{NerdIcon, icons};
 use core::http::CollectionKey;
 use core::http::collection::Collection;
-use iced::widget::{Button, Column, Row, horizontal_space, pick_list, text, text_input};
+use iced::widget::{Button, Column, Row, space, pick_list, text, text_input};
 use iced::{Element, Length, Task, widget::button};
 
 use crate::commands::builders;
@@ -87,7 +87,7 @@ pub fn view<'a>(tab: &'a HttpTab, col: &'a Collection) -> Element<'a, ActionBarM
     let bar = Row::new()
         .push(name)
         .push(edit_name)
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(environment_view(col, tab.collection_ref.0))
         .align_y(iced::Alignment::Center)
         .width(Length::Fill);

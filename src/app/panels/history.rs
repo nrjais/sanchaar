@@ -4,7 +4,7 @@ use core::persistence::history::{HistoryEntry, HistoryEntrySummary};
 use core::utils::fmt_duration;
 use humansize::{BINARY, format_size};
 use iced::widget::text::Wrapping;
-use iced::widget::{Space, button, column, row, scrollable, table, text, text_input};
+use iced::widget::{button, column, row, scrollable, space, table, text, text_input};
 use iced::{Element, Length, Task};
 use std::time::Duration;
 
@@ -218,7 +218,7 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
                             .style(button::secondary)
                             .on_press(HistoryTabMsg::OpenEntry(entry.id))
                     ),
-                    Space::with_width(Length::Fixed(5.0)),
+                    space::horizontal().width(Length::Fixed(5.0)),
                     tooltip(
                         "Delete entry",
                         button(icon(icons::Delete))

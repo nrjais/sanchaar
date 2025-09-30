@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::widget::{Column, Row, button, horizontal_space, text, text_input};
+use iced::widget::{Column, Row, button, space, text, text_input};
 use iced::{Element, Task};
 use rfd::FileHandle;
 
@@ -71,7 +71,7 @@ pub(crate) fn view<'a>(
 ) -> Element<'a, Message> {
     let name = Row::new()
         .push(text("Name"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(
             text_input("Name", &data.name)
                 .on_input(Message::NameChanged)
@@ -81,7 +81,7 @@ pub(crate) fn view<'a>(
 
     let path = Row::new()
         .push(text("Location"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(
             button(
                 text(

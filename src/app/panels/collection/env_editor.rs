@@ -1,4 +1,4 @@
-use iced::widget::{Column, Row, button, horizontal_space, pick_list, scrollable};
+use iced::widget::{Column, Row, button, space, pick_list, scrollable};
 use iced::{Alignment, Element, Length, Task};
 
 use components::{NerdIcon, icon, icons, key_value_editor, tooltip};
@@ -108,7 +108,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let action_bar = Row::new()
         .push("Edit Environments")
-        .push(horizontal_space().width(Length::FillPortion(3)))
+        .push(space::horizontal().width(Length::FillPortion(3)))
         .push(icon_button("Create New", icons::Plus, Message::CreatNewEnv))
         .push(selected.map(|s| icon_button("Rename", icons::Pencil, Message::RenameEnv(s))))
         .push(selected.map(|s| icon_button("Delete", icons::Delete, Message::DeleteEnv(s))))

@@ -2,7 +2,7 @@ use core::http::CollectionRequest;
 use core::http::request::Request;
 use std::borrow::Cow;
 
-use iced::widget::{Column, Row, horizontal_space, text, text_input};
+use iced::widget::{Column, Row, space, text, text_input};
 use iced::{Element, Task};
 
 use crate::commands::builders::{
@@ -94,7 +94,7 @@ pub fn done(data: &PopupNameState) -> Option<Message> {
 pub(crate) fn view<'a>(_state: &'a AppState, data: &'a PopupNameState) -> Element<'a, Message> {
     let name = Row::new()
         .push(text("Name"))
-        .push(horizontal_space())
+        .push(space::horizontal())
         .push(
             text_input("Name", &data.name)
                 .on_input(Message::NameChanged)
