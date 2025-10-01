@@ -6,7 +6,7 @@ use components::{
 };
 use iced::{
     Alignment, Element, Length, Task, padding,
-    widget::{Column, Row, button, space, pick_list, scrollable, text, toggler},
+    widget::{Column, Row, button, pick_list, scrollable, space, text, toggler},
 };
 
 use crate::{

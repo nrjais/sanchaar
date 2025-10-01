@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::widget::{Column, Row, button, space, pick_list, scrollable};
+use iced::widget::{Column, Row, button, pick_list, scrollable, space};
 use iced::{Length, Task, widget::text};
 
 use crate::commands::dialog::open_file_dialog;

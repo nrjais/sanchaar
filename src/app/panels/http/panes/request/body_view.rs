@@ -6,9 +6,7 @@ use components::{
 };
 use iced::{
     Element, Length,
-    widget::{
-        Column, Row, button, center, container, space, pick_list, scrollable, text,
-    },
+    widget::{Column, Row, button, center, container, pick_list, scrollable, space, text},
 };
 use std::{collections::HashSet, path::PathBuf, sync::Arc};
 

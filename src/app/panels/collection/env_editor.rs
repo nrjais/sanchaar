@@ -1,4 +1,4 @@
-use iced::widget::{Column, Row, button, space, pick_list, scrollable};
+use iced::widget::{Column, Row, button, pick_list, scrollable, space};
 use iced::{Alignment, Element, Length, Task};
 
 use components::{NerdIcon, icon, icons, key_value_editor, tooltip};

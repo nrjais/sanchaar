@@ -82,5 +82,6 @@ pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
         .spacing(4)
+        .padding(padding::right(4))
         .into()
 }

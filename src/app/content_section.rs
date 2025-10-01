@@ -5,9 +5,10 @@ use iced::widget::text::Shaping::Advanced;
 use iced::widget::{Column, PaneGrid, container, pane_grid, text};
 use iced::{Color, Element, Font, Length, Task, padding};
 
+use crate::app::bottom_bar::BottomBarMsg;
 use crate::app::panels::PanelMsg;
 
-use crate::app::{collection_tree, panels};
+use crate::app::{bottom_bar, collection_tree, panels};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::history_tab::HistoryTab;
 use crate::state::{AppState, HttpTab, SplitState, Tab, TabKey};
@@ -24,6 +25,7 @@ pub enum MainPageMsg {
     Panel(PanelMsg),
     CollectionTree(CollectionTreeMsg),
     SplitResize(ResizeEvent),
+    BottomBar(BottomBarMsg),
     OpenHistoryTab,
 }
 
@@ -61,6 +63,7 @@ impl MainPageMsg {
                 }
                 Task::none()
             }
+            Self::BottomBar(msg) => msg.update(state).map(Self::BottomBar),
         }
     }
 }
@@ -82,7 +85,10 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
     .width(iced::Length::Fill)
     .on_resize(8, MainPageMsg::SplitResize);
 
-    container(panes).padding(8).into()
+    Column::new()
+        .push(container(panes))
+        .push(bottom_bar::view(state).map(MainPageMsg::BottomBar))
+        .into()
 }
 
 fn side_bar(state: &AppState) -> Element<MainPageMsg> {
@@ -135,7 +141,10 @@ fn tabs_view<'a>(
         .spacing(8)
         .align_x(iced::Alignment::Center);
 
-    bordered_left(BORDER_WIDTH, container(tabs).padding(padding::left(4)))
+    bordered_left(
+        BORDER_WIDTH,
+        container(tabs).padding(padding::left(4).top(4)),
+    )
 }
 
 fn col_tab(key: TabKey, tab: &CollectionTab) -> CardTab<TabKey> {

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use components::{button_tab, button_tabs};
-use iced::widget::{Column, Row, space, pick_list, text};
+use iced::widget::{Column, Row, pick_list, space, text};
 use iced::{Element, Task, Theme};
 
 use crate::state::AppState;

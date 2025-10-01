@@ -7,11 +7,11 @@ use crate::app::content_section::MainPageMsg;
 use crate::{commands, hotkeys};
 use crate::{commands::TaskMsg, state::AppState};
 
+pub mod bottom_bar;
 mod collection_tree;
 mod content_section;
 mod panels;
 mod popups;
-pub mod bottom_bar;
 
 #[derive(Debug, Clone)]
 pub enum AppMsg {

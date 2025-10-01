@@ -1,4 +1,5 @@
-use iced::alignment::Horizontal;
+use iced::alignment::{Horizontal, Vertical};
+use iced::widget::button::Status;
 use iced::widget::scrollable::Direction;
 use iced::widget::{Button, Column, Row, Scrollable, button, column, container, row, text};
 use iced::{Element, Length, Task, clipboard, padding};
@@ -10,7 +11,6 @@ use core::http::{CollectionKey, CollectionRequest, request::Request};
 use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::tabs::collection_tab::CollectionTab;
-use crate::state::tabs::cookies_tab::CookiesTab;
 use crate::state::tabs::history_tab::HistoryTab;
 use crate::state::{AppState, HttpTab, Tab};
 
@@ -25,8 +25,6 @@ pub enum CollectionTreeMsg {
     RequestLoaded(CollectionRequest, Box<Option<(Request, String)>>),
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
-    OpenSettings,
-    OpenCookies,
     OpenHistory,
 }
 
@@ -66,12 +64,6 @@ impl CollectionTreeMsg {
                 return handle_context_menu(state, col, action);
             }
             CollectionTreeMsg::ActionComplete => (),
-            CollectionTreeMsg::OpenSettings => {
-                Popup::app_settings(&mut state.common);
-            }
-            CollectionTreeMsg::OpenCookies => {
-                state.open_unique_tab(Tab::CookieStore(CookiesTab::new(&state.common)));
-            }
             CollectionTreeMsg::OpenHistory => {
                 state.open_unique_tab(Tab::History(HistoryTab::new()));
             }
@@ -153,7 +145,16 @@ fn handle_context_menu(
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
-    components::icon_button(ico, Some(20), Some(8)).style(button::secondary)
+    components::icon_button(ico, Some(22), None).style(move |theme, status| {
+        if status == Status::Hovered || status == Status::Pressed {
+            button::Style {
+                text_color: theme.extended_palette().primary.strong.color,
+                ..button::text(theme, status)
+            }
+        } else {
+            button::text(theme, status)
+        }
+    })
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
@@ -170,9 +171,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
 
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
     let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
-    let cookies = icon_button(icons::Cookie).on_press(CollectionTreeMsg::OpenCookies);
     let history = icon_button(icons::History).on_press(CollectionTreeMsg::OpenHistory);
-    let settings = icon_button(icons::Gear).on_press(CollectionTreeMsg::OpenSettings);
 
     Column::new()
         .push(
@@ -180,13 +179,13 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
                 Row::new()
                     .push(tooltip("Create Collection", create_col))
                     .push(tooltip("Open Collection", open_col))
-                    .push(tooltip("Cookies", cookies))
                     .push(tooltip("History", history))
-                    .push(tooltip("Settings", settings))
                     .width(Length::Shrink)
-                    .spacing(4),
+                    .align_y(Vertical::Center)
+                    .spacing(16),
             )
             .align_x(Horizontal::Center)
+            .padding(padding::top(4).bottom(4))
             .width(Length::Fill),
         )
         .push(horizontal_line(2))
@@ -196,7 +195,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
                     .width(Length::Shrink)
                     .height(Length::Shrink)
                     .spacing(4)
-                    .padding(padding::right(12).bottom(12)),
+                    .padding(padding::right(12).bottom(12).left(8)),
             )
             .direction(Direction::Both {
                 vertical: Default::default(),
@@ -204,7 +203,6 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
             })
             .height(Length::Fill),
         )
-        .spacing(7)
         .width(Length::Fill)
         .into()
 }
