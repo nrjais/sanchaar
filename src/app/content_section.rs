@@ -141,7 +141,9 @@ fn tabs_view<'a>(
         .spacing(8)
         .align_x(iced::Alignment::Center);
 
-    container(tabs).padding(padding::left(4).top(4)).into()
+    container(tabs)
+        .padding(padding::left(4).right(4).top(4))
+        .into()
 }
 
 fn col_tab(key: TabKey, tab: &CollectionTab) -> CardTab<TabKey> {

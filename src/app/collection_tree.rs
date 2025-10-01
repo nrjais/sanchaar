@@ -339,7 +339,7 @@ fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, 
         ])
         .align_y(iced::Alignment::Center)
         .width(Length::Shrink)
-        .spacing(6),
+        .spacing(8),
     )
     .style(button::text)
     .padding(0)
