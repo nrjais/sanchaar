@@ -403,6 +403,12 @@ fn tokenize_command(command: &str) -> Result<Vec<String>> {
 
     for ch in chars {
         if escape_next {
+            // Special handling for backslash-newline (line continuation in bash)
+            if ch == '\n' || ch == '\r' {
+                // Treat backslash-newline as line continuation (just skip it)
+                escape_next = false;
+                continue;
+            }
             current.push(ch);
             escape_next = false;
             continue;
@@ -477,10 +483,11 @@ mod tests {
             req.body,
             RequestBody::Json(r#"{"name":"John"}"#.to_string())
         );
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Content-Type" && h.value == "application/json"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Content-Type" && h.value == "application/json")
+        );
     }
 
     #[test]
@@ -515,10 +522,14 @@ mod tests {
         match req.body {
             RequestBody::Form(form) => {
                 assert_eq!(form.iter().count(), 2);
-                assert!(form.iter().any(|kv| kv.name == "name" && kv.value == "John"));
-                assert!(form
-                    .iter()
-                    .any(|kv| kv.name == "email" && kv.value == "john@example.com"));
+                assert!(
+                    form.iter()
+                        .any(|kv| kv.name == "name" && kv.value == "John")
+                );
+                assert!(
+                    form.iter()
+                        .any(|kv| kv.name == "email" && kv.value == "john@example.com")
+                );
             }
             _ => panic!("Expected Form body"),
         }
@@ -530,14 +541,16 @@ mod tests {
             r#"curl -H "Authorization: Bearer token" -H "X-Custom: value" https://api.example.com"#;
         let req = parse_curl_command(cmd).unwrap();
         assert_eq!(req.headers.iter().count(), 2);
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Authorization" && h.value == "Bearer token"));
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "X-Custom" && h.value == "value"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Authorization" && h.value == "Bearer token")
+        );
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "X-Custom" && h.value == "value")
+        );
     }
 
     #[test]
@@ -555,10 +568,11 @@ mod tests {
     fn test_cookie() {
         let cmd = r#"curl -b "session=abc123" https://api.example.com"#;
         let req = parse_curl_command(cmd).unwrap();
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Cookie" && h.value == "session=abc123"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Cookie" && h.value == "session=abc123")
+        );
     }
 
     #[test]
@@ -569,7 +583,11 @@ mod tests {
         match req.body {
             RequestBody::Multipart { params, files } => {
                 assert_eq!(params.iter().count(), 1);
-                assert!(params.iter().any(|kv| kv.name == "name" && kv.value == "John"));
+                assert!(
+                    params
+                        .iter()
+                        .any(|kv| kv.name == "name" && kv.value == "John")
+                );
                 assert_eq!(files.iter().count(), 1);
                 assert!(files.iter().any(|f| f.name == "avatar"
                     && f.path == Some(std::path::PathBuf::from("/path/to/image.jpg"))));
@@ -613,7 +631,10 @@ mod tests {
     fn test_json_detection() {
         let cmd = r#"curl https://api.example.com -d '{"key":"value"}'"#;
         let req = parse_curl_command(cmd).unwrap();
-        assert_eq!(req.body, RequestBody::Json(r#"{"key":"value"}"#.to_string()));
+        assert_eq!(
+            req.body,
+            RequestBody::Json(r#"{"key":"value"}"#.to_string())
+        );
         assert_eq!(req.method, Method::POST); // Inferred from -d
     }
 
@@ -634,14 +655,16 @@ mod tests {
         assert_eq!(req.method, Method::GET);
         assert_eq!(req.url, "https://api.github.com/user/repos");
         assert_eq!(req.headers.iter().count(), 2);
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Accept" && h.value == "application/vnd.github.v3+json"));
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Authorization" && h.value == "token abc123"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Accept" && h.value == "application/vnd.github.v3+json")
+        );
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Authorization" && h.value == "token abc123")
+        );
     }
 
     #[test]
@@ -659,10 +682,11 @@ mod tests {
     fn test_referer_header() {
         let cmd = r#"curl -e "https://example.com" https://api.example.com"#;
         let req = parse_curl_command(cmd).unwrap();
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Referer" && h.value == "https://example.com"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Referer" && h.value == "https://example.com")
+        );
     }
 
     #[test]
@@ -806,14 +830,12 @@ mod tests {
     fn test_mixed_quotes() {
         let cmd = r#"curl -H 'Content-Type: application/json' -d "{'key':'value'}" https://api.example.com"#;
         let req = parse_curl_command(cmd).unwrap();
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Content-Type" && h.value == "application/json"));
-        assert_eq!(
-            req.body,
-            RequestBody::Json("{'key':'value'}".to_string())
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Content-Type" && h.value == "application/json")
         );
+        assert_eq!(req.body, RequestBody::Json("{'key':'value'}".to_string()));
     }
 
     #[test]
@@ -940,10 +962,11 @@ mod tests {
     fn test_compressed_adds_header() {
         let cmd = "curl --compressed https://api.example.com";
         let req = parse_curl_command(cmd).unwrap();
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Accept-Encoding" && h.value == "gzip, deflate, br"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Accept-Encoding" && h.value == "gzip, deflate, br")
+        );
     }
 
     #[test]
@@ -1070,6 +1093,24 @@ mod tests {
         let req = parse_curl_command(cmd).unwrap();
         assert_eq!(req.method, Method::POST);
         assert_eq!(req.url, "https://api.example.com");
+    }
+
+    #[test]
+    fn test_backslash_newline_line_continuation() {
+        // Backslash-newline should work as line continuation (bash-style)
+        let cmd = "curl -X POST \\\nhttps://api.example.com \\\n-H \"Auth: token\" \\\n-d '{\"data\":\"value\"}'";
+        let req = parse_curl_command(cmd).unwrap();
+        assert_eq!(req.method, Method::POST);
+        assert_eq!(req.url, "https://api.example.com");
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Auth" && h.value == "token")
+        );
+        assert_eq!(
+            req.body,
+            RequestBody::Json(r#"{"data":"value"}"#.to_string())
+        );
     }
 
     #[test]
@@ -1245,10 +1286,11 @@ mod tests {
                     .to_string()
             )
         );
-        assert!(req
-            .headers
-            .iter()
-            .any(|h| h.name == "Content-Type" && h.value == "text/xml"));
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Content-Type" && h.value == "text/xml")
+        );
     }
 
     #[test]
@@ -1257,9 +1299,7 @@ mod tests {
         let req = parse_curl_command(cmd).unwrap();
         assert_eq!(
             req.body,
-            RequestBody::Json(
-                r#"{"query":"query { user(id: 1) { name email } }"}"#.to_string()
-            )
+            RequestBody::Json(r#"{"query":"query { user(id: 1) { name email } }"}"#.to_string())
         );
         assert_eq!(req.url, "https://api.example.com/graphql");
     }
@@ -1300,5 +1340,36 @@ mod tests {
         let req = parse_curl_command(cmd).unwrap();
         assert_eq!(req.url, "https://api.example.com");
         // -s and -L are processed
+    }
+
+    #[test]
+    fn test_real_world_long_flags_with_line_continuation() {
+        let cmd = r#"curl --location --request GET 'echo.nrjais.com?test=hello' \
+--header 'test: 1235' \
+--header 'Content-Type: application/json' \
+--data '{
+    "test": "hello"
+}'"#;
+        let req = parse_curl_command(cmd).unwrap();
+
+        assert_eq!(req.method, Method::GET);
+        assert_eq!(req.url, "echo.nrjais.com?test=hello");
+
+        assert_eq!(req.headers.iter().count(), 2);
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "test" && h.value == "1235")
+        );
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Content-Type" && h.value == "application/json")
+        );
+
+        assert_eq!(
+            req.body,
+            RequestBody::Json("{\n    \"test\": \"hello\"\n}".to_string())
+        );
     }
 }
