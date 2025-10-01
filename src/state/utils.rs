@@ -46,3 +46,11 @@ pub fn to_core_kf_list(list: &KeyFileList) -> http::KeyFileList {
 
     http::KeyFileList::from(vals)
 }
+
+pub fn headers_to_string(headers: &reqwest::header::HeaderMap) -> String {
+    headers
+        .iter()
+        .map(|(k, v)| format!("{}: {}", k, v.to_str().unwrap_or_default()))
+        .collect::<Vec<_>>()
+        .join("\n")
+}

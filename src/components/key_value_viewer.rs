@@ -1,22 +1,17 @@
-use iced::widget::{Column, container, scrollable, text_input};
-use iced::{Background, Border, Theme, padding};
-use iced::{Element, Length, widget::Row};
+use iced::widget::{container, scrollable, table, text_input};
+use iced::{Background, Border, Theme};
+use iced::{Element, Length};
 
-use crate::components::horizontal_line;
+use crate::components::bold;
 
-pub fn key_value_viewer<'a, M: Clone + 'a>(values: &[(&'a str, &'a str)]) -> Element<'a, M> {
-    let size = 16;
-    let spacing = 2;
-    let mut values_col = Column::new()
-        .spacing(spacing)
-        .padding(padding::Padding::from([4, 12]).left(0))
-        .width(Length::Fill);
-
+pub fn key_value_viewer<'a, M: Clone + 'a>(
+    values: impl IntoIterator<Item = (&'a str, &'a str)>,
+) -> Element<'a, M> {
     let text_view = |v: &str| {
         text_input("", v)
-            .size(size)
+            .size(16)
             .width(Length::FillPortion(3))
-            .padding([0, 4])
+            .padding(0)
             .style(|t: &Theme, _s| {
                 let palette = t.extended_palette();
                 text_input::Style {
@@ -30,18 +25,17 @@ pub fn key_value_viewer<'a, M: Clone + 'a>(values: &[(&'a str, &'a str)]) -> Ele
             })
     };
 
-    for (key, val) in values {
-        let row = Row::new()
-            .push(text_view(key))
-            .push(text_view(val))
-            .padding(spacing as u16)
-            .spacing(spacing);
+    let columns = [
+        table::column(bold("Name"), |(key, _): (&str, &str)| text_view(key))
+            .width(Length::FillPortion(1)),
+        table::column(bold("Value"), |(_, val): (&str, &str)| text_view(val))
+            .width(Length::FillPortion(2)),
+    ];
 
-        values_col = values_col.push(row).push(horizontal_line(1));
-    }
-
-    container(scrollable(values_col))
-        .width(Length::Fill)
-        .height(Length::Fill)
+    container(scrollable(table(columns, values)))
+        .style(|t: &Theme| container::Style {
+            border: container::bordered_box(t).border,
+            ..container::transparent(t)
+        })
         .into()
 }

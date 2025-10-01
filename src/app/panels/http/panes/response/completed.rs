@@ -15,6 +15,7 @@ use crate::commands::dialog::create_file_dialog;
 use crate::state::HttpTab;
 use crate::state::response::ResponseTabId;
 use crate::state::response::{BodyMode, CompletedResponse, ResponseState};
+use crate::state::utils::headers_to_string;
 
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {
@@ -26,6 +27,7 @@ pub enum CompletedMsg {
     SaveToFile(Option<Arc<rfd::FileHandle>>),
     Done,
     JsonPathFilter(String),
+    CopyHeadersToClipboard,
 }
 
 impl CompletedMsg {
@@ -64,6 +66,9 @@ impl CompletedMsg {
                 res.json_path_filter = filter;
                 res.apply_json_path_filter();
             }
+            CompletedMsg::CopyHeadersToClipboard => {
+                return clipboard::write(headers_to_string(&res.result.headers));
+            }
         }
         Task::none()
     }
@@ -101,52 +106,14 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         .into()
 }
 
-pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, CompletedMsg> {
-    let res = &cr.result;
-
-    let status_size = 12;
-
-    let status = container(
-        text(res.status.to_string())
-            .size(status_size)
-            .color(status_color(res.status)),
-    )
-    .style(container::bordered_box)
-    .padding([2, 4]);
-
-    let dot = || {
-        icon(icons::Dot)
-            .color(colors::GREY)
-            .size(status_size * 2)
-            .line_height(0.5)
-            .align_x(Alignment::Center)
-    };
-
+fn body_actions(cr: &CompletedResponse, status_size: u32) -> Row<'_, CompletedMsg> {
     let body_mode = if cr.mode == BodyMode::Pretty {
         icons::Preview
     } else {
         icons::NoPreview
     };
 
-    let status = Row::new()
-        .push(status)
-        .push(dot())
-        .push(
-            text(fmt_duration(res.duration))
-                .size(status_size)
-                .style(|theme: &Theme| text::Style {
-                    color: Some(theme.palette().success),
-                }),
-        )
-        .push(dot())
-        .push(
-            text(format_size(res.size_bytes, BINARY))
-                .size(status_size)
-                .style(|theme: &Theme| text::Style {
-                    color: Some(theme.palette().success),
-                }),
-        )
-        .push(space::horizontal().width(Length::Fixed(4.)))
+    Row::new()
         .push(
             button(icon(body_mode).size(status_size))
                 .padding([2, 4])
@@ -165,6 +132,66 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
                 .style(button::text)
                 .on_press(CompletedMsg::SaveResponse),
         )
+}
+
+fn headers_actions<'a>(status_size: u32) -> Row<'a, CompletedMsg> {
+    Row::new().push(
+        button(icon(icons::Copy).size(status_size))
+            .padding([2, 4])
+            .style(button::text)
+            .on_press(CompletedMsg::CopyHeadersToClipboard),
+    )
+}
+
+pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, CompletedMsg> {
+    let res = &cr.result;
+    let status_size = 12;
+
+    let status = container(
+        text(res.status.to_string())
+            .size(status_size)
+            .color(status_color(res.status)),
+    )
+    .style(container::bordered_box)
+    .padding([2, 4]);
+
+    let dot = || {
+        icon(icons::Dot)
+            .color(colors::GREY)
+            .size(status_size * 2)
+            .line_height(0.5)
+            .align_x(Alignment::Center)
+    };
+
+    let actions = match tab.response.active_tab {
+        ResponseTabId::Body => body_actions(cr, status_size),
+        ResponseTabId::Headers => headers_actions(status_size),
+    };
+    let actions = actions
+        .spacing(4)
+        .padding([0, 4])
+        .align_y(Alignment::Center);
+
+    let status = Row::new()
+        .push(actions)
+        .push(space::horizontal().width(Length::Fixed(8.)))
+        .push(status)
+        .push(dot())
+        .push(
+            text(fmt_duration(res.duration))
+                .size(status_size)
+                .style(|theme: &Theme| text::Style {
+                    color: Some(theme.palette().success),
+                }),
+        )
+        .push(dot())
+        .push(
+            text(format_size(res.size_bytes, BINARY))
+                .size(status_size)
+                .style(|theme: &Theme| text::Style {
+                    color: Some(theme.palette().success),
+                }),
+        )
         .spacing(4)
         .padding([0, 4])
         .align_y(Alignment::Center);
@@ -177,7 +204,7 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
                 .iter()
                 .map(|(k, v)| (k.as_str(), v.to_str().unwrap_or_default()))
                 .collect::<Vec<_>>();
-            key_value_viewer(&headers)
+            key_value_viewer(headers)
         }
     };
 

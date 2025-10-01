@@ -40,6 +40,7 @@ impl CompletedResponse {
             BodyMode::Raw => &self.raw,
         }
     }
+
     pub fn selected_content_mut(&mut self) -> &mut editor::Content {
         if let Some(filtered_content) = &mut self.filtered_content {
             return filtered_content;
