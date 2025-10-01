@@ -1,7 +1,7 @@
 use crate::{horizontal_line, icon, icons};
-use iced::widget::button::Status;
+use iced::border;
+use iced::widget::button::{Status, Style};
 use iced::widget::{Column, space};
-use iced::{ border};
 use iced::{
     Center, Element,
     widget::{Row, Text, button},
@@ -43,10 +43,10 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                     .on_press(on_action(TabBarAction::CloseTab(tab.id.clone())))
                     .style(|theme, status| match status {
                         Status::Hovered | Status::Pressed => button::Style {
-                            text_color: theme.extended_palette().primary.base.color,
-                            ..button::text(theme, status)
+                            text_color: theme.extended_palette().primary.strong.color,
+                            ..button::text(theme, Status::Hovered)
                         },
-                        _ => button::text(theme, status),
+                        _ => button::text(theme, Status::Active),
                     }),
             )
             .padding([4, 2])
@@ -76,8 +76,11 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                 .padding([0, 4])
                 .on_press(on_action(TabBarAction::NewTab))
                 .style(|theme, status| match status {
-                    Status::Hovered => button::secondary(theme, status),
-                    _ => button::text(theme, status),
+                    Status::Hovered | Status::Pressed => Style {
+                        text_color: theme.extended_palette().primary.strong.color,
+                        ..button::text(theme, Status::Active)
+                    },
+                    _ => button::text(theme, Status::Active),
                 }),
         )
         .push(space::horizontal());

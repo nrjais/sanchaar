@@ -45,9 +45,10 @@ impl HttpTab {
     }
 
     pub fn pane_config(axis: Axis) -> pane_grid::State<SplitState> {
+        let ratio = if axis == Axis::Vertical { 0.45 } else { 0.20 };
         pane_grid::State::with_configuration(Configuration::Split {
             axis,
-            ratio: 0.45,
+            ratio,
             a: Box::new(Configuration::Pane(SplitState::First)),
             b: Box::new(Configuration::Pane(SplitState::Second)),
         })
