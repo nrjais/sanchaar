@@ -118,7 +118,10 @@ pub fn line_editor<'a>(code: &'a editor::Content) -> LineEditor<'a> {
         editable: true,
         placeholder: None,
         text_size: None,
-        style: Box::new(editor::default),
+        style: Box::new(|theme: &iced::Theme, status| match status {
+            Status::Focused { .. } => editor::default(theme, Status::Focused { is_hovered: true }),
+            _ => editor::default(theme, Status::Active),
+        }),
         var_set: HashSet::new().into(),
         id: None,
     }

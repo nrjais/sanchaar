@@ -25,7 +25,7 @@ pub struct CompletedResponse {
     pub raw: editor::Content,
     pub mode: BodyMode,
     pub filtered_content: Option<editor::Content>,
-    pub json_path_filter: String,
+    pub json_path_filter: editor::Content,
     pub value: Option<Value>,
 }
 
@@ -54,12 +54,13 @@ impl CompletedResponse {
 
     pub fn apply_json_path_filter(&mut self) {
         self.filtered_content = None;
-        if self.json_path_filter.trim().is_empty() {
+        let filter = self.json_path_filter.text().trim().to_string();
+        if filter.is_empty() {
             return;
         }
 
         let filtered = self.value.as_ref().and_then(|json| {
-            let filtered = json.query(&self.json_path_filter).ok()?;
+            let filtered = json.query(&filter).ok()?;
             if filtered.len() == 1 {
                 serde_json::to_string_pretty(&filtered[0]).ok()
             } else {
@@ -81,7 +82,7 @@ impl CompletedResponse {
             value,
             mode: BodyMode::Pretty,
             filtered_content: None,
-            json_path_filter: String::new(),
+            json_path_filter: Content::new(),
         }
     }
 }

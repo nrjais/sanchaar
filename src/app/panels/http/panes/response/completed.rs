@@ -2,12 +2,12 @@ use core::utils::fmt_duration;
 use std::sync::Arc;
 
 use humansize::{BINARY, format_size};
-use iced::widget::{Column, Row, button, container, space, text, text_input};
+use iced::widget::{Column, Row, button, container, space, text};
 use iced::{Alignment, Color, Element, Length, Task, Theme, clipboard};
 
 use crate::components::{
-    CodeEditorMsg, ContentType, button_tab, button_tabs, code_editor, colors, icon, icons,
-    key_value_viewer,
+    CodeEditorMsg, ContentType, LineEditorMsg, button_tab, button_tabs, code_editor, colors, icon,
+    icons, key_value_viewer, line_editor,
 };
 
 use crate::commands::builders::write_file_cmd;
@@ -26,7 +26,7 @@ pub enum CompletedMsg {
     SaveResponse,
     SaveToFile(Option<Arc<rfd::FileHandle>>),
     Done,
-    JsonPathFilter(String),
+    JsonPathFilter(LineEditorMsg),
     CopyHeadersToClipboard,
 }
 
@@ -62,8 +62,8 @@ impl CompletedMsg {
                 }
             }
             CompletedMsg::Done => (),
-            CompletedMsg::JsonPathFilter(filter) => {
-                res.json_path_filter = filter;
+            CompletedMsg::JsonPathFilter(action) => {
+                action.update(&mut res.json_path_filter);
                 res.apply_json_path_filter();
             }
             CompletedMsg::CopyHeadersToClipboard => {
@@ -85,9 +85,9 @@ fn status_color(status: reqwest::StatusCode) -> Color {
 }
 
 fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
-    let json_path_filter = text_input("$.filter", &cr.json_path_filter)
-        .on_input(CompletedMsg::JsonPathFilter)
-        .on_paste(CompletedMsg::JsonPathFilter);
+    let json_path_filter = line_editor(&cr.json_path_filter)
+        .placeholder("$.filter")
+        .map(CompletedMsg::JsonPathFilter);
 
     let content = cr.selected_content();
     let is_json = cr.result.body.is_json();

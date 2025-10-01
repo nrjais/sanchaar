@@ -1,4 +1,4 @@
-use iced::{Element, Font, Length, border, highlighter, widget::container};
+use iced::{Element, Font, Length, border, highlighter};
 use iced_core::text::Wrapping;
 
 use crate::components::editor::{self, ContentAction, Status, text_editor};
@@ -35,9 +35,11 @@ impl<'a> CodeEditor<'a> {
             .style(|theme: &iced::Theme, status| editor::Style {
                 border: match status {
                     Status::Focused { .. } => border::width(1)
-                        .rounded(5)
+                        .rounded(2)
                         .color(theme.extended_palette().primary.strong.color),
-                    _ => container::bordered_box(theme).border,
+                    _ => border::width(1)
+                        .rounded(2)
+                        .color(theme.extended_palette().background.weak.color),
                 },
                 ..editor::default(theme, status)
             })
