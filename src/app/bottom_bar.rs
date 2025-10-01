@@ -1,16 +1,32 @@
 use components::{NerdIcon, bordered_top, icon, icons, tooltip};
 use iced::{
     Element, Task,
-    widget::{Row, Tooltip, button, space},
+    widget::{
+        Row, Tooltip, button,
+        pane_grid::{self},
+        space,
+    },
 };
 use iced::{border, padding};
 
-use crate::state::{AppState, Tab, popups::Popup, tabs::cookies_tab::CookiesTab};
+use crate::state::{AppState, HttpTab, Tab, popups::Popup, tabs::cookies_tab::CookiesTab};
 
 #[derive(Debug, Clone)]
 pub enum BottomBarMsg {
     OpenSettings,
     OpenCookies,
+    ToggleSplit,
+}
+
+fn change_axis_for_tabs(state: &mut AppState) {
+    for (_, tab) in state.tabs.iter_mut() {
+        match tab {
+            Tab::Http(tab) => {
+                tab.panes = HttpTab::pane_config(state.split_axis);
+            }
+            _ => (),
+        }
+    }
 }
 
 impl BottomBarMsg {
@@ -24,6 +40,14 @@ impl BottomBarMsg {
             }
             OpenCookies => {
                 state.open_unique_tab(Tab::CookieStore(CookiesTab::new(&state.common)));
+                Task::none()
+            }
+            ToggleSplit => {
+                state.split_axis = match state.split_axis {
+                    pane_grid::Axis::Vertical => pane_grid::Axis::Horizontal,
+                    pane_grid::Axis::Horizontal => pane_grid::Axis::Vertical,
+                };
+                change_axis_for_tabs(state);
                 Task::none()
             }
         }
@@ -46,13 +70,21 @@ fn icon_button<'a>(
     tooltip(desc, btn)
 }
 
-pub fn view(_state: &AppState) -> Element<BottomBarMsg> {
+pub fn view(state: &AppState) -> Element<BottomBarMsg> {
     use BottomBarMsg::*;
 
     let buttons = Row::new()
         .push(icon_button(icons::Gear, OpenSettings, "Settings"))
         .push(icon_button(icons::Cookie, OpenCookies, "Cookies"))
-        .spacing(8)
+        .push(icon_button(
+            match state.split_axis {
+                pane_grid::Axis::Vertical => icons::SplitVertical,
+                pane_grid::Axis::Horizontal => icons::SplitHorizontal,
+            },
+            ToggleSplit,
+            "Toggle Split",
+        ))
+        .spacing(12)
         .padding(padding::left(4));
 
     let row = Row::new()

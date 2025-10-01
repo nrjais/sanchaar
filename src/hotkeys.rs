@@ -82,7 +82,7 @@ fn handle_hotkeys(
 fn char_hotkeys(c: &str, modifiers: keyboard::Modifiers, state: &mut AppState) -> Task<Message> {
     match c {
         "t" if !modifiers.shift() => {
-            state.open_tab(Tab::Http(HttpTab::new_def()));
+            state.open_tab(Tab::Http(HttpTab::new_def(state.split_axis)));
             Task::none()
         }
         "w" if !modifiers.shift() => {

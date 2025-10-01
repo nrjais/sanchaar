@@ -57,7 +57,7 @@ impl CollectionTreeMsg {
             }
             CollectionTreeMsg::RequestLoaded(col, req) => {
                 if let Some((req, name)) = *req {
-                    state.open_tab(Tab::Http(HttpTab::new(&name, req, col)));
+                    state.open_tab(Tab::Http(HttpTab::new(&name, req, col, state.split_axis)));
                 }
             }
             CollectionTreeMsg::ContextMenu(col, action) => {
@@ -262,10 +262,10 @@ fn expandable_button(
     folder_id: Option<FolderId>,
 ) -> impl Into<Element<CollectionTreeMsg>> {
     let base = button(
-        row([icon(arrow).into(), text(name).into()])
+        row([icon(arrow).size(18).into(), text(name).size(16).into()])
             .align_y(iced::Alignment::Center)
             .width(Length::Shrink)
-            .spacing(4),
+            .spacing(8),
     )
     .style(button::text)
     .on_press(on_expand_toggle)
@@ -328,11 +328,12 @@ fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, 
     let base = button(
         row([
             icon(icons::API)
+                .size(16)
                 .style(|t| text::Style {
                     color: Some(t.extended_palette().success.strong.color),
                 })
                 .into(),
-            text(&item.name).into(),
+            text(&item.name).size(16).into(),
         ])
         .align_y(iced::Alignment::Center)
         .width(Length::Shrink)

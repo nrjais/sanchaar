@@ -1,5 +1,5 @@
+use crate::min_dimension::min_width;
 use iced::Alignment::Center;
-use iced::border::{left, top};
 use iced::widget::button::Status;
 use iced::widget::space;
 use iced::{
@@ -7,9 +7,6 @@ use iced::{
     widget::{Column, Row, Text, button},
 };
 use iced::{Length, border};
-
-use crate::horizontal_line;
-use crate::min_dimension::min_width;
 
 pub struct ButtonTab<'a, T> {
     pub id: T,
@@ -31,8 +28,7 @@ pub fn button_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 ) -> Element<'a, M> {
     let tabs = tab_list(active, tabs, on_tab_change, suffix, false);
     Column::new()
-        .push(Row::from_vec(tabs).width(iced::Length::Fill))
-        .push(horizontal_line(2))
+        .push(Row::from_vec(tabs).spacing(2).width(iced::Length::Fill))
         .width(iced::Length::Fill)
         .height(iced::Length::Shrink)
         .align_x(Center)
@@ -65,16 +61,14 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
         let tab_button = |width: Length| {
             button((tab.label)())
                 .style(move |theme, _| {
-                    let border = if vertical { left(4) } else { top(4) };
-
                     let style = if active {
                         button::primary(theme, Status::Active)
                     } else {
-                        button::text(theme, Status::Active)
+                        button::text(theme, Status::Disabled)
                     };
 
                     button::Style {
-                        border: border::rounded(border),
+                        border: border::rounded(4),
                         ..style
                     }
                 })

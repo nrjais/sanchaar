@@ -17,3 +17,13 @@ pub fn bordered_top<'a, M: 'a>(width: u16, content: impl Into<Element<'a, M>>) -
         .push(content)
         .into()
 }
+
+pub fn bordered_bottom<'a, M: 'a>(
+    width: u16,
+    content: impl Into<Element<'a, M>>,
+) -> Element<'a, M> {
+    Column::new()
+        .push(content)
+        .push(horizontal_line(width))
+        .into()
+}

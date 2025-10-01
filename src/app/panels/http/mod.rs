@@ -1,6 +1,6 @@
-use components::{bordered_left, bordered_right};
+use components::{bordered_bottom, bordered_left, bordered_right, bordered_top};
 use iced::padding;
-use iced::widget::pane_grid::ResizeEvent;
+use iced::widget::pane_grid::{Axis, ResizeEvent};
 use iced::widget::{Column, PaneGrid, pane_grid};
 use iced::{Element, Task, widget::container};
 
@@ -44,6 +44,26 @@ impl HttpTabMsg {
     }
 }
 
+fn apply_border_first<'a>(
+    pane: impl Into<Element<'a, HttpTabMsg>>,
+    axis: Axis,
+) -> Element<'a, HttpTabMsg> {
+    match axis {
+        Axis::Vertical => bordered_right(BORDER_WIDTH, pane),
+        Axis::Horizontal => bordered_bottom(BORDER_WIDTH, pane),
+    }
+}
+
+fn apply_border_second<'a>(
+    pane: impl Into<Element<'a, HttpTabMsg>>,
+    axis: Axis,
+) -> Element<'a, HttpTabMsg> {
+    match axis {
+        Axis::Vertical => bordered_left(BORDER_WIDTH, pane),
+        Axis::Horizontal => bordered_top(BORDER_WIDTH, pane),
+    }
+}
+
 pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg> {
     let col = state.common.collections.get(tab.collection_key());
 
@@ -54,16 +74,16 @@ pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg
         let pane = match pane {
             SplitState::First => {
                 let request_view = request::view(tab, col).map(HttpTabMsg::Req);
-                bordered_right(
-                    BORDER_WIDTH,
+                apply_border_first(
                     container(request_view).padding(padding::right(4)),
+                    state.split_axis,
                 )
             }
             SplitState::Second => {
                 let response_view = response::view(tab).map(HttpTabMsg::Res);
-                bordered_left(
-                    BORDER_WIDTH,
+                apply_border_second(
                     container(response_view).padding(padding::left(4)),
+                    state.split_axis,
                 )
             }
         };

@@ -1,7 +1,6 @@
 [package]
 name = "Sanchaar"
 version.workspace = true
-authors.workspace = true
 edition.workspace = true
 description.workspace = true
 
@@ -32,7 +31,6 @@ members = [
 
 [workspace.package]
 version = "0.1.0-prerelease.1"
-authors = ["Neeraj Jaiswal <me@nrjais.com>"]
 edition = "2024"
 description = "A fast offline REST API Client"
 
@@ -47,7 +45,7 @@ directories = "6.0"
 dotenvy = "0.15.3"
 hcl-rs = "0.19"
 humansize = "2.1"
-iced = { branch = "editor", features = [
+iced = { git = "https://github.com/nrjais/iced", branch = "editor", features = [
   "advanced",
   "debug",
   "highlighter",
@@ -55,11 +53,11 @@ iced = { branch = "editor", features = [
   "tokio",
   "web-colors",
   "wgpu",
-], git = "https://github.com/nrjais/iced" }
-iced_core = { branch = "editor", features = [
+] }
+iced_core = { git = "https://github.com/nrjais/iced", branch = "editor", features = [
   "advanced",
-], git = "https://github.com/nrjais/iced" }
-indexmap = "2.10"
+] }
+indexmap = "2.11"
 jsonformat = "2.1.0"
 jsonpath-rust = "1.0"
 log = "0.4"

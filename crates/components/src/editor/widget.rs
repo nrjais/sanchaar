@@ -684,7 +684,7 @@ where
                         font,
                         align_x: Alignment::Left,
                         align_y: alignment::Vertical::Top,
-                        shaping: text::Shaping::Advanced,
+                        shaping: text::Shaping::Auto,
                         wrapping: self.wrapping,
                     },
                     text_bounds.position(),

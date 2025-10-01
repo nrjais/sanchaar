@@ -1,5 +1,5 @@
-use iced::widget::pane_grid;
 use iced::widget::pane_grid::Configuration;
+use iced::widget::pane_grid::{self, Axis};
 use tokio::sync::oneshot;
 
 use crate::commands::builders::ResponseResult;
@@ -31,26 +31,30 @@ pub struct HttpTab {
 }
 
 impl HttpTab {
-    pub fn new(name: &str, request: Request, req_ref: CollectionRequest) -> Box<Self> {
+    pub fn new(name: &str, request: Request, req_ref: CollectionRequest, axis: Axis) -> Box<Self> {
         Box::new(Self {
             name: name.to_owned(),
             collection_ref: req_ref,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
-            panes: pane_grid::State::with_configuration(Configuration::Split {
-                axis: pane_grid::Axis::Vertical,
-                ratio: 0.45,
-                a: Box::new(Configuration::Pane(SplitState::First)),
-                b: Box::new(Configuration::Pane(SplitState::Second)),
-            }),
+            panes: HttpTab::pane_config(axis),
             editing_name: None,
             request_dirty_state: RequestDirtyState::Clean,
         })
     }
 
-    pub fn new_def() -> Box<Self> {
-        Self::new("Untitled", Default::default(), Default::default())
+    pub fn pane_config(axis: Axis) -> pane_grid::State<SplitState> {
+        pane_grid::State::with_configuration(Configuration::Split {
+            axis,
+            ratio: 0.45,
+            a: Box::new(Configuration::Pane(SplitState::First)),
+            b: Box::new(Configuration::Pane(SplitState::Second)),
+        })
+    }
+
+    pub fn new_def(axis: Axis) -> Box<Self> {
+        Self::new("Untitled", Default::default(), Default::default(), axis)
     }
 
     pub fn from_history(
@@ -58,8 +62,9 @@ impl HttpTab {
         request: Request,
         response: core::client::Response,
         req_ref: CollectionRequest,
+        axis: Axis,
     ) -> Box<Self> {
-        let mut tab = Self::new(name, request, req_ref);
+        let mut tab = Self::new(name, request, req_ref, axis);
         tab.response.state = ResponseState::Completed(Box::new(CompletedResponse::new(response)));
         tab
     }

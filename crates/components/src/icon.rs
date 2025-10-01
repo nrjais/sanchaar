@@ -6,10 +6,9 @@ use iced::{
 
 pub fn icon<'a>(icon: NerdIcon) -> Text<'a, Theme, Renderer> {
     text(icon.0)
-        .shaping(text::Shaping::Advanced)
         .align_x(Center)
         .align_y(Center)
-        .font(Font::with_name("Hack Nerd Mono Font"))
+        .font(Font::with_name("Hack Nerd Font"))
 }
 
 pub fn icon_button<'a, M: 'a>(
@@ -52,8 +51,10 @@ pub mod icons {
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');
     pub const DotsCircle: NerdIcon = NerdIcon('󱥸');
     pub const Close: NerdIcon = NerdIcon('󰅖');
-    pub const API: NerdIcon = NerdIcon('󱂛');
+    pub const API: NerdIcon = NerdIcon('󰖟');
     pub const Folder: NerdIcon = NerdIcon('󰉋');
     pub const FolderOpen: NerdIcon = NerdIcon('󰝰');
     pub const History: NerdIcon = NerdIcon('󰋚');
+    pub const SplitVertical: NerdIcon = NerdIcon('');
+    pub const SplitHorizontal: NerdIcon = NerdIcon('');
 }

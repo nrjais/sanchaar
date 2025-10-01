@@ -1,7 +1,7 @@
 use crate::{horizontal_line, icon, icons};
 use iced::widget::button::Status;
 use iced::widget::{Column, space};
-use iced::{Background, border};
+use iced::{ border};
 use iced::{
     Center, Element,
     widget::{Row, Text, button},
@@ -42,11 +42,9 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                     .padding([0, 4])
                     .on_press(on_action(TabBarAction::CloseTab(tab.id.clone())))
                     .style(|theme, status| match status {
-                        Status::Hovered => button::Style {
-                            background: Some(Background::Color(
-                                theme.extended_palette().secondary.strong.color,
-                            )),
-                            ..button::secondary(theme, status)
+                        Status::Hovered | Status::Pressed => button::Style {
+                            text_color: theme.extended_palette().primary.base.color,
+                            ..button::text(theme, status)
                         },
                         _ => button::text(theme, status),
                     }),

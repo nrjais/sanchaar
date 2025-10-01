@@ -50,8 +50,13 @@ impl HistoryTabMsg {
                 {
                     let tab_name = format!("{} {}", entry.method, entry.url);
                     let collection_ref = CollectionRequest::default();
-                    let new_tab =
-                        HttpTab::from_history(&tab_name, request, response, collection_ref);
+                    let new_tab = HttpTab::from_history(
+                        &tab_name,
+                        request,
+                        response,
+                        collection_ref,
+                        state.split_axis,
+                    );
                     state.open_tab(Tab::Http(new_tab));
                 }
                 Task::none()

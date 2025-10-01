@@ -1,7 +1,6 @@
 use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::pane_grid::ResizeEvent;
-use iced::widget::text::Shaping::Advanced;
 use iced::widget::{Column, PaneGrid, container, pane_grid, text};
 use iced::{Color, Element, Font, Length, Task, padding};
 
@@ -36,7 +35,7 @@ impl MainPageMsg {
                 use TabBarAction::*;
                 match action {
                     ChangeTab(tab) => state.switch_tab(tab),
-                    NewTab => state.open_tab(Tab::Http(HttpTab::new_def())),
+                    NewTab => state.open_tab(Tab::Http(HttpTab::new_def(state.split_axis))),
                     CloseTab(key) => state.close_tab(key),
                 }
                 Task::none()
@@ -165,7 +164,6 @@ fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {
         key,
         text(format!("{}{}", dirty_flag, tab.request().method))
             .color(method_color(tab.request().method))
-            .shaping(Advanced)
             .size(12)
             .height(Length::Shrink)
             .font(Font {

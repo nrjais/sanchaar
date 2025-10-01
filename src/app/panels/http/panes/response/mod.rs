@@ -43,5 +43,5 @@ pub fn view(tab: &HttpTab) -> Element<ResponsePaneMsg> {
         ResponseState::Failed(ref e) => failed::view(e.clone()),
     };
 
-    center(res).into()
+    center(res).padding([4, 0]).into()
 }

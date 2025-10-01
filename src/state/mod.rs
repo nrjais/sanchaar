@@ -74,6 +74,7 @@ pub struct AppState {
     tab_history: indexmap::IndexSet<TabKey>,
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub panes: pane_grid::State<SplitState>,
+    pub split_axis: pane_grid::Axis,
     pub theme: Theme,
 }
 
@@ -105,6 +106,7 @@ impl AppState {
                 a: Box::new(Configuration::Pane(SplitState::First)),
                 b: Box::new(Configuration::Pane(SplitState::Second)),
             }),
+            split_axis: pane_grid::Axis::Horizontal,
             theme: Theme::GruvboxDark,
         }
     }
