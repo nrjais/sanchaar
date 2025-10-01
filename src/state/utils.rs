@@ -54,3 +54,22 @@ pub fn headers_to_string(headers: &reqwest::header::HeaderMap) -> String {
         .collect::<Vec<_>>()
         .join("\n")
 }
+
+pub fn key_value_to_text(list: &KeyValList) -> String {
+    list.values()
+        .iter()
+        .filter(|kv| !kv.name().is_empty() || !kv.value().is_empty())
+        .map(|kv| format!("{}: {}", kv.name(), kv.value()))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+pub fn key_value_from_text(text: &str) -> KeyValList {
+    let lines = text.lines();
+    let mut key_val_list = Vec::new();
+    for line in lines {
+        let (key, value) = line.split_once(':').unwrap_or_default();
+        key_val_list.push(components::KeyValue::new(key.trim(), value.trim(), false));
+    }
+    KeyValList::from(key_val_list, false)
+}

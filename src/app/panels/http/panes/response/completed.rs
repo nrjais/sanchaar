@@ -107,7 +107,7 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
 }
 
 fn body_actions(cr: &CompletedResponse, status_size: u32) -> Row<'_, CompletedMsg> {
-    let body_mode = if cr.mode == BodyMode::Pretty {
+    let body_mode = if cr.mode == BodyMode::Raw {
         icons::Preview
     } else {
         icons::NoPreview

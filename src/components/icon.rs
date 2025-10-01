@@ -50,6 +50,8 @@ pub mod icons {
     pub const NoPreview: NerdIcon = NerdIcon('󰦀');
     pub const FileCancel: NerdIcon = NerdIcon('󰷆');
     pub const Error: NerdIcon = NerdIcon('');
+    pub const Edit: NerdIcon = NerdIcon('󰷉');
+    pub const EditLines: NerdIcon = NerdIcon('󱩽');
     pub const Send: NerdIcon = NerdIcon('󰒊');
     pub const SendUp: NerdIcon = NerdIcon('');
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');

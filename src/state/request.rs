@@ -1,9 +1,13 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::components::CodeEditorMsg;
 use crate::components::KeyFileList;
 use crate::components::KeyValList;
+use crate::components::KeyValUpdateMsg;
 use crate::components::editor::Content;
+use crate::state::utils::key_value_from_text;
+use crate::state::utils::key_value_to_text;
 use body_types::*;
 use core::http::request::{Auth, Method, Request, RequestBody};
 use iced::advanced::widget;
@@ -155,13 +159,80 @@ impl RawRequestBody {
 }
 
 #[derive(Debug)]
+pub enum BulkEditable {
+    KeyValue(KeyValList),
+    Editor(Content),
+}
+
+#[derive(Debug, Clone)]
+pub enum BulkEditMsg {
+    KeyValue(KeyValUpdateMsg),
+    Editor(CodeEditorMsg),
+    ToggleMode,
+}
+
+impl BulkEditable {
+    pub fn key_value(keys: KeyValList) -> Self {
+        Self::KeyValue(keys)
+    }
+
+    pub fn editor(content: Content) -> Self {
+        Self::Editor(content)
+    }
+
+    pub fn is_editor(&self) -> bool {
+        matches!(self, Self::Editor(_))
+    }
+
+    pub fn toggle(&mut self) {
+        match self {
+            Self::KeyValue(keys) => {
+                let text = key_value_to_text(keys);
+                *self = Self::Editor(Content::with_text(&text));
+            }
+            Self::Editor(content) => {
+                let text = content.text();
+                let list = key_value_from_text(&text);
+                *self = Self::KeyValue(list);
+            }
+        }
+    }
+
+    fn to_core_kv_list(&self) -> core::http::KeyValList {
+        match self {
+            Self::KeyValue(keys) => to_core_kv_list(keys),
+            Self::Editor(content) => {
+                let text = content.text();
+                let list = key_value_from_text(&text);
+                to_core_kv_list(&list)
+            }
+        }
+    }
+
+    pub fn update(&mut self, msg: BulkEditMsg) {
+        match (msg, self) {
+            (BulkEditMsg::KeyValue(msg), BulkEditable::KeyValue(keys)) => {
+                keys.update(msg);
+            }
+            (BulkEditMsg::Editor(msg), BulkEditable::Editor(content)) => {
+                msg.update(content);
+            }
+            (BulkEditMsg::ToggleMode, this) => {
+                this.toggle();
+            }
+            _ => {}
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct RequestPane {
     pub url_id: widget::Id,
     pub url_content: Content,
     pub method: Method,
-    pub headers: KeyValList,
+    pub headers: BulkEditable,
     pub body: RawRequestBody,
-    pub query_params: KeyValList,
+    pub query_params: BulkEditable,
     pub path_params: KeyValList,
     pub auth: RawAuthType,
     pub tab: ReqTabId,
@@ -206,10 +277,10 @@ impl RequestPane {
             description: "Http request".to_string(),
             method: self.method,
             url: self.url_content.text().trim().to_string(),
-            headers: to_core_kv_list(&self.headers),
+            headers: self.headers.to_core_kv_list(),
             body: self.body.to_request_body(),
             auth: self.auth.to_auth(),
-            query_params: to_core_kv_list(&self.query_params),
+            query_params: self.query_params.to_core_kv_list(),
             path_params: to_core_kv_list(&self.path_params),
             assertions: Default::default(),
             pre_request: self.pre_request.clone(),
@@ -221,10 +292,10 @@ impl RequestPane {
             url_id: widget::Id::unique(),
             url_content: Content::with_text(&request.url),
             method: request.method,
-            headers: from_core_kv_list(&request.headers, false),
+            headers: BulkEditable::key_value(from_core_kv_list(&request.headers, false)),
             body: RawRequestBody::from_request_body(request.body),
             auth: RawAuthType::from_auth(request.auth),
-            query_params: from_core_kv_list(&request.query_params, false),
+            query_params: BulkEditable::key_value(from_core_kv_list(&request.query_params, false)),
             path_params: from_core_kv_list(&request.path_params, true),
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),

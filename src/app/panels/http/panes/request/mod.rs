@@ -4,7 +4,8 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::widget::{Column, Row, button, pick_list, scrollable, space};
+use iced::padding;
+use iced::widget::{Column, Row, button, pick_list, space};
 use iced::{Length, Task, widget::text};
 
 use crate::commands::dialog::open_file_dialog;
@@ -14,7 +15,7 @@ use crate::components::{
     key_value_editor, tooltip,
 };
 use crate::state::popups::{Popup, PopupNameAction};
-use crate::state::request::ReqTabId;
+use crate::state::request::{BulkEditMsg, ReqTabId};
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
 
@@ -24,12 +25,13 @@ use self::body_view::body_tab;
 mod auth_editor;
 mod body_editor;
 mod body_view;
+mod bulk_edit;
 
 #[derive(Debug, Clone)]
 pub enum RequestPaneMsg {
     TabSelected(ReqTabId),
-    Headers(KeyValUpdateMsg),
-    Queries(KeyValUpdateMsg),
+    Headers(BulkEditMsg),
+    Queries(BulkEditMsg),
     PathParams(KeyValUpdateMsg),
     BodyEditorAction(CodeEditorMsg),
     AuthEditorAction(AuthEditorMsg),
@@ -119,6 +121,27 @@ impl RequestPaneMsg {
     }
 }
 
+fn bulk_edit_toggle<'a>(
+    title: &'a str,
+    msg: RequestPaneMsg,
+    is_editor: bool,
+) -> Row<'a, RequestPaneMsg> {
+    let icon = if is_editor {
+        icons::EditLines
+    } else {
+        icons::Edit
+    };
+
+    Row::new()
+        .push(title)
+        .push(space::horizontal().width(Length::Fixed(8.)))
+        .push(
+            icon_button(icon, None, Some(4))
+                .style(button::text)
+                .on_press(msg),
+        )
+}
+
 fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Element<RequestPaneMsg> {
     let has_params = request.path_params.size() > 0;
     let path = has_params.then(|| {
@@ -132,14 +155,20 @@ fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Eleme
     });
 
     let query = Column::new()
-        .push("Query Params")
-        .push(key_value_editor(&request.query_params, &vars).on_change(RequestPaneMsg::Queries))
+        .push(bulk_edit_toggle(
+            "Query Params",
+            RequestPaneMsg::Queries(BulkEditMsg::ToggleMode),
+            request.query_params.is_editor(),
+        ))
+        .push(bulk_edit::view(&request.query_params, vars).map(RequestPaneMsg::Queries))
         .spacing(4)
         .width(Length::Fill);
 
-    scrollable(Column::new().push(query).push(path).spacing(8))
-        .height(Length::Fill)
-        .width(Length::Fill)
+    Column::new()
+        .push(query)
+        .push(path)
+        .spacing(8)
+        .height(Length::Shrink)
         .into()
 }
 
@@ -147,16 +176,16 @@ fn headers_view(
     request: &RequestPane,
     vars: Arc<HashSet<String>>,
 ) -> iced::Element<RequestPaneMsg> {
-    scrollable(
-        Column::new()
-            .push("Headers")
-            .push(key_value_editor(&request.headers, &vars).on_change(RequestPaneMsg::Headers))
-            .width(Length::Fill)
-            .spacing(4),
-    )
-    .height(Length::Fill)
-    .width(Length::Fill)
-    .into()
+    Column::new()
+        .push(bulk_edit_toggle(
+            "Headers",
+            RequestPaneMsg::Headers(BulkEditMsg::ToggleMode),
+            request.headers.is_editor(),
+        ))
+        .push(bulk_edit::view(&request.headers, vars).map(RequestPaneMsg::Headers))
+        .width(Length::Fill)
+        .spacing(4)
+        .into()
 }
 
 fn script_view<'a>(
@@ -248,5 +277,6 @@ pub fn view<'a>(
         .width(Length::Fill)
         .height(Length::Fill)
         .spacing(4)
+        .padding(padding::bottom(4))
         .into()
 }
