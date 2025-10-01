@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::components::KeyFileList;
+use crate::components::KeyValList;
+use crate::components::editor::Content;
 use body_types::*;
-use components::KeyValList;
-use components::editor::Content;
-use components::{self, KeyFileList};
 use core::http::request::{Auth, Method, Request, RequestBody};
 use iced::advanced::widget;
 use serde_json::Value;

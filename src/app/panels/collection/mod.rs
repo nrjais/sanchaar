@@ -3,7 +3,7 @@ mod settings;
 
 use core::http::collection::Collection;
 
-use components::{button_tab, button_tabs};
+use crate::components::{button_tab, button_tabs};
 use iced::Length;
 use iced::widget::{Column, text};
 use iced::{Element, Task};

@@ -1,4 +1,4 @@
-use components::{ContentType, code_editor, editor::Content};
+use crate::components::{ContentType, code_editor, editor::Content};
 
 use crate::app::panels::http::panes::request::RequestPaneMsg;
 use iced::Element;

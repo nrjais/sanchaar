@@ -1,6 +1,6 @@
 use core::http::{self, KeyFile, KeyValue};
 
-use components::{KeyFileList, KeyValList};
+use crate::components::{self, KeyFileList, KeyValList};
 
 pub fn from_core_kv_list(values: &http::KeyValList, fixed: bool) -> KeyValList {
     let values = values

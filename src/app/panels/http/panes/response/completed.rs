@@ -5,7 +5,7 @@ use humansize::{BINARY, format_size};
 use iced::widget::{Column, Row, button, container, text, text_input};
 use iced::{Alignment, Border, Color, Element, Task, Theme, clipboard};
 
-use components::{
+use crate::components::{
     CodeEditorMsg, ContentType, button_tab, button_tabs, code_editor, key_value_viewer,
 };
 

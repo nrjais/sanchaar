@@ -12,8 +12,8 @@ use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::request::ReqTabId;
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
-use components::{CodeEditorMsg, FilePickerUpdateMsg};
-use components::{
+use crate::components::{CodeEditorMsg, FilePickerUpdateMsg};
+use crate::components::{
     FilePickerAction, KeyValUpdateMsg, button_tab, button_tabs, icon_button, icons,
     key_value_editor, tooltip,
 };

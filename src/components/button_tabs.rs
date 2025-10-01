@@ -1,4 +1,4 @@
-use crate::min_dimension::min_width;
+use crate::components::min_dimension::min_width;
 use iced::Alignment::Center;
 use iced::widget::button::Status;
 use iced::widget::space;

@@ -1,4 +1,4 @@
-use components::{NerdIcon, icons};
+use crate::components::{self, NerdIcon, icons};
 use core::http::CollectionKey;
 use core::http::collection::Collection;
 use iced::widget::{Button, Column, Row, pick_list, space, text, text_input};

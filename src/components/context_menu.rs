@@ -3,7 +3,7 @@ use iced::advanced::{Clipboard, Layout, Shell, Widget, layout, overlay, renderer
 use iced::widget::{button, column, container, text};
 use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector, mouse};
 
-use crate::min_dimension::min_width;
+use crate::components::min_dimension::min_width;
 
 #[derive(Debug, Clone)]
 pub struct MenuButton<'a, M: Clone + 'a> {

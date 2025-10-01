@@ -8,12 +8,12 @@ use crate::app::bottom_bar::BottomBarMsg;
 use crate::app::panels::PanelMsg;
 
 use crate::app::{bottom_bar, collection_tree, panels};
+use crate::components::{
+    CardTab, TabBarAction, bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons,
+};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::history_tab::HistoryTab;
 use crate::state::{AppState, HttpTab, SplitState, Tab, TabKey};
-use components::{
-    CardTab, TabBarAction, bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons,
-};
 use core::http::request::Method;
 
 const BORDER_WIDTH: u16 = 1;

@@ -7,7 +7,7 @@ use iced::{
 use std::ops::Not;
 use std::path::PathBuf;
 
-use crate::tooltip;
+use crate::components::tooltip;
 
 use super::{icon, icons};
 

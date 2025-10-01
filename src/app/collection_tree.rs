@@ -4,7 +4,9 @@ use iced::widget::scrollable::Direction;
 use iced::widget::{Button, Column, Row, Scrollable, button, column, container, row, text};
 use iced::{Element, Length, Task, clipboard, padding};
 
-use components::{NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip};
+use crate::components::{
+    self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
+};
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{CollectionKey, CollectionRequest, request::Request};
 

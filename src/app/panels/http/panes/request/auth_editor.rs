@@ -1,6 +1,6 @@
 use std::{collections::HashSet, sync::Arc};
 
-use components::{LineEditorMsg, icon, icons, line_editor};
+use crate::components::{LineEditorMsg, icon, icons, line_editor};
 use iced::{
     Element, Length,
     widget::{Column, Row, center, container, pick_list, space, text},

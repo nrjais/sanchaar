@@ -8,8 +8,8 @@ use std::collections::HashSet;
 use std::ops::Not;
 use std::sync::Arc;
 
-use crate::editor;
-use crate::{LineEditorMsg, line_editor, tooltip};
+use crate::components::editor;
+use crate::components::{LineEditorMsg, line_editor, tooltip};
 
 use super::{icon, icons};
 

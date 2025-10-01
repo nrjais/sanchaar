@@ -7,7 +7,7 @@ use iced_core::text::editor::{Edit, Editor as _, Line, LineEnding, Motion};
 use iced_core::text::{self};
 pub use text::editor::Action;
 
-use crate::editor::undo_stack::{EditorAction, UndoStack};
+use crate::components::editor::undo_stack::{EditorAction, UndoStack};
 
 /// The content of a [`super::TextEditor`].
 pub struct Content<R = iced::Renderer>(pub(super) RefCell<Internal<R>>)

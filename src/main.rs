@@ -3,6 +3,7 @@ pub mod app;
 pub mod commands;
 pub mod hotkeys;
 pub mod state;
+pub mod components;
 
 const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
 

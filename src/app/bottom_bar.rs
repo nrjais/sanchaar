@@ -1,4 +1,4 @@
-use components::{NerdIcon, bordered_top, icon, icons, tooltip};
+use crate::components::{NerdIcon, bordered_top, icon, icons, tooltip};
 use iced::{
     Element, Task,
     widget::{

@@ -4,7 +4,7 @@ use iced::highlighter::Highlight;
 use iced_core::text::{Highlighter, highlighter::Format};
 use parsers::Token;
 
-use crate::colors;
+use crate::components::colors;
 
 pub trait IsDefined: Clone + PartialEq {
     fn is_defined(&self, name: &str) -> bool;

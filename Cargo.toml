@@ -24,7 +24,6 @@ icon = [
 
 [workspace]
 members = [
-  "crates/components",
   "crates/core",
   "crates/parsers",
 ]
@@ -38,7 +37,6 @@ description = "A fast offline REST API Client"
 anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
-components = { path = "crates/components" }
 cookie_store = "0.22"
 core = { path = "crates/core" }
 directories = "6.0"
@@ -88,15 +86,16 @@ tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
 [dependencies]
 anyhow.workspace = true
 chrono.workspace = true
-components.workspace = true
 cookie_store.workspace = true
 core.workspace = true
 humansize.workspace = true
 iced.workspace = true
+iced_core.workspace = true
 indexmap.workspace = true
 jsonformat.workspace = true
 jsonpath-rust.workspace = true
 log.workspace = true
+parsers.workspace = true
 reqwest.workspace = true
 reqwest_cookie_store.workspace = true
 rfd.workspace = true

@@ -1,6 +1,6 @@
 use iced::Task;
 
-use components::modal;
+use crate::components::modal;
 use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;

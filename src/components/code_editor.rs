@@ -1,7 +1,7 @@
 use iced::{Element, Font, Length, highlighter};
 use iced_core::text::Wrapping;
 
-use crate::editor::{self, ContentAction, text_editor};
+use crate::components::editor::{self, ContentAction, text_editor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {

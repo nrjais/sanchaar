@@ -1,6 +1,6 @@
 use super::{RequestPaneMsg, body_editor};
 use crate::state::request::RawRequestBody;
-use components::{
+use crate::components::{
     ContentType, KeyFileList, KeyValList, icon, icon_button, icons, key_value_editor,
     multi_file_picker, tooltip,
 };

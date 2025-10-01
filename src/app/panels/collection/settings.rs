@@ -1,7 +1,7 @@
 use core::http::collection::Collection;
 use std::{collections::HashSet, sync::Arc, time::Duration};
 
-use components::{
+use crate::components::{
     KeyValList, KeyValUpdateMsg, NerdIcon, icon, icons, key_value_editor, text_input, tooltip,
 };
 use iced::{

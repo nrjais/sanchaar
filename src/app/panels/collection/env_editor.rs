@@ -1,7 +1,7 @@
 use iced::widget::{Column, Row, button, pick_list, scrollable, space};
 use iced::{Alignment, Element, Length, Task};
 
-use components::{NerdIcon, icon, icons, key_value_editor, tooltip};
+use crate::components::{KeyValUpdateMsg, NerdIcon, icon, icons, key_value_editor, tooltip};
 use core::http::collection::Collection;
 use core::http::environment::EnvironmentKey;
 
@@ -15,7 +15,7 @@ pub enum Message {
     SaveEnvs,
     SelectEnv(String),
     DeleteEnv(EnvironmentKey),
-    EnvUpdate(EnvironmentKey, components::KeyValUpdateMsg),
+    EnvUpdate(EnvironmentKey, KeyValUpdateMsg),
     CreatNewEnv,
     RenameEnv(EnvironmentKey),
     Saved,

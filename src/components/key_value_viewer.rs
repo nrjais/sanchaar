@@ -3,7 +3,7 @@ use iced::padding;
 use iced::widget::{Column, container, scrollable, text};
 use iced::{Element, Length, widget::Row};
 
-use crate::{colors, horizontal_line};
+use crate::components::{colors, horizontal_line};
 
 pub fn key_value_viewer<'a, M: 'a>(values: &[(&'a str, &'a str)]) -> Element<'a, M> {
     let size = 14;

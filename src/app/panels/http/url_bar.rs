@@ -1,4 +1,4 @@
-use components::editor;
+use crate::components::editor;
 use iced::Length::{Fill, Shrink};
 use iced::widget::{Button, Row, rule};
 use iced::{Border, border};
@@ -9,7 +9,7 @@ use iced::{
 use reqwest::Url;
 use strum::VariantArray;
 
-use components::{LineEditorMsg, NerdIcon, icon, icons, line_editor};
+use crate::components::{LineEditorMsg, NerdIcon, icon, icons, line_editor};
 use core::http::collection::Collection;
 use core::http::request::Method;
 

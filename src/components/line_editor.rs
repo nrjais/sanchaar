@@ -6,8 +6,8 @@ use iced::{Element, Length, Pixels, Theme};
 use iced_core::text::Wrapping;
 use iced_core::text::editor::{Action, Edit};
 
-use crate::editor::highlighters::TemplHighlighterSettings;
-use crate::editor::{self, ContentAction, Status, StyleFn, highlighters, text_editor};
+use crate::components::editor::highlighters::TemplHighlighterSettings;
+use crate::components::editor::{self, ContentAction, Status, StyleFn, highlighters, text_editor};
 
 pub struct LineEditor<'a> {
     pub code: &'a editor::Content,

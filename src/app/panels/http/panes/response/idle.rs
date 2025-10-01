@@ -1,7 +1,7 @@
 use crate::app::panels::http::panes::response::ResponsePaneMsg;
 use iced::widget::{Column, container};
 
-use components::{icon, icons};
+use crate::components::{icon, icons};
 
 pub fn view<'a>() -> iced::Element<'a, ResponsePaneMsg> {
     Column::new()

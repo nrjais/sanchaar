@@ -1,4 +1,4 @@
-use components::bold;
+use crate::components::bold;
 use cookie_store::Cookie;
 use iced::Length;
 use iced::widget::text::Wrapping;

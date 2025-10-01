@@ -1,7 +1,7 @@
 use core::client;
 use std::sync::Arc;
 
-use components::editor::{self, Content};
+use crate::components::editor::{self, Content};
 use jsonpath_rust::JsonPath;
 use serde_json::Value;
 
