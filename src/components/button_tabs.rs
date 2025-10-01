@@ -57,7 +57,6 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
     let mut tabs_row = Vec::new();
     for tab in tabs {
         let active = tab.id == active;
-
         let tab_button = |width: Length| {
             button((tab.label)())
                 .style(move |theme, _| {

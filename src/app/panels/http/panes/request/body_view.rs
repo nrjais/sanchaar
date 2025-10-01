@@ -1,9 +1,9 @@
 use super::{RequestPaneMsg, body_editor};
-use crate::state::request::RawRequestBody;
 use crate::components::{
     ContentType, KeyFileList, KeyValList, icon, icon_button, icons, key_value_editor,
     multi_file_picker, tooltip,
 };
+use crate::state::request::RawRequestBody;
 use iced::{
     Element, Length,
     widget::{Column, Row, button, center, container, pick_list, scrollable, space, text},

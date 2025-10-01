@@ -75,6 +75,12 @@ pub struct PaneConfig {
     pub side_bar_open: bool,
 }
 
+impl Default for PaneConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PaneConfig {
     pub fn new() -> Self {
         Self {

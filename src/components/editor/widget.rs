@@ -328,8 +328,8 @@ impl Focus {
 
     fn is_cursor_visible(&self) -> bool {
         self.is_window_focused
-            && ((self.now - self.updated_at).as_millis() / Self::CURSOR_BLINK_INTERVAL_MILLIS) % 2
-                == 0
+            && ((self.now - self.updated_at).as_millis() / Self::CURSOR_BLINK_INTERVAL_MILLIS)
+                .is_multiple_of(2)
     }
 }
 

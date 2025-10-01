@@ -29,7 +29,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     on_action: impl Fn(TabBarAction<T>) -> M,
     suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
-    let mut tabs_row = Row::new().align_y(Center).spacing(8);
+    let mut tabs_row = Row::new().align_y(Center).spacing(4);
     for CardTab {
         id,
         icon: tab_icon,
@@ -43,19 +43,14 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
         let close_button = button(icon(icons::Close).size(18).line_height(1.))
             .padding(4)
             .on_press(on_action(TabBarAction::CloseTab(close_id)))
-            .style(|theme: &iced::Theme, status| {
+            .style(move |theme: &iced::Theme, status| {
                 let palette = theme.extended_palette();
                 let mut style = button::text(theme, Status::Active);
-                style.border = Border {
-                    radius: 6.0.into(),
-                    width: 0.0,
-                    color: palette.background.strong.color,
-                };
-
                 let text_color = match status {
-                    Status::Pressed => palette.danger.strong.color,
-                    Status::Hovered => palette.danger.strong.text,
-                    _ => palette.background.strong.text,
+                    Status::Pressed | Status::Hovered if is_active => palette.primary.strong.text,
+                    Status::Pressed | Status::Hovered => palette.primary.strong.color,
+                    _ if is_active => palette.primary.strong.text,
+                    _ => palette.secondary.base.color,
                 };
 
                 style.text_color = text_color;
@@ -64,31 +59,23 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
         let tab_content = Row::new()
             .align_y(Center)
-            .spacing(6)
-            .push(container(tab_icon).padding([0, 6]))
+            .spacing(4)
+            .push(container(tab_icon).padding([0, 2]))
             .push(label)
-            .push(close_button)
-            .padding([4, 8]);
+            .push(close_button);
 
         tabs_row = tabs_row.push(
             button(tab_content)
-                .padding(if is_active { [2, 4] } else { [0, 4] })
+                .padding([2, 4])
                 .style(move |theme: &iced::Theme, status| {
                     let palette = theme.extended_palette();
 
                     let (background, text_color) = match (is_active, status) {
-                        (true, Status::Pressed) => {
-                            (palette.primary.strong.color, palette.primary.strong.text)
-                        }
-                        (true, Status::Hovered) => {
-                            (palette.primary.weak.color, palette.primary.weak.text)
+                        (true, Status::Hovered | Status::Pressed) => {
+                            (palette.primary.base.color, palette.primary.base.text)
                         }
                         (true, _) => (palette.primary.base.color, palette.primary.base.text),
-                        (false, Status::Pressed) => (
-                            palette.background.strong.color,
-                            palette.background.strong.text,
-                        ),
-                        (false, Status::Hovered) => (
+                        (false, Status::Hovered | Status::Pressed) => (
                             palette.background.neutral.color,
                             palette.background.neutral.text,
                         ),
@@ -110,11 +97,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                         Shadow {
                             color: palette.primary.strong.color.scale_alpha(0.25),
                             offset: Vector::new(0.0, 3.0),
-                            blur_radius: if matches!(status, Status::Pressed) {
-                                4.0
-                            } else {
-                                8.0
-                            },
+                            blur_radius: 4.0,
                         }
                     } else if matches!(status, Status::Hovered) {
                         Shadow {
@@ -130,7 +113,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                         background: Some(background.into()),
                         text_color,
                         border: Border {
-                            radius: 10.0.into(),
+                            radius: 4.0.into(),
                             width: 1.0,
                             color: border_color,
                         },
@@ -144,16 +127,15 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
     tabs_row = tabs_row
         .push(
-            button(icon(icons::Plus).size(22).line_height(1.))
-                .padding([0, 4])
+            button(icon(icons::Plus).size(20).line_height(1.))
+                .padding([2, 6])
                 .on_press(on_action(TabBarAction::NewTab))
                 .style(|theme: &iced::Theme, status| {
                     let palette = theme.extended_palette();
                     let (background, text_color) = match status {
-                        Status::Pressed => {
+                        Status::Pressed | Status::Hovered => {
                             (palette.primary.strong.color, palette.primary.strong.text)
                         }
-                        Status::Hovered => (palette.primary.weak.color, palette.primary.weak.text),
                         _ => (palette.background.weaker.color, palette.primary.base.color),
                     };
 
@@ -167,18 +149,14 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                         background: Some(background.into()),
                         text_color,
                         border: Border {
-                            radius: 5.0.into(),
+                            radius: 4.0.into(),
                             width: 1.0,
                             color: border_color,
                         },
                         shadow: Shadow {
                             color: palette.primary.strong.color.scale_alpha(0.15),
                             offset: Vector::new(0.0, 2.0),
-                            blur_radius: if matches!(status, Status::Pressed) {
-                                4.0
-                            } else {
-                                6.0
-                            },
+                            blur_radius: 4.0,
                         },
                         ..Style::default()
                     }
@@ -191,9 +169,9 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     }
 
     Column::new()
-        .spacing(6)
+        .spacing(4)
         .push(tabs_row)
-        .push(horizontal_line(1))
+        .push(horizontal_line(2))
         .width(Length::Fill)
         .into()
 }

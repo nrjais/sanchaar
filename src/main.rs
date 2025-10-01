@@ -1,9 +1,9 @@
 #![allow(mismatched_lifetime_syntaxes)]
 pub mod app;
 pub mod commands;
+pub mod components;
 pub mod hotkeys;
 pub mod state;
-pub mod components;
 
 const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
 
@@ -38,6 +38,7 @@ pub fn app() -> Result<(), iced::Error> {
     .window(window::Settings {
         size: Size::new(1024.0, 768.0),
         position: Position::Specific(Point::ORIGIN),
+        maximized: true,
         min_size: Some(Size::new(900.0, 600.0)),
         ..Default::default()
     })

@@ -1,5 +1,5 @@
-use chrono::{DateTime, Local};
 use crate::components::{bold, colors, icon, icon_button, icons, tooltip};
+use chrono::{DateTime, Local};
 use core::persistence::history::{HistoryEntry, HistoryEntrySummary};
 use core::utils::fmt_duration;
 use humansize::{BINARY, format_size};

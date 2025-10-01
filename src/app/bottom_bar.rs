@@ -21,11 +21,8 @@ pub enum BottomBarMsg {
 
 fn change_axis_for_tabs(state: &mut AppState) {
     for (_, tab) in state.tabs.iter_mut() {
-        match tab {
-            Tab::Http(tab) => {
-                tab.panes = HttpTab::pane_config(state.split_axis);
-            }
-            _ => (),
+        if let Tab::Http(tab) = tab {
+            tab.panes = HttpTab::pane_config(state.split_axis);
         }
     }
 }
