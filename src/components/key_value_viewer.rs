@@ -1,5 +1,5 @@
 use iced::widget::{container, scrollable, table, text_input};
-use iced::{Background, Border, Theme};
+use iced::{Background, Border, Theme, padding};
 use iced::{Element, Length};
 
 use crate::components::bold;
@@ -32,10 +32,13 @@ pub fn key_value_viewer<'a, M: Clone + 'a>(
             .width(Length::FillPortion(2)),
     ];
 
-    container(scrollable(table(columns, values)))
-        .style(|t: &Theme| container::Style {
-            border: container::bordered_box(t).border,
-            ..container::transparent(t)
-        })
-        .into()
+    scrollable(
+        container(table(columns, values))
+            .style(|t: &Theme| container::Style {
+                border: container::bordered_box(t).border,
+                ..container::transparent(t)
+            })
+            .padding(padding::right(12)),
+    )
+    .into()
 }
