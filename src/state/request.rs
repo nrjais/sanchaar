@@ -5,12 +5,15 @@ use crate::components::CodeEditorMsg;
 use crate::components::KeyFileList;
 use crate::components::KeyValList;
 use crate::components::KeyValUpdateMsg;
+use crate::components::KeyValue;
 use crate::components::editor::Content;
+use crate::components::editor::ContentAction;
 use crate::state::utils::key_value_from_text;
 use crate::state::utils::key_value_to_text;
 use body_types::*;
 use core::http::request::{Auth, Method, Request, RequestBody};
 use iced::advanced::widget;
+use reqwest::Url;
 use serde_json::Value;
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
@@ -311,6 +314,50 @@ impl RequestPane {
             if let Ok(formatted) = json {
                 *content = Content::with_text(&formatted);
             }
+        }
+    }
+
+    pub fn clean_url(&mut self) {
+        let url = self.url_content.text();
+        let url = url.replace("\n", "").replace("\r", "").trim().to_string();
+        if url != self.url_content.text() {
+            self.url_content.perform(ContentAction::Replace(url));
+        }
+        // self.extract_query_params();
+    }
+
+    pub fn update_from_curl(&mut self, request: core::http::request::Request) {
+        self.method = request.method;
+
+        self.url_content
+            .perform(ContentAction::Replace(request.url));
+
+        let parsed_headers = from_core_kv_list(&request.headers, false);
+        self.headers = BulkEditable::key_value(parsed_headers);
+
+        let new_body = RawRequestBody::from_request_body(request.body);
+        self.body = new_body;
+
+        self.query_params = BulkEditable::key_value(KeyValList::new());
+        self.auth = RawAuthType::from_auth(request.auth);
+    }
+
+    pub fn extract_query_params(&mut self) {
+        let url_text = self.url_content.text();
+        let Ok(mut url) = Url::parse(&url_text) else {
+            return;
+        };
+
+        let mut query_params = Vec::new();
+        for (key, value) in url.query_pairs() {
+            query_params.push(KeyValue::new(&key, &value, false));
+        }
+        url.set_query(None);
+
+        let url = url.to_string();
+        if url != url_text {
+            self.url_content.perform(ContentAction::Replace(url));
+            self.query_params = BulkEditable::key_value(KeyValList::from(query_params, false));
         }
     }
 }

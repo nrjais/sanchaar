@@ -72,6 +72,12 @@ fn delete_action<R: text::Renderer>(mov: Motion, internal: &mut Internal<R>) {
     track_action(internal, Edit::Delete);
 }
 
+fn replace_action<R: text::Renderer>(text: String, internal: &mut Internal<R>) {
+    let editor = &mut internal.editor;
+    editor.perform(Action::SelectAll);
+    track_action(internal, Edit::Paste(Arc::new(text)));
+}
+
 /// An action that can be performed on the [`Content`] of a [`super::TextEditor`].
 #[derive(Debug, Clone)]
 pub enum ContentAction {
@@ -79,6 +85,7 @@ pub enum ContentAction {
     Undo,
     Redo,
     Delete(Motion),
+    Replace(String),
 }
 
 impl ContentAction {
@@ -119,6 +126,7 @@ where
             ContentAction::Delete(motion) => delete_action(motion, internal),
             ContentAction::Undo => internal.undo_stack.undo(&mut internal.editor),
             ContentAction::Redo => internal.undo_stack.redo(&mut internal.editor),
+            ContentAction::Replace(text) => replace_action(text, internal),
         }
         internal.is_dirty = true;
     }
