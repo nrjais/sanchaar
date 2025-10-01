@@ -1,4 +1,5 @@
-use crate::components::editor;
+use crate::components::editor::{self};
+use crate::state::request::RequestPane;
 use iced::Length::{Fill, Shrink};
 use iced::widget::{Button, Row, rule};
 use iced::{Border, border};
@@ -10,6 +11,7 @@ use reqwest::Url;
 use strum::VariantArray;
 
 use crate::components::{LineEditorMsg, NerdIcon, icon, icons, line_editor};
+use core::curl::parse_curl_command;
 use core::http::collection::Collection;
 use core::http::request::Method;
 
@@ -54,19 +56,9 @@ impl UrlBarMsg {
             }
             UrlBarMsg::UrlChanged(action) => {
                 action.update(&mut tab.request_mut().url_content);
-
-                let url = tab.request().url_content.text();
-                if let Some(params) = parse_path_params(&url) {
-                    tab.request_mut()
-                        .path_params
-                        .retain(|key| params.contains(key.name()));
-
-                    for param in params {
-                        if !tab.request().path_params.contains_key(&param) {
-                            tab.request_mut().path_params.insert(param);
-                        }
-                    }
-                }
+                let _ = parse_curl_paste(tab.request_mut());
+                tab.request_mut().clean_url();
+                update_path_params(tab);
             }
             UrlBarMsg::SendRequest => {
                 return send_request_cmd(&mut state.common, tab)
@@ -89,6 +81,33 @@ impl UrlBarMsg {
             UrlBarMsg::RequestSaved => (),
         }
         Task::none()
+    }
+}
+
+fn parse_curl_paste(tab: &mut RequestPane) -> Result<(), anyhow::Error> {
+    let url = tab.url_content.text();
+    if !url.trim().starts_with("curl ") {
+        return Ok(());
+    }
+
+    let parsed = parse_curl_command(&url)?;
+    tab.update_from_curl(parsed);
+
+    Ok(())
+}
+
+fn update_path_params(tab: &mut Box<HttpTab>) {
+    let url = tab.request().url_content.text();
+    if let Some(params) = parse_path_params(&url) {
+        tab.request_mut()
+            .path_params
+            .retain(|key| params.contains(key.name()));
+
+        for param in params {
+            if !tab.request().path_params.contains_key(&param) {
+                tab.request_mut().path_params.insert(param);
+            }
+        }
     }
 }
 

@@ -1355,6 +1355,7 @@ mod tests {
         assert_eq!(req.method, Method::GET);
         assert_eq!(req.url, "echo.nrjais.com?test=hello");
 
+        // Verify headers
         assert_eq!(req.headers.iter().count(), 2);
         assert!(
             req.headers
@@ -1367,6 +1368,10 @@ mod tests {
                 .any(|h| h.name == "Content-Type" && h.value == "application/json")
         );
 
+        // Query params are not extracted from URL by curl parser
+        assert!(req.query_params.is_empty());
+
+        // Verify multi-line JSON body
         assert_eq!(
             req.body,
             RequestBody::Json("{\n    \"test\": \"hello\"\n}".to_string())
