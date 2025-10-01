@@ -1,7 +1,7 @@
-use iced::{Element, Font, Length, highlighter};
+use iced::{Element, Font, Length, border, highlighter, widget::container};
 use iced_core::text::Wrapping;
 
-use crate::components::editor::{self, ContentAction, text_editor};
+use crate::components::editor::{self, ContentAction, Status, text_editor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
@@ -32,6 +32,15 @@ impl<'a> CodeEditor<'a> {
                 self.content_type.to_extension(),
                 highlighter::Theme::SolarizedDark,
             )
+            .style(|theme: &iced::Theme, status| editor::Style {
+                border: match status {
+                    Status::Focused { .. } => border::width(1)
+                        .rounded(5)
+                        .color(theme.extended_palette().primary.strong.color),
+                    _ => container::bordered_box(theme).border,
+                },
+                ..editor::default(theme, status)
+            })
             .into()
     }
 
