@@ -9,7 +9,7 @@ use iced::{
 };
 use iced::{border, padding};
 
-use crate::state::{AppState, HttpTab, Tab, popups::Popup, tabs::cookies_tab::CookiesTab};
+use crate::state::{AppState, Tab, popups::Popup, tabs::cookies_tab::CookiesTab};
 
 #[derive(Debug, Clone)]
 pub enum BottomBarMsg {
@@ -22,7 +22,7 @@ pub enum BottomBarMsg {
 fn change_axis_for_tabs(state: &mut AppState) {
     for (_, tab) in state.tabs.iter_mut() {
         if let Tab::Http(tab) = tab {
-            tab.panes = HttpTab::pane_config(state.split_axis);
+            tab.set_pane_axis(state.split_axis);
         }
     }
 }

@@ -60,6 +60,8 @@ pub use text::editor::{Action, Edit, Motion};
 
 use super::content::{self, ContentAction};
 
+type KeyBindingFn<'a, Message> = Box<dyn Fn(KeyPress) -> Option<Binding<Message>> + 'a>;
+
 /// A multi-line text input.
 ///
 /// # Example
@@ -110,7 +112,7 @@ where
     padding: Padding,
     wrapping: Wrapping,
     class: Theme::Class<'a>,
-    key_binding: Option<Box<dyn Fn(KeyPress) -> Option<Binding<Message>> + 'a>>,
+    key_binding: Option<KeyBindingFn<'a, Message>>,
     on_edit: Option<Box<dyn Fn(ContentAction) -> Message + 'a>>,
     highlighter_settings: Highlighter::Settings,
     highlighter_format: fn(&Highlighter::Highlight, &Theme) -> highlighter::Format<Renderer::Font>,

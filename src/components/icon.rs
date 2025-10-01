@@ -44,12 +44,17 @@ pub mod icons {
     pub const Pencil: NerdIcon = NerdIcon('󰏫');
     pub const Gear: NerdIcon = NerdIcon('󰒓');
     pub const Import: NerdIcon = NerdIcon('󰋺');
+    pub const Download: NerdIcon = NerdIcon('');
+    pub const Copy: NerdIcon = NerdIcon('');
+    pub const Preview: NerdIcon = NerdIcon('󰍉');
+    pub const NoPreview: NerdIcon = NerdIcon('󰦀');
     pub const FileCancel: NerdIcon = NerdIcon('󰷆');
     pub const Error: NerdIcon = NerdIcon('');
     pub const Send: NerdIcon = NerdIcon('󰒊');
     pub const SendUp: NerdIcon = NerdIcon('');
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');
     pub const DotsCircle: NerdIcon = NerdIcon('󱥸');
+    pub const Dot: NerdIcon = NerdIcon('•');
     pub const Close: NerdIcon = NerdIcon('󰅖');
     pub const API: NerdIcon = NerdIcon('󰖟');
     pub const Folder: NerdIcon = NerdIcon('󰉋');

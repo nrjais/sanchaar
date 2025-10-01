@@ -27,6 +27,7 @@ pub struct HttpTab {
     pub tasks: Vec<oneshot::Sender<()>>,
     pub editing_name: Option<String>,
     pub panes: pane_grid::State<SplitState>,
+    pub axis: Axis,
     pub request_dirty_state: RequestDirtyState,
 }
 
@@ -40,11 +41,12 @@ impl HttpTab {
             tasks: Vec::new(),
             panes: HttpTab::pane_config(axis),
             editing_name: None,
+            axis,
             request_dirty_state: RequestDirtyState::Clean,
         })
     }
 
-    pub fn pane_config(axis: Axis) -> pane_grid::State<SplitState> {
+    fn pane_config(axis: Axis) -> pane_grid::State<SplitState> {
         let ratio = if axis == Axis::Vertical { 0.45 } else { 0.20 };
         pane_grid::State::with_configuration(Configuration::Split {
             axis,
@@ -52,6 +54,11 @@ impl HttpTab {
             a: Box::new(Configuration::Pane(SplitState::First)),
             b: Box::new(Configuration::Pane(SplitState::Second)),
         })
+    }
+
+    pub fn set_pane_axis(&mut self, axis: Axis) {
+        self.axis = axis;
+        self.panes = Self::pane_config(axis);
     }
 
     pub fn new_def(axis: Axis) -> Box<Self> {
