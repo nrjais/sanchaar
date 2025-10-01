@@ -13,7 +13,7 @@ use tokio::fs;
 
 use super::environment::read_environments;
 use super::{
-    COLLECTION_ROOT_FILE, EncodedKeyValue, HCL_EXTENSION, JS_EXTENSION, REQUESTS, SCRIPTS,
+    COLLECTION_ROOT_FILE, EncodedKeyValue, JS_EXTENSION, REQUESTS, SCRIPTS, TOML_EXTENSION,
     TS_EXTENSION, decode_key_values, encode_key_values,
 };
 
@@ -56,7 +56,7 @@ fn project_dirs() -> Option<ProjectDirs> {
 fn collections_file() -> Option<PathBuf> {
     let dirs = project_dirs()?;
     let data_dir = dirs.data_dir();
-    Some(data_dir.join("collections.hcl"))
+    Some(data_dir.join("collections.toml"))
 }
 
 async fn create_collections_state(collections_file: PathBuf) -> Result<CollectionsState> {
@@ -84,7 +84,7 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
         open: vec![CollectionConfig::Path(default_path)],
     };
 
-    let data = hcl::to_string(&state)?;
+    let data = toml::to_string_pretty(&state)?;
     fs::write(collections_file, data).await?;
 
     Ok(state)
@@ -109,7 +109,7 @@ async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
             return None;
         }
     };
-    let collections: CollectionsState = hcl::from_str(&data).ok()?;
+    let collections: CollectionsState = toml::from_str(&data).ok()?;
 
     Some(collections.open)
 }
@@ -148,7 +148,7 @@ pub async fn save(collection: Vec<Collection>) -> Result<()> {
             .collect(),
     };
 
-    let data = hcl::to_string(&state)?;
+    let data = toml::to_string_pretty(&state)?;
     fs::write(collections_file, data).await?;
 
     Ok(())
@@ -157,7 +157,7 @@ pub async fn save(collection: Vec<Collection>) -> Result<()> {
 pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error> {
     let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
 
-    let collection: EncodedCollection = hcl::from_str(&data)?;
+    let collection: EncodedCollection = toml::from_str(&data)?;
     let environments = read_environments(&path).await?;
     let entries = find_all_requests(&path).await?;
     let scripts = find_all_scripts(&path).await?;
@@ -264,9 +264,9 @@ async fn walk_entries(dir_path: &Path) -> Result<Vec<Entry>> {
         } else {
             let name = entry.file_name();
             let name = name.to_string_lossy();
-            let without_ext = name.trim_end_matches(&HCL_EXTENSION);
+            let without_ext = name.trim_end_matches(&TOML_EXTENSION);
 
-            if !name.ends_with(&HCL_EXTENSION) || without_ext.is_empty() {
+            if !name.ends_with(&TOML_EXTENSION) || without_ext.is_empty() {
                 continue;
             }
 
@@ -296,7 +296,7 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
 }
 
 pub async fn save_collection(path: PathBuf, collection: EncodedCollection) -> Result<()> {
-    let data = hcl::to_string(&collection).expect("Failed to encode collection");
+    let data = toml::to_string_pretty(&collection).expect("Failed to encode collection");
 
     fs::create_dir_all(&path).await?;
     fs::write(path.join(COLLECTION_ROOT_FILE), data).await?;

@@ -7,7 +7,7 @@ use crate::http::KeyValList;
 use crate::http::environment::{Environment, Environments};
 
 use super::ENVIRONMENTS;
-use super::{EncodedKeyValue, HCL_EXTENSION, Version};
+use super::{EncodedKeyValue, TOML_EXTENSION, Version};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EncodedEnvironment {
@@ -58,14 +58,14 @@ pub async fn read_environments(col: &Path) -> anyhow::Result<Environments> {
         let name = file.file_name();
         let name = name.to_string_lossy();
 
-        let without_ext = name.trim_end_matches(&HCL_EXTENSION);
-        if !name.ends_with(&HCL_EXTENSION) || without_ext.is_empty() {
+        let without_ext = name.trim_end_matches(&TOML_EXTENSION);
+        if !name.ends_with(&TOML_EXTENSION) || without_ext.is_empty() {
             continue;
         }
 
         let content = fs::read_to_string(&file.path()).await?;
 
-        let environment: EncodedEnvironment = hcl::from_str(&content)?;
+        let environment: EncodedEnvironment = toml::from_str(&content)?;
 
         environments.insert(environment.into());
     }
@@ -89,8 +89,8 @@ pub async fn save_environments(
     fs::create_dir_all(&env_path).await?;
 
     for environment in environments.iter() {
-        let path = env_path.join(format!("{}{}", &environment.name, HCL_EXTENSION));
-        let content = hcl::to_string(environment)?;
+        let path = env_path.join(format!("{}{}", &environment.name, TOML_EXTENSION));
+        let content = toml::to_string_pretty(environment)?;
 
         fs::write(&path, content).await?;
     }

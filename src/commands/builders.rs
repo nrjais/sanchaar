@@ -1,5 +1,5 @@
 use core::persistence::environment::{encode_environments, save_environments};
-use core::persistence::{ENVIRONMENTS, HCL_EXTENSION, REQUESTS};
+use core::persistence::{ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -98,7 +98,7 @@ async fn save_request_to_history(
 pub fn save_request_cmd(tab: &mut HttpTab, path: PathBuf) -> Task<Option<Arc<anyhow::Error>>> {
     tab.mark_clean();
 
-    let encoded = encode_request(tab.request().to_request()).expect("Failed to encode request");
+    let encoded = encode_request(tab.request().to_request());
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => None,
         Err(e) => {
@@ -153,7 +153,7 @@ pub fn create_new_request_cmd(
             let Some(folder) = collection.folder_mut(fol) else {
                 return Task::none();
             };
-            let path = folder.path.join(format!("{}{}", &name, HCL_EXTENSION));
+            let path = folder.path.join(format!("{}{}", &name, TOML_EXTENSION));
             folder.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -165,7 +165,7 @@ pub fn create_new_request_cmd(
             let path = collection
                 .path
                 .join(REQUESTS)
-                .join(format!("{}{}", &name, HCL_EXTENSION));
+                .join(format!("{}{}", &name, TOML_EXTENSION));
             collection.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -175,7 +175,7 @@ pub fn create_new_request_cmd(
         }
     };
 
-    let encoded = encode_request(req).expect("Failed to encode request");
+    let encoded = encode_request(req);
 
     Task::perform(save_req_to_file(path, encoded), move |r| match r {
         Ok(_) => None,
@@ -307,7 +307,7 @@ pub fn save_environments_cmd(
                 collection
                     .path
                     .join(ENVIRONMENTS)
-                    .join(format!("{}{}", env.name, HCL_EXTENSION)),
+                    .join(format!("{}{}", env.name, TOML_EXTENSION)),
             );
         }
     }

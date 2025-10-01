@@ -1,7 +1,7 @@
 use std::{collections::HashMap, str::from_utf8};
 
-use hcl::Value;
 use regex::Regex;
+use serde_json::{Number, Value};
 
 use crate::client::Response;
 
@@ -40,7 +40,7 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionOutcome
             Assertion::Status(conditions) => {
                 let status = response.status;
                 match_conditions(conditions, |key| match key {
-                    "code" => Some(status.as_u16().into()),
+                    "code" => Some(Value::Number(Number::from(status.as_u16()))),
                     "text" => Some(status.to_string().into()),
                     _ => None,
                 })
@@ -49,7 +49,7 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionOutcome
                 let duration = response.duration;
                 let millis = duration.as_millis() as f64;
                 match_conditions(conditions, |key| match key {
-                    "seconds" => Some(duration.as_secs().into()),
+                    "seconds" => Some(Value::Number(Number::from(duration.as_secs()))),
                     "millis" | "ms" => Some(millis.into()),
                     _ => None,
                 })
@@ -82,6 +82,20 @@ pub fn run(response: &Response, assertions: &Assertions) -> Vec<AssertionOutcome
     report
 }
 
+fn to_value(value: &toml::Value) -> Value {
+    match value {
+        toml::Value::Boolean(b) => Value::Bool(*b),
+        toml::Value::Float(f) => Value::Number(Number::from_f64(*f).unwrap()),
+        toml::Value::Integer(i) => Value::Number(Number::from(*i)),
+        toml::Value::String(s) => Value::String(s.clone()),
+        toml::Value::Array(a) => Value::Array(a.iter().map(to_value).collect()),
+        toml::Value::Table(t) => {
+            Value::Object(t.iter().map(|(k, v)| (k.clone(), to_value(v))).collect())
+        }
+        toml::Value::Datetime(datetime) => Value::String(datetime.to_string()),
+    }
+}
+
 fn match_conditions(
     conditions: &[Condition],
     get_value: impl Fn(&str) -> Option<Value>,
@@ -93,14 +107,18 @@ fn match_conditions(
         let actual = actual.as_ref();
 
         let result = match matcher {
-            Matcher::Eq(expected) => equal(actual, expected),
-            Matcher::Ne(expected) => not_equal(actual, expected),
+            Matcher::Eq(expected) => equal(actual, &to_value(expected)),
+            Matcher::Ne(expected) => not_equal(actual, &to_value(expected)),
             Matcher::Gt(expected) => greater_than(actual, *expected),
             Matcher::Gte(expected) => greater_than_or_equal(actual, *expected),
             Matcher::Lt(expected) => less_than(actual, *expected),
             Matcher::Lte(expected) => less_than_or_equal(actual, *expected),
-            Matcher::In(expected) => in_list(actual, expected),
-            Matcher::NotIn(expected) => not_in_list(actual, expected),
+            Matcher::In(expected) => {
+                in_list(actual, &expected.iter().map(to_value).collect::<Vec<_>>())
+            }
+            Matcher::NotIn(expected) => {
+                not_in_list(actual, &expected.iter().map(to_value).collect::<Vec<_>>())
+            }
             Matcher::Contains(expected) => contains(actual, expected),
             Matcher::NotContains(expected) => not_contains(actual, expected),
             Matcher::StartsWith(expected) => starts_with(actual, expected),
@@ -148,8 +166,15 @@ fn not_equal(actual: Option<&Value>, expected: &Value) -> MatcherResult {
     }
 }
 
+fn value_to_f64(v: &Value) -> Option<f64> {
+    match v {
+        Value::Number(n) => Some(n.as_f64().unwrap_or(f64::NAN)),
+        _ => None,
+    }
+}
+
 fn greater_than(actual: Option<&Value>, expected: f64) -> MatcherResult {
-    let Some(actual) = actual.and_then(|v| v.as_f64()) else {
+    let Some(actual) = actual.and_then(value_to_f64) else {
         return MatcherResult::Failed(description(
             "to be a number",
             &Value::from(expected),
@@ -169,7 +194,7 @@ fn greater_than(actual: Option<&Value>, expected: f64) -> MatcherResult {
 }
 
 fn greater_than_or_equal(actual: Option<&Value>, expected: f64) -> MatcherResult {
-    let Some(actual) = actual.and_then(|v| v.as_f64()) else {
+    let Some(actual) = actual.and_then(value_to_f64) else {
         return MatcherResult::Failed(description(
             "to be a number",
             &Value::from(expected),
@@ -189,7 +214,7 @@ fn greater_than_or_equal(actual: Option<&Value>, expected: f64) -> MatcherResult
 }
 
 fn less_than(actual: Option<&Value>, expected: f64) -> MatcherResult {
-    let Some(actual) = actual.and_then(|v| v.as_f64()) else {
+    let Some(actual) = actual.and_then(value_to_f64) else {
         return MatcherResult::Failed(description(
             "to be a number",
             &Value::from(expected),
@@ -209,7 +234,7 @@ fn less_than(actual: Option<&Value>, expected: f64) -> MatcherResult {
 }
 
 fn less_than_or_equal(actual: Option<&Value>, expected: f64) -> MatcherResult {
-    let Some(actual) = actual.and_then(|v| v.as_f64()) else {
+    let Some(actual) = actual.and_then(value_to_f64) else {
         return MatcherResult::Failed(description(
             "to be a number",
             &Value::from(expected),
@@ -229,7 +254,8 @@ fn less_than_or_equal(actual: Option<&Value>, expected: f64) -> MatcherResult {
 }
 
 fn in_list(actual: Option<&Value>, expected: &[Value]) -> MatcherResult {
-    let actual = actual.unwrap_or(&Value::Null);
+    let null_value = Value::Null;
+    let actual = actual.unwrap_or(&null_value);
 
     if expected.contains(actual) {
         MatcherResult::Passed
@@ -243,7 +269,8 @@ fn in_list(actual: Option<&Value>, expected: &[Value]) -> MatcherResult {
 }
 
 fn not_in_list(actual: Option<&Value>, expected: &[Value]) -> MatcherResult {
-    let actual = actual.unwrap_or(&Value::Null);
+    let null_value = Value::Null;
+    let actual = actual.unwrap_or(&null_value);
 
     if !expected.contains(actual) {
         MatcherResult::Passed
@@ -403,11 +430,12 @@ fn not_matches(actual: Option<&Value>, expected: &str) -> MatcherResult {
 }
 
 fn is_matching(actual_opt: Option<&Value>, expected: MatchType) -> MatcherResult {
-    let actual = actual_opt.unwrap_or(&Value::Null);
+    let null_value = Value::Null;
+    let actual = actual_opt.unwrap_or(&null_value);
 
     let pass = match expected {
         MatchType::Undefined => actual_opt.is_none(),
-        MatchType::Null => actual_opt.is_some() || actual.is_null(),
+        MatchType::Null => actual.is_null(),
         MatchType::Bool => actual.is_boolean(),
         MatchType::Number => actual.is_number(),
         MatchType::String => actual.is_string(),

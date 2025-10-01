@@ -1,16 +1,13 @@
 pub mod runner;
 
-pub use runner::run;
-
 use std::collections::HashMap;
 
+pub use runner::run;
+
 use anyhow::Context;
-use hcl::{
-    BlockLabel, Identifier, Value,
-    structure::{BlockBuilder, BodyBuilder},
-};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+use toml::Value;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Display, EnumString)]
 pub enum MatchType {
@@ -24,7 +21,7 @@ pub enum MatchType {
     Empty,
 }
 
-#[derive(Debug, Clone, PartialEq, Display)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Matcher {
     Eq(Value),
     Ne(Value),
@@ -46,6 +43,12 @@ pub enum Matcher {
 
     Is(MatchType),
     IsNot(MatchType),
+}
+
+impl std::fmt::Display for Matcher {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -128,6 +131,12 @@ impl Assertion {
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Assertions(pub Vec<Assertion>);
 
+impl Assertions {
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
 impl<'de> Deserialize<'de> for Assertions {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -138,11 +147,67 @@ impl<'de> Deserialize<'de> for Assertions {
     }
 }
 
+impl Serialize for Assertions {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeMap;
+
+        if self.0.is_empty() {
+            return serializer.serialize_map(Some(0))?.end();
+        }
+
+        let mut map = serializer.serialize_map(Some(self.0.len()))?;
+
+        for assertion in &self.0 {
+            let (key, conditions) = match assertion {
+                Assertion::Status(conds) => ("status", conds),
+                Assertion::Duration(conds) => ("duration", conds),
+                Assertion::Headers(conds) => ("header", conds),
+                Assertion::Body(conds) => ("body", conds),
+            };
+
+            let mut conditions_map: HashMap<
+                String,
+                std::collections::HashMap<String, toml::Value>,
+            > = HashMap::new();
+
+            for condition in conditions {
+                let key_map = conditions_map.entry(condition.key.clone()).or_default();
+                let (op, val) = match &condition.matcher {
+                    Matcher::Eq(v) => ("eq", v.clone()),
+                    Matcher::Ne(v) => ("ne", v.clone()),
+                    Matcher::Gt(v) => ("gt", toml::Value::Float(*v)),
+                    Matcher::Gte(v) => ("gte", toml::Value::Float(*v)),
+                    Matcher::Lt(v) => ("lt", toml::Value::Float(*v)),
+                    Matcher::Lte(v) => ("lte", toml::Value::Float(*v)),
+                    Matcher::Contains(v) => ("contains", toml::Value::String(v.clone())),
+                    Matcher::NotContains(v) => ("not_contains", toml::Value::String(v.clone())),
+                    Matcher::StartsWith(v) => ("starts_with", toml::Value::String(v.clone())),
+                    Matcher::EndsWith(v) => ("ends_with", toml::Value::String(v.clone())),
+                    Matcher::Matches(v) => ("matches", toml::Value::String(v.clone())),
+                    Matcher::NotMatches(v) => ("not_matches", toml::Value::String(v.clone())),
+                    Matcher::In(v) => ("in", toml::Value::Array(v.clone())),
+                    Matcher::NotIn(v) => ("not_in", toml::Value::Array(v.clone())),
+                    Matcher::Is(v) => ("is", toml::Value::String(v.to_string())),
+                    Matcher::IsNot(v) => ("is_not", toml::Value::String(v.to_string())),
+                };
+                key_map.insert(op.to_string(), val);
+            }
+
+            map.serialize_entry(key, &conditions_map)?;
+        }
+
+        map.end()
+    }
+}
+
 fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
     let mut conditions = Vec::new();
 
     fn parse_condition(cons: &mut Vec<Condition>, key: &str, obj: &Value) -> anyhow::Result<()> {
-        let object = obj.as_object().context("Expected Object")?;
+        let object = obj.as_table().context("Expected Table")?;
         for (op, value) in object {
             let matcher = match op.as_str() {
                 "eq" => Matcher::Eq(value.to_owned()),
@@ -169,7 +234,7 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
         Ok(())
     }
 
-    let object = value.as_object().context("Expected Object")?;
+    let object = value.as_table().context("Expected Object")?;
     for (key, value) in object {
         match value {
             Value::Array(array) => {
@@ -177,8 +242,8 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
                     parse_condition(&mut conditions, key, value)?;
                 }
             }
-            Value::Object(_) => parse_condition(&mut conditions, key, value)?,
-            _ => return Err(anyhow::anyhow!("Expected Array or Object")),
+            Value::Table(_) => parse_condition(&mut conditions, key, value)?,
+            _ => return Err(anyhow::anyhow!("Expected Array or Table")),
         }
     }
 
@@ -186,21 +251,28 @@ fn parse_conditions(value: &Value) -> anyhow::Result<Vec<Condition>> {
 }
 
 fn as_f64(value: &Value) -> anyhow::Result<f64> {
-    value.as_f64().context("Expected Number")
+    match value {
+        Value::Float(f) => Ok(*f),
+        Value::Integer(i) => Ok(*i as f64),
+        _ => Err(anyhow::anyhow!("Expected Number")),
+    }
 }
 
 fn as_string(value: &Value) -> anyhow::Result<String> {
-    Ok(value.as_str().context("Expected String")?.to_string())
+    value
+        .as_str()
+        .map(|s| s.to_string())
+        .context("Expected String")
 }
 
 fn as_array(value: &Value) -> anyhow::Result<Vec<Value>> {
-    Ok(value.as_array().context("Expected Array")?.to_owned())
+    value.as_array().cloned().context("Expected Array")
 }
 
 pub fn parse(body: Value) -> anyhow::Result<Assertions> {
     let mut assertions = Vec::new();
 
-    let root = body.as_object().context("Expected Object")?;
+    let root = body.as_table().context("Expected Table")?;
     for (key, value) in root {
         let matchers = parse_conditions(value)?;
         let condition = match key.as_str() {
@@ -215,74 +287,4 @@ pub fn parse(body: Value) -> anyhow::Result<Assertions> {
     }
 
     Ok(Assertions(assertions))
-}
-
-fn encode_condition_block(
-    builder: BlockBuilder,
-    name: &'static str,
-    conditions: Vec<Condition>,
-) -> BlockBuilder {
-    let mut root = builder;
-    let mut blocks = HashMap::new();
-
-    for condition in conditions.into_iter() {
-        let Condition { key, matcher } = condition;
-        let op = matcher.to_string();
-
-        // Handle multiline strings with heredoc
-        let value = match matcher {
-            Matcher::Eq(v) => v,
-            Matcher::Ne(v) => v,
-            Matcher::Gt(v) => v.into(),
-            Matcher::Gte(v) => v.into(),
-            Matcher::Lt(v) => v.into(),
-            Matcher::Lte(v) => v.into(),
-            Matcher::Contains(v) => v.into(),
-            Matcher::NotContains(v) => v.into(),
-            Matcher::StartsWith(v) => v.into(),
-            Matcher::EndsWith(v) => v.into(),
-            Matcher::Matches(v) => v.into(),
-            Matcher::NotMatches(v) => v.into(),
-            Matcher::In(v) => v.into(),
-            Matcher::NotIn(v) => v.into(),
-            Matcher::Is(v) => v.to_string().into(),
-            Matcher::IsNot(v) => v.to_string().into(),
-        };
-
-        let mut block = blocks.remove(&key).unwrap_or_else(|| {
-            let label = Identifier::new(key.clone())
-                .map(BlockLabel::Identifier)
-                .unwrap_or(BlockLabel::String(key.clone()));
-
-            BlockBuilder::new(name).add_label(label)
-        });
-
-        block = block.add_attribute((Identifier::sanitized(op), value));
-        blocks.insert(key, block);
-    }
-
-    for (_, block) in blocks {
-        root = root.add_block(block.build());
-    }
-
-    root
-}
-
-pub fn encode(builder: BodyBuilder, assertions: Assertions) -> BodyBuilder {
-    if assertions.0.is_empty() {
-        return builder;
-    }
-
-    let mut root = BlockBuilder::new("assertions");
-
-    for assertion in assertions.0.into_iter() {
-        root = match assertion {
-            Assertion::Status(status) => encode_condition_block(root, "status", status),
-            Assertion::Duration(duration) => encode_condition_block(root, "duration", duration),
-            Assertion::Headers(headers) => encode_condition_block(root, "header", headers),
-            Assertion::Body(body) => encode_condition_block(root, "body", body),
-        };
-    }
-
-    builder.add_block(root.build())
 }

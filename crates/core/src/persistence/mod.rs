@@ -9,11 +9,11 @@ pub mod environment;
 pub mod history;
 pub mod request;
 
-pub const HCL_SUFFIX: &str = "hcl";
-pub const HCL_EXTENSION: &str = ".hcl";
+pub const TOML_SUFFIX: &str = "toml";
+pub const TOML_EXTENSION: &str = ".toml";
 pub const JS_EXTENSION: &str = "js";
 pub const TS_EXTENSION: &str = "ts";
-pub const COLLECTION_ROOT_FILE: &str = "collection.hcl";
+pub const COLLECTION_ROOT_FILE: &str = "collection.toml";
 pub const ENVIRONMENTS: &str = "environments";
 pub const SCRIPTS: &str = "scripts";
 pub const REQUESTS: &str = "requests";
