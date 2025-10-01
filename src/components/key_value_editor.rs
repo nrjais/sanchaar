@@ -161,6 +161,7 @@ impl<'a> KeyValEditor<'a> {
     fn view(self) -> Element<'a, KeyValUpdateMsg> {
         let size = 14;
         let spacing = 2;
+        let has_actions = self.values.fixed.not();
 
         let values = &self.values.values();
         let last_idx = values.len() - 1;
@@ -180,7 +181,7 @@ impl<'a> KeyValEditor<'a> {
                     None
                 });
 
-            let actions = self.values.fixed.not().then(|| {
+            let actions = has_actions.then(|| {
                 container(
                     Row::new()
                         .push(tooltip("Enabled", enabled))
@@ -247,7 +248,7 @@ impl<'a> KeyValEditor<'a> {
             Row::new()
                 .push(text("Name").size(size).width(Length::FillPortion(2)))
                 .push(text("Value").size(size).width(Length::FillPortion(3)))
-                .push(text("Actions").size(size).width(Length::Shrink))
+                .push(has_actions.then(|| text("Actions").size(size).width(Length::Shrink)))
                 .spacing(4)
                 .padding([2, 4]),
         )
