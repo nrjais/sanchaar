@@ -16,6 +16,7 @@ pub enum BottomBarMsg {
     OpenSettings,
     OpenCookies,
     ToggleSplit,
+    ToggleSideBar,
 }
 
 fn change_axis_for_tabs(state: &mut AppState) {
@@ -34,6 +35,10 @@ impl BottomBarMsg {
         use BottomBarMsg::*;
 
         match self {
+            ToggleSideBar => {
+                state.pane_config.toggle_side_bar();
+                Task::none()
+            }
             OpenSettings => {
                 Popup::app_settings(&mut state.common);
                 Task::none()
@@ -57,15 +62,16 @@ impl BottomBarMsg {
 fn icon_button<'a>(
     ico: NerdIcon,
     on_press: BottomBarMsg,
-    desc: &'static str,
+    size: Option<u32>,
+    desc: &'a str,
 ) -> Tooltip<'a, BottomBarMsg> {
-    let btn = button(icon(ico).size(16))
+    let btn = button(icon(ico).size(size.unwrap_or(16)))
         .on_press(on_press)
         .style(|t, s| button::Style {
             border: border::rounded(50),
             ..button::text(t, s)
         })
-        .padding(0);
+        .padding(4);
 
     tooltip(desc, btn)
 }
@@ -73,18 +79,29 @@ fn icon_button<'a>(
 pub fn view(state: &AppState) -> Element<BottomBarMsg> {
     use BottomBarMsg::*;
 
+    let side_bar_icon = if state.pane_config.side_bar_open {
+        icons::CloseSideBar
+    } else {
+        icons::OpenSideBar
+    };
+
+    let split_icon = match state.split_axis {
+        pane_grid::Axis::Vertical => icons::SplitVertical,
+        pane_grid::Axis::Horizontal => icons::SplitHorizontal,
+    };
+
     let buttons = Row::new()
-        .push(icon_button(icons::Gear, OpenSettings, "Settings"))
-        .push(icon_button(icons::Cookie, OpenCookies, "Cookies"))
         .push(icon_button(
-            match state.split_axis {
-                pane_grid::Axis::Vertical => icons::SplitVertical,
-                pane_grid::Axis::Horizontal => icons::SplitHorizontal,
-            },
-            ToggleSplit,
-            "Toggle Split",
+            side_bar_icon,
+            ToggleSideBar,
+            Some(12),
+            "Toggle Side Panel",
         ))
-        .spacing(12)
+        .push(icon_button(icons::Gear, OpenSettings, None, "Settings"))
+        .push(icon_button(icons::Cookie, OpenCookies, None, "Cookies"))
+        .push(icon_button(split_icon, ToggleSplit, None, "Toggle Split"))
+        .spacing(16)
+        .align_y(iced::Alignment::Center)
         .padding(padding::left(4));
 
     let row = Row::new()

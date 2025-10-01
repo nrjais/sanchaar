@@ -57,4 +57,6 @@ pub mod icons {
     pub const History: NerdIcon = NerdIcon('󰋚');
     pub const SplitVertical: NerdIcon = NerdIcon('');
     pub const SplitHorizontal: NerdIcon = NerdIcon('');
+    pub const OpenSideBar: NerdIcon = NerdIcon('');
+    pub const CloseSideBar: NerdIcon = NerdIcon('');
 }

@@ -44,7 +44,7 @@ impl MainPageMsg {
             Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
             Self::SplitResize(ResizeEvent { split, ratio }) => {
                 if ratio > 0.20 && ratio < 0.35 {
-                    state.panes.resize(split, ratio);
+                    state.pane_config.panes.resize(split, ratio);
                 }
                 Task::none()
             }
@@ -73,7 +73,7 @@ fn method_color(_method: Method) -> Color {
 }
 
 pub fn view(state: &AppState) -> Element<MainPageMsg> {
-    let panes = PaneGrid::new(&state.panes, move |_, pane, _| {
+    let panes = PaneGrid::new(&state.pane_config.panes, move |_, pane, _| {
         let pane = match pane {
             SplitState::First => side_bar(state),
             SplitState::Second => tab_panel(state),
@@ -99,10 +99,11 @@ fn side_bar(state: &AppState) -> Element<MainPageMsg> {
 }
 
 fn tab_panel(state: &AppState) -> Element<MainPageMsg> {
-    match state.active_tab() {
+    let tabs = match state.active_tab() {
         Some(tab) => tabs_view(state, state.active_tab, tab),
         None => no_tabs_view(),
-    }
+    };
+    bordered_left(BORDER_WIDTH, tabs)
 }
 
 fn no_tabs_view<'a>() -> Element<'a, MainPageMsg> {
@@ -140,10 +141,7 @@ fn tabs_view<'a>(
         .spacing(8)
         .align_x(iced::Alignment::Center);
 
-    bordered_left(
-        BORDER_WIDTH,
-        container(tabs).padding(padding::left(4).top(4)),
-    )
+    container(tabs).padding(padding::left(4).top(4)).into()
 }
 
 fn col_tab(key: TabKey, tab: &CollectionTab) -> CardTab<TabKey> {

@@ -68,12 +68,45 @@ pub struct CommonState {
 }
 
 #[derive(Debug)]
+pub struct PaneConfig {
+    pub panes: pane_grid::State<SplitState>,
+    pub prev_panes: pane_grid::State<SplitState>,
+    pub split_axis: pane_grid::Axis,
+    pub side_bar_open: bool,
+}
+
+impl PaneConfig {
+    pub fn new() -> Self {
+        Self {
+            prev_panes: pane_grid::State::with_configuration(Configuration::Pane(
+                SplitState::Second,
+            )),
+            panes: pane_grid::State::with_configuration(Configuration::Split {
+                axis: pane_grid::Axis::Vertical,
+                ratio: 0.20,
+                a: Box::new(Configuration::Pane(SplitState::First)),
+                b: Box::new(Configuration::Pane(SplitState::Second)),
+            }),
+            split_axis: pane_grid::Axis::Vertical,
+            side_bar_open: true,
+        }
+    }
+
+    pub fn toggle_side_bar(&mut self) {
+        self.side_bar_open = !self.side_bar_open;
+        let current_panes = self.panes.clone();
+        self.panes = self.prev_panes.clone();
+        self.prev_panes = current_panes;
+    }
+}
+
+#[derive(Debug)]
 pub struct AppState {
     pub common: CommonState,
     pub active_tab: TabKey,
     tab_history: indexmap::IndexSet<TabKey>,
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
-    pub panes: pane_grid::State<SplitState>,
+    pub pane_config: PaneConfig,
     pub split_axis: pane_grid::Axis,
     pub theme: Theme,
 }
@@ -100,12 +133,7 @@ impl AppState {
                 background_tasks: Vec::new(),
                 history_db: None,
             },
-            panes: pane_grid::State::with_configuration(Configuration::Split {
-                axis: pane_grid::Axis::Vertical,
-                ratio: 0.20,
-                a: Box::new(Configuration::Pane(SplitState::First)),
-                b: Box::new(Configuration::Pane(SplitState::Second)),
-            }),
+            pane_config: PaneConfig::new(),
             split_axis: pane_grid::Axis::Horizontal,
             theme: Theme::GruvboxDark,
         }

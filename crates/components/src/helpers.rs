@@ -26,7 +26,7 @@ pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tool
                 }
             })
             .padding([2, 4]),
-        Position::Bottom,
+        Position::FollowCursor,
     )
 }
 
