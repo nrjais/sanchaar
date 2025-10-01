@@ -1,10 +1,9 @@
 use crate::{horizontal_line, icon, icons};
-use iced::border;
 use iced::widget::button::{Status, Style};
 use iced::widget::{Column, space};
 use iced::{
-    Center, Element,
-    widget::{Row, Text, button},
+    Border, Center, Element, Length, Shadow, Vector,
+    widget::{Row, Text, button, container},
 };
 
 #[derive(Debug, Clone)]
@@ -30,57 +29,159 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     on_action: impl Fn(TabBarAction<T>) -> M,
     suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
-    let mut tabs_row = Row::new().align_y(Center).spacing(2);
-    for tab in tabs {
-        let active = tab.id == active;
+    let mut tabs_row = Row::new().align_y(Center).spacing(8);
+    for CardTab {
+        id,
+        icon: tab_icon,
+        label,
+    } in tabs
+    {
+        let is_active = id == active;
+        let change_id = id.clone();
+        let close_id = id.clone();
 
-        let label = Row::new()
-            .push(tab.icon)
-            .push(tab.label)
-            .push(
-                button(icon(icons::Close).size(20).line_height(1.))
-                    .padding([0, 4])
-                    .on_press(on_action(TabBarAction::CloseTab(tab.id.clone())))
-                    .style(|theme, status| match status {
-                        Status::Hovered | Status::Pressed => button::Style {
-                            text_color: theme.extended_palette().primary.strong.color,
-                            ..button::text(theme, Status::Hovered)
-                        },
-                        _ => button::text(theme, Status::Active),
-                    }),
-            )
-            .padding([4, 2])
+        let close_button = button(icon(icons::Close).size(18).line_height(1.))
+            .padding(4)
+            .on_press(on_action(TabBarAction::CloseTab(close_id)))
+            .style(|theme: &iced::Theme, status| {
+                let palette = theme.extended_palette();
+                let mut style = button::text(theme, Status::Active);
+                style.border = Border {
+                    radius: 6.0.into(),
+                    width: 0.0,
+                    color: palette.background.strong.color,
+                };
+
+                let text_color = match status {
+                    Status::Pressed => palette.danger.strong.color,
+                    Status::Hovered => palette.danger.strong.text,
+                    _ => palette.background.strong.text,
+                };
+
+                style.text_color = text_color;
+                style
+            });
+
+        let tab_content = Row::new()
             .align_y(Center)
-            .spacing(4);
+            .spacing(6)
+            .push(container(tab_icon).padding([0, 6]))
+            .push(label)
+            .push(close_button)
+            .padding([4, 8]);
 
         tabs_row = tabs_row.push(
-            button(label)
-                .padding(if active { [2, 4] } else { [0, 4] })
-                .style(move |theme, _status| {
-                    if active {
-                        button::Style {
-                            border: border::rounded(border::top(4)),
-                            ..button::secondary(theme, Status::Active)
+            button(tab_content)
+                .padding(if is_active { [2, 4] } else { [0, 4] })
+                .style(move |theme: &iced::Theme, status| {
+                    let palette = theme.extended_palette();
+
+                    let (background, text_color) = match (is_active, status) {
+                        (true, Status::Pressed) => {
+                            (palette.primary.strong.color, palette.primary.strong.text)
+                        }
+                        (true, Status::Hovered) => {
+                            (palette.primary.weak.color, palette.primary.weak.text)
+                        }
+                        (true, _) => (palette.primary.base.color, palette.primary.base.text),
+                        (false, Status::Pressed) => (
+                            palette.background.strong.color,
+                            palette.background.strong.text,
+                        ),
+                        (false, Status::Hovered) => (
+                            palette.background.neutral.color,
+                            palette.background.neutral.text,
+                        ),
+                        (false, _) => (
+                            palette.background.weaker.color,
+                            palette.background.weaker.text,
+                        ),
+                    };
+
+                    let border_color = if is_active {
+                        palette.primary.strong.color
+                    } else if matches!(status, Status::Hovered | Status::Pressed) {
+                        palette.background.strong.color
+                    } else {
+                        palette.background.stronger.color
+                    };
+
+                    let shadow = if is_active {
+                        Shadow {
+                            color: palette.primary.strong.color.scale_alpha(0.25),
+                            offset: Vector::new(0.0, 3.0),
+                            blur_radius: if matches!(status, Status::Pressed) {
+                                4.0
+                            } else {
+                                8.0
+                            },
+                        }
+                    } else if matches!(status, Status::Hovered) {
+                        Shadow {
+                            color: palette.background.strong.color.scale_alpha(0.2),
+                            offset: Vector::new(0.0, 2.0),
+                            blur_radius: 6.0,
                         }
                     } else {
-                        button::secondary(theme, Status::Disabled)
+                        Shadow::default()
+                    };
+
+                    button::Style {
+                        background: Some(background.into()),
+                        text_color,
+                        border: Border {
+                            radius: 10.0.into(),
+                            width: 1.0,
+                            color: border_color,
+                        },
+                        shadow,
+                        ..Style::default()
                     }
                 })
-                .on_press(on_action(TabBarAction::ChangeTab(tab.id.clone()))),
+                .on_press(on_action(TabBarAction::ChangeTab(change_id))),
         )
     }
 
     tabs_row = tabs_row
         .push(
-            button(icon(icons::Plus).size(24).line_height(1.))
+            button(icon(icons::Plus).size(22).line_height(1.))
                 .padding([0, 4])
                 .on_press(on_action(TabBarAction::NewTab))
-                .style(|theme, status| match status {
-                    Status::Hovered | Status::Pressed => Style {
-                        text_color: theme.extended_palette().primary.strong.color,
-                        ..button::text(theme, Status::Active)
-                    },
-                    _ => button::text(theme, Status::Active),
+                .style(|theme: &iced::Theme, status| {
+                    let palette = theme.extended_palette();
+                    let (background, text_color) = match status {
+                        Status::Pressed => {
+                            (palette.primary.strong.color, palette.primary.strong.text)
+                        }
+                        Status::Hovered => (palette.primary.weak.color, palette.primary.weak.text),
+                        _ => (palette.background.weaker.color, palette.primary.base.color),
+                    };
+
+                    let border_color = if matches!(status, Status::Hovered | Status::Pressed) {
+                        palette.primary.strong.color
+                    } else {
+                        palette.background.stronger.color
+                    };
+
+                    Style {
+                        background: Some(background.into()),
+                        text_color,
+                        border: Border {
+                            radius: 5.0.into(),
+                            width: 1.0,
+                            color: border_color,
+                        },
+                        shadow: Shadow {
+                            color: palette.primary.strong.color.scale_alpha(0.15),
+                            offset: Vector::new(0.0, 2.0),
+                            blur_radius: if matches!(status, Status::Pressed) {
+                                4.0
+                            } else {
+                                6.0
+                            },
+                        },
+                        ..Style::default()
+                    }
                 }),
         )
         .push(space::horizontal());
@@ -90,8 +191,9 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     }
 
     Column::new()
+        .spacing(6)
         .push(tabs_row)
-        .push(horizontal_line(2))
-        .width(iced::Length::Fill)
+        .push(horizontal_line(1))
+        .width(Length::Fill)
         .into()
 }

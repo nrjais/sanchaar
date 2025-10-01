@@ -543,7 +543,7 @@ dependencies = [
 [[package]]
 name = "cargo-hot-protocol"
 version = "0.1.0"
-source = "git+https://github.com/hecrj/cargo-hot.git?rev=b8dc518b8640928178a501257e353b73bc06cf47#b8dc518b8640928178a501257e353b73bc06cf47"
+source = "git+https://github.com/nrjais/cargo-hot.git?rev=59270b0a22054b0c727aeaa74a7918d84cd9ed78#59270b0a22054b0c727aeaa74a7918d84cd9ed78"
 dependencies = [
  "anyhow",
  "bincode 2.0.1",
@@ -1966,7 +1966,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_core",
  "iced_debug",
@@ -1983,7 +1983,7 @@ dependencies = [
 [[package]]
 name = "iced_beacon"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "bincode 1.3.3",
  "futures",
@@ -1998,7 +1998,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "bitflags 2.9.4",
  "bytes",
@@ -2016,7 +2016,7 @@ dependencies = [
 [[package]]
 name = "iced_debug"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "cargo-hot-protocol",
  "iced_beacon",
@@ -2028,7 +2028,7 @@ dependencies = [
 [[package]]
 name = "iced_devtools"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_debug",
  "iced_program",
@@ -2039,7 +2039,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "futures",
  "iced_core",
@@ -2053,7 +2053,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -2071,7 +2071,7 @@ dependencies = [
 [[package]]
 name = "iced_highlighter"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_core",
  "syntect",
@@ -2080,7 +2080,7 @@ dependencies = [
 [[package]]
 name = "iced_program"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -2089,7 +2089,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -2101,7 +2101,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "bytes",
  "iced_core",
@@ -2114,7 +2114,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2130,7 +2130,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -2149,7 +2149,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_highlighter",
  "iced_renderer",
@@ -2164,7 +2164,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#f5ae5c2dfad9f3fcbbfa84f72be4acacf33a056f"
+source = "git+https://github.com/nrjais/iced?branch=editor#7e59a346dd79ab276d5b898061e82882be7093d4"
 dependencies = [
  "iced_debug",
  "iced_program",
