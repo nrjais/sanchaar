@@ -163,12 +163,17 @@ fn load_history(state: &mut AppState) -> Task<TaskMsg> {
     }
 
     if let Some(Tab::History(tab)) = state.active_tab()
-        && !tab.search_query.trim().is_empty()
+        && !tab.search_query_text.is_empty()
     {
         return Task::none();
     }
 
-    if !schedule_task(state, task, 5) {
+    #[cfg(not(feature = "default"))]
+    let delay = 5;
+    #[cfg(feature = "default")]
+    let delay = 500000;
+
+    if !schedule_task(state, task, delay) {
         return Task::none();
     }
 
@@ -200,21 +205,17 @@ fn search_history(state: &mut AppState) -> Task<TaskMsg> {
     }
 
     let (search_query, should_search) = if let Some(Tab::History(tab)) = state.active_tab_mut() {
-        let should_search = tab.should_trigger_search() && !tab.search_query.trim().is_empty();
+        let should_search = tab.should_trigger_search() && !tab.search_query_text.is_empty();
         if should_search {
             tab.clear_search_timer();
             tab.set_searching(true);
         }
-        (tab.search_query.clone(), should_search)
+        (tab.search_query_text.clone(), should_search)
     } else {
         return Task::none();
     };
 
-    if !should_search {
-        return Task::none();
-    }
-
-    if !schedule_task(state, task, 0) {
+    if !should_search || !schedule_task(state, task, 0) {
         return Task::none();
     }
 

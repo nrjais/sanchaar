@@ -1,10 +1,12 @@
-use crate::components::{bold, colors, icon, icon_button, icons, tooltip};
+use crate::components::{
+    LineEditorMsg, bold, colors, icon, icon_button, icons, line_editor, tooltip,
+};
 use chrono::{DateTime, Local};
 use core::persistence::history::{HistoryEntry, HistoryEntrySummary};
 use core::utils::fmt_duration;
 use humansize::{BINARY, format_size};
 use iced::widget::text::Wrapping;
-use iced::widget::{button, column, container, row, scrollable, table, text, text_input};
+use iced::widget::{button, column, container, row, scrollable, table, text};
 use iced::{Alignment, Element, Length, Task};
 use std::time::Duration;
 
@@ -18,9 +20,27 @@ pub enum HistoryTabMsg {
     DeleteEntry(i64),
     ClearHistory,
     OpenHistoryEntry(Option<Box<HistoryEntry>>),
-    SearchChanged(String),
+    SearchChanged(LineEditorMsg),
     LoadComplete(Vec<HistoryEntrySummary>),
     ClearSearch,
+}
+
+fn clear_search_cmd(state: &mut AppState, is_empty: bool) -> Task<HistoryTabMsg> {
+    if !is_empty {
+        return Task::none();
+    }
+    let Some(history_db) = state.common.history_db.clone() else {
+        return Task::none();
+    };
+    Task::future(async move {
+        match history_db.get_history_summary(Some(100)).await {
+            Ok(entries) => HistoryTabMsg::LoadComplete(entries),
+            Err(e) => {
+                log::error!("Error loading history: {e:?}");
+                HistoryTabMsg::LoadComplete(vec![])
+            }
+        }
+    })
 }
 
 impl HistoryTabMsg {
@@ -76,28 +96,13 @@ impl HistoryTabMsg {
                 }
                 Task::none()
             }
-            HistoryTabMsg::SearchChanged(query) => {
+            HistoryTabMsg::SearchChanged(updat) => {
                 let Some(Tab::History(tab)) = state.active_tab_mut() else {
                     return Task::none();
                 };
-                tab.set_search_query(query.clone());
-
-                if query.trim().is_empty() {
-                    let history_db = state.common.history_db.clone();
-                    if let Some(db) = history_db {
-                        return Task::future(async move {
-                            match db.get_history_summary(Some(100)).await {
-                                Ok(entries) => HistoryTabMsg::LoadComplete(entries),
-                                Err(e) => {
-                                    log::error!("Error loading history: {e:?}");
-                                    HistoryTabMsg::LoadComplete(vec![])
-                                }
-                            }
-                        });
-                    }
-                }
-
-                Task::none()
+                tab.set_search_query(updat);
+                let is_empty = tab.search_query_text.is_empty();
+                clear_search_cmd(state, is_empty)
             }
             HistoryTabMsg::LoadComplete(entries) => {
                 let Some(Tab::History(tab)) = state.active_tab_mut() else {
@@ -111,21 +116,7 @@ impl HistoryTabMsg {
                     return Task::none();
                 };
                 tab.clear_search_query();
-
-                // Load all results after clearing search
-                let history_db = state.common.history_db.clone();
-                if let Some(db) = history_db {
-                    return Task::future(async move {
-                        match db.get_history_summary(Some(100)).await {
-                            Ok(entries) => HistoryTabMsg::LoadComplete(entries),
-                            Err(e) => {
-                                log::error!("Error loading history: {e:?}");
-                                HistoryTabMsg::LoadComplete(vec![])
-                            }
-                        }
-                    });
-                }
-                Task::none()
+                clear_search_cmd(state, true)
             }
         }
     }
@@ -155,7 +146,11 @@ pub fn table_view<'a>(tab: &'a HistoryTab) -> Element<'a, HistoryTabMsg> {
         .align_x(Alignment::Center)
         .align_y(Alignment::Center),
         table::column(bold("URL"), |entry: &HistoryEntrySummary| {
-            text(entry.url.to_string()).wrapping(Wrapping::Glyph)
+            button(text(entry.url.to_string()).wrapping(Wrapping::Glyph))
+                .padding([0, 4])
+                .style(button::text)
+                .on_press(HistoryTabMsg::OpenEntry(entry.id))
+                .width(Length::Fill)
         })
         .width(Length::FillPortion(8))
         .align_x(Alignment::Center)
@@ -225,19 +220,19 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
         "Search (method, URL, body, description)..."
     };
 
-    let search_input = text_input(search_placeholder, &tab.search_query)
-        .on_input(HistoryTabMsg::SearchChanged)
-        .padding(8)
-        .size(14)
-        .width(Length::FillPortion(1));
+    let search_input = container(
+        line_editor(&tab.search_query)
+            .placeholder(search_placeholder)
+            .map(HistoryTabMsg::SearchChanged),
+    )
+    .width(Length::FillPortion(1))
+    .padding(4);
+
+    let is_empty = tab.search_query_text.is_empty();
 
     let clear_search_button = icon_button(icons::Close, Some(24), Some(10))
         .style(button::secondary)
-        .on_press_maybe(
-            tab.search_query
-                .is_empty()
-                .then_some(HistoryTabMsg::ClearSearch),
-        );
+        .on_press_maybe(is_empty.then_some(HistoryTabMsg::ClearSearch));
 
     let clear_history_button = icon_button(icons::Delete, Some(24), Some(10))
         .style(button::danger)
@@ -252,22 +247,21 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
     let content: Element<'a, HistoryTabMsg> = if let Some(error) = &tab.error {
         text(format!("Error: {error}")).into()
     } else if tab.entries.is_empty() {
-        let message = if tab.search_query.trim().is_empty() {
+        let message = if is_empty {
             "No entries found"
         } else {
             "No matching entries found"
         };
         text(message).into()
     } else {
-        table_view(tab)
+        container(table_view(tab))
+            .style(container::bordered_box)
+            .into()
     };
 
-    column![
-        search_row,
-        container(content).style(container::bordered_box)
-    ]
-    .spacing(5)
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .into()
+    column![search_row, content]
+        .spacing(5)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }

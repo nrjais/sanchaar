@@ -1,6 +1,11 @@
 use core::persistence::history::HistoryEntrySummary;
 use std::time::Instant;
 
+use crate::components::{
+    LineEditorMsg,
+    editor::{self, ContentAction},
+};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HistoryTabId {
     List,
@@ -12,9 +17,10 @@ pub struct HistoryTab {
     pub tab: HistoryTabId,
     pub entries: Vec<HistoryEntrySummary>,
     pub error: Option<String>,
-    pub search_query: String,
+    pub search_query: editor::Content,
     pub is_searching: bool,
     pub last_search_input: Option<Instant>,
+    pub search_query_text: String,
 }
 
 impl Default for HistoryTab {
@@ -30,9 +36,10 @@ impl HistoryTab {
             tab: HistoryTabId::List,
             entries: Vec::new(),
             error: None,
-            search_query: String::new(),
+            search_query: editor::Content::new(),
             is_searching: false,
             last_search_input: None,
+            search_query_text: String::new(),
         }
     }
 
@@ -45,9 +52,10 @@ impl HistoryTab {
         self.error = Some(error);
     }
 
-    pub fn set_search_query(&mut self, query: String) {
-        self.search_query = query;
+    pub fn set_search_query(&mut self, msg: LineEditorMsg) {
+        msg.update(&mut self.search_query);
         self.last_search_input = Some(Instant::now());
+        self.search_query_text = self.search_query.text().trim().to_string();
     }
 
     pub fn set_searching(&mut self, searching: bool) {
@@ -56,7 +64,7 @@ impl HistoryTab {
 
     pub fn should_trigger_search(&self) -> bool {
         if let Some(last_input) = self.last_search_input {
-            last_input.elapsed().as_millis() >= 300
+            last_input.elapsed().as_millis() >= 100
         } else {
             false
         }
@@ -67,7 +75,8 @@ impl HistoryTab {
     }
 
     pub fn clear_search_query(&mut self) {
-        self.search_query.clear();
+        self.search_query
+            .perform(ContentAction::Replace("".to_string()));
         self.last_search_input = None;
         self.is_searching = false;
     }
