@@ -4,8 +4,8 @@ use core::persistence::history::{HistoryEntry, HistoryEntrySummary};
 use core::utils::fmt_duration;
 use humansize::{BINARY, format_size};
 use iced::widget::text::Wrapping;
-use iced::widget::{button, column, row, scrollable, space, table, text, text_input};
-use iced::{Element, Length, Task};
+use iced::widget::{button, column, container, row, scrollable, table, text, text_input};
+use iced::{Alignment, Element, Length, Task};
 use std::time::Duration;
 
 use crate::state::tabs::history_tab::HistoryTab;
@@ -131,11 +131,98 @@ impl HistoryTabMsg {
     }
 }
 
+pub fn table_view<'a>(tab: &'a HistoryTab) -> Element<'a, HistoryTabMsg> {
+    let columns = [
+        table::column(bold("When"), |entry: &HistoryEntrySummary| {
+            let local_time: DateTime<Local> = entry.timestamp.into();
+            text(local_time.format("%m/%d %H:%M:%S").to_string())
+        })
+        .width(Length::FillPortion(2))
+        .align_x(Alignment::Center)
+        .align_y(Alignment::Center),
+        table::column(bold("Method"), |entry: &HistoryEntrySummary| {
+            let method_color = match entry.method.as_str() {
+                "GET" => colors::GREEN,
+                "POST" => colors::BLUE,
+                "PUT" => colors::ORANGE,
+                "DELETE" => colors::RED,
+                "PATCH" => colors::PURPLE,
+                _ => colors::DARK_GREY,
+            };
+            text(entry.method.to_string()).color(method_color)
+        })
+        .width(Length::FillPortion(1))
+        .align_x(Alignment::Center)
+        .align_y(Alignment::Center),
+        table::column(bold("URL"), |entry: &HistoryEntrySummary| {
+            text(entry.url.to_string()).wrapping(Wrapping::Glyph)
+        })
+        .width(Length::FillPortion(8))
+        .align_x(Alignment::Center)
+        .align_y(Alignment::Center),
+        table::column(bold("Result"), |entry: &HistoryEntrySummary| {
+            let status_color = match entry.response_status {
+                200..=299 => colors::GREEN,
+                300..=399 => colors::ORANGE,
+                400..=499 => colors::RED,
+                500..=599 => colors::DARK_RED,
+                _ => colors::DARK_GREY,
+            };
+            let status = text(entry.response_status.to_string())
+                .size(12)
+                .color(status_color);
+
+            let size = format_size(entry.response_size_bytes as u64, BINARY);
+            let size = text(size).size(12).color(colors::DARK_GREY);
+
+            let duration = Duration::from_millis(entry.response_duration_ms as u64);
+            let duration = text(fmt_duration(duration))
+                .size(12)
+                .color(colors::DARK_GREY);
+
+            let dot = || icon(icons::Dot).color(colors::DARK_GREY).size(20);
+
+            row![status, dot(), duration, dot(), size]
+                .spacing(4)
+                .align_y(Alignment::Center)
+                .wrap()
+        })
+        .width(Length::FillPortion(3))
+        .align_x(Alignment::Center)
+        .align_y(Alignment::Center),
+        table::column(bold("Actions"), |entry: &HistoryEntrySummary| {
+            row![
+                tooltip(
+                    "Open in new tab",
+                    button(icon(icons::Send).size(20))
+                        .padding([0, 4])
+                        .style(button::text)
+                        .on_press(HistoryTabMsg::OpenEntry(entry.id))
+                ),
+                tooltip(
+                    "Delete entry",
+                    button(icon(icons::Delete).size(20))
+                        .padding([0, 4])
+                        .style(button::text)
+                        .on_press(HistoryTabMsg::DeleteEntry(entry.id))
+                ),
+            ]
+            .spacing(8)
+            .wrap()
+        })
+        .width(Length::FillPortion(2))
+        .align_x(Alignment::Center)
+        .align_y(Alignment::Center),
+    ];
+
+    scrollable(table(columns, &tab.entries).padding_x(2).padding_y(4)).into()
+}
+
 pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, HistoryTabMsg> {
     let search_placeholder = if tab.is_searching {
         "Searching..."
     } else {
-        "Search history (method, URL, body, description)..."
+        "Search (method, URL, body, description)..."
     };
 
     let search_input = text_input(search_placeholder, &tab.search_query)
@@ -159,88 +246,28 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
     let search_row = row![search_input, clear_search_button, clear_history_button]
         .height(Length::Shrink)
         .width(Length::Fill)
-        .align_y(iced::Alignment::Center)
+        .align_y(Alignment::Center)
         .spacing(5);
 
     let content: Element<'a, HistoryTabMsg> = if let Some(error) = &tab.error {
-        Element::from(text(format!("Error: {error}")))
+        text(format!("Error: {error}")).into()
     } else if tab.entries.is_empty() {
         let message = if tab.search_query.trim().is_empty() {
-            "No history entries found"
+            "No entries found"
         } else {
-            "No matching history entries found"
+            "No matching entries found"
         };
-        Element::from(text(message))
+        text(message).into()
     } else {
-        let columns = [
-            table::column(bold("Method"), |entry: &HistoryEntrySummary| {
-                let method_color = match entry.method.as_str() {
-                    "GET" => colors::GREEN,
-                    "POST" => colors::BLUE,
-                    "PUT" => colors::ORANGE,
-                    "DELETE" => colors::RED,
-                    "PATCH" => colors::PURPLE,
-                    _ => colors::DARK_GREY,
-                };
-                text(entry.method.to_string()).color(method_color)
-            })
-            .width(Length::FillPortion(2)),
-            table::column(bold("URL"), |entry: &HistoryEntrySummary| {
-                text(entry.url.to_string()).wrapping(Wrapping::Glyph)
-            })
-            .width(Length::FillPortion(6)),
-            table::column(bold("Status"), |entry: &HistoryEntrySummary| {
-                let status_color = match entry.response_status {
-                    200..=299 => colors::GREEN,
-                    300..=399 => colors::ORANGE,
-                    400..=499 => colors::RED,
-                    500..=599 => colors::DARK_RED,
-                    _ => colors::DARK_GREY,
-                };
-                text(entry.response_status.to_string()).color(status_color)
-            })
-            .width(Length::FillPortion(2)),
-            table::column(bold("Duration"), |entry: &HistoryEntrySummary| {
-                let duration = Duration::from_millis(entry.response_duration_ms as u64);
-                text(fmt_duration(duration))
-            })
-            .width(Length::FillPortion(2)),
-            table::column(bold("Size"), |entry: &HistoryEntrySummary| {
-                let size = format_size(entry.response_size_bytes as u64, BINARY);
-                text(size)
-            })
-            .width(Length::FillPortion(2)),
-            table::column(bold("Time"), |entry: &HistoryEntrySummary| {
-                let local_time: DateTime<Local> = entry.timestamp.into();
-                text(local_time.format("%m/%d %H:%M:%S").to_string())
-            })
-            .width(Length::FillPortion(3)),
-            table::column(bold("Actions"), |entry: &HistoryEntrySummary| {
-                row![
-                    tooltip(
-                        "Open in new tab",
-                        button(icon(icons::Send))
-                            .style(button::secondary)
-                            .on_press(HistoryTabMsg::OpenEntry(entry.id))
-                    ),
-                    space::horizontal().width(Length::Fixed(5.0)),
-                    tooltip(
-                        "Delete entry",
-                        button(icon(icons::Delete))
-                            .style(button::danger)
-                            .on_press(HistoryTabMsg::DeleteEntry(entry.id))
-                    ),
-                ]
-            })
-            .width(Length::FillPortion(2)),
-        ];
-
-        Element::from(scrollable(table(columns, &tab.entries)))
+        table_view(tab)
     };
 
-    column![search_row, content]
-        .spacing(5)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+    column![
+        search_row,
+        container(content).style(container::bordered_box)
+    ]
+    .spacing(5)
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into()
 }
