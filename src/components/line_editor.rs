@@ -6,14 +6,15 @@ use iced::{Element, Length, Pixels, Theme};
 use iced_core::text::Wrapping;
 use iced_core::text::editor::{Action, Edit};
 
-use crate::components::editor::highlighters::TemplHighlighterSettings;
-use crate::components::editor::{self, ContentAction, Status, StyleFn, highlighters, text_editor};
+use crate::components::editor::highlighters::{TemplHighlighter, TemplHighlighterSettings};
+use crate::components::editor::{self, ContentAction, Status, StyleFn, text_editor};
 
 pub struct LineEditor<'a> {
     pub code: &'a editor::Content,
     pub editable: bool,
     pub placeholder: Option<&'a str>,
     pub var_set: Arc<HashSet<String>>,
+    pub highlight: bool,
     id: Option<widget::Id>,
     text_size: Option<Pixels>,
     style: StyleFn<'a, Theme>,
@@ -46,6 +47,11 @@ impl<'a> LineEditor<'a> {
         self
     }
 
+    pub fn highlight(mut self, highlight: bool) -> Self {
+        self.highlight = highlight;
+        self
+    }
+
     pub fn id(mut self, id: widget::Id) -> Self {
         self.id = Some(id);
         self
@@ -60,10 +66,6 @@ impl<'a> LineEditor<'a> {
             .height(Length::Shrink)
             .wrapping(Wrapping::WordOrGlyph)
             .style(self.style)
-            .highlight_with::<highlighters::TemplHighlighter<Arc<HashSet<String>>>>(
-                TemplHighlighterSettings::new(Arc::clone(&self.var_set)),
-                |f, _| *f,
-            )
             .on_action(move |ac| LineEditorMsg::EditorAction(ac, self.editable));
 
         let editor = if let Some(placeholder) = self.placeholder {
@@ -84,7 +86,14 @@ impl<'a> LineEditor<'a> {
             editor
         };
 
-        editor.into()
+        if self.highlight {
+            let settings = TemplHighlighterSettings::new(Arc::clone(&self.var_set));
+            editor
+                .highlight_with::<TemplHighlighter<Arc<HashSet<String>>>>(settings, |f, _| *f)
+                .into()
+        } else {
+            editor.into()
+        }
     }
 }
 
@@ -116,6 +125,7 @@ pub fn line_editor<'a>(code: &'a editor::Content) -> LineEditor<'a> {
     LineEditor {
         code,
         editable: true,
+        highlight: true,
         placeholder: None,
         text_size: None,
         style: Box::new(|theme: &iced::Theme, status| match status {

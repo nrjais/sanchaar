@@ -87,6 +87,7 @@ fn status_color(status: reqwest::StatusCode) -> Color {
 fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
     let json_path_filter = line_editor(&cr.json_path_filter)
         .placeholder("$.filter")
+        .highlight(false)
         .map(CompletedMsg::JsonPathFilter);
 
     let content = cr.selected_content();

@@ -63,7 +63,7 @@ impl<T: IsDefined + 'static> Highlighter for TemplHighlighter<T> {
                 let color = if self.vars.is_defined(&name) {
                     colors::LIGHT_GREEN
                 } else {
-                    colors::RED
+                    colors::INDIAN_RED
                 };
 
                 ranges.push((

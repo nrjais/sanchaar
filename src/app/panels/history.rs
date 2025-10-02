@@ -223,6 +223,7 @@ pub fn view<'a>(_state: &'a AppState, tab: &'a HistoryTab) -> Element<'a, Histor
     let search_input = container(
         line_editor(&tab.search_query)
             .placeholder(search_placeholder)
+            .highlight(false)
             .map(HistoryTabMsg::SearchChanged),
     )
     .width(Length::FillPortion(1))
