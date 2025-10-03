@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Sanchaar
+Comment=A fast offline REST API Client
+Exec=Sanchaar
+Icon=sanchaar
+Terminal=false
+Categories=Development;Network;Utility;
+Keywords=api;rest;http;client;development;
+StartupWMClass=Sanchaar
