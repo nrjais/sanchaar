@@ -30,7 +30,7 @@ fn menu_button<'a, M: Clone + 'a>(entry: MenuButton<'a, M>, length: Length) -> E
 pub fn context_menu<'a, Message>(
     base: impl Into<Element<'a, Message>>,
     entries: Vec<MenuButton<'a, Message>>,
-) -> Element<'a, Message>
+) -> ContextMenu<'a, Message>
 where
     Message: 'a + Clone,
 {
@@ -55,13 +55,22 @@ where
         menu: menu.into(),
         button: mouse::Button::Right,
     }
-    .into()
 }
 
-struct ContextMenu<'a, Message> {
+pub struct ContextMenu<'a, Message> {
     base: Element<'a, Message>,
     menu: Element<'a, Message>,
     button: mouse::Button,
+}
+
+impl<'a, Message> ContextMenu<'a, Message> {
+    pub fn button(self, button: mouse::Button) -> Self {
+        ContextMenu {
+            base: self.base,
+            menu: self.menu,
+            button,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -226,7 +235,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
                 content: &mut self.menu,
                 tree: &mut second[0],
                 state,
-                position: position + translation,
+                position: position + translation + Vector::new(10.0, 10.0),
             }))
         });
 

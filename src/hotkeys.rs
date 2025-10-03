@@ -1,7 +1,9 @@
 use iced::{
     Task,
     advanced::widget::{operate, operation::focusable::focus},
+    event::{Status, listen_with},
     keyboard::{self, Event, Key, key::Named},
+    mouse,
     widget::operation::focus_previous,
 };
 
@@ -160,7 +162,13 @@ fn save_tab(state: &mut AppState) -> Task<Message> {
 }
 
 pub fn subscription(_: &AppState) -> iced::Subscription<AppMsg> {
-    iced::event::listen()
-        .map(Message::Event)
-        .map(AppMsg::Subscription)
+    listen_with(|event, status, _window| match status {
+        Status::Ignored => match event {
+            iced::Event::Mouse(mouse::Event::CursorMoved { .. }) => None,
+            _ => Some(event),
+        },
+        Status::Captured => None,
+    })
+    .map(Message::Event)
+    .map(AppMsg::Subscription)
 }

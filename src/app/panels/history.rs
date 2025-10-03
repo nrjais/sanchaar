@@ -152,7 +152,7 @@ pub fn table_view<'a>(tab: &'a HistoryTab) -> Element<'a, HistoryTabMsg> {
                 .on_press(HistoryTabMsg::OpenEntry(entry.id))
                 .width(Length::Fill)
         })
-        .width(Length::FillPortion(8))
+        .width(Length::FillPortion(12))
         .align_x(Alignment::Center)
         .align_y(Alignment::Center),
         table::column(bold("Result"), |entry: &HistoryEntrySummary| {
@@ -185,27 +185,18 @@ pub fn table_view<'a>(tab: &'a HistoryTab) -> Element<'a, HistoryTabMsg> {
         .width(Length::FillPortion(3))
         .align_x(Alignment::Center)
         .align_y(Alignment::Center),
-        table::column(bold("Actions"), |entry: &HistoryEntrySummary| {
-            row![
-                tooltip(
-                    "Open in new tab",
-                    button(icon(icons::Send).size(20))
-                        .padding([0, 4])
-                        .style(button::text)
-                        .on_press(HistoryTabMsg::OpenEntry(entry.id))
-                ),
-                tooltip(
-                    "Delete entry",
-                    button(icon(icons::Delete).size(20))
-                        .padding([0, 4])
-                        .style(button::text)
-                        .on_press(HistoryTabMsg::DeleteEntry(entry.id))
-                ),
-            ]
+        table::column(bold(""), |entry: &HistoryEntrySummary| {
+            row![tooltip(
+                "Delete entry",
+                button(icon(icons::Delete).size(20))
+                    .padding([0, 4])
+                    .style(button::text)
+                    .on_press(HistoryTabMsg::DeleteEntry(entry.id))
+            ),]
             .spacing(8)
             .wrap()
         })
-        .width(Length::FillPortion(2))
+        .width(Length::FillPortion(1))
         .align_x(Alignment::Center)
         .align_y(Alignment::Center),
     ];
