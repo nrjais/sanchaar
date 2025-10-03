@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<!--
+  Copyright (C) 2017 Christopher R. Field.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!--
+  The "cargo wix" subcommand provides a variety of predefined variables available
+  for customization of this template. The values for each variable are set at
+  installer creation time. The following variables are available:
+
+  TargetTriple      = The rustc target triple name.
+  TargetEnv         = The rustc target environment. This is typically either
+                      "msvc" or "gnu" depending on the toolchain downloaded and
+                      installed.
+  TargetVendor      = The rustc target vendor. This is typically "pc", but Rust
+                      does support other vendors, like "uwp".
+  CargoTargetBinDir = The complete path to the directory containing the
+                      binaries (exes) to include. The default would be
+                      "target\release\". If an explicit rustc target triple is
+                      used, i.e. cross-compiling, then the default path would
+                      be "target\<CARGO_TARGET>\<CARGO_PROFILE>",
+                      where "<CARGO_TARGET>" is replaced with the "CargoTarget"
+                      variable value and "<CARGO_PROFILE>" is replaced with the
+                      value from the "CargoProfile" variable. This can also
+                      be overridden manually with the "target-bin-dir" flag.
+  CargoTargetDir    = The path to the directory for the build artifacts, i.e.
+                      "target".
+  CargoProfile      = The cargo profile used to build the binaries
+                      (usually "debug" or "release").
+  Version           = The version for the installer. The default is the
+                      "Major.Minor.Fix" semantic versioning number of the Rust
+                      package.
+-->
+
+<!--
+  Please do not remove these pre-processor If-Else blocks. These are used with
+  the `cargo wix` subcommand to automatically determine the installation
+  destination for 32-bit versus 64-bit installers. Removal of these lines will
+  cause installation errors.
+-->
+<?if $(sys.BUILDARCH) = x64 or $(sys.BUILDARCH) = arm64?>
+    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder"?>
+<?else?>
+    <?define PlatformProgramFilesFolder = "ProgramFilesFolder"?>
+<?endif?>
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <Product
+    Id='*'
+    Name='Sanchaar'
+    UpgradeCode='9E8F3D8A-1B2C-4E5F-8A9D-3C4B5E6F7A8B'
+    Manufacturer='Sanchaar Contributors'
+    Language='1033'
+    Codepage='1252'
+    Version='$(var.Version)'>
+
+    <Package
+      Id='*'
+      Keywords='Installer'
+      Description='A fast offline REST API Client'
+      Manufacturer='Sanchaar Contributors'
+      InstallerVersion='450'
+      Languages='1033'
+      Compressed='yes'
+      InstallScope='perMachine'
+      SummaryCodepage='1252'
+    />
+
+    <MajorUpgrade
+      Schedule='afterInstallInitialize'
+      DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.' />
+
+    <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
+    <Property Id='DiskPrompt' Value='Sanchaar Installation' />
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
+        <Directory Id='APPLICATIONFOLDER' Name='Sanchaar'>
+          <Component Id='binary0' Guid='*'>
+            <File
+              Id='exe0'
+              Name='Sanchaar.exe'
+              DiskId='1'
+              Source='$(var.CargoTargetBinDir)\Sanchaar.exe'
+              KeyPath='yes' />
+          </Component>
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Sanchaar" />
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+          Name="Sanchaar"
+          Description="A fast offline REST API Client"
+          Target="[APPLICATIONFOLDER]Sanchaar.exe"
+          WorkingDirectory="APPLICATIONFOLDER" />
+        <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\Sanchaar" Name="installed" Type="integer" Value="1"
+          KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <Feature
+      Id='Binaries'
+      Title='Application'
+      Description='Installs all binaries and the license.'
+      Level='1'
+      ConfigurableDirectory='APPLICATIONFOLDER'
+      AllowAdvertise='no'
+      Display='expand'
+      Absent='disallow'>
+
+      <ComponentRef Id='binary0' />
+      <ComponentRef Id="ApplicationShortcut" />
+
+      <Feature
+        Id='Environment'
+        Title='PATH Environment Variable'
+        Description='Add the install location of the [ProductName] executable to the PATH system environment variable. This allows [ProductName] to be called from any location.'
+        Level='1'
+        Absent='allow'>
+        <Component Id='Path' Guid='*' KeyPath='yes'>
+          <Environment
+            Id='PATH'
+            Name='PATH'
+            Value='[APPLICATIONFOLDER]'
+            Permanent='no'
+            Part='last'
+            Action='set'
+            System='yes' />
+        </Component>
+      </Feature>
+    </Feature>
+
+    <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize' />
+
+    <!-- Icon is optional - comment out if sanchaar.ico doesn't exist -->
+    <!-- <Icon Id='ProductICO' SourceFile='assets\sanchaar.ico'/> -->
+    <!-- <Property Id='ARPPRODUCTICON' Value='ProductICO' /> -->
+    <Property Id='ARPHELPLINK' Value='https://github.com/nrjais/sanchaar' />
+    <UI>
+      <UIRef Id='WixUI_FeatureTree' />
+    </UI>
+    <WixVariable Id='WixUILicenseRtf' Value='wix\License.rtf' />
+  </Product>
+</Wix>

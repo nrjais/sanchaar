@@ -1,0 +1,293 @@
+name: Package and Release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BINARY_NAME: Sanchaar
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    name: Build Linux (${{ matrix.target }})
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            arch: amd64
+          - target: aarch64-unknown-linux-gnu
+            arch: arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get install -y \
+            libssl-dev \
+            libxcb-shape0-dev \
+            libxcb-xfixes0-dev \
+            libxkbcommon-dev \
+            pkg-config
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: linux-${{ matrix.target }}
+
+      - name: Build
+        run: |
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            export CC=aarch64-linux-gnu-gcc
+            export CXX=aarch64-linux-gnu-g++
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+          fi
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Create AppImage directory
+        run: |
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps
+          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }} AppDir/usr/bin/
+          cp assets/512x512.png AppDir/usr/share/icons/hicolor/512x512/apps/${{ env.BINARY_NAME }}.png
+          cp assets/512x512.png AppDir/${{ env.BINARY_NAME }}.png
+
+      - name: Create desktop entry
+        run: |
+          cat > AppDir/usr/share/applications/${{ env.BINARY_NAME }}.desktop <<EOF
+          [Desktop Entry]
+          Name=${{ env.BINARY_NAME }}
+          Exec=${{ env.BINARY_NAME }}
+          Icon=${{ env.BINARY_NAME }}
+          Type=Application
+          Categories=Development;Network;
+          Comment=A fast offline REST API Client
+          EOF
+          cp AppDir/usr/share/applications/${{ env.BINARY_NAME }}.desktop AppDir/
+
+      - name: Download AppImage tool
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Create AppImage
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          ./appimagetool-x86_64.AppImage AppDir ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
+          chmod +x ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
+
+      - name: Create tar.gz archive
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ../../../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz ${{ env.BINARY_NAME }}
+
+      - name: Install cargo-deb
+        if: matrix.arch == 'amd64'
+        run: cargo install cargo-deb
+
+      - name: Create .deb package
+        if: matrix.arch == 'amd64'
+        run: |
+          cargo deb --target ${{ matrix.target }} --no-build --no-strip
+          cp target/${{ matrix.target }}/debian/*.deb ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb
+
+      - name: Generate checksums
+        run: |
+          sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz.sha256
+          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage" ]; then
+            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage.sha256
+          fi
+          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb" ]; then
+            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb.sha256
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.target }}
+          path: |
+            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
+            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.*
+
+  build-macos:
+    name: Build macOS (${{ matrix.target }})
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            arch: Intel
+          - target: aarch64-apple-darwin
+            arch: AppleSilicon
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: macos-${{ matrix.target }}
+
+      - name: Install cargo-bundle
+        run: cargo install cargo-bundle
+
+      - name: Build bundle
+        run: cargo bundle --release --target ${{ matrix.target }}
+
+      - name: Create DMG
+        run: |
+          mkdir -p dist
+          cp -r target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app dist/
+
+          # Create DMG
+          hdiutil create -volname "${{ env.BINARY_NAME }}" -srcfolder dist -ov -format UDZO ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg
+
+      - name: Create tar.gz archive
+        run: |
+          cd target/${{ matrix.target }}/release/bundle/osx
+          tar -czf ../../../../../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz ${{ env.BINARY_NAME }}.app
+
+      - name: Generate checksums
+        run: |
+          shasum -a 256 ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg.sha256
+          shasum -a 256 ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz.sha256
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.target }}
+          path: |
+            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
+
+  build-windows:
+    name: Build Windows (${{ matrix.target }})
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            arch: x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Create archive
+        shell: bash
+        run: |
+          mkdir archive
+          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe archive/
+          cd archive
+          7z a ../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.zip *
+
+      - name: Install cargo-wix
+        run: cargo install cargo-wix
+
+      - name: Create MSI installer
+        shell: bash
+        continue-on-error: true
+        run: |
+          # Use existing wix/main.wxs if it exists, otherwise init
+          if [ ! -f "wix/main.wxs" ]; then
+            cargo wix init --no-build
+          fi
+          cargo wix --nocapture --target ${{ matrix.target }} --no-build
+          if [ -f "target/wix/*.msi" ]; then
+            cp target/wix/*.msi ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi
+          fi
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.zip > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.zip.sha256
+          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi" ]; then
+            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi.sha256
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ matrix.target }}
+          path: |
+            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts
+        run: |
+          mkdir release
+          find artifacts -type f -exec cp {} release/ \;
+          ls -lah release/
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: ${{ contains(env.VERSION, 'rc') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'alpha') || contains(env.VERSION, 'prerelease') }}
+          generate_release_notes: true
+          files: release/*
