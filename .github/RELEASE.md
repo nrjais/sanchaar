@@ -41,8 +41,6 @@ Once the tag is pushed, GitHub Actions will automatically:
      - .tar.gz (aarch64 only)
    - macOS (Intel and Apple Silicon)
      - .dmg installer
-   - Windows (x86_64)
-     - .msi installer
 
 2. **Generate checksums (SHA256)** for all artifacts
 
@@ -89,10 +87,6 @@ xattr -cr /Applications/Sanchaar.app
 
 Or right-click → "Open" → Click "Open" in the security dialog.
 
-### Windows
-
-- **.msi**: Windows installer with Start Menu integration and optional PATH setup
-
 ## Rollback
 
 If you need to delete a release:
@@ -128,16 +122,9 @@ cargo bundle --release --target x86_64-apple-darwin
 # macOS Apple Silicon
 cargo bundle --release --target aarch64-apple-darwin
 
-# Windows
-cargo build --release --target x86_64-pc-windows-msvc
-```
 
 For package formats:
 
 ```bash
 # Debian package
 cargo deb --target x86_64-unknown-linux-gnu
-
-# Windows MSI
-cargo wix --target x86_64-pc-windows-msvc
-```

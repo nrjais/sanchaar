@@ -23,8 +23,8 @@ Download the latest release for your platform from the [Releases page](https://g
 
 **Important:** Since the app is not notarized by Apple, you'll need to remove the quarantine attribute after downloading:
 
-1. Download the `.dmg` or `.tar.gz` file
-2. If using DMG: Open it and drag Sanchaar to Applications
+1. Download the `.dmg` file
+2. Open the DMG and drag Sanchaar to Applications
 3. Remove the quarantine attribute:
    ```bash
    xattr -cr /Applications/Sanchaar.app
@@ -47,10 +47,6 @@ Download the latest release for your platform from the [Releases page](https://g
 
 **ARM64 (aarch64):**
 - **Archive** (.tar.gz): Extract and run the binary
-
-#### Windows Installation
-
-- **MSI Installer**: Double-click to install with Start Menu integration and optional PATH setup
 
 ## Features
 

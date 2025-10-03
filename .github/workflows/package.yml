@@ -53,6 +53,17 @@ jobs:
             libxkbcommon-dev \
             pkg-config
 
+      - name: Install ARM64 dependencies
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y \
+            libssl-dev:arm64 \
+            libxcb-shape0-dev:arm64 \
+            libxcb-xfixes0-dev:arm64 \
+            libxkbcommon-dev:arm64
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: linux-${{ matrix.target }}
@@ -63,6 +74,11 @@ jobs:
             export CC=aarch64-linux-gnu-gcc
             export CXX=aarch64-linux-gnu-g++
             export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+            export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig
+            export PKG_CONFIG_ALLOW_CROSS=1
+            export OPENSSL_DIR=/usr
+            export OPENSSL_INCLUDE_DIR=/usr/include
+            export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu
           fi
           cargo build --release --target ${{ matrix.target }} --no-default-features
 
@@ -194,64 +210,9 @@ jobs:
           path: |
             ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
 
-  build-windows:
-    name: Build Windows (${{ matrix.target }})
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            arch: x64
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get version
-        shell: bash
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          targets: ${{ matrix.target }}
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: windows-${{ matrix.target }}
-
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }} --no-default-features
-
-      - name: Install cargo-wix
-        run: cargo install cargo-wix
-
-      - name: Create MSI installer
-        shell: bash
-        run: |
-          # Use existing wix/main.wxs if it exists, otherwise init
-          if [ ! -f "wix/main.wxs" ]; then
-            cargo wix init --no-build -p Sanchaar
-          fi
-          cargo wix --nocapture --target ${{ matrix.target }} --no-build -p Sanchaar
-          cp target/wix/*.msi ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi
-
-      - name: Generate checksums
-        shell: bash
-        run: |
-          sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi.sha256
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-${{ matrix.target }}
-          path: |
-            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
-
   release:
     name: Create Release
-    needs: [build-linux, build-macos, build-windows]
+    needs: [build-linux, build-macos]
     runs-on: ubuntu-latest
 
     steps:

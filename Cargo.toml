@@ -112,8 +112,8 @@ jsonpath-rust = "1.0"
 log = "0.4"
 mime_guess = "2.0"
 parsers = { path = "crates/parsers" }
-pest = "2.7"
-pest_derive = "2.7"
+pest = "2.8"
+pest_derive = "2.8"
 regex = "1.10"
 reqwest = { version = "0.12", features = ["multipart", "stream"] }
 reqwest_cookie_store = "0.9"
