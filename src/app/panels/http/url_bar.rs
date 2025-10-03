@@ -2,7 +2,7 @@ use crate::components::editor::{self};
 use crate::state::request::RequestPane;
 use iced::Length::{Fill, Shrink};
 use iced::widget::{Button, Row, rule};
-use iced::{Border, border};
+use iced::{Border, border, clipboard, mouse};
 use iced::{
     Element, Task,
     widget::{button, container, pick_list},
@@ -10,8 +10,10 @@ use iced::{
 use reqwest::Url;
 use strum::VariantArray;
 
-use crate::components::{LineEditorMsg, NerdIcon, icon, icons, line_editor};
-use core::curl::parse_curl_command;
+use crate::components::{
+    LineEditorMsg, NerdIcon, context_menu, icon, icons, line_editor, menu_item,
+};
+use core::curl::{generate_curl_command, parse_curl_command};
 use core::http::collection::Collection;
 use core::http::request::Method;
 
@@ -25,7 +27,8 @@ pub enum UrlBarMsg {
     UrlChanged(LineEditorMsg),
     SendRequest,
     SaveRequest,
-    RequestSaved,
+    CopyCurl,
+    Done,
     RequestResult(TabKey, ResponseResult),
 }
 
@@ -68,7 +71,7 @@ impl UrlBarMsg {
                 let req_ref = state.common.collections.get_ref(tab.collection_ref);
                 if let Some(req_res) = req_ref {
                     let path = req_res.path.clone();
-                    return save_request_cmd(tab, path).map(|_| Self::RequestSaved);
+                    return save_request_cmd(tab, path).map(|_| Self::Done);
                 } else {
                     Popup::save_request(&mut state.common, active_tab);
                 }
@@ -78,7 +81,11 @@ impl UrlBarMsg {
                     tab.update_response(res)
                 }
             }
-            UrlBarMsg::RequestSaved => (),
+            UrlBarMsg::Done => (),
+            UrlBarMsg::CopyCurl => {
+                let curl = generate_curl_command(&tab.request().to_request());
+                return clipboard::write(curl);
+            }
         }
         Task::none()
     }
@@ -160,14 +167,7 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
             .push(url)
             .push(icon_button(icons::Send).on_press_maybe(on_press))
             .push(rule::vertical(1))
-            .push(
-                icon_button(icons::ContentSave)
-                    .on_press(UrlBarMsg::SaveRequest)
-                    .style(|t, s| button::Style {
-                        border: border::rounded(border::right(4)),
-                        ..button::primary(t, s)
-                    }),
-            )
+            .push(menu())
             .height(Shrink)
             .width(Fill),
     )
@@ -179,5 +179,23 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
         }
     })
     .padding(1)
+    .into()
+}
+
+fn menu<'a>() -> Element<'a, UrlBarMsg> {
+    let base = icon_button(icons::TriangleDown)
+        .on_press(UrlBarMsg::Done)
+        .style(|t, s| button::Style {
+            border: border::rounded(border::right(4)),
+            ..button::primary(t, s)
+        });
+    context_menu(
+        base,
+        vec![
+            menu_item("Save", UrlBarMsg::SaveRequest),
+            menu_item("Copy Curl", UrlBarMsg::CopyCurl),
+        ],
+    )
+    .button(mouse::Button::Left)
     .into()
 }

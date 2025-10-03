@@ -741,6 +741,7 @@ dependencies = [
  "strum",
  "tokio",
  "toml",
+ "urlencoding",
 ]
 
 [[package]]

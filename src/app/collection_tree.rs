@@ -322,6 +322,7 @@ fn context_button_folder<'a>(
             ),
         ],
     )
+    .into()
 }
 
 fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, CollectionTreeMsg> {
@@ -367,6 +368,7 @@ fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, 
             ),
         ],
     )
+    .into()
 }
 
 fn context_button_collection<'a>(
@@ -399,4 +401,5 @@ fn context_button_collection<'a>(
             ),
         ],
     )
+    .into()
 }
