@@ -80,7 +80,12 @@ sudo apt-get install -f  # Install dependencies if needed
 - **.dmg**: Drag-and-drop installer for macOS
 - **.tar.gz**: Contains the .app bundle for manual installation
 
-Note: First-time users may need to allow the app in System Preferences > Security & Privacy
+**Important Note about macOS Security:**
+
+The builds are ad-hoc signed but not notarized by Apple. Users will need to remove the quarantine attribute:
+```bash
+xattr -cr /Applications/Sanchaar.app
+```
 
 ### Windows
 

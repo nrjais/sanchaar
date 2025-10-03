@@ -168,6 +168,10 @@ jobs:
       - name: Build bundle
         run: cargo bundle --release --target ${{ matrix.target }}
 
+      - name: Ad-hoc code sign
+        run: |
+          codesign --force --deep --sign - target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app
+
       - name: Create DMG
         run: |
           mkdir -p dist
