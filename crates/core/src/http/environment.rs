@@ -6,7 +6,7 @@ use std::{
 use crate::new_id_type;
 use parsers::{Token, parse_template};
 
-use super::KeyValList;
+pub type VarMap = HashMap<String, String>;
 
 new_id_type! {
     pub struct EnvironmentKey;
@@ -76,34 +76,30 @@ impl Environments {
 #[derive(Debug, Clone)]
 pub struct Environment {
     pub name: String,
-    pub variables: Arc<KeyValList>,
+    pub variables: Arc<HashMap<String, String>>,
 }
 
 impl Environment {
     pub fn new(name: String) -> Self {
         Self {
             name,
-            variables: Default::default(),
+            variables: Arc::new(HashMap::new()),
         }
     }
 
     pub fn get(&self, name: &str) -> Option<&str> {
-        self.variables
-            .iter()
-            .rev()
-            .find(|kv| kv.name == name)
-            .map(|kv| kv.value.as_str())
+        self.variables.get(name).map(|s| s.as_str())
     }
 
-    pub fn vars(&self) -> Arc<KeyValList> {
+    pub fn vars(&self) -> Arc<VarMap> {
         Arc::clone(&self.variables)
     }
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct EnvironmentChain {
-    dotenv: Arc<KeyValList>,
-    vars: Vec<Arc<KeyValList>>,
+    dotenv: Arc<VarMap>,
+    vars: Vec<Arc<VarMap>>,
 }
 
 impl EnvironmentChain {
@@ -114,9 +110,9 @@ impl EnvironmentChain {
         }
     }
 
-    pub fn from_iter<I>(dotenv: Arc<KeyValList>, iter: I) -> Self
+    pub fn from_iter<I>(dotenv: Arc<VarMap>, iter: I) -> Self
     where
-        I: IntoIterator<Item = Arc<KeyValList>>,
+        I: IntoIterator<Item = Arc<VarMap>>,
     {
         Self {
             dotenv,
@@ -124,18 +120,15 @@ impl EnvironmentChain {
         }
     }
 
-    fn get_named(name: &str, list: &KeyValList) -> Option<String> {
-        list.iter()
-            .rev()
-            .find(|kv| kv.name == name)
-            .map(|kv| kv.value.to_owned())
+    fn get_named(name: &str, list: &VarMap) -> Option<String> {
+        list.get(name).map(|s| s.to_owned())
     }
 
     pub fn all_var_set(&self) -> Arc<HashSet<String>> {
         let mut set = HashSet::new();
         for vars in self.vars.iter().chain([&self.dotenv]) {
-            for kv in vars.iter() {
-                set.insert(kv.name.clone());
+            for (name, _) in vars.iter() {
+                set.insert(name.clone());
             }
         }
         Arc::new(set)

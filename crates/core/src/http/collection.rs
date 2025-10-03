@@ -1,5 +1,6 @@
 use super::KeyValList;
 use super::environment::{Environment, EnvironmentChain, EnvironmentKey};
+use crate::http::VarMap;
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
@@ -59,8 +60,8 @@ pub struct Collection {
     pub active_environment: Option<EnvironmentKey>,
     pub default_env: Option<EnvironmentKey>,
     pub headers: Arc<KeyValList>,
-    pub variables: Arc<KeyValList>,
-    pub dotenv: Arc<KeyValList>,
+    pub variables: Arc<VarMap>,
+    pub dotenv: Arc<VarMap>,
     pub disable_ssl: bool,
     pub timeout: Duration,
 }

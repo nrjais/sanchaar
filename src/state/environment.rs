@@ -1,44 +1,87 @@
-use core::http::environment::{Environment, EnvironmentKey, Environments};
-use std::{collections::BTreeMap, sync::Arc};
+use core::http::{Environment, EnvironmentKey, environment::Environments};
+use std::collections::{HashMap, HashSet};
 
-use crate::components::KeyValList;
+use crate::components::editor;
 
-use super::utils::{from_core_kv_list, to_core_kv_list};
+#[derive(Debug, Default)]
+pub struct EnvVariable {
+    pub name: editor::Content,
+    pub values: HashMap<EnvironmentKey, editor::Content>,
+}
 
 #[derive(Debug)]
-pub struct Env {
-    pub name: String,
-    pub variables: KeyValList,
+pub struct EnvironmentsEditor {
+    pub variables: Vec<EnvVariable>,
+    pub environments: HashMap<EnvironmentKey, Environment>,
+    pub deleted: Vec<EnvironmentKey>,
+    pub edited: bool,
 }
-impl Env {
-    pub fn new(name: String) -> Self {
-        Self {
-            name,
-            variables: KeyValList::new(),
+
+impl EnvironmentsEditor {
+    pub fn add_env(&mut self, env: Environment) {
+        self.environments.insert(EnvironmentKey::new(), env);
+        self.edited = true;
+    }
+
+    pub fn remove_env(&mut self, env_key: EnvironmentKey) -> Option<Environment> {
+        self.edited = true;
+        self.deleted.push(env_key);
+        self.environments.remove(&env_key)
+    }
+
+    pub fn add_variable(&mut self) {
+        let name = editor::Content::new();
+        let values = self
+            .environments
+            .keys()
+            .map(|key| (*key, editor::Content::new()))
+            .collect();
+
+        self.variables.push(EnvVariable { name, values });
+        self.edited = true;
+    }
+
+    pub(crate) fn create_env(&mut self, name: String) {
+        let env = Environment::new(name);
+        let env_key = EnvironmentKey::new();
+        self.environments.insert(env_key, env);
+        self.edited = true;
+        for variable in self.variables.iter_mut() {
+            variable.values.insert(env_key, editor::Content::new());
         }
     }
 }
 
-impl From<&Environment> for Env {
-    fn from(env: &Environment) -> Self {
-        Self {
-            name: env.name.clone(),
-            variables: from_core_kv_list(&env.variables, false),
-        }
-    }
-}
+pub fn environment_keyvals(envs: &Environments) -> EnvironmentsEditor {
+    let environments: HashMap<EnvironmentKey, Environment> = envs
+        .entries()
+        .map(|(key, env)| (*key, env.clone()))
+        .collect();
 
-impl From<&Env> for Environment {
-    fn from(value: &Env) -> Self {
-        Self {
-            name: value.name.trim().to_owned(),
-            variables: Arc::new(to_core_kv_list(&value.variables)),
-        }
-    }
-}
+    let mut variables = envs
+        .entries()
+        .flat_map(|(_, env)| env.variables.keys().cloned())
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    variables.sort();
 
-pub fn environment_keyvals(envs: &Environments) -> BTreeMap<EnvironmentKey, Env> {
-    envs.entries()
-        .map(|(key, env)| (*key, Env::from(env)))
-        .collect()
+    let variables = variables
+        .into_iter()
+        .map(|name| EnvVariable {
+            name: editor::Content::with_text(name.as_str()),
+            values: environments
+                .iter()
+                .map(|(key, env)| (*key, env.variables.get(&name).cloned().unwrap_or_default()))
+                .map(|(key, value)| (key, editor::Content::with_text(value.as_str())))
+                .collect(),
+        })
+        .collect();
+
+    EnvironmentsEditor {
+        variables,
+        environments,
+        deleted: Vec::new(),
+        edited: false,
+    }
 }

@@ -144,6 +144,7 @@ fn bulk_edit_toggle<'a>(
 
 fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Element<RequestPaneMsg> {
     let has_params = request.path_params.size() > 0;
+    // TODO: fix scrollable for path params
     let path = has_params.then(|| {
         Column::new()
             .push("Path Params")

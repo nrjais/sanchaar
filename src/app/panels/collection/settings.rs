@@ -1,8 +1,13 @@
 use core::http::collection::Collection;
-use std::{collections::HashSet, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+    time::Duration,
+};
 
 use crate::components::{
-    KeyValList, KeyValUpdateMsg, NerdIcon, icon, icons, key_value_editor, text_input, tooltip,
+    KeyValList, KeyValUpdateMsg, NerdIcon, editor, icon, icons, key_value_editor, text_input,
+    tooltip,
 };
 use iced::{
     Alignment, Element, Length, Task, padding,
@@ -46,9 +51,9 @@ impl Message {
                 tab.edited = true;
                 tab.headers.update(msg);
             }
-            Message::UpdateVariables(msg) => {
+            Message::UpdateVariables(_msg) => {
                 tab.edited = true;
-                tab.variables.update(msg);
+                // tab.variables.update(msg);
             }
             Message::SaveChanges => {
                 return save_collection_cmd(collection, tab).map(move |_| Message::Saved);
@@ -98,17 +103,18 @@ pub fn headers_view<'a>(vals: &'a KeyValList, vars: Arc<HashSet<String>>) -> Ele
         .into()
 }
 
+// TODO: Implement this
 pub fn variables_view<'a>(
-    vals: &'a KeyValList,
-    vars: Arc<HashSet<String>>,
+    _vals: &'a HashMap<String, editor::Content>,
+    _vars: Arc<HashSet<String>>,
 ) -> Element<'a, Message> {
     Column::new()
         .push("Collection Variables")
-        .push(
-            key_value_editor(vals, &vars)
-                .padding(padding::all(0))
-                .on_change(Message::UpdateVariables),
-        )
+        // .push(
+        //     key_value_editor(vals, &vars)
+        //         .padding(padding::all(0))
+        //         .on_change(Message::UpdateVariables),
+        // )
         .spacing(4)
         .width(Length::Fill)
         .into()

@@ -19,8 +19,9 @@ use core::persistence::request::{encode_request, read_request, save_req_to_file}
 use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{TaskResult, cancellable_task};
+use crate::state::environment::EnvironmentsEditor;
 use crate::state::response::ResponseState;
-use crate::state::tabs::collection_tab::{CollectionTab, EnvironmentEditor};
+use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::utils::to_core_kv_list;
 use crate::state::{AppState, CommonState, HttpTab, RequestDirtyState, Tab, TabKey};
 
@@ -291,11 +292,11 @@ pub fn create_script_cmd(state: &mut CommonState, col: CollectionKey, name: Stri
 
 pub fn save_environments_cmd(
     collection: &mut Collection,
-    data: &mut EnvironmentEditor,
+    data: &mut EnvironmentsEditor,
 ) -> Task<()> {
     data.edited = false;
     for (key, env) in data.environments.iter() {
-        collection.update_environment(*key, env.into());
+        collection.update_environment(*key, env.clone());
     }
     let encoded = encode_environments(&collection.environments);
     let mut delete_path = Vec::new();
@@ -424,7 +425,12 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
         .as_ref()
         .and_then(|name| collection.environments.find_by_name(name));
     collection.headers = Arc::new(to_core_kv_list(&tab.headers));
-    collection.variables = Arc::new(to_core_kv_list(&tab.variables));
+    let variables = tab
+        .variables
+        .iter()
+        .map(|(name, value)| (name.clone(), value.text()))
+        .collect();
+    collection.variables = Arc::new(variables);
     collection.disable_ssl = tab.disable_ssl;
     collection.timeout = tab.timeout;
 
