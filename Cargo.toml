@@ -165,5 +165,10 @@ default = ["iced/debug", "iced/hot"]
 debug = 0
 incremental = true
 
+[profile.release]
+strip = true
+lto = true
+opt-level = 3
+
 [profile.dev.package."*"]
 opt-level = 3

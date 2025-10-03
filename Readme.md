@@ -79,7 +79,7 @@ Download the latest release for your platform from the [Releases page](https://g
   - [ ] Digest Auth
 - [x] Tab view for multiple requests
 - [x] File persistence
-  - [x] HCL file format
+  - [x] TOML file format
   - [x] Save/Load
   - [x] Changed indicator
   - [x] File Rename
@@ -161,4 +161,4 @@ Download the latest release for your platform from the [Releases page](https://g
   - [ ] Logging and tracing request
   - [ ] Reduce clones
   - [x] Variable highlighting
-  - [ ] Migrate to KDL for files
+  - [ ] Session persistence
