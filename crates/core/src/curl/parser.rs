@@ -264,9 +264,8 @@ impl CurlParser {
             let key = form[..eq_idx].to_string();
             let value = &form[eq_idx + 1..];
 
-            if value.starts_with('@') {
+            if let Some(filepath) = value.strip_prefix('@') {
                 // File upload
-                let filepath = value[1..].to_string();
                 self.form_files.push((key, PathBuf::from(filepath)));
             } else {
                 // Regular form field
@@ -282,7 +281,7 @@ impl CurlParser {
         Ok(())
     }
 
-    fn to_request(self) -> Result<Request> {
+    fn build(self) -> Result<Request> {
         let url = self.url.context("No URL provided")?;
 
         // Determine method
@@ -389,7 +388,7 @@ pub fn parse_curl_command(command: &str) -> Result<Request> {
     let args = tokenize_command(command)?;
     let mut parser = CurlParser::new();
     parser.parse_args(&args)?;
-    parser.to_request()
+    parser.build()
 }
 
 /// Tokenize a curl command string, respecting quotes

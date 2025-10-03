@@ -160,14 +160,15 @@ fn add_body_to_lines(lines: &mut Vec<String>, body: &RequestBody) {
             }
             // Add file uploads
             for file in files.iter() {
-                if !file.disabled && !file.name.is_empty() {
-                    if let Some(path) = &file.path {
-                        let path_str = path.to_string_lossy();
-                        lines.push(format!(
-                            "  -F {}",
-                            shell_quote(&format!("{}=@{}", file.name, path_str))
-                        ));
-                    }
+                if !file.disabled
+                    && !file.name.is_empty()
+                    && let Some(path) = &file.path
+                {
+                    let path_str = path.to_string_lossy();
+                    lines.push(format!(
+                        "  -F {}",
+                        shell_quote(&format!("{}=@{}", file.name, path_str))
+                    ));
                 }
             }
         }
