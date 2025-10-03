@@ -96,7 +96,6 @@ dotenvy = "0.15.3"
 humansize = "2.1"
 iced = { git = "https://github.com/nrjais/iced", branch = "editor", features = [
   "advanced",
-  "debug",
   "highlighter",
   "lazy",
   "tokio",
@@ -160,7 +159,7 @@ tokio.workspace = true
 uuid = { version = "1.0", features = ["v4"] }
 
 [features]
-default = ["iced/hot"]
+default = ["iced/debug", "iced/hot"]
 
 [profile.dev]
 debug = 0
