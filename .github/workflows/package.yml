@@ -64,7 +64,7 @@ jobs:
             export CXX=aarch64-linux-gnu-g++
             export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
           fi
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }} --no-default-features
 
       - name: Create AppImage directory
         run: |
@@ -113,7 +113,7 @@ jobs:
       - name: Create .deb package
         if: matrix.arch == 'amd64'
         run: |
-          cargo deb --target ${{ matrix.target }} --no-build --no-strip
+          cargo deb --target ${{ matrix.target }} --no-build --no-strip --no-default-features
           cp target/${{ matrix.target }}/debian/*.deb ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb
 
       - name: Generate checksums
@@ -169,7 +169,7 @@ jobs:
         run: cargo install cargo-bundle
 
       - name: Build bundle
-        run: cargo bundle --release --target ${{ matrix.target }}
+        run: cargo bundle --release --target ${{ matrix.target }} --no-default-features
 
       - name: Ad-hoc code sign
         run: |
@@ -222,7 +222,7 @@ jobs:
           key: windows-${{ matrix.target }}
 
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --no-default-features
 
       - name: Install cargo-wix
         run: cargo install cargo-wix
@@ -232,9 +232,9 @@ jobs:
         run: |
           # Use existing wix/main.wxs if it exists, otherwise init
           if [ ! -f "wix/main.wxs" ]; then
-            cargo wix init --no-build
+            cargo wix init --no-build -p Sanchaar
           fi
-          cargo wix --nocapture --target ${{ matrix.target }} --no-build
+          cargo wix --nocapture --target ${{ matrix.target }} --no-build -p Sanchaar
           cp target/wix/*.msi ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi
 
       - name: Generate checksums
