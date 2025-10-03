@@ -161,3 +161,14 @@ Download the latest release for your platform from the [Releases page](https://g
   - [ ] Reduce clones
   - [x] Variable highlighting
   - [ ] Session persistence
+
+
+## Star History
+
+<a href="https://www.star-history.com/#nrjais/sanchaar&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=nrjais/sanchaar&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=nrjais/sanchaar&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=nrjais/sanchaar&type=Date" />
+ </picture>
+</a>
