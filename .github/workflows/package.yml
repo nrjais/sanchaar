@@ -22,8 +22,6 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             arch: amd64
-          - target: aarch64-unknown-linux-gnu
-            arch: arm64
 
     steps:
       - name: Checkout
@@ -52,17 +50,6 @@ jobs:
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
             pkg-config
-
-      - name: Install ARM64 dependencies
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-          sudo apt-get install -y \
-            libssl-dev:arm64 \
-            libxcb-shape0-dev:arm64 \
-            libxcb-xfixes0-dev:arm64 \
-            libxkbcommon-dev:arm64
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -116,12 +103,6 @@ jobs:
           ./appimagetool-x86_64.AppImage AppDir ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
           chmod +x ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
 
-      - name: Create tar.gz archive (ARM64 only)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          cd target/${{ matrix.target }}/release
-          tar -czf ../../../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz ${{ env.BINARY_NAME }}
-
       - name: Install cargo-deb
         if: matrix.arch == 'amd64'
         run: cargo install cargo-deb
@@ -134,9 +115,6 @@ jobs:
 
       - name: Generate checksums
         run: |
-          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz" ]; then
-            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz.sha256
-          fi
           if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage" ]; then
             sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage.sha256
           fi
