@@ -42,7 +42,6 @@ Download the latest release for your platform from the [Releases page](https://g
 #### Linux Installation
 
 **x86_64 (64-bit Intel/AMD):**
-- **AppImage** (recommended): `chmod +x Sanchaar-*.AppImage && ./Sanchaar-*.AppImage`
 - **Debian/Ubuntu** (.deb): `sudo dpkg -i Sanchaar-*.deb && sudo apt-get install -f`
 
 **ARM64 (aarch64):**

@@ -36,9 +36,7 @@ Once the tag is pushed, GitHub Actions will automatically:
 
 1. **Build for all platforms:**
    - Linux (x86_64 and aarch64)
-     - AppImage (x86_64 only)
      - .deb package (x86_64 only)
-     - .tar.gz (aarch64 only)
    - macOS (Intel and Apple Silicon)
      - .dmg installer
 
@@ -62,7 +60,6 @@ After the workflow completes:
 ### Linux
 
 **x86_64 (Intel/AMD 64-bit):**
-- **AppImage**: Universal format that runs on most Linux distributions (recommended)
 - **.deb**: For Debian/Ubuntu-based distributions
 
 **ARM64 (aarch64):**

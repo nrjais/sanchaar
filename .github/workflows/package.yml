@@ -69,40 +69,6 @@ jobs:
           fi
           cargo build --release --target ${{ matrix.target }} --no-default-features
 
-      - name: Create AppImage directory
-        run: |
-          mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/usr/share/applications
-          mkdir -p AppDir/usr/share/icons/hicolor/512x512/apps
-          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }} AppDir/usr/bin/
-          cp assets/512x512.png AppDir/usr/share/icons/hicolor/512x512/apps/${{ env.BINARY_NAME }}.png
-          cp assets/512x512.png AppDir/${{ env.BINARY_NAME }}.png
-
-      - name: Create desktop entry
-        run: |
-          cat > AppDir/usr/share/applications/${{ env.BINARY_NAME }}.desktop <<EOF
-          [Desktop Entry]
-          Name=${{ env.BINARY_NAME }}
-          Exec=${{ env.BINARY_NAME }}
-          Icon=${{ env.BINARY_NAME }}
-          Type=Application
-          Categories=Development;Network;
-          Comment=A fast offline REST API Client
-          EOF
-          cp AppDir/usr/share/applications/${{ env.BINARY_NAME }}.desktop AppDir/
-
-      - name: Download AppImage tool
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: |
-          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-
-      - name: Create AppImage
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: |
-          ./appimagetool-x86_64.AppImage AppDir ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
-          chmod +x ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
-
       - name: Install cargo-deb
         if: matrix.arch == 'amd64'
         run: cargo install cargo-deb
@@ -115,9 +81,6 @@ jobs:
 
       - name: Generate checksums
         run: |
-          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage" ]; then
-            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage.sha256
-          fi
           if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb" ]; then
             sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb.sha256
           fi
@@ -127,7 +90,6 @@ jobs:
         with:
           name: linux-${{ matrix.target }}
           path: |
-            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
             ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.*
 
   build-macos:
