@@ -152,8 +152,8 @@
     <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize' />
 
     <!-- Icon is optional - comment out if sanchaar.ico doesn't exist -->
-    <!-- <Icon Id='ProductICO' SourceFile='assets\sanchaar.ico'/> -->
-    <!-- <Property Id='ARPPRODUCTICON' Value='ProductICO' /> -->
+    <Icon Id='ProductICO' SourceFile='assets\sanchaar.ico'/>
+    <Property Id='ARPPRODUCTICON' Value='ProductICO' />
     <Property Id='ARPHELPLINK' Value='https://github.com/nrjais/sanchaar' />
     <UI>
       <UIRef Id='WixUI_FeatureTree' />
