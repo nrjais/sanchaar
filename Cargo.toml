@@ -21,7 +21,7 @@ icon = [
   "assets/512x512.png",
   "assets/512x512@2x.png",
 ]
-category = "Network"
+category = "DeveloperTool"
 short_description = "A fast offline REST API Client"
 
 [package.metadata.deb]
