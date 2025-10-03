@@ -37,13 +37,11 @@ Once the tag is pushed, GitHub Actions will automatically:
 1. **Build for all platforms:**
    - Linux (x86_64 and aarch64)
      - AppImage (x86_64 only)
-     - .tar.gz
-     - .deb package
+     - .deb package (x86_64 only)
+     - .tar.gz (aarch64 only)
    - macOS (Intel and Apple Silicon)
      - .dmg installer
-     - .tar.gz with .app bundle
    - Windows (x86_64)
-     - .zip archive
      - .msi installer
 
 2. **Generate checksums (SHA256)** for all artifacts
@@ -65,9 +63,12 @@ After the workflow completes:
 
 ### Linux
 
-- **AppImage**: Universal format that runs on most Linux distributions
+**x86_64 (Intel/AMD 64-bit):**
+- **AppImage**: Universal format that runs on most Linux distributions (recommended)
 - **.deb**: For Debian/Ubuntu-based distributions
-- **.tar.gz**: For manual installation on any distribution
+
+**ARM64 (aarch64):**
+- **.tar.gz**: Archive for manual installation
 
 To install the .deb package:
 ```bash
@@ -77,8 +78,7 @@ sudo apt-get install -f  # Install dependencies if needed
 
 ### macOS
 
-- **.dmg**: Drag-and-drop installer for macOS
-- **.tar.gz**: Contains the .app bundle for manual installation
+- **.dmg**: Drag-and-drop installer for macOS (Intel and Apple Silicon)
 
 **Important Note about macOS Security:**
 
@@ -87,10 +87,11 @@ The builds are ad-hoc signed but not notarized by Apple. Users will need to remo
 xattr -cr /Applications/Sanchaar.app
 ```
 
+Or right-click → "Open" → Click "Open" in the security dialog.
+
 ### Windows
 
-- **.msi**: Standard Windows installer with Start Menu integration and PATH option
-- **.zip**: Portable version for manual extraction
+- **.msi**: Windows installer with Start Menu integration and optional PATH setup
 
 ## Rollback
 

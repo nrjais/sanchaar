@@ -41,14 +41,16 @@ Download the latest release for your platform from the [Releases page](https://g
 
 #### Linux Installation
 
-- **AppImage**: `chmod +x Sanchaar-*.AppImage && ./Sanchaar-*.AppImage`
-- **Debian/Ubuntu**: `sudo dpkg -i Sanchaar-*.deb && sudo apt-get install -f`
-- **Archive**: Extract and run the binary
+**x86_64 (64-bit Intel/AMD):**
+- **AppImage** (recommended): `chmod +x Sanchaar-*.AppImage && ./Sanchaar-*.AppImage`
+- **Debian/Ubuntu** (.deb): `sudo dpkg -i Sanchaar-*.deb && sudo apt-get install -f`
+
+**ARM64 (aarch64):**
+- **Archive** (.tar.gz): Extract and run the binary
 
 #### Windows Installation
 
-- **MSI Installer**: Double-click to install
-- **ZIP Archive**: Extract and run `Sanchaar.exe`
+- **MSI Installer**: Double-click to install with Start Menu integration and optional PATH setup
 
 ## Features
 

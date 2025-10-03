@@ -16,7 +16,7 @@ env:
 jobs:
   build-linux:
     name: Build Linux (${{ matrix.target }})
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         include:
@@ -100,7 +100,8 @@ jobs:
           ./appimagetool-x86_64.AppImage AppDir ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
           chmod +x ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage
 
-      - name: Create tar.gz archive
+      - name: Create tar.gz archive (ARM64 only)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           cd target/${{ matrix.target }}/release
           tar -czf ../../../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz ${{ env.BINARY_NAME }}
@@ -117,7 +118,9 @@ jobs:
 
       - name: Generate checksums
         run: |
-          sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz.sha256
+          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz" ]; then
+            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz.sha256
+          fi
           if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage" ]; then
             sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.AppImage.sha256
           fi
@@ -180,15 +183,9 @@ jobs:
           # Create DMG
           hdiutil create -volname "${{ env.BINARY_NAME }}" -srcfolder dist -ov -format UDZO ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg
 
-      - name: Create tar.gz archive
-        run: |
-          cd target/${{ matrix.target }}/release/bundle/osx
-          tar -czf ../../../../../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz ${{ env.BINARY_NAME }}.app
-
       - name: Generate checksums
         run: |
           shasum -a 256 ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg.sha256
-          shasum -a 256 ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.tar.gz.sha256
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -227,37 +224,23 @@ jobs:
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Create archive
-        shell: bash
-        run: |
-          mkdir archive
-          cp target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}.exe archive/
-          cd archive
-          7z a ../${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.zip *
-
       - name: Install cargo-wix
         run: cargo install cargo-wix
 
       - name: Create MSI installer
         shell: bash
-        continue-on-error: true
         run: |
           # Use existing wix/main.wxs if it exists, otherwise init
           if [ ! -f "wix/main.wxs" ]; then
             cargo wix init --no-build
           fi
           cargo wix --nocapture --target ${{ matrix.target }} --no-build
-          if [ -f "target/wix/*.msi" ]; then
-            cp target/wix/*.msi ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi
-          fi
+          cp target/wix/*.msi ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi
 
       - name: Generate checksums
         shell: bash
         run: |
-          sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.zip > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.zip.sha256
-          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi" ]; then
-            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi.sha256
-          fi
+          sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.msi.sha256
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
