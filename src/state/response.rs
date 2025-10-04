@@ -8,7 +8,8 @@ use serde_json::Value;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ResponseTabId {
     #[default]
-    Body,
+    BodyPreview,
+    BodyRaw,
     Headers,
 }
 
@@ -23,30 +24,29 @@ pub struct CompletedResponse {
     pub result: client::Response,
     pub content: Option<editor::Content>,
     pub raw: editor::Content,
-    pub mode: BodyMode,
     pub filtered_content: Option<editor::Content>,
     pub json_path_filter: editor::Content,
     pub value: Option<Value>,
 }
 
 impl CompletedResponse {
-    pub fn selected_content(&self) -> &editor::Content {
+    pub fn selected_content(&self, mode: BodyMode) -> &editor::Content {
         if let Some(filtered_content) = &self.filtered_content {
             return filtered_content;
         }
 
-        match self.mode {
+        match mode {
             BodyMode::Pretty => self.content.as_ref().unwrap_or(&self.raw),
             BodyMode::Raw => &self.raw,
         }
     }
 
-    pub fn selected_content_mut(&mut self) -> &mut editor::Content {
+    pub fn selected_content_mut(&mut self, mode: BodyMode) -> &mut editor::Content {
         if let Some(filtered_content) = &mut self.filtered_content {
             return filtered_content;
         }
 
-        match self.mode {
+        match mode {
             BodyMode::Pretty => self.content.as_mut().unwrap_or(&mut self.raw),
             BodyMode::Raw => &mut self.raw,
         }
@@ -80,7 +80,6 @@ impl CompletedResponse {
             content: pretty.map(|p| Content::with_text(p.as_str())),
             raw: Content::with_text(raw.as_str()),
             value,
-            mode: BodyMode::Pretty,
             filtered_content: None,
             json_path_filter: Content::new(),
         }
@@ -123,7 +122,7 @@ impl ResponsePane {
     pub fn new() -> Self {
         Self {
             state: ResponseState::Idle,
-            active_tab: ResponseTabId::Body,
+            active_tab: ResponseTabId::BodyPreview,
         }
     }
 

@@ -20,9 +20,8 @@ use crate::state::utils::headers_to_string;
 #[derive(Debug, Clone)]
 pub enum CompletedMsg {
     TabChanged(ResponseTabId),
-    CodeViewerMsg(CodeEditorMsg),
-    ToggleBodyMode,
-    CopyBodyToClipboard,
+    CodeViewerMsg(BodyMode, CodeEditorMsg),
+    CopyBodyToClipboard(BodyMode),
     SaveResponse,
     SaveToFile(Option<Arc<rfd::FileHandle>>),
     Done,
@@ -40,17 +39,11 @@ impl CompletedMsg {
             CompletedMsg::TabChanged(key) => {
                 tab.response.active_tab = key;
             }
-            CompletedMsg::CodeViewerMsg(msg) => {
-                msg.update(res.selected_content_mut());
+            CompletedMsg::CodeViewerMsg(mode, msg) => {
+                msg.update(res.selected_content_mut(mode));
             }
-            CompletedMsg::ToggleBodyMode => {
-                res.mode = match res.mode {
-                    BodyMode::Pretty => BodyMode::Raw,
-                    BodyMode::Raw => BodyMode::Pretty,
-                };
-            }
-            CompletedMsg::CopyBodyToClipboard => {
-                return clipboard::write(res.selected_content().text());
+            CompletedMsg::CopyBodyToClipboard(mode) => {
+                return clipboard::write(res.selected_content(mode).text());
             }
             CompletedMsg::SaveResponse => {
                 return create_file_dialog("Save response body").map(CompletedMsg::SaveToFile);
@@ -84,13 +77,13 @@ fn status_color(status: reqwest::StatusCode) -> Color {
     }
 }
 
-fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
+fn body_view(cr: &CompletedResponse, mode: BodyMode) -> Element<CompletedMsg> {
     let json_path_filter = line_editor(&cr.json_path_filter)
         .placeholder("$.filter")
         .highlight(false)
         .map(CompletedMsg::JsonPathFilter);
 
-    let content = cr.selected_content();
+    let content = cr.selected_content(mode);
     let is_json = cr.result.body.is_json();
     let content_type = if is_json {
         ContentType::Json
@@ -98,34 +91,25 @@ fn body_view(cr: &CompletedResponse) -> Element<CompletedMsg> {
         ContentType::Text
     };
 
+    let editor =
+        code_editor(content, content_type).map(move |msg| CompletedMsg::CodeViewerMsg(mode, msg));
+
     Column::new()
-        .push(code_editor(content, content_type).map(CompletedMsg::CodeViewerMsg))
         .push(is_json.then_some(json_path_filter))
+        .push(editor)
         .spacing(4)
         .height(iced::Length::Fill)
         .width(iced::Length::Fill)
         .into()
 }
 
-fn body_actions(cr: &CompletedResponse, status_size: u32) -> Row<'_, CompletedMsg> {
-    let body_mode = if cr.mode == BodyMode::Raw {
-        icons::Preview
-    } else {
-        icons::NoPreview
-    };
-
+fn body_actions<'a>(status_size: u32, mode: BodyMode) -> Row<'a, CompletedMsg> {
     Row::new()
-        .push(
-            button(icon(body_mode).size(status_size))
-                .padding([2, 4])
-                .style(button::text)
-                .on_press(CompletedMsg::ToggleBodyMode),
-        )
         .push(
             button(icon(icons::Copy).size(status_size))
                 .padding([2, 4])
                 .style(button::text)
-                .on_press(CompletedMsg::CopyBodyToClipboard),
+                .on_press(CompletedMsg::CopyBodyToClipboard(mode)),
         )
         .push(
             button(icon(icons::Download).size(status_size))
@@ -165,13 +149,11 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
     };
 
     let actions = match tab.response.active_tab {
-        ResponseTabId::Body => body_actions(cr, status_size),
+        ResponseTabId::BodyPreview => body_actions(status_size, BodyMode::Pretty),
+        ResponseTabId::BodyRaw => body_actions(status_size, BodyMode::Raw),
         ResponseTabId::Headers => headers_actions(status_size),
     };
-    let actions = actions
-        .spacing(4)
-        .padding([0, 4])
-        .align_y(Alignment::Center);
+    let actions = actions.spacing(8).padding(0).align_y(Alignment::Center);
 
     let status = Row::new()
         .push(actions)
@@ -198,7 +180,8 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
         .align_y(Alignment::Center);
 
     let tab_content = match tab.response.active_tab {
-        ResponseTabId::Body => body_view(cr),
+        ResponseTabId::BodyPreview => body_view(cr, BodyMode::Pretty),
+        ResponseTabId::BodyRaw => body_view(cr, BodyMode::Raw),
         ResponseTabId::Headers => {
             let headers = res
                 .headers
@@ -212,7 +195,8 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
     let tabs = button_tabs(
         tab.response.active_tab,
         [
-            button_tab(ResponseTabId::Body, || text("Body")),
+            button_tab(ResponseTabId::BodyPreview, || text("Preview")),
+            button_tab(ResponseTabId::BodyRaw, || text("Body")),
             button_tab(ResponseTabId::Headers, || text("Headers")),
         ]
         .into_iter(),
