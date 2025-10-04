@@ -1,4 +1,5 @@
 type BodyType = "text" | "base64";
+
 type RequestConfig = {
   method: string;
   host: string;
