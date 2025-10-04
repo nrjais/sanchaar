@@ -16,6 +16,11 @@ pub mod builders;
 mod cancellable_task;
 pub mod dialog;
 
+#[cfg(not(feature = "default"))]
+const DELAY: u64 = 1;
+#[cfg(feature = "default")]
+const DELAY: u64 = 100000;
+
 #[derive(Debug, Clone)]
 pub struct JobState {
     task: BackgroundTask,
@@ -127,7 +132,7 @@ impl TaskMsg {
 
 fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveCollections;
-    let schedule = state.common.collections.dirty && schedule_task(state, task, 1);
+    let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
     if !schedule {
         return Task::none();
     }
@@ -144,7 +149,7 @@ fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
 
 fn save_environments(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveEnvironments;
-    let schedule = state.common.collections.dirty && schedule_task(state, task, 1);
+    let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
     if !schedule {
         return Task::none();
     }
@@ -173,7 +178,7 @@ fn save_environments(state: &mut AppState) -> Task<TaskMsg> {
 
 fn check_dirty_requests(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::CheckDirtyRequests;
-    if !schedule_task(state, task, 2) {
+    if !schedule_task(state, task, DELAY * 2) {
         return Task::none();
     }
 
@@ -198,12 +203,7 @@ fn load_history(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
-    #[cfg(not(feature = "default"))]
-    let delay = 5;
-    #[cfg(feature = "default")]
-    let delay = 500000;
-
-    if !schedule_task(state, task, delay) {
+    if !schedule_task(state, task, DELAY * 5) {
         return Task::none();
     }
 
