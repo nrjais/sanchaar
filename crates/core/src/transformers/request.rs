@@ -22,7 +22,7 @@ fn enabled_params(params: KeyValList, env: &EnvironmentChain) -> Vec<(String, St
     params
         .into_iter()
         .filter(param_enabled)
-        .map(|param| (param.name, replace_env_vars(&param.value, env)))
+        .map(|param| (param.name, env.replace(&param.value)))
         .collect()
 }
 
@@ -55,7 +55,7 @@ fn req_headers(
 ) -> RequestBuilder {
     let iter = headers.into_iter().filter(param_enabled);
     for header in iter {
-        builder = builder.header(header.name, replace_env_vars(&header.value, env));
+        builder = builder.header(header.name, env.replace(&header.value));
     }
     builder
 }
@@ -103,7 +103,7 @@ fn process_url(
     env: &EnvironmentChain,
     path_params: KeyValList,
 ) -> Result<Url, anyhow::Error> {
-    let url = replace_env_vars(&url, env);
+    let url = env.replace(&url);
     let normalized_url = normalize_url(&url);
     let url = Url::parse(&normalized_url).context("Failed to parse URL")?;
     let url = replace_path_params(url, path_params, env);
@@ -122,23 +122,6 @@ fn normalize_url(url: &str) -> String {
     }
 }
 
-fn replace_env_vars(source: &str, env: &EnvironmentChain) -> String {
-    let mut buffer = String::new();
-    for span in parsers::parse_template(source) {
-        match span.token {
-            parsers::Token::Text(text) => buffer.push_str(&text),
-            parsers::Token::Variable(var) => {
-                let value = env.get(&var).unwrap_or(var);
-                buffer.push_str(&value);
-            }
-            parsers::Token::Escaped(text) => {
-                buffer.push_str(&text);
-            }
-        }
-    }
-    buffer
-}
-
 fn replace_path_params(mut url: Url, params: KeyValList, env: &EnvironmentChain) -> Url {
     let Some(segs) = url.path_segments() else {
         return url;
@@ -152,7 +135,7 @@ fn replace_path_params(mut url: Url, params: KeyValList, env: &EnvironmentChain)
                 .iter()
                 .rev()
                 .find(|param| param.name == name)
-                .map(|param| replace_env_vars(&param.value, env))
+                .map(|param| env.replace(&param.value))
                 .unwrap_or_else(|| name.to_owned());
             buffer.push_str(&value);
         } else {
@@ -171,7 +154,7 @@ async fn req_body(
 ) -> RequestBuilder {
     let body_header = |builder: RequestBuilder, data, content_type: Mime| {
         builder
-            .body(replace_env_vars(data, env))
+            .body(env.replace(data))
             .header(CONTENT_TYPE, content_type.as_ref())
     };
 
@@ -238,12 +221,12 @@ fn req_auth(builder: RequestBuilder, auth: Auth, env: &EnvironmentChain) -> Requ
     match auth {
         Auth::None => builder,
         Auth::Basic { username, password } => {
-            let username = replace_env_vars(&username, env);
-            let password = replace_env_vars(&password, env);
+            let username = env.replace(&username);
+            let password = env.replace(&password);
             builder.basic_auth(username, Some(password))
         }
         Auth::Bearer { token } => {
-            let token = replace_env_vars(&token, env);
+            let token = env.replace(&token);
             builder.bearer_auth(token)
         }
     }

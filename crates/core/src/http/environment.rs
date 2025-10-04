@@ -130,8 +130,8 @@ impl EnvironmentChain {
         }
     }
 
-    fn get_named(name: &str, list: &VarMap) -> Option<String> {
-        list.get(name).map(|s| s.to_owned())
+    fn get_named(name: &str, vars: &VarMap) -> Option<String> {
+        vars.get(name).map(|s| s.to_owned())
     }
 
     pub fn all_var_set(&self) -> Arc<HashSet<String>> {
@@ -144,13 +144,20 @@ impl EnvironmentChain {
         Arc::new(set)
     }
 
-    fn replace_dotenv(&self, source: &str) -> String {
+    fn get_from(&self, name: &str, vars: &[Arc<VarMap>]) -> Option<String> {
+        let name = name.trim_ascii();
+        vars.iter()
+            .find_map(|vars| Self::get_named(name, vars))
+            .map(|s| self.replace_with(&s, &[Arc::clone(&self.dotenv)]))
+    }
+
+    fn replace_with(&self, source: &str, vars: &[Arc<VarMap>]) -> String {
         let mut buffer = String::new();
         for span in parse_template(source) {
             match span.token {
                 Token::Text(text) => buffer.push_str(&text),
                 Token::Variable(var) => {
-                    let value = Self::get_named(&var, &self.dotenv).unwrap_or(var);
+                    let value = self.get_from(&var, vars).unwrap_or(var);
                     buffer.push_str(value.as_str());
                 }
                 Token::Escaped(text) => {
@@ -161,14 +168,7 @@ impl EnvironmentChain {
         buffer
     }
 
-    pub fn get(&self, name: &str) -> Option<String> {
-        let name = name.trim_ascii();
-        Self::get_named(name, &self.dotenv).or_else(|| {
-            self.vars
-                .iter()
-                .find_map(|vars| Self::get_named(name, vars))
-                .to_owned()
-                .map(|s| self.replace_dotenv(&s))
-        })
+    pub fn replace(&self, source: &str) -> String {
+        self.replace_with(source, self.vars.as_slice())
     }
 }

@@ -85,7 +85,7 @@ Download the latest release for your platform from the [Releases page](https://g
 - [ ] Collections/Folder
   - [x] Tree view
   - [x] Create/Open
-  - [ ] Auto Save
+  - [x] Auto Save
   - [ ] Refresh tree manually
   - [ ] Refresh tree automatically
   - [x] Remove
@@ -98,7 +98,7 @@ Download the latest release for your platform from the [Releases page](https://g
     - [x] SSL verification
     - [ ] Collection auth
     - [ ] Request preset
-    - [ ] Timeout
+    - [x] Timeout
 - [ ] Environments
   - [x] Add/Remove/Update
   - [x] Choose environment
