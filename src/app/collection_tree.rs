@@ -1,10 +1,8 @@
 use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
-use iced::widget::scrollable::Direction;
-use iced::widget::{
-    Button, Column, Row, Scrollable, button, column, container, responsive, row, text,
-};
-use iced::{Element, Length, Size, Task, clipboard, padding};
+use iced::widget::text::Wrapping;
+use iced::widget::{Button, Column, Row, Scrollable, button, column, container, row, text};
+use iced::{Element, Length, Task, clipboard, padding};
 
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
@@ -162,34 +160,23 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
-    let tree = responsive(|size| {
-        let tree = state.common.collections.iter().map(|(key, collection)| {
-            expandable(
-                key,
-                &collection.name,
-                &collection.entries,
-                collection.expanded,
-                CollectionTreeMsg::ToggleExpandCollection(key),
-                None,
-                size,
-                0,
-            )
-        });
-
-        Scrollable::new(
-            column(tree)
-                .spacing(4)
-                .padding(padding::right(12).bottom(12).left(4).top(4))
-                .width(Length::Fixed(size.width)),
+    let tree = state.common.collections.iter().map(|(key, collection)| {
+        expandable(
+            key,
+            &collection.name,
+            &collection.entries,
+            collection.expanded,
+            CollectionTreeMsg::ToggleExpandCollection(key),
+            None,
+            0,
         )
-        .direction(Direction::Both {
-            vertical: Default::default(),
-            horizontal: Default::default(),
-        })
-        .height(Length::Fill)
-        .width(Length::Fixed(size.width))
-        .into()
     });
+
+    let tree = Scrollable::new(
+        column(tree)
+            .spacing(4)
+            .padding(padding::right(12).bottom(12).left(4).top(4)),
+    );
 
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
     let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
@@ -215,14 +202,9 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         .into()
 }
 
-fn folder_tree(
-    col: CollectionKey,
-    entries: &[Entry],
-    size: Size,
-    indent: u32,
-) -> Element<CollectionTreeMsg> {
+fn folder_tree(col: CollectionKey, entries: &[Entry], indent: u32) -> Element<CollectionTreeMsg> {
     let it = entries.iter().map(|entry| match entry {
-        Entry::Item(item) => context_button_request(item, col, size, indent),
+        Entry::Item(item) => context_button_request(item, col, indent),
         Entry::Folder(folder) => expandable(
             col,
             &folder.name,
@@ -230,15 +212,11 @@ fn folder_tree(
             folder.expanded,
             CollectionTreeMsg::ToggleFolder(col, folder.id),
             Some(folder.id),
-            size,
             indent,
         ),
     });
 
-    column(it)
-        .spacing(2)
-        .width(Length::Fixed(size.width))
-        .into()
+    column(it).spacing(2).width(Length::Fill).into()
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -249,11 +227,10 @@ fn expandable<'a>(
     expanded: bool,
     on_expand_toggle: CollectionTreeMsg,
     folder_id: Option<FolderId>,
-    size: Size,
     indent: u32,
 ) -> Element<'a, CollectionTreeMsg> {
     if expanded {
-        let children = folder_tree(col, entries, size, indent + 1);
+        let children = folder_tree(col, entries, indent + 1);
         Column::new()
             .push(expandable_button(
                 name,
@@ -261,12 +238,10 @@ fn expandable<'a>(
                 icons::FolderOpen,
                 col,
                 folder_id,
-                size,
                 indent,
             ))
             .push(children)
             .spacing(2)
-            .width(Length::Fixed(size.width))
             .into()
     } else {
         expandable_button(
@@ -275,7 +250,6 @@ fn expandable<'a>(
             icons::Folder,
             col,
             folder_id,
-            size,
             indent,
         )
         .into()
@@ -288,23 +262,30 @@ fn expandable_button(
     arrow: NerdIcon,
     col: CollectionKey,
     folder_id: Option<FolderId>,
-    size: Size,
     indent: u32,
 ) -> impl Into<Element<CollectionTreeMsg>> {
     let base = button(
-        row([icon(arrow).size(18).into(), text(name).size(16).into()])
-            .align_y(iced::Alignment::Center)
-            .spacing(8),
+        row([
+            icon(arrow)
+                .size(18)
+                .wrapping(Wrapping::None)
+                .align_x(iced::Alignment::Start)
+                .into(),
+            text(name).wrapping(Wrapping::None).size(16).into(),
+        ])
+        .align_y(iced::Alignment::Center)
+        .clip(true)
+        .spacing(8),
     )
     .style(|theme, status| {
         if status == Status::Hovered || status == Status::Pressed {
-            button::subtle(theme, status)
+            button::subtle(theme, Status::Hovered)
         } else {
             button::text(theme, status)
         }
     })
     .on_press(on_expand_toggle)
-    .width(Length::Fixed(size.width))
+    .width(Length::Fill)
     .padding(padding::left(12 * indent + 4));
 
     if let Some(folder_id) = folder_id {
@@ -361,7 +342,6 @@ fn context_button_folder<'a>(
 fn context_button_request(
     item: &RequestRef,
     col: CollectionKey,
-    size: Size,
     indent: u32,
 ) -> Element<'_, CollectionTreeMsg> {
     let collection_request = CollectionRequest(col, item.id);
@@ -373,22 +353,23 @@ fn context_button_request(
                 .style(|t| text::Style {
                     color: Some(t.extended_palette().success.strong.color),
                 })
+                .align_x(iced::Alignment::Start)
                 .into(),
-            text(&item.name).size(16).into(),
+            text(&item.name).wrapping(Wrapping::None).size(16).into(),
         ])
         .align_y(iced::Alignment::Center)
-        .width(Length::Fixed(size.width))
+        .clip(true)
         .spacing(8),
     )
     .style(|theme, status| {
         if status == Status::Hovered || status == Status::Pressed {
-            button::subtle(theme, status)
+            button::subtle(theme, Status::Hovered)
         } else {
             button::text(theme, status)
         }
     })
     .padding(padding::left(12 * indent + 4))
-    .width(Length::Shrink)
+    .width(Length::Fill)
     .on_press(CollectionTreeMsg::OpenRequest(collection_request));
 
     let request_id = item.id;

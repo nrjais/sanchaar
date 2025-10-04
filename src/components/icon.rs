@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use iced::{
     Alignment::Center,
     Font, Length, Renderer, Theme,
@@ -27,6 +29,12 @@ pub fn icon_button<'a, M: 'a>(
 }
 
 pub struct NerdIcon(pub char);
+
+impl Display for NerdIcon {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[allow(dead_code, non_upper_case_globals)]
 pub mod icons {
