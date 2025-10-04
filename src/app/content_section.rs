@@ -122,11 +122,9 @@ fn tabs_view<'a>(
     active_tab: TabKey,
     tab: &'a Tab,
 ) -> Element<'a, MainPageMsg> {
-    let mut tabs = state.tabs.iter().collect::<Vec<_>>();
-    tabs.sort_unstable_by_key(|(key, _)| *key);
-
-    let tabs = tabs
-        .into_iter()
+    let tabs = state
+        .tabs
+        .iter()
         .map(|(key, tab)| match tab {
             Tab::Http(tab) => tab_card(*key, tab),
             Tab::Collection(tab) => col_tab(*key, tab),
