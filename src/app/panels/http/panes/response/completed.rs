@@ -177,7 +177,8 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
         )
         .spacing(4)
         .padding([0, 4])
-        .align_y(Alignment::Center);
+        .align_y(Alignment::Center)
+        .wrap();
 
     let tab_content = match tab.response.active_tab {
         ResponseTabId::BodyPreview => body_view(cr, BodyMode::Pretty),
