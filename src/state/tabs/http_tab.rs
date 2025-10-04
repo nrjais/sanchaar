@@ -1,9 +1,6 @@
-use iced::widget::pane_grid::Configuration;
-use iced::widget::pane_grid::{self, Axis};
 use tokio::sync::oneshot;
 
 use crate::commands::builders::ResponseResult;
-use crate::state::SplitState;
 use crate::state::response::ResponsePane;
 use core::http::request::Request;
 use core::http::{CollectionKey, CollectionRequest};
@@ -26,43 +23,30 @@ pub struct HttpTab {
     pub response: ResponsePane,
     pub tasks: Vec<oneshot::Sender<()>>,
     pub editing_name: Option<String>,
-    pub panes: pane_grid::State<SplitState>,
-    pub axis: Axis,
+    pub split_at: f32,
     pub request_dirty_state: RequestDirtyState,
 }
 
 impl HttpTab {
-    pub fn new(name: &str, request: Request, req_ref: CollectionRequest, axis: Axis) -> Box<Self> {
+    pub fn new(name: &str, request: Request, req_ref: CollectionRequest) -> Box<Self> {
         Box::new(Self {
             name: name.to_owned(),
             collection_ref: req_ref,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
             tasks: Vec::new(),
-            panes: HttpTab::pane_config(axis),
+            split_at: 0.45,
             editing_name: None,
-            axis,
             request_dirty_state: RequestDirtyState::Clean,
         })
     }
 
-    fn pane_config(axis: Axis) -> pane_grid::State<SplitState> {
-        let ratio = if axis == Axis::Vertical { 0.45 } else { 0.20 };
-        pane_grid::State::with_configuration(Configuration::Split {
-            axis,
-            ratio,
-            a: Box::new(Configuration::Pane(SplitState::First)),
-            b: Box::new(Configuration::Pane(SplitState::Second)),
-        })
+    pub fn new_def() -> Box<Self> {
+        Self::new("Untitled", Default::default(), Default::default())
     }
 
-    pub fn set_pane_axis(&mut self, axis: Axis) {
-        self.axis = axis;
-        self.panes = Self::pane_config(axis);
-    }
-
-    pub fn new_def(axis: Axis) -> Box<Self> {
-        Self::new("Untitled", Default::default(), Default::default(), axis)
+    pub fn set_split_at(&mut self, at: f32) {
+        self.split_at = at.clamp(0.25, 0.70);
     }
 
     pub fn from_history(
@@ -70,9 +54,8 @@ impl HttpTab {
         request: Request,
         response: core::client::Response,
         req_ref: CollectionRequest,
-        axis: Axis,
     ) -> Box<Self> {
-        let mut tab = Self::new(name, request, req_ref, axis);
+        let mut tab = Self::new(name, request, req_ref);
         tab.response.state = ResponseState::Completed(Box::new(CompletedResponse::new(response)));
         tab
     }

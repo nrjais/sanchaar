@@ -15,6 +15,7 @@ mod multi_file_picker;
 
 pub mod colors;
 pub mod editor;
+pub mod split;
 
 pub use bordered::{bordered_bottom, bordered_left, bordered_right, bordered_top};
 pub use button_tabs::{ButtonTab, button_tab, button_tabs, vertical_button_tabs};

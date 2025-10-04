@@ -1,11 +1,7 @@
-use crate::components::{NerdIcon, bordered_top, icon, icons, tooltip};
+use crate::components::{NerdIcon, bordered_top, icon, icons, split, tooltip};
 use iced::{
     Element, Task,
-    widget::{
-        Row, Tooltip, button,
-        pane_grid::{self},
-        space,
-    },
+    widget::{Row, Tooltip, button, space},
 };
 use iced::{border, padding};
 
@@ -17,14 +13,6 @@ pub enum BottomBarMsg {
     OpenCookies,
     ToggleSplit,
     ToggleSideBar,
-}
-
-fn change_axis_for_tabs(state: &mut AppState) {
-    for (_, tab) in state.tabs.iter_mut() {
-        if let Tab::Http(tab) = tab {
-            tab.set_pane_axis(state.split_axis);
-        }
-    }
 }
 
 impl BottomBarMsg {
@@ -45,11 +33,7 @@ impl BottomBarMsg {
                 Task::none()
             }
             ToggleSplit => {
-                state.split_axis = match state.split_axis {
-                    pane_grid::Axis::Vertical => pane_grid::Axis::Horizontal,
-                    pane_grid::Axis::Horizontal => pane_grid::Axis::Vertical,
-                };
-                change_axis_for_tabs(state);
+                state.split_direction = state.split_direction.toggle();
                 Task::none()
             }
         }
@@ -82,9 +66,9 @@ pub fn view(state: &AppState) -> Element<BottomBarMsg> {
         icons::OpenSideBar
     };
 
-    let split_icon = match state.split_axis {
-        pane_grid::Axis::Vertical => icons::SplitVertical,
-        pane_grid::Axis::Horizontal => icons::SplitHorizontal,
+    let split_icon = match state.split_direction {
+        split::Direction::Vertical => icons::SplitVertical,
+        split::Direction::Horizontal => icons::SplitHorizontal,
     };
 
     let buttons = Row::new()

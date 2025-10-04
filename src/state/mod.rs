@@ -1,6 +1,4 @@
 use iced::Theme;
-use iced::widget::pane_grid;
-use iced::widget::pane_grid::Configuration;
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
 use tabs::collection_tab::CollectionTab;
@@ -14,6 +12,7 @@ use std::sync::Arc;
 pub use tabs::http_tab::*;
 
 use crate::commands::JobState;
+use crate::components::split::Direction;
 use crate::state::popups::Popup;
 use crate::state::response::ResponseState;
 
@@ -23,14 +22,6 @@ pub mod request;
 pub mod response;
 pub mod tabs;
 pub mod utils;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum SplitState {
-    // Left or Top
-    First,
-    // Right or Bottom
-    Second,
-}
 
 core::new_id_type! {
     pub struct TabKey;
@@ -69,9 +60,7 @@ pub struct CommonState {
 
 #[derive(Debug)]
 pub struct PaneConfig {
-    pub panes: pane_grid::State<SplitState>,
-    pub prev_panes: pane_grid::State<SplitState>,
-    pub split_axis: pane_grid::Axis,
+    pub at: f32,
     pub side_bar_open: bool,
 }
 
@@ -84,25 +73,17 @@ impl Default for PaneConfig {
 impl PaneConfig {
     pub fn new() -> Self {
         Self {
-            prev_panes: pane_grid::State::with_configuration(Configuration::Pane(
-                SplitState::Second,
-            )),
-            panes: pane_grid::State::with_configuration(Configuration::Split {
-                axis: pane_grid::Axis::Vertical,
-                ratio: 0.20,
-                a: Box::new(Configuration::Pane(SplitState::First)),
-                b: Box::new(Configuration::Pane(SplitState::Second)),
-            }),
-            split_axis: pane_grid::Axis::Vertical,
+            at: 0.20,
             side_bar_open: true,
         }
     }
 
     pub fn toggle_side_bar(&mut self) {
         self.side_bar_open = !self.side_bar_open;
-        let current_panes = self.panes.clone();
-        self.panes = self.prev_panes.clone();
-        self.prev_panes = current_panes;
+    }
+
+    pub fn set_at(&mut self, at: f32) {
+        self.at = at.clamp(0.20, 0.35);
     }
 }
 
@@ -113,7 +94,7 @@ pub struct AppState {
     tab_history: indexmap::IndexSet<TabKey>,
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub pane_config: PaneConfig,
-    pub split_axis: pane_grid::Axis,
+    pub split_direction: Direction,
     pub theme: Theme,
 }
 
@@ -140,7 +121,7 @@ impl AppState {
                 history_db: None,
             },
             pane_config: PaneConfig::new(),
-            split_axis: pane_grid::Axis::Horizontal,
+            split_direction: Direction::Horizontal,
             theme: Theme::GruvboxDark,
         }
     }

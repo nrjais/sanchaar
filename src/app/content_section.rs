@@ -1,29 +1,25 @@
 use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
-use iced::widget::pane_grid::ResizeEvent;
-use iced::widget::{Column, PaneGrid, container, pane_grid, text};
+use iced::widget::{Column, container, text};
 use iced::{Alignment, Color, Element, Font, Length, Task, padding};
 
 use crate::app::bottom_bar::BottomBarMsg;
 use crate::app::panels::PanelMsg;
 
 use crate::app::{bottom_bar, collection_tree, panels};
-use crate::components::{
-    CardTab, TabBarAction, bordered_left, bordered_right, card_tab, card_tabs, colors, icon, icons,
-};
+use crate::components::split::vertical_split;
+use crate::components::{CardTab, TabBarAction, card_tab, card_tabs, colors, icon, icons};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::history_tab::HistoryTab;
-use crate::state::{AppState, HttpTab, SplitState, Tab, TabKey};
+use crate::state::{AppState, HttpTab, Tab, TabKey};
 use core::http::request::Method;
-
-const BORDER_WIDTH: u16 = 1;
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {
     TabBarAction(TabBarAction<TabKey>),
     Panel(PanelMsg),
     CollectionTree(CollectionTreeMsg),
-    SplitResize(ResizeEvent),
+    SplitResize(f32),
     BottomBar(BottomBarMsg),
     OpenHistoryTab,
 }
@@ -35,17 +31,15 @@ impl MainPageMsg {
                 use TabBarAction::*;
                 match action {
                     ChangeTab(tab) => state.switch_tab(tab),
-                    NewTab => state.open_tab(Tab::Http(HttpTab::new_def(state.split_axis))),
+                    NewTab => state.open_tab(Tab::Http(HttpTab::new_def())),
                     CloseTab(key) => state.close_tab(key),
                 }
                 Task::none()
             }
             Self::Panel(msg) => msg.update(state).map(Self::Panel),
             Self::CollectionTree(msg) => msg.update(state).map(Self::CollectionTree),
-            Self::SplitResize(ResizeEvent { split, ratio }) => {
-                if ratio > 0.20 && ratio < 0.35 {
-                    state.pane_config.panes.resize(split, ratio);
-                }
+            Self::SplitResize(ratio) => {
+                state.pane_config.set_at(ratio);
                 Task::none()
             }
             Self::OpenHistoryTab => {
@@ -69,41 +63,44 @@ impl MainPageMsg {
 
 fn method_color(_method: Method) -> Color {
     colors::CYAN
-    // Color::from_rgb8(0, 0, 0)
+}
+
+fn split_content(state: &AppState) -> Element<MainPageMsg> {
+    let tab_content = tab_panel(state);
+    let pane_config = &state.pane_config;
+    if pane_config.side_bar_open {
+        vertical_split(
+            side_bar(state),
+            tab_content,
+            pane_config.at,
+            MainPageMsg::SplitResize,
+        )
+        .handle_width(8.)
+        .line_width(2.)
+        .into()
+    } else {
+        tab_content
+    }
 }
 
 pub fn view(state: &AppState) -> Element<MainPageMsg> {
-    let panes = PaneGrid::new(&state.pane_config.panes, move |_, pane, _| {
-        let pane = match pane {
-            SplitState::First => side_bar(state),
-            SplitState::Second => tab_panel(state),
-        };
-        pane_grid::Content::new(pane)
-    })
-    .height(iced::Length::Fill)
-    .width(iced::Length::Fill)
-    .on_resize(8, MainPageMsg::SplitResize);
-
     Column::new()
-        .push(container(panes))
+        .push(split_content(state))
         .push(bottom_bar::view(state).map(MainPageMsg::BottomBar))
         .into()
 }
 
 fn side_bar(state: &AppState) -> Element<MainPageMsg> {
-    bordered_right(
-        BORDER_WIDTH,
-        container(collection_tree::view(state).map(MainPageMsg::CollectionTree))
-            .padding(padding::right(4)),
-    )
+    container(collection_tree::view(state).map(MainPageMsg::CollectionTree))
+        .padding(padding::right(4))
+        .into()
 }
 
 fn tab_panel(state: &AppState) -> Element<MainPageMsg> {
-    let tabs = match state.active_tab() {
+    match state.active_tab() {
         Some(tab) => tabs_view(state, state.active_tab, tab),
         None => no_tabs_view(),
-    };
-    bordered_left(BORDER_WIDTH, tabs)
+    }
 }
 
 fn no_tabs_view<'a>() -> Element<'a, MainPageMsg> {
