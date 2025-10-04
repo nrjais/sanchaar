@@ -92,7 +92,7 @@ pub(crate) fn view<'a>(
                 )
                 .size(16),
             )
-            .style(button::text)
+            .style(button::subtle)
             .padding([2, 6])
             .on_press(Message::OpenDialog),
         )
@@ -103,6 +103,6 @@ pub(crate) fn view<'a>(
         .push(name)
         .push(path)
         .spacing(4)
-        .width(300)
+        .width(400)
         .into()
 }

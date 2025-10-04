@@ -108,23 +108,25 @@ impl Collection {
         recurse(&mut self.entries.iter_mut(), id)
     }
 
-    pub fn folder(&self, id: FolderId) -> Option<&Folder> {
+    pub fn folder_path(&self, id: FolderId) -> Vec<&Folder> {
         fn recurse<'a>(
             entries: impl Iterator<Item = &'a Entry>,
             id: FolderId,
-        ) -> Option<&'a Folder> {
+            mut path: Vec<&'a Folder>,
+        ) -> Vec<&'a Folder> {
             for entry in entries {
-                if let Entry::Folder(folder) = entry {
-                    if folder.id == id {
-                        return Some(folder);
-                    } else if let Some(folder) = recurse(folder.entries.iter(), id) {
-                        return Some(folder);
+                if let Entry::Folder(directory) = entry {
+                    path.push(directory);
+                    if directory.id == id {
+                        return path;
+                    } else {
+                        return recurse(directory.entries.iter(), id, path);
                     }
                 }
             }
-            None
+            Vec::new()
         }
-        recurse(self.entries.iter(), id)
+        recurse(self.entries.iter(), id, Vec::new())
     }
 
     pub fn get_active_environment(&self) -> Option<&Environment> {

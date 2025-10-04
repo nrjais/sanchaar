@@ -65,7 +65,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
         .push(space::horizontal())
         .push(
             button("Cancel")
-                .style(button::secondary)
+                .style(button::subtle)
                 .on_press(PopupMsg::ClosePopup),
         )
         .push(

@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::ffi::OsStr;
 use std::ops::Not;
 
 use iced::widget::{Column, Row, button, container, scrollable, space, text, text_input};
@@ -9,6 +8,7 @@ use core::http::CollectionKey;
 use core::http::collection::{Collection, Entry, Folder, FolderId};
 
 use crate::commands::builders::save_tab_request_cmd;
+use crate::components::{icon, icons};
 use crate::state::AppState;
 use crate::state::popups::{Popup, SaveRequestState};
 
@@ -18,6 +18,8 @@ pub enum Message {
     NameChanged(String),
     SelectDir(FolderId),
     SelectCollection(CollectionKey),
+    ClearSelection,
+    ClearDirectory,
     Close,
 }
 
@@ -41,6 +43,15 @@ impl Message {
             }
             Message::SelectDir(folder) => {
                 data.folder_id = Some(folder);
+                Task::none()
+            }
+            Message::ClearSelection => {
+                data.col = None;
+                data.folder_id = None;
+                Task::none()
+            }
+            Message::ClearDirectory => {
+                data.folder_id = None;
                 Task::none()
             }
             Message::SelectCollection(col) => {
@@ -70,7 +81,7 @@ pub fn done(data: &SaveRequestState) -> Option<Message> {
     }
 }
 
-pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {
+pub fn col_selector<'a>(state: &'a AppState) -> Element<'a, Message> {
     let collections = state
         .common
         .collections
@@ -79,56 +90,63 @@ pub fn col_selector<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Elem
             let name = c.name.as_str();
             button(text(name))
                 .on_press(Message::SelectCollection(k))
-                .style(if Some(k) == data.col {
-                    button::primary
-                } else {
-                    button::text
-                })
+                .style(button::subtle)
+                .width(Length::Fill)
                 .padding([2, 4])
                 .into()
         })
         .collect();
 
-    scrollable(
-        Column::new()
-            .push("Collection")
-            .push(Column::from_vec(collections).width(Length::Shrink))
-            .spacing(4)
-            .padding(4)
-            .align_x(iced::Alignment::Center),
-    )
-    .into()
+    Column::from_vec(collections)
+        .align_x(iced::Alignment::Center)
+        .width(Length::Fill)
+        .into()
 }
 
-pub fn dir_selector(collection: &Collection, folder: Option<FolderId>) -> Element<Message> {
+pub fn dir_selector<'a>(
+    collection: &'a Collection,
+    folder: Option<&'a Folder>,
+) -> Element<'a, Message> {
     let children = match folder {
-        Some(folder) => &collection.folder(folder).expect("folder not found").entries,
+        Some(folder) => &folder.entries,
         _ => &collection.entries,
     };
 
     let entries: Vec<Element<Message>> = children
         .iter()
-        .filter_map(|e| match e {
-            Entry::Folder(Folder { id, name, .. }) => Some(
-                button(text(name))
-                    .padding([2, 4])
-                    .on_press(Message::SelectDir(*id))
-                    .into(),
-            ),
-            Entry::Item(_) => None,
+        .map(|e| match e {
+            Entry::Folder(Folder { id, name, .. }) => button(text(name))
+                .padding([2, 4])
+                .style(button::subtle)
+                .on_press(Message::SelectDir(*id))
+                .width(Length::Fill)
+                .into(),
+            Entry::Item(item) => Row::new()
+                .push(icon(icons::API))
+                .push(text(&item.name))
+                .spacing(8)
+                .padding([2, 4])
+                .align_y(iced::Alignment::Center)
+                .width(Length::Fill)
+                .into(),
         })
         .collect();
 
-    Column::new()
-        .push("Folder")
-        .push(Column::from_vec(entries))
-        .spacing(4)
-        .padding(4)
+    Column::from_vec(entries)
+        .width(Length::Fill)
         .align_x(iced::Alignment::Center)
         .into()
 }
 
-pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {
+fn breadcrumb<'a>(txt: &'a str, msg: Message) -> Element<'a, Message> {
+    button(text(txt))
+        .on_press(msg)
+        .style(button::text)
+        .padding([0, 2])
+        .into()
+}
+
+pub fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Element<'a, Message> {
     let collection = data.col.and_then(|col| state.common.collections.get(col));
 
     let name = Row::new()
@@ -142,38 +160,43 @@ pub(crate) fn view<'a>(state: &'a AppState, data: &'a SaveRequestState) -> Eleme
         .align_y(iced::Alignment::Center)
         .spacing(4);
 
-    // Use tree structure to display the collections and folders
-    let col_name = collection
+    let directory_path = collection
         .zip(data.folder_id)
-        .and_then(|(c, f)| c.folder(f))
-        .map(|f| f.path.as_os_str())
-        .or_else(|| collection.map(|c| c.path.as_os_str()))
-        .and_then(OsStr::to_str)
-        .unwrap_or("Select Collection");
+        .map(|(c, f)| c.folder_path(f))
+        .unwrap_or_default();
 
-    let path = Row::new()
-        .push(text("Location"))
-        .push(space::horizontal())
-        .push(text(col_name).size(12))
+    let mut path = Row::new()
         .align_y(iced::Alignment::Center)
-        .spacing(4);
+        .push(breadcrumb("Collection", Message::ClearSelection))
+        .push(collection.map(|_| text("/")))
+        .push(collection.map(|c| breadcrumb(&c.name, Message::ClearDirectory)));
 
-    let folder_selector = collection.map(|c| dir_selector(c, data.folder_id));
+    for folder in directory_path.iter() {
+        path = path.push(text("/"));
+        path = path.push(breadcrumb(&folder.name, Message::SelectDir(folder.id)));
+    }
 
-    let col_selector = container(
-        Row::new()
-            .push(col_selector(state, data))
-            .push(folder_selector),
-    )
-    .width(Length::Fill)
-    .max_height(500)
-    .style(container::bordered_box);
+    let folder_selector = collection.map(|c| dir_selector(c, directory_path.last().copied()));
+
+    let col_selector = scrollable(folder_selector.unwrap_or(col_selector(state)))
+        .width(Length::Fill)
+        .spacing(12)
+        .height(Length::Fixed(300.0));
+
+    let col_selector = container(col_selector)
+        .padding(4)
+        .style(container::bordered_box);
 
     Column::new()
         .push(name)
-        .push(path)
+        .push(container(text("Save to")))
+        .push(
+            container(path.wrap())
+                .style(container::bordered_box)
+                .padding(4),
+        )
         .push(col_selector)
-        .width(350)
-        .spacing(4)
+        .width(400)
+        .spacing(8)
         .into()
 }
