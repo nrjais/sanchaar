@@ -1,6 +1,6 @@
 name = "echo"
 main = "index.ts"
-compatibility_date = "2023-12-18"
+compatibility_date = "2025-10-01"
 
 [placement]
 mode = "smart"

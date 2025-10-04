@@ -6,7 +6,7 @@ type RequestConfig = {
   headers: Record<string, string>;
   queries: Record<string, string>;
   body: string;
-  bodyType: BodyType;
+  type: BodyType;
 };
 
 const accessControlHeaders = {
@@ -75,7 +75,7 @@ const getRequestBody = async (request: Request): Promise<RequestConfig> => {
 
   const headers = getHeaders(request);
   const queries = getQueries(request);
-  const [body, bodyType] = await getBody(request);
+  const [body, type] = await getBody(request);
 
   return {
     method,
@@ -83,7 +83,7 @@ const getRequestBody = async (request: Request): Promise<RequestConfig> => {
     path,
     queries,
     body,
-    bodyType,
+    type,
     headers,
   };
 };
