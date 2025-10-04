@@ -287,6 +287,30 @@ fn save_window_state(state: &mut AppState) -> Task<TaskMsg> {
     })
 }
 
+fn save_collections(state: &mut AppState) -> Task<TaskMsg> {
+    let task = BackgroundTask::SaveEnvironments;
+    let schedule = schedule_task(state, task, DELAY);
+    if !schedule {
+        return Task::none();
+    }
+
+    let mut tasks = Vec::new();
+    for collection in state.tabs.values_mut() {
+        if let Tab::Collection(tab) = collection
+            && tab.edited
+        {
+            let task = state
+                .common
+                .collections
+                .get_mut(tab.collection_key)
+                .map(|c| builders::save_collection_cmd(c, tab));
+            tasks.push(task.unwrap_or(Task::none()));
+        }
+    }
+
+    Task::batch(tasks).map(|_| TaskMsg::Completed(BackgroundTask::SaveCollections))
+}
+
 pub fn background(state: &mut AppState) -> Task<TaskMsg> {
     Task::batch([
         save_open_collections(state),
@@ -294,6 +318,7 @@ pub fn background(state: &mut AppState) -> Task<TaskMsg> {
         check_dirty_requests(state),
         load_history(state),
         search_history(state),
+        save_collections(state),
         save_window_state(state),
     ])
 }
