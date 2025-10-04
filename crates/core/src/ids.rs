@@ -4,15 +4,13 @@ macro_rules! new_id_type {
         $(#[$outer])*
         #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
         #[repr(transparent)]
-        $vis struct $name(u64);
+        $vis struct $name(uuid::Uuid);
 
         impl $name {
-            pub const ZERO: Self = Self(0);
+            pub const ZERO: Self = Self(uuid::Uuid::nil());
 
             pub fn new() -> Self {
-                use std::sync::atomic::{AtomicU64, Ordering};
-                static COUNTER: AtomicU64 = AtomicU64::new(1);
-                Self(COUNTER.fetch_add(1, Ordering::Relaxed))
+                Self(uuid::Uuid::new_v4())
             }
         }
 
