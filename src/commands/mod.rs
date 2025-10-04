@@ -31,6 +31,7 @@ pub struct JobState {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BackgroundTask {
+    SaveOpenCollections,
     SaveCollections,
     SaveEnvironments,
     CheckDirtyRequests,
@@ -133,7 +134,7 @@ impl TaskMsg {
 }
 
 fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
-    let task = BackgroundTask::SaveCollections;
+    let task = BackgroundTask::SaveOpenCollections;
     let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
     if !schedule {
         return Task::none();
@@ -141,10 +142,10 @@ fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
 
     let collections = state.common.collections.get_collections_for_save();
     Task::perform(collections::save(collections), |result| match result {
-        Ok(_) => TaskMsg::Completed(BackgroundTask::SaveCollections),
+        Ok(_) => TaskMsg::Completed(BackgroundTask::SaveOpenCollections),
         Err(e) => {
             log::error!("Error saving collections: {e:?}");
-            TaskMsg::Completed(BackgroundTask::SaveCollections)
+            TaskMsg::Completed(BackgroundTask::SaveOpenCollections)
         }
     })
 }
@@ -288,8 +289,8 @@ fn save_window_state(state: &mut AppState) -> Task<TaskMsg> {
 }
 
 fn save_collections(state: &mut AppState) -> Task<TaskMsg> {
-    let task = BackgroundTask::SaveEnvironments;
-    let schedule = schedule_task(state, task, DELAY);
+    let task = BackgroundTask::SaveCollections;
+    let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
     if !schedule {
         return Task::none();
     }
