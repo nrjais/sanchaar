@@ -2,7 +2,7 @@ use crate::components::editor::{self};
 use crate::state::request::RequestPane;
 use iced::Length::{Fill, Shrink};
 use iced::widget::{Button, Row, rule};
-use iced::{Border, border, clipboard, mouse};
+use iced::{Alignment, Border, border, clipboard, mouse};
 use iced::{
     Element, Task,
     widget::{button, container, pick_list},
@@ -119,7 +119,13 @@ fn update_path_params(tab: &mut Box<HttpTab>) {
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, UrlBarMsg> {
-    button(container(icon(ico)).padding([0, 8])).style(|t, s| button::Style {
+    button(
+        container(icon(ico))
+            .align_y(Alignment::Center)
+            .height(Fill)
+            .padding([0, 8]),
+    )
+    .style(|t, s| button::Style {
         border: border::rounded(0),
         ..button::primary(t, s)
     })
@@ -185,6 +191,7 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
 fn menu<'a>() -> Element<'a, UrlBarMsg> {
     let base = icon_button(icons::TriangleDown)
         .on_press(UrlBarMsg::Done)
+        .padding(0)
         .style(|t, s| button::Style {
             border: border::rounded(border::right(4)),
             ..button::primary(t, s)
