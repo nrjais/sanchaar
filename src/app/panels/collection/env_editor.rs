@@ -1,5 +1,5 @@
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, button, container, scrollable};
+use iced::widget::{Column, Row, button, container, rule, scrollable};
 use iced::{Element, Length, Task};
 
 use crate::app::panels::collection::env_table;
@@ -17,7 +17,6 @@ pub enum Message {
     CreatNewEnv,
     RenameEnv(EnvironmentKey),
     AddVariable,
-    Saved,
     UpdateVarValue(usize, EnvironmentKey, LineEditorMsg),
     UpdateVarName(usize, LineEditorMsg),
 }
@@ -34,7 +33,6 @@ impl Message {
             Message::DeleteEnv(env) => {
                 data.remove_env(env);
             }
-            Message::Saved => (),
             Message::CreatNewEnv => {
                 Popup::popup_name(
                     &mut state.common,
@@ -77,27 +75,34 @@ impl Message {
 }
 
 pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Message> {
-    let content = Column::new()
-        .push(container(env_table::view(tab, col)).style(container::bordered_box))
+    let actions = Row::new()
         .push(
             button("Add Variable")
                 .padding([2, 4])
                 .on_press(Message::AddVariable)
                 .style(button::secondary),
         )
-        .spacing(4);
+        .push(
+            button("New Environment")
+                .padding([2, 4])
+                .on_press(Message::CreatNewEnv)
+                .style(button::secondary),
+        )
+        .spacing(8);
 
-    container(
-        scrollable(content)
-            .direction(Direction::Both {
-                vertical: Scrollbar::default(),
-                horizontal: Scrollbar::default(),
-            })
-            .width(Length::Fill)
-            .height(Length::Fill),
-    )
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .padding([8, 0])
-    .into()
+    let editor = scrollable(container(env_table::view(tab, col)).style(container::bordered_box))
+        .direction(Direction::Both {
+            vertical: Scrollbar::default(),
+            horizontal: Scrollbar::default(),
+        })
+        .width(Length::Fill);
+
+    Column::new()
+        .push(actions)
+        .push(editor)
+        .spacing(8)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .padding([8, 0])
+        .into()
 }
