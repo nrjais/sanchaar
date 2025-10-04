@@ -59,7 +59,7 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
 
         let tab_content = Row::new()
             .align_y(Center)
-            .spacing(4)
+            .spacing(8)
             .push(container(tab_icon).padding([0, 2]))
             .push(label)
             .push(close_button);

@@ -7,14 +7,12 @@ use crate::components::LineEditorMsg;
 use core::http::collection::Collection;
 use core::http::environment::EnvironmentKey;
 
-use crate::commands::builders;
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::{AppState, Tab};
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    SaveEnvs,
     DeleteEnv(EnvironmentKey),
     CreatNewEnv,
     RenameEnv(EnvironmentKey),
@@ -30,15 +28,9 @@ impl Message {
         let Some(Tab::Collection(tab)) = state.tabs.get_mut(&key) else {
             return Task::none();
         };
-        let Some(collection) = state.common.collections.get_mut(tab.collection_key) else {
-            return Task::none();
-        };
         let data = &mut tab.env_editor;
 
         match self {
-            Message::SaveEnvs => {
-                return builders::save_environments_cmd(collection, data).map(|_| Message::Saved);
-            }
             Message::DeleteEnv(env) => {
                 data.edited = true;
                 data.environments.remove(&env);

@@ -26,7 +26,7 @@ pub fn icon_button<'a, M: 'a>(
         .width(Length::Shrink)
 }
 
-pub struct NerdIcon(char);
+pub struct NerdIcon(pub char);
 
 #[allow(dead_code, non_upper_case_globals)]
 pub mod icons {

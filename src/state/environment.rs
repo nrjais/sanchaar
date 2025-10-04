@@ -1,5 +1,8 @@
 use core::http::{Environment, EnvironmentKey, environment::Environments};
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use crate::components::editor;
 
@@ -49,6 +52,30 @@ impl EnvironmentsEditor {
         for variable in self.variables.iter_mut() {
             variable.values.insert(env_key, editor::Content::new());
         }
+    }
+
+    pub fn get_envs(&self) -> HashMap<EnvironmentKey, Environment> {
+        let mut envs = HashMap::new();
+        for variable in self.variables.iter() {
+            for (env_key, content) in variable.values.iter() {
+                let env = envs.entry(*env_key).or_insert_with(|| HashMap::new());
+                env.insert(variable.name.text(), content.text());
+            }
+        }
+
+        let envname = |key: &EnvironmentKey| self.environments.get(key).map(|env| env.name.clone());
+
+        envs.into_iter()
+            .filter_map(|(key, env)| {
+                Some((
+                    key,
+                    Environment {
+                        name: envname(&key)?,
+                        variables: Arc::new(env),
+                    },
+                ))
+            })
+            .collect()
     }
 }
 

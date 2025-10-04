@@ -126,7 +126,7 @@ impl TaskMsg {
 
 fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveCollections;
-    let schedule = state.common.collections.dirty && schedule_task(state, task, 0);
+    let schedule = state.common.collections.dirty && schedule_task(state, task, 1);
     if !schedule {
         return Task::none();
     }

@@ -295,8 +295,8 @@ pub fn save_environments_cmd(
     data: &mut EnvironmentsEditor,
 ) -> Task<()> {
     data.edited = false;
-    for (key, env) in data.environments.iter() {
-        collection.update_environment(*key, env.clone());
+    for (key, env) in data.get_envs().into_iter() {
+        collection.update_environment(key, env);
     }
     let encoded = encode_environments(&collection.environments);
     let mut delete_path = Vec::new();
