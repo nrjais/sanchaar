@@ -1,6 +1,7 @@
 name = "echo"
 main = "index.ts"
 compatibility_date = "2025-10-01"
+preview_urls = false
 
 [placement]
 mode = "smart"
