@@ -1343,7 +1343,7 @@ mod tests {
 
     #[test]
     fn test_real_world_long_flags_with_line_continuation() {
-        let cmd = r#"curl --location --request GET 'echo.sanchaar.app?test=hello' \
+        let cmd = r#"curl --location --request GET 'echo.nrjais.com?test=hello' \
 --header 'test: 1235' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -1352,7 +1352,7 @@ mod tests {
         let req = parse_curl_command(cmd).unwrap();
 
         assert_eq!(req.method, Method::GET);
-        assert_eq!(req.url, "echo.sanchaar.app?test=hello");
+        assert_eq!(req.url, "echo.nrjais.com?test=hello");
 
         // Verify headers
         assert_eq!(req.headers.iter().count(), 2);

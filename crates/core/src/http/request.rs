@@ -66,7 +66,7 @@ impl Default for Request {
         Self {
             description: "Http request".to_string(),
             method: Method::GET,
-            url: "https://echo.sanchaar.app".to_string(),
+            url: "https://echo.nrjais.com".to_string(),
             headers: KeyValList::new(),
             body: RequestBody::None,
             query_params: KeyValList::new(),
