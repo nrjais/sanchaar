@@ -26,6 +26,7 @@ pub struct JobState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BackgroundTask {
     SaveCollections,
+    SaveEnvironments,
     CheckDirtyRequests,
     InitializeHistory,
     LoadHistory,
@@ -141,6 +142,35 @@ fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     })
 }
 
+fn save_environments(state: &mut AppState) -> Task<TaskMsg> {
+    let task = BackgroundTask::SaveEnvironments;
+    let schedule = state.common.collections.dirty && schedule_task(state, task, 1);
+    if !schedule {
+        return Task::none();
+    }
+
+    let mut environments = Vec::new();
+    for collection in state.tabs.values_mut() {
+        if let Tab::Collection(tab) = collection
+            && tab.env_editor.edited
+        {
+            let envs = tab.env_editor.get_envs_for_save();
+            environments.push((tab.collection_key, envs));
+        }
+    }
+
+    let mut tasks = Vec::new();
+    for (key, envs) in environments {
+        let task = state
+            .common
+            .collections
+            .with_collection_mut(key, |c| builders::save_environments_cmd(c, envs));
+        tasks.push(task.unwrap_or(Task::none()));
+    }
+
+    Task::batch(tasks).map(|_| TaskMsg::Completed(BackgroundTask::SaveEnvironments))
+}
+
 fn check_dirty_requests(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::CheckDirtyRequests;
     if !schedule_task(state, task, 2) {
@@ -240,6 +270,7 @@ fn search_history(state: &mut AppState) -> Task<TaskMsg> {
 pub fn background(state: &mut AppState) -> Task<TaskMsg> {
     Task::batch([
         save_open_collections(state),
+        save_environments(state),
         check_dirty_requests(state),
         load_history(state),
         search_history(state),

@@ -182,6 +182,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
             .push(default_env)
             .push(disable_ssl)
             .push(timeout)
+            .push(space::horizontal().width(Length::Fixed(8.)))
             .push(variables_view(&tab.variables, collection_vars))
             .push(headers_view(&tab.headers, header_vars))
             .spacing(8)

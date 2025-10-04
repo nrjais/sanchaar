@@ -68,8 +68,18 @@ impl Environments {
             .map(|(id, _)| *id)
     }
 
-    pub fn remove(&mut self, key: EnvironmentKey) -> Option<Environment> {
-        self.envs.remove(&key)
+    pub(crate) fn replace_all(
+        &mut self,
+        envs: HashMap<EnvironmentKey, Environment>,
+    ) -> Vec<Environment> {
+        let removed = self
+            .envs
+            .extract_if(|key, _| !envs.contains_key(key))
+            .map(|(_, env)| env)
+            .collect();
+
+        self.envs = envs;
+        removed
     }
 }
 

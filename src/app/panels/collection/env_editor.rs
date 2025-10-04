@@ -32,9 +32,7 @@ impl Message {
 
         match self {
             Message::DeleteEnv(env) => {
-                data.edited = true;
-                data.environments.remove(&env);
-                data.deleted.push(env);
+                data.remove_env(env);
             }
             Message::Saved => (),
             Message::CreatNewEnv => {

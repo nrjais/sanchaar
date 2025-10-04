@@ -13,11 +13,7 @@ use crate::{
         ResponseResult, save_collection_cmd, save_environments_cmd, save_request_cmd,
         send_request_cmd,
     },
-    state::{
-        AppState, HttpTab, Tab, TabKey,
-        popups::Popup,
-        tabs::collection_tab::{CollectionTab, CollectionTabId},
-    },
+    state::{AppState, HttpTab, Tab, TabKey, popups::Popup, tabs::collection_tab::CollectionTab},
 };
 
 #[derive(Debug, Clone)]
@@ -144,17 +140,18 @@ fn save_tab(state: &mut AppState) -> Task<Message> {
                 })
         }
         Tab::Collection(tab) => {
-            let collection = state.common.collections.get_mut(tab.collection_key);
-            let cb = move |_| Message::Done;
-            let task = match tab.tab {
-                CollectionTabId::Settings => {
-                    collection.map(|c| save_collection_cmd(c, tab).map(cb))
-                }
-                CollectionTabId::Environments => {
-                    collection.map(|c| save_environments_cmd(c, &mut tab.env_editor).map(cb))
-                }
-            };
-            task.unwrap_or(Task::none())
+            let mut collection = state.common.collections.get_mut(tab.collection_key);
+            let save_collection = collection
+                .as_mut()
+                .map(|c| save_collection_cmd(c, tab))
+                .unwrap_or(Task::none());
+
+            let save_environments = collection
+                .as_mut()
+                .map(|c| save_environments_cmd(c, tab.env_editor.get_envs_for_save()))
+                .unwrap_or(Task::none());
+
+            Task::batch([save_collection, save_environments]).map(move |_| Message::Done)
         }
         Tab::CookieStore(_) => Task::none(),
         Tab::History(_) => Task::none(),

@@ -16,7 +16,6 @@ pub struct EnvVariable {
 pub struct EnvironmentsEditor {
     pub variables: Vec<EnvVariable>,
     pub environments: HashMap<EnvironmentKey, Environment>,
-    pub deleted: Vec<EnvironmentKey>,
     pub edited: bool,
 }
 
@@ -28,7 +27,9 @@ impl EnvironmentsEditor {
 
     pub fn remove_env(&mut self, env_key: EnvironmentKey) -> Option<Environment> {
         self.edited = true;
-        self.deleted.push(env_key);
+        for variable in self.variables.iter_mut() {
+            variable.values.remove(&env_key);
+        }
         self.environments.remove(&env_key)
     }
 
@@ -54,11 +55,12 @@ impl EnvironmentsEditor {
         }
     }
 
-    pub fn get_envs(&self) -> HashMap<EnvironmentKey, Environment> {
+    pub fn get_envs_for_save(&mut self) -> HashMap<EnvironmentKey, Environment> {
+        self.edited = false;
         let mut envs = HashMap::new();
         for variable in self.variables.iter() {
             for (env_key, content) in variable.values.iter() {
-                let env = envs.entry(*env_key).or_insert_with(|| HashMap::new());
+                let env = envs.entry(*env_key).or_insert_with(HashMap::new);
                 env.insert(variable.name.text(), content.text());
             }
         }
@@ -108,7 +110,6 @@ pub fn environment_keyvals(envs: &Environments) -> EnvironmentsEditor {
     EnvironmentsEditor {
         variables,
         environments,
-        deleted: Vec::new(),
         edited: false,
     }
 }
