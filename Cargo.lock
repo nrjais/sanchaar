@@ -10,6 +10,7 @@ dependencies = [
  "chrono",
  "cookie_store 0.22.0",
  "core",
+ "directories",
  "humansize",
  "iced",
  "iced_core",

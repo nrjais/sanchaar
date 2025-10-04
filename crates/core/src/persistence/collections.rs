@@ -48,7 +48,7 @@ pub struct CollectionsState {
     pub open: Vec<CollectionConfig>,
 }
 
-fn project_dirs() -> Option<ProjectDirs> {
+pub fn project_dirs() -> Option<ProjectDirs> {
     ProjectDirs::from("com", "nrjais", "sanchaar")
 }
 

@@ -5,6 +5,7 @@ use iced::Task;
 use log::info;
 use std::time::Instant;
 
+use crate::window::write_window_state;
 use crate::{
     app::AppMsg,
     state::{AppState, RequestDirtyState, Tab, TabKey},
@@ -36,6 +37,7 @@ pub enum BackgroundTask {
     InitializeHistory,
     LoadHistory,
     SearchHistory,
+    SaveWindowState,
 }
 
 fn remove_task(state: &mut AppState, task: BackgroundTask) {
@@ -267,6 +269,24 @@ fn search_history(state: &mut AppState) -> Task<TaskMsg> {
     })
 }
 
+fn save_window_state(state: &mut AppState) -> Task<TaskMsg> {
+    let task = BackgroundTask::SaveWindowState;
+    if !schedule_task(state, task, 0) {
+        return Task::none();
+    }
+
+    let window_state = state.window_state.clone();
+    Task::future(async move {
+        match write_window_state(&window_state).await {
+            Ok(_) => TaskMsg::Completed(BackgroundTask::SaveWindowState),
+            Err(e) => {
+                log::error!("Error saving window state: {e:?}");
+                TaskMsg::Completed(BackgroundTask::SaveWindowState)
+            }
+        }
+    })
+}
+
 pub fn background(state: &mut AppState) -> Task<TaskMsg> {
     Task::batch([
         save_open_collections(state),
@@ -274,6 +294,7 @@ pub fn background(state: &mut AppState) -> Task<TaskMsg> {
         check_dirty_requests(state),
         load_history(state),
         search_history(state),
+        save_window_state(state),
     ])
 }
 

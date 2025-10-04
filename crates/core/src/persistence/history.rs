@@ -13,6 +13,7 @@ use std::time::Duration;
 use crate::client::{ContentType, Response, ResponseBody};
 use crate::http::KeyValList;
 use crate::http::request::{Auth, Method, Request, RequestBody};
+use crate::persistence::collections::project_dirs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HistoryEntry {
@@ -492,7 +493,7 @@ impl HistoryEntry {
 }
 
 pub fn get_history_db_path() -> Result<PathBuf> {
-    let data_dir = directories::ProjectDirs::from("com", "nrjais", "sanchaar")
+    let data_dir = project_dirs()
         .ok_or_else(|| anyhow::anyhow!("Could not find data directory"))?
         .data_dir()
         .to_path_buf();

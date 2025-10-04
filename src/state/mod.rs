@@ -1,6 +1,7 @@
 use iced::Theme;
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
+use serde::{Deserialize, Serialize};
 use tabs::collection_tab::CollectionTab;
 use tabs::cookies_tab::CookiesTab;
 use tabs::history_tab::HistoryTab;
@@ -87,6 +88,16 @@ impl PaneConfig {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WindowState {
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+    #[serde(default, skip)]
+    pub changed: bool,
+}
+
 #[derive(Debug)]
 pub struct AppState {
     pub common: CommonState,
@@ -96,16 +107,11 @@ pub struct AppState {
     pub pane_config: PaneConfig,
     pub split_direction: Direction,
     pub theme: Theme,
-}
-
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
+    pub window_state: WindowState,
 }
 
 impl AppState {
-    pub fn new() -> Self {
+    pub fn new(window_state: WindowState) -> Self {
         let store = create_cookie_store();
         Self {
             active_tab: TabKey::ZERO,
@@ -123,6 +129,7 @@ impl AppState {
             pane_config: PaneConfig::new(),
             split_direction: Direction::Horizontal,
             theme: Theme::GruvboxDark,
+            window_state,
         }
     }
 
