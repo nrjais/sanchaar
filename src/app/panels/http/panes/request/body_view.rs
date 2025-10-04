@@ -6,7 +6,7 @@ use crate::components::{
 use crate::state::request::RawRequestBody;
 use iced::{
     Element, Length,
-    widget::{Column, Row, button, center, container, pick_list, scrollable, space, text},
+    widget::{Column, Row, button, center, container, pick_list, scrollable, text},
 };
 use std::{collections::HashSet, path::PathBuf, sync::Arc};
 
