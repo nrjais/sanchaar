@@ -61,7 +61,6 @@ pub struct Collection {
     pub active_environment: Option<EnvironmentKey>,
     pub default_env: Option<EnvironmentKey>,
     pub headers: Arc<KeyValList>,
-    pub variables: Arc<VarMap>,
     pub dotenv: Arc<VarMap>,
     pub disable_ssl: bool,
     pub timeout: Duration,
@@ -309,7 +308,7 @@ impl Collection {
             .map(|e| e.vars())
             .unwrap_or_default();
 
-        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env, Arc::clone(&self.variables)])
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env])
     }
 
     pub fn collection_env_chain(&self) -> EnvironmentChain {
@@ -338,7 +337,6 @@ impl Default for Collection {
             active_environment: None,
             default_env: None,
             headers: Default::default(),
-            variables: Default::default(),
             dotenv: Default::default(),
             disable_ssl: false,
             timeout: Duration::from_secs(300),

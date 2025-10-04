@@ -420,12 +420,6 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
         .as_ref()
         .and_then(|name| collection.environments.find_by_name(name));
     collection.headers = Arc::new(to_core_kv_list(&tab.headers));
-    let variables = tab
-        .variables
-        .iter()
-        .map(|(name, value)| (name.clone(), value.text()))
-        .collect();
-    collection.variables = Arc::new(variables);
     collection.disable_ssl = tab.disable_ssl;
     collection.timeout = tab.timeout;
 

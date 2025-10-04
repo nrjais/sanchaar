@@ -36,8 +36,6 @@ pub struct EncodedCollection {
     pub default_environment: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub headers: Vec<EncodedKeyValue>,
-    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub variables: HashMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,7 +74,6 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
             timeout: Duration::from_secs(300),
             default_environment: None,
             headers: vec![],
-            variables: HashMap::new(),
         },
     )
     .await?;
@@ -176,7 +173,6 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         path,
         environments,
         headers: decode_key_values(collection.headers).into(),
-        variables: collection.variables.into(),
         dotenv: dotenv.into(),
         disable_ssl: collection.disable_cert_verification,
         default_env,
@@ -283,7 +279,6 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
             .and_then(|env| collection.environments.get(env))
             .map(|env| env.name.clone()),
         headers: encode_key_values(KeyValList::clone(&collection.headers)),
-        variables: HashMap::clone(&collection.variables),
     }
 }
 

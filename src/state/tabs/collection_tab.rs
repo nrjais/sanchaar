@@ -1,9 +1,7 @@
-use core::http::VarMap;
 use core::http::{CollectionKey, collection::Collection};
-use std::collections::HashMap;
 use std::time::Duration;
 
-use crate::components::{KeyValList, editor};
+use crate::components::KeyValList;
 
 use crate::state::environment::EnvironmentsEditor;
 use crate::state::{environment::environment_keyvals, utils::from_core_kv_list};
@@ -23,17 +21,10 @@ pub struct CollectionTab {
     pub tab: CollectionTabId,
     pub env_editor: EnvironmentsEditor,
     pub headers: KeyValList,
-    pub variables: HashMap<String, editor::Content>,
     pub disable_ssl: bool,
     pub timeout: Duration,
     pub timeout_str: String,
     pub edited: bool,
-}
-
-fn var_map_editor(vars: &VarMap) -> HashMap<String, editor::Content> {
-    vars.iter()
-        .map(|(name, value)| (name.clone(), editor::Content::with_text(value)))
-        .collect()
 }
 
 impl CollectionTab {
@@ -50,7 +41,6 @@ impl CollectionTab {
             default_env,
             collection_key: key,
             headers: from_core_kv_list(&col.headers, false),
-            variables: var_map_editor(&col.variables),
             env_editor: environment_keyvals(&col.environments),
             disable_ssl: col.disable_ssl,
             timeout: col.timeout,
