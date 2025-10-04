@@ -1,5 +1,5 @@
 use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, Row, button, container, rule, scrollable};
+use iced::widget::{Column, Row, button, container, scrollable};
 use iced::{Element, Length, Task};
 
 use crate::app::panels::collection::env_table;
