@@ -1,26 +1,27 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
-use crate::http::KeyValList;
 use crate::http::environment::{Environment, Environments};
 
 use super::ENVIRONMENTS;
-use super::{EncodedKeyValue, TOML_EXTENSION, Version};
+use super::{TOML_EXTENSION, Version};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EncodedEnvironment {
     pub name: String,
     pub version: Version,
-    pub variables: Vec<EncodedKeyValue>,
+    #[serde(default)]
+    pub variables: HashMap<String, String>,
 }
 
 impl From<EncodedEnvironment> for Environment {
     fn from(val: EncodedEnvironment) -> Self {
         Environment {
             name: val.name,
-            variables: KeyValList::from(val.variables.into_iter().map(Into::into).collect()).into(),
+            variables: val.variables.into(),
         }
     }
 }
@@ -30,11 +31,7 @@ impl From<Environment> for EncodedEnvironment {
         EncodedEnvironment {
             name: environment.name,
             version: Version::V1,
-            variables: KeyValList::clone(&environment.variables)
-                .into_iter()
-                .filter(|kv| !kv.name.is_empty())
-                .map(Into::into)
-                .collect(),
+            variables: HashMap::clone(&environment.variables),
         }
     }
 }

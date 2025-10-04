@@ -1,12 +1,10 @@
-use core::http::{CollectionKey, collection::Collection, environment::EnvironmentKey};
-use std::{collections::BTreeMap, time::Duration};
+use core::http::{CollectionKey, collection::Collection};
+use std::time::Duration;
 
 use crate::components::KeyValList;
 
-use crate::state::{
-    environment::{Env, environment_keyvals},
-    utils::from_core_kv_list,
-};
+use crate::state::environment::EnvironmentsEditor;
+use crate::state::{environment::environment_keyvals, utils::from_core_kv_list};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum CollectionTabId {
@@ -16,22 +14,13 @@ pub enum CollectionTabId {
 }
 
 #[derive(Debug)]
-pub struct EnvironmentEditor {
-    pub environments: BTreeMap<EnvironmentKey, Env>,
-    pub deleted: Vec<EnvironmentKey>,
-    pub selected_env: Option<EnvironmentKey>,
-    pub edited: bool,
-}
-
-#[derive(Debug)]
 pub struct CollectionTab {
     pub name: String,
     pub default_env: Option<String>,
     pub collection_key: CollectionKey,
     pub tab: CollectionTabId,
-    pub env_editor: EnvironmentEditor,
+    pub env_editor: EnvironmentsEditor,
     pub headers: KeyValList,
-    pub variables: KeyValList,
     pub disable_ssl: bool,
     pub timeout: Duration,
     pub timeout_str: String,
@@ -52,33 +41,11 @@ impl CollectionTab {
             default_env,
             collection_key: key,
             headers: from_core_kv_list(&col.headers, false),
-            variables: from_core_kv_list(&col.variables, false),
-            env_editor: EnvironmentEditor {
-                environments: environment_keyvals(&col.environments),
-                deleted: Vec::new(),
-                selected_env: col.active_environment,
-                edited: false,
-            },
+            env_editor: environment_keyvals(&col.environments),
             disable_ssl: col.disable_ssl,
             timeout: col.timeout,
             timeout_str: col.timeout.as_millis().to_string(),
             edited: false,
         }
-    }
-
-    pub fn add_env(&mut self, env: Env) {
-        self.env_editor
-            .environments
-            .insert(EnvironmentKey::new(), env);
-        self.env_editor.edited = true;
-    }
-
-    pub fn remove_env(&mut self, env_key: EnvironmentKey) -> Option<Env> {
-        self.env_editor.edited = true;
-        if self.env_editor.selected_env == Some(env_key) {
-            self.env_editor.selected_env = None;
-        }
-        self.env_editor.deleted.push(env_key);
-        self.env_editor.environments.remove(&env_key)
     }
 }

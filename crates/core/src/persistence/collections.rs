@@ -1,8 +1,9 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use crate::http::KeyValList;
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
-use crate::http::{KeyValList, KeyValue};
 use crate::persistence::Version;
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
@@ -33,10 +34,8 @@ pub struct EncodedCollection {
     pub timeout: Duration,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_environment: Option<String>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub headers: Vec<EncodedKeyValue>,
-    #[serde(default)]
-    pub variables: Vec<EncodedKeyValue>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -75,7 +74,6 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
             timeout: Duration::from_secs(300),
             default_environment: None,
             headers: vec![],
-            variables: vec![],
         },
     )
     .await?;
@@ -175,7 +173,6 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         path,
         environments,
         headers: decode_key_values(collection.headers).into(),
-        variables: decode_key_values(collection.variables).into(),
         dotenv: dotenv.into(),
         disable_ssl: collection.disable_cert_verification,
         default_env,
@@ -185,21 +182,12 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
     })
 }
 
-fn read_dotenv(path: &Path) -> KeyValList {
+fn read_dotenv(path: &Path) -> HashMap<String, String> {
     let Ok(vars) = dotenvy::from_filename_iter(path.join(".env")) else {
-        return KeyValList::new();
+        return HashMap::new();
     };
 
-    let vars = vars
-        .filter_map(|r| r.ok())
-        .map(|(k, v)| KeyValue {
-            name: format!("env.{k}"),
-            value: v,
-            disabled: false,
-        })
-        .collect();
-
-    KeyValList::from(vars)
+    vars.filter_map(|r| r.ok()).collect()
 }
 
 pub async fn find_all_scripts(col: &Path) -> Result<Vec<Script>> {
@@ -291,7 +279,6 @@ pub fn encode_collection(collection: &Collection) -> EncodedCollection {
             .and_then(|env| collection.environments.get(env))
             .map(|env| env.name.clone()),
         headers: encode_key_values(KeyValList::clone(&collection.headers)),
-        variables: encode_key_values(KeyValList::clone(&collection.variables)),
     }
 }
 

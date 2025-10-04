@@ -2,7 +2,7 @@ use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::pane_grid::ResizeEvent;
 use iced::widget::{Column, PaneGrid, container, pane_grid, text};
-use iced::{Color, Element, Font, Length, Task, padding};
+use iced::{Alignment, Color, Element, Font, Length, Task, padding};
 
 use crate::app::bottom_bar::BottomBarMsg;
 use crate::app::panels::PanelMsg;
@@ -111,7 +111,7 @@ fn no_tabs_view<'a>() -> Element<'a, MainPageMsg> {
         Column::new()
             .push(container(icon(icons::FolderOpen).size(80.0)).padding(10))
             .push(iced::widget::Text::new("No tabs open").size(20))
-            .align_x(iced::Alignment::Center),
+            .align_x(Alignment::Center),
     )
     .center(Length::Fill)
     .into()
@@ -139,7 +139,7 @@ fn tabs_view<'a>(
         .push(card_tabs(active_tab, tabs, MainPageMsg::TabBarAction, None))
         .push(panels::view(state, tab).map(MainPageMsg::Panel))
         .spacing(8)
-        .align_x(iced::Alignment::Center);
+        .align_x(Alignment::Center);
 
     container(tabs)
         .padding(padding::left(4).right(4).top(4))

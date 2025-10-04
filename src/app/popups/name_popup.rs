@@ -9,7 +9,6 @@ use crate::commands::builders::{
     create_folder_cmd, create_new_request_cmd, create_script_cmd, rename_folder_cmd,
     rename_request_cmd,
 };
-use crate::state::environment::Env;
 use crate::state::popups::{Popup, PopupNameAction, PopupNameState};
 use crate::state::{AppState, Tab};
 
@@ -57,16 +56,16 @@ impl Message {
                 }
                 PopupNameAction::CreateEnvironment(tab) => {
                     if let Some(Tab::Collection(tab)) = state.get_tab_mut(tab) {
-                        tab.add_env(Env::new(name));
+                        tab.env_editor.create_env(name);
                     }
                     Task::done(Message::Done)
                 }
                 PopupNameAction::RenameEnvironment(tab, env_key) => {
                     if let Some(Tab::Collection(tab)) = state.get_tab_mut(tab)
-                        && let Some(mut env) = tab.remove_env(env_key)
+                        && let Some(mut env) = tab.env_editor.remove_env(env_key)
                     {
                         env.name = name;
-                        tab.add_env(env);
+                        tab.env_editor.add_env(env);
                     }
                     Task::done(Message::Done)
                 }

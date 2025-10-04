@@ -16,6 +16,11 @@ pub mod builders;
 mod cancellable_task;
 pub mod dialog;
 
+#[cfg(not(feature = "default"))]
+const DELAY: u64 = 1;
+#[cfg(feature = "default")]
+const DELAY: u64 = 100000;
+
 #[derive(Debug, Clone)]
 pub struct JobState {
     task: BackgroundTask,
@@ -26,6 +31,7 @@ pub struct JobState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BackgroundTask {
     SaveCollections,
+    SaveEnvironments,
     CheckDirtyRequests,
     InitializeHistory,
     LoadHistory,
@@ -126,7 +132,7 @@ impl TaskMsg {
 
 fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveCollections;
-    let schedule = state.common.collections.dirty && schedule_task(state, task, 0);
+    let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
     if !schedule {
         return Task::none();
     }
@@ -141,9 +147,38 @@ fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
     })
 }
 
+fn save_environments(state: &mut AppState) -> Task<TaskMsg> {
+    let task = BackgroundTask::SaveEnvironments;
+    let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
+    if !schedule {
+        return Task::none();
+    }
+
+    let mut environments = Vec::new();
+    for collection in state.tabs.values_mut() {
+        if let Tab::Collection(tab) = collection
+            && tab.env_editor.edited
+        {
+            let envs = tab.env_editor.get_envs_for_save();
+            environments.push((tab.collection_key, envs));
+        }
+    }
+
+    let mut tasks = Vec::new();
+    for (key, envs) in environments {
+        let task = state
+            .common
+            .collections
+            .with_collection_mut(key, |c| builders::save_environments_cmd(c, envs));
+        tasks.push(task.unwrap_or(Task::none()));
+    }
+
+    Task::batch(tasks).map(|_| TaskMsg::Completed(BackgroundTask::SaveEnvironments))
+}
+
 fn check_dirty_requests(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::CheckDirtyRequests;
-    if !schedule_task(state, task, 2) {
+    if !schedule_task(state, task, DELAY * 2) {
         return Task::none();
     }
 
@@ -168,12 +203,7 @@ fn load_history(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
-    #[cfg(not(feature = "default"))]
-    let delay = 5;
-    #[cfg(feature = "default")]
-    let delay = 500000;
-
-    if !schedule_task(state, task, delay) {
+    if !schedule_task(state, task, DELAY * 5) {
         return Task::none();
     }
 
@@ -240,6 +270,7 @@ fn search_history(state: &mut AppState) -> Task<TaskMsg> {
 pub fn background(state: &mut AppState) -> Task<TaskMsg> {
     Task::batch([
         save_open_collections(state),
+        save_environments(state),
         check_dirty_requests(state),
         load_history(state),
         search_history(state),

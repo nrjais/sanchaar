@@ -1,5 +1,6 @@
 use core::persistence::environment::{encode_environments, save_environments};
 use core::persistence::{ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -12,7 +13,7 @@ use tokio::io::AsyncWriteExt;
 use core::client::send_request;
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::request::Request;
-use core::http::{CollectionKey, CollectionRequest, KeyValList};
+use core::http::{CollectionKey, CollectionRequest, Environment, EnvironmentKey, KeyValList};
 use core::persistence::collections::{self, encode_collection, open_collection, save_collection};
 use core::persistence::history::HistoryDatabase;
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
@@ -20,7 +21,7 @@ use core::transformers::request::transform_request;
 
 use crate::commands::cancellable_task::{TaskResult, cancellable_task};
 use crate::state::response::ResponseState;
-use crate::state::tabs::collection_tab::{CollectionTab, EnvironmentEditor};
+use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::utils::to_core_kv_list;
 use crate::state::{AppState, CommonState, HttpTab, RequestDirtyState, Tab, TabKey};
 
@@ -291,25 +292,20 @@ pub fn create_script_cmd(state: &mut CommonState, col: CollectionKey, name: Stri
 
 pub fn save_environments_cmd(
     collection: &mut Collection,
-    data: &mut EnvironmentEditor,
+    envs: HashMap<EnvironmentKey, Environment>,
 ) -> Task<()> {
-    data.edited = false;
-    for (key, env) in data.environments.iter() {
-        collection.update_environment(*key, env.into());
-    }
+    let removed = collection.replace_environments(envs);
+
     let encoded = encode_environments(&collection.environments);
     let mut delete_path = Vec::new();
 
-    for key in &data.deleted {
-        let env = collection.delete_environment(*key);
-        if let Some(env) = env {
-            delete_path.push(
-                collection
-                    .path
-                    .join(ENVIRONMENTS)
-                    .join(format!("{}{}", env.name, TOML_EXTENSION)),
-            );
-        }
+    for env in removed {
+        delete_path.push(
+            collection
+                .path
+                .join(ENVIRONMENTS)
+                .join(format!("{}{}", env.name, TOML_EXTENSION)),
+        );
     }
 
     let delete_fut = async {
@@ -424,7 +420,6 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
         .as_ref()
         .and_then(|name| collection.environments.find_by_name(name));
     collection.headers = Arc::new(to_core_kv_list(&tab.headers));
-    collection.variables = Arc::new(to_core_kv_list(&tab.variables));
     collection.disable_ssl = tab.disable_ssl;
     collection.timeout = tab.timeout;
 

@@ -1,10 +1,12 @@
 use super::KeyValList;
 use super::environment::{Environment, EnvironmentChain, EnvironmentKey};
+use crate::http::VarMap;
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
     persistence::{REQUESTS, SCRIPTS, TOML_EXTENSION, TS_EXTENSION},
 };
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use std::{ops::Not, path::PathBuf};
@@ -59,8 +61,7 @@ pub struct Collection {
     pub active_environment: Option<EnvironmentKey>,
     pub default_env: Option<EnvironmentKey>,
     pub headers: Arc<KeyValList>,
-    pub variables: Arc<KeyValList>,
-    pub dotenv: Arc<KeyValList>,
+    pub dotenv: Arc<VarMap>,
     pub disable_ssl: bool,
     pub timeout: Duration,
 }
@@ -235,6 +236,13 @@ impl Collection {
         self.environments.update(key, env);
     }
 
+    pub fn replace_environments(
+        &mut self,
+        envs: HashMap<EnvironmentKey, Environment>,
+    ) -> Vec<Environment> {
+        self.environments.replace_all(envs)
+    }
+
     pub fn rename(&mut self, new: &str) {
         self.name = new.to_string();
     }
@@ -258,10 +266,6 @@ impl Collection {
             path
         }
         recurse(&mut self.entries, req)
-    }
-
-    pub fn delete_environment(&mut self, key: EnvironmentKey) -> Option<Environment> {
-        self.environments.remove(key)
     }
 
     pub(crate) fn create_script(&mut self, name: String) -> Option<PathBuf> {
@@ -304,7 +308,7 @@ impl Collection {
             .map(|e| e.vars())
             .unwrap_or_default();
 
-        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env, Arc::clone(&self.variables)])
+        EnvironmentChain::from_iter(Arc::clone(&self.dotenv), [env])
     }
 
     pub fn collection_env_chain(&self) -> EnvironmentChain {
@@ -333,7 +337,6 @@ impl Default for Collection {
             active_environment: None,
             default_env: None,
             headers: Default::default(),
-            variables: Default::default(),
             dotenv: Default::default(),
             disable_ssl: false,
             timeout: Duration::from_secs(300),

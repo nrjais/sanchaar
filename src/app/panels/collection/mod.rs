@@ -1,4 +1,5 @@
 pub mod env_editor;
+pub mod env_table;
 mod settings;
 
 use core::http::collection::Collection;
