@@ -1,12 +1,10 @@
 use core::http::collection::Collection;
 use std::{collections::HashSet, sync::Arc, time::Duration};
 
-use crate::components::{
-    KeyValList, KeyValUpdateMsg, NerdIcon, icon, icons, key_value_editor, text_input, tooltip,
-};
+use crate::components::{KeyValList, KeyValUpdateMsg, key_value_editor, text_input};
 use iced::{
     Alignment, Element, Length, Task, padding,
-    widget::{Column, Row, button, pick_list, scrollable, space, text, toggler},
+    widget::{Column, Row, pick_list, rule, scrollable, space, toggler},
 };
 
 use crate::{
@@ -71,29 +69,16 @@ impl Message {
     }
 }
 
-fn icon_button<'a>(
-    msg: &'a str,
-    icn: NerdIcon,
-    on_press: Message,
-) -> iced::widget::Tooltip<'a, Message> {
-    tooltip(
-        msg,
-        button(icon(icn))
-            .padding([1, 6])
-            .on_press(on_press)
-            .style(button::secondary),
-    )
-}
-
 pub fn headers_view<'a>(vals: &'a KeyValList, vars: Arc<HashSet<String>>) -> Element<'a, Message> {
     Column::new()
+        .push(rule::horizontal(2.))
         .push("Collection Headers")
         .push(
             key_value_editor(vals, &vars)
                 .padding(padding::all(0))
                 .on_change(Message::UpdateHeaders),
         )
-        .spacing(4)
+        .spacing(8)
         .width(Length::Fill)
         .into()
 }
@@ -104,18 +89,6 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     let header_vars = col.env_chain().all_var_set();
     let default_env_name = tab.default_env.as_ref();
-
-    let action_bar = Row::new()
-        .push(text("Collection Settings").size(18))
-        .push(space::horizontal().width(Length::FillPortion(1)))
-        .push(tab.edited.then_some(icon_button(
-            "Save Changes",
-            icons::ContentSave,
-            Message::SaveChanges,
-        )))
-        .spacing(4)
-        .width(Length::Fill)
-        .align_y(Alignment::Center);
 
     let default_env = Row::new()
         .push("Default Environment")
@@ -155,16 +128,15 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
 
     scrollable(
         Column::new()
-            .push(action_bar)
             .push(default_env)
             .push(disable_ssl)
             .push(timeout)
             .push(space::horizontal().width(Length::Fixed(8.)))
             .push(headers_view(&tab.headers, header_vars))
-            .spacing(8)
+            .spacing(16)
             .width(Length::Fill)
             .height(Length::Shrink)
-            .padding(padding::right(12)),
+            .padding(padding::right(12).top(12).bottom(12)),
     )
     .width(Length::Fill)
     .into()
