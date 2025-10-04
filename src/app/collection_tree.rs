@@ -1,8 +1,10 @@
 use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
 use iced::widget::scrollable::Direction;
-use iced::widget::{Button, Column, Row, Scrollable, button, column, container, row, text};
-use iced::{Element, Length, Task, clipboard, padding};
+use iced::widget::{
+    Button, Column, Row, Scrollable, button, column, container, responsive, row, text,
+};
+use iced::{Element, Length, Size, Task, clipboard, padding};
 
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
@@ -147,7 +149,7 @@ fn handle_context_menu(
 }
 
 fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
-    components::icon_button(ico, Some(22), None).style(move |theme, status| {
+    components::icon_button(ico, Some(22), Some(8)).style(move |theme, status| {
         if status == Status::Hovered || status == Status::Pressed {
             button::Style {
                 text_color: theme.extended_palette().primary.strong.color,
@@ -160,15 +162,33 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
 }
 
 pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
-    let it = state.common.collections.iter().map(|(key, collection)| {
-        expandable(
-            key,
-            &collection.name,
-            &collection.entries,
-            collection.expanded,
-            CollectionTreeMsg::ToggleExpandCollection(key),
-            None,
+    let tree = responsive(|size| {
+        let tree = state.common.collections.iter().map(|(key, collection)| {
+            expandable(
+                key,
+                &collection.name,
+                &collection.entries,
+                collection.expanded,
+                CollectionTreeMsg::ToggleExpandCollection(key),
+                None,
+                size,
+                0,
+            )
+        });
+
+        Scrollable::new(
+            column(tree)
+                .spacing(4)
+                .padding(padding::right(12).bottom(12).left(8))
+                .width(Length::Fixed(size.width)),
         )
+        .direction(Direction::Both {
+            vertical: Default::default(),
+            horizontal: Default::default(),
+        })
+        .height(Length::Fill)
+        .width(Length::Fixed(size.width))
+        .into()
     });
 
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
@@ -184,34 +204,25 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
                     .push(tooltip("History", history))
                     .width(Length::Shrink)
                     .align_y(Vertical::Center)
-                    .spacing(16),
+                    .spacing(8),
             )
             .align_x(Horizontal::Center)
             .padding(padding::top(4).bottom(4))
             .width(Length::Fill),
         )
         .push(horizontal_line(2))
-        .push(
-            Scrollable::new(
-                column(it)
-                    .width(Length::Shrink)
-                    .height(Length::Shrink)
-                    .spacing(4)
-                    .padding(padding::right(12).bottom(12).left(8)),
-            )
-            .direction(Direction::Both {
-                vertical: Default::default(),
-                horizontal: Default::default(),
-            })
-            .height(Length::Fill),
-        )
-        .width(Length::Fill)
+        .push(tree)
         .into()
 }
 
-fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeMsg> {
+fn folder_tree(
+    col: CollectionKey,
+    entries: &[Entry],
+    size: Size,
+    indent: u32,
+) -> Element<CollectionTreeMsg> {
     let it = entries.iter().map(|entry| match entry {
-        Entry::Item(item) => context_button_request(item, col),
+        Entry::Item(item) => context_button_request(item, col, size, indent),
         Entry::Folder(folder) => expandable(
             col,
             &folder.name,
@@ -219,16 +230,18 @@ fn folder_tree(col: CollectionKey, entries: &[Entry]) -> Element<CollectionTreeM
             folder.expanded,
             CollectionTreeMsg::ToggleFolder(col, folder.id),
             Some(folder.id),
+            size,
+            indent,
         ),
     });
 
     column(it)
         .spacing(2)
-        .padding(padding::left(12))
-        .width(Length::Shrink)
+        .width(Length::Fixed(size.width))
         .into()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn expandable<'a>(
     col: CollectionKey,
     name: &'a str,
@@ -236,9 +249,11 @@ fn expandable<'a>(
     expanded: bool,
     on_expand_toggle: CollectionTreeMsg,
     folder_id: Option<FolderId>,
+    size: Size,
+    indent: u32,
 ) -> Element<'a, CollectionTreeMsg> {
     if expanded {
-        let children = folder_tree(col, entries);
+        let children = folder_tree(col, entries, size, indent + 1);
         Column::new()
             .push(expandable_button(
                 name,
@@ -246,13 +261,24 @@ fn expandable<'a>(
                 icons::FolderOpen,
                 col,
                 folder_id,
+                size,
+                indent,
             ))
             .push(children)
             .spacing(2)
-            .width(Length::Shrink)
+            .width(Length::Fixed(size.width))
             .into()
     } else {
-        expandable_button(name, on_expand_toggle, icons::Folder, col, folder_id).into()
+        expandable_button(
+            name,
+            on_expand_toggle,
+            icons::Folder,
+            col,
+            folder_id,
+            size,
+            indent,
+        )
+        .into()
     }
 }
 
@@ -262,17 +288,18 @@ fn expandable_button(
     arrow: NerdIcon,
     col: CollectionKey,
     folder_id: Option<FolderId>,
+    size: Size,
+    indent: u32,
 ) -> impl Into<Element<CollectionTreeMsg>> {
     let base = button(
         row([icon(arrow).size(18).into(), text(name).size(16).into()])
             .align_y(iced::Alignment::Center)
-            .width(Length::Shrink)
             .spacing(8),
     )
     .style(button::text)
     .on_press(on_expand_toggle)
-    .width(Length::Shrink)
-    .padding(0);
+    .width(Length::Fixed(size.width))
+    .padding(padding::left(12 * indent));
 
     if let Some(folder_id) = folder_id {
         context_button_folder(base, name.to_owned(), col, folder_id)
@@ -325,7 +352,12 @@ fn context_button_folder<'a>(
     .into()
 }
 
-fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, CollectionTreeMsg> {
+fn context_button_request(
+    item: &RequestRef,
+    col: CollectionKey,
+    size: Size,
+    indent: u32,
+) -> Element<'_, CollectionTreeMsg> {
     let collection_request = CollectionRequest(col, item.id);
 
     let base = button(
@@ -339,11 +371,11 @@ fn context_button_request(item: &RequestRef, col: CollectionKey) -> Element<'_, 
             text(&item.name).size(16).into(),
         ])
         .align_y(iced::Alignment::Center)
-        .width(Length::Shrink)
+        .width(Length::Fixed(size.width))
         .spacing(8),
     )
     .style(button::text)
-    .padding(0)
+    .padding(padding::left(12 * indent))
     .width(Length::Shrink)
     .on_press(CollectionTreeMsg::OpenRequest(collection_request));
 
