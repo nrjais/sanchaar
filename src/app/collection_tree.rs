@@ -179,7 +179,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         Scrollable::new(
             column(tree)
                 .spacing(4)
-                .padding(padding::right(12).bottom(12).left(8))
+                .padding(padding::right(12).bottom(12).left(4).top(4))
                 .width(Length::Fixed(size.width)),
         )
         .direction(Direction::Both {
@@ -296,10 +296,16 @@ fn expandable_button(
             .align_y(iced::Alignment::Center)
             .spacing(8),
     )
-    .style(button::text)
+    .style(|theme, status| {
+        if status == Status::Hovered || status == Status::Pressed {
+            button::subtle(theme, status)
+        } else {
+            button::text(theme, status)
+        }
+    })
     .on_press(on_expand_toggle)
     .width(Length::Fixed(size.width))
-    .padding(padding::left(12 * indent));
+    .padding(padding::left(12 * indent + 4));
 
     if let Some(folder_id) = folder_id {
         context_button_folder(base, name.to_owned(), col, folder_id)
@@ -374,8 +380,14 @@ fn context_button_request(
         .width(Length::Fixed(size.width))
         .spacing(8),
     )
-    .style(button::text)
-    .padding(padding::left(12 * indent))
+    .style(|theme, status| {
+        if status == Status::Hovered || status == Status::Pressed {
+            button::subtle(theme, status)
+        } else {
+            button::text(theme, status)
+        }
+    })
+    .padding(padding::left(12 * indent + 4))
     .width(Length::Shrink)
     .on_press(CollectionTreeMsg::OpenRequest(collection_request));
 
