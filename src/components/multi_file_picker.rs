@@ -209,7 +209,6 @@ pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerU
                         .style(button::primary)
                         .padding([2, 6]),
                 ))
-                // TODO: Ellipsis long file path, show tooltip on hover
                 .push(tooltip(path, text(ellipsis).size(size)))
                 .height(Length::Fill)
                 .spacing(spacing)

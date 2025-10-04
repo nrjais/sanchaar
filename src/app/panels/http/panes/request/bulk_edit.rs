@@ -7,13 +7,22 @@ use crate::{
     state::request::{BulkEditMsg, BulkEditable},
 };
 
-pub fn view(keys: &BulkEditable, vars: Arc<HashSet<String>>) -> iced::Element<BulkEditMsg> {
+pub fn view(
+    keys: &BulkEditable,
+    vars: Arc<HashSet<String>>,
+    should_scroll: bool,
+) -> iced::Element<BulkEditMsg> {
     match keys {
         BulkEditable::KeyValue(keys) => {
-            scrollable(key_value_editor(keys, &vars).on_change(BulkEditMsg::KeyValue))
-                .height(iced::Length::Shrink)
-                .width(iced::Length::Shrink)
-                .into()
+            let editor = key_value_editor(keys, &vars).on_change(BulkEditMsg::KeyValue);
+            if should_scroll {
+                scrollable(editor)
+                    .height(iced::Length::Shrink)
+                    .width(iced::Length::Shrink)
+                    .into()
+            } else {
+                editor
+            }
         }
         BulkEditable::Editor(content) => container(
             code_editor(content, ContentType::Text)
@@ -21,7 +30,7 @@ pub fn view(keys: &BulkEditable, vars: Arc<HashSet<String>>) -> iced::Element<Bu
                 .map(BulkEditMsg::Editor),
         )
         .style(container::bordered_box)
-        .height(iced::Length::Fill)
+        .height(iced::Length::Fixed(200.))
         .width(iced::Length::Fill)
         .into(),
     }

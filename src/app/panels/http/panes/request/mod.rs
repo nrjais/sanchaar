@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::padding;
-use iced::widget::{Column, Row, button, pick_list, space};
+use iced::widget::{Column, Row, button, pick_list, scrollable, space};
 use iced::{Length, Task, widget::text};
 
 use crate::commands::dialog::open_file_dialog;
@@ -144,15 +144,10 @@ fn bulk_edit_toggle<'a>(
 
 fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Element<RequestPaneMsg> {
     let has_params = request.path_params.size() > 0;
-    // TODO: fix scrollable for path params
     let path = has_params.then(|| {
-        Column::new()
-            .push("Path Params")
-            .push(
-                key_value_editor(&request.path_params, &vars).on_change(RequestPaneMsg::PathParams),
-            )
-            .width(Length::Fill)
-            .spacing(4)
+        let editor =
+            key_value_editor(&request.path_params, &vars).on_change(RequestPaneMsg::PathParams);
+        Column::new().push("Path Params").push(editor).spacing(4)
     });
 
     let query = Column::new()
@@ -161,16 +156,17 @@ fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Eleme
             RequestPaneMsg::Queries(BulkEditMsg::ToggleMode),
             request.query_params.is_editor(),
         ))
-        .push(bulk_edit::view(&request.query_params, vars).map(RequestPaneMsg::Queries))
-        .spacing(4)
-        .width(Length::Fill);
+        .push(bulk_edit::view(&request.query_params, vars, false).map(RequestPaneMsg::Queries))
+        .spacing(4);
 
-    Column::new()
-        .push(query)
-        .push(path)
-        .spacing(8)
-        .height(Length::Shrink)
-        .into()
+    scrollable(
+        Column::new()
+            .push(path)
+            .push(query)
+            .spacing(8)
+            .padding(padding::right(12)),
+    )
+    .into()
 }
 
 fn headers_view(
@@ -183,7 +179,7 @@ fn headers_view(
             RequestPaneMsg::Headers(BulkEditMsg::ToggleMode),
             request.headers.is_editor(),
         ))
-        .push(bulk_edit::view(&request.headers, vars).map(RequestPaneMsg::Headers))
+        .push(bulk_edit::view(&request.headers, vars, true).map(RequestPaneMsg::Headers))
         .width(Length::Fill)
         .spacing(4)
         .into()
