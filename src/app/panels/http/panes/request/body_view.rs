@@ -26,8 +26,6 @@ pub fn body_tab(
 
     let header = Row::new()
         .push(text("Content Type"))
-        .push(space::horizontal())
-        .push(actions)
         .push(
             pick_list(
                 RawRequestBody::all_variants(),
@@ -36,7 +34,8 @@ pub fn body_tab(
             )
             .padding([2, 6]),
         )
-        .spacing(8)
+        .push(actions)
+        .spacing(16)
         .height(Length::Shrink)
         .align_y(iced::Alignment::Center);
 
@@ -54,6 +53,7 @@ pub fn body_tab(
         .push(header)
         .push(center(body))
         .spacing(8)
+        .padding([4, 0])
         .into()
 }
 
