@@ -205,10 +205,10 @@ jobs:
 
       - name: Publish to Homebrew Tap
         env:
-          TAP_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
         run: |
           # Clone the tap repository
-          git clone https://github.com/nrjais/homebrew-tap.git tap-repo
+          git clone https://x-access-token:${{ secrets.TAP_GITHUB_TOKEN }}@github.com/nrjais/homebrew-tap.git tap-repo
           cd tap-repo
 
           # Configure git
@@ -217,6 +217,10 @@ jobs:
 
           # Create Casks directory if it doesn't exist
           mkdir -p Casks
+
+          # Create a new branch for the PR
+          BRANCH_NAME="update-sanchaar-${{ env.VERSION }}"
+          git checkout -b "$BRANCH_NAME"
 
           # Copy the updated formula
           cp ../homebrew/sanchaar.rb Casks/sanchaar.rb
@@ -227,11 +231,47 @@ jobs:
             echo "No changes to publish"
           else
             git commit -m "Update sanchaar to version ${{ env.VERSION }}"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/nrjais/homebrew-tap.git main
-            echo "✓ Published sanchaar@${{ env.VERSION }} to homebrew-tap"
+            git push https://x-access-token:${{ secrets.TAP_GITHUB_TOKEN }}@github.com/nrjais/homebrew-tap.git "$BRANCH_NAME"
+            echo "✓ Pushed branch $BRANCH_NAME to homebrew-tap"
           fi
 
           cd ..
+
+      - name: Create Pull Request in Homebrew Tap
+        env:
+          GH_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="update-sanchaar-${{ env.VERSION }}"
+
+          # Check if PR already exists
+          EXISTING_PR=$(gh pr list --repo nrjais/homebrew-tap --head "$BRANCH_NAME" --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "PR already exists: #$EXISTING_PR"
+          else
+            # Create PR body
+            PR_BODY="This PR updates the sanchaar cask to version \`${{ env.VERSION }}\`.
+
+          ## Changes
+          - Updated version to \`${{ env.VERSION }}\`
+          - Updated download URLs for the new release
+
+          ## Release Notes
+          See the [release notes](https://github.com/nrjais/sanchaar/releases/tag/${{ env.VERSION }}) for details.
+
+          ---
+          *This PR was automatically created by the release workflow.*"
+
+            # Create PR in the tap repository
+            gh pr create \
+              --repo nrjais/homebrew-tap \
+              --head "$BRANCH_NAME" \
+              --title "Update sanchaar to version ${{ env.VERSION }}" \
+              --body "$PR_BODY" \
+              --base main
+
+            echo "✓ Created PR for sanchaar@${{ env.VERSION }} in homebrew-tap"
+          fi
 
       - name: Create release
         uses: softprops/action-gh-release@v2
