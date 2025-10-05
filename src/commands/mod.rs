@@ -279,7 +279,7 @@ fn search_history(state: &mut AppState) -> Task<TaskMsg> {
 
 fn save_window_state(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveWindowState;
-    if !schedule_task(state, task, 0) {
+    if !schedule_task(state, task, DELAY) {
         return Task::none();
     }
 

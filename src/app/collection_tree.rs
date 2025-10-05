@@ -1,7 +1,10 @@
 use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
+use iced::widget::space::horizontal;
 use iced::widget::text::Wrapping;
-use iced::widget::{Button, Column, Row, Scrollable, button, column, container, row, text};
+use iced::widget::{
+    Button, Column, Row, Scrollable, Tooltip, button, column, container, hover, row, text,
+};
 use iced::{Element, Length, Task, clipboard, padding};
 
 use crate::components::{
@@ -256,6 +259,29 @@ fn expandable<'a>(
     }
 }
 
+fn action_button<'a>(
+    desc: &'a str,
+    ico: NerdIcon,
+    msg: CollectionTreeMsg,
+) -> Tooltip<'a, CollectionTreeMsg> {
+    tooltip(
+        desc,
+        components::icon_button(ico, Some(16), Some(4))
+            .on_press(msg)
+            .width(Length::Shrink)
+            .style(move |theme, status| {
+                if status == Status::Hovered || status == Status::Pressed {
+                    button::Style {
+                        text_color: theme.extended_palette().primary.strong.color,
+                        ..button::text(theme, status)
+                    }
+                } else {
+                    button::text(theme, status)
+                }
+            }),
+    )
+}
+
 fn expandable_button(
     name: &str,
     on_expand_toggle: CollectionTreeMsg,
@@ -288,11 +314,24 @@ fn expandable_button(
     .width(Length::Fill)
     .padding(padding::left(12 * indent + 4));
 
-    if let Some(folder_id) = folder_id {
+    let base = if let Some(folder_id) = folder_id {
         context_button_folder(base, name.to_owned(), col, folder_id)
     } else {
         context_button_collection(base, name.to_owned(), col)
-    }
+    };
+
+    let actions = Row::new()
+        .push(horizontal())
+        .push(action_button(
+            "New Request",
+            icons::Plus,
+            CollectionTreeMsg::ContextMenu(col, MenuAction::NewRequest(folder_id)),
+        ))
+        .align_y(Vertical::Center)
+        .padding(padding::right(4))
+        .height(Length::Fill);
+
+    hover(base, actions)
 }
 
 #[derive(Debug, Clone)]
