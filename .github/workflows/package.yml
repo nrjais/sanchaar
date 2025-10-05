@@ -124,6 +124,9 @@ jobs:
       - name: Install cargo-bundle
         run: cargo install cargo-bundle
 
+      - name: Install create-dmg
+        run: brew install create-dmg
+
       - name: Build bundle
         run: cargo bundle --release --target ${{ matrix.target }} --no-default-features
 
@@ -131,13 +134,22 @@ jobs:
         run: |
           codesign --force --deep --sign - target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app
 
-      - name: Create DMG
+      - name: Create fancy DMG
         run: |
-          mkdir -p dist
-          cp -r target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app dist/
-
-          # Create DMG
-          hdiutil create -volname "${{ env.BINARY_NAME }}" -srcfolder dist -ov -format UDZO ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg
+          # Create DMG with custom layout and styling
+          create-dmg \
+            --volname "${{ env.BINARY_NAME }}" \
+            --background "assets/dmg-background.png" \
+            --window-pos 200 120 \
+            --window-size 660 450 \
+            --icon-size 120 \
+            --icon "${{ env.BINARY_NAME }}.app" 180 170 \
+            --hide-extension "${{ env.BINARY_NAME }}.app" \
+            --app-drop-link 480 170 \
+            --no-internet-enable \
+            --hdiutil-quiet \
+            "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg" \
+            "target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app"
 
       - name: Generate checksums
         run: |
