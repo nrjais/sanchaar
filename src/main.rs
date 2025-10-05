@@ -20,17 +20,17 @@ use state::AppState;
 use crate::window::load_window_state;
 
 fn main() {
+    env_logger::init();
     match app() {
         Ok(_) => (),
         Err(e) => {
-            eprintln!("{e}");
+            log::error!("{e}");
             std::process::exit(1);
         }
     };
 }
 
 pub fn app() -> Result<(), iced::Error> {
-    env_logger::init();
     let (window_state, maximized) = load_window_state();
 
     let state_init = {

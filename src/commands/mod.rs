@@ -325,7 +325,6 @@ fn save_session_state(state: &mut AppState) -> Task<TaskMsg> {
         return Task::none();
     }
 
-    println!("Saving session state");
     let session_state = SessionState::from_app_state(state);
     Task::future(async move {
         match session::save_session_state(&session_state).await {
@@ -359,12 +358,12 @@ pub async fn init_history_db_cmd() -> Option<HistoryDatabase> {
                 Some(db)
             }
             Err(e) => {
-                eprintln!("Failed to initialize history database: {e}");
+                log::error!("Failed to initialize history database: {e}");
                 None
             }
         },
         Err(e) => {
-            eprintln!("Failed to get history database path: {e}");
+            log::error!("Failed to get history database path: {e}");
             None
         }
     }

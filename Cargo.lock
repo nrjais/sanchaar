@@ -786,6 +786,7 @@ dependencies = [
  "dotenvy",
  "iced",
  "indexmap 2.11.4",
+ "log",
  "mime_guess",
  "parsers",
  "regex",

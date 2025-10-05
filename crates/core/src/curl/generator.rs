@@ -911,10 +911,6 @@ mod tests {
         };
         let cmd = generate_curl_command(&req);
 
-        // Print the command to see the format
-        println!("\nGenerated curl command:");
-        println!("{}", cmd);
-
         // Verify structure: first line should have curl, method, and url
         let lines: Vec<&str> = cmd.split(" \\\n").collect();
         assert!(lines[0].starts_with("curl -X POST"));

@@ -102,7 +102,7 @@ async fn open_collections_list() -> Option<Vec<CollectionConfig>> {
                     create_collections_state(collections_path)
                         .await
                         .inspect_err(|e| {
-                            println!("Error creating collections state: {:?}", e);
+                            log::error!("Error creating collections state: {:?}", e);
                         })
                         .ok()?
                         .open,
@@ -131,7 +131,7 @@ pub async fn load() -> Result<Vec<Collection>> {
                 match col {
                     Ok(col) => result.push(col),
                     Err(e) => {
-                        println!("Error opening collection: {:?}", e);
+                        log::error!("Error opening collection: {:?}", e);
                     }
                 }
             }
