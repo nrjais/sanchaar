@@ -1,13 +1,12 @@
 cask "sanchaar" do
-  version "0.1.0-prerelease.1"
+  version "0.1.2"
   sha256 :no_check # Will be updated during release
-
-  on_intel do
-    url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar-#{version}-x86_64-apple-darwin.dmg"
-  end
 
   on_arm do
     url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar-#{version}-aarch64-apple-darwin.dmg"
+  end
+  on_intel do
+    url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar-#{version}-x86_64-apple-darwin.dmg"
   end
 
   name "Sanchaar"
@@ -29,8 +28,8 @@ cask "sanchaar" do
 
   zap trash: [
     "~/Library/Application Support/com.nrjais.sanchaar",
-    "~/Library/Preferences/com.nrjais.sanchaar.plist",
     "~/Library/Caches/com.nrjais.sanchaar",
+    "~/Library/Preferences/com.nrjais.sanchaar.plist",
     "~/Library/Saved Application State/com.nrjais.sanchaar.savedState",
   ]
 end
