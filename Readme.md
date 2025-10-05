@@ -15,29 +15,35 @@ Sanchaar is a offline REST API client built using Iced in Rust. It is a simple t
 
 ## Installation
 
-### Pre-built Binaries
+### macOS
 
-Download the latest release for your platform from the [Releases page](https://github.com/nrjais/sanchaar/releases).
+#### Homebrew (Recommended)
 
-#### macOS Installation
+Install using Homebrew Cask with automatic quarantine removal:
+
+```bash
+brew tap nrjais/tap
+brew install --cask sanchaar
+```
+
+Or in a single command:
+
+```bash
+brew install --cask nrjais/tap/sanchaar
+```
+
+#### Manual Installation
+
+Download the latest release from the [Releases page](https://github.com/nrjais/sanchaar/releases).
 
 **Important:** Since the app is not notarized by Apple, you'll need to remove the quarantine attribute after downloading:
 
-1. Download the `.dmg` file
+1. Download the `.dmg` file for your architecture (Intel or Apple Silicon)
 2. Open the DMG and drag Sanchaar to Applications
 3. Remove the quarantine attribute:
    ```bash
    xattr -cr /Applications/Sanchaar.app
    ```
-
-   Or if installed to a different location:
-   ```bash
-   xattr -cr /path/to/Sanchaar.app
-   ```
-
-4. Now you can open Sanchaar normally
-
-**Alternative method:** Right-click the app → "Open" → Click "Open" in the dialog (only needed first time)
 
 #### Linux Installation
 

@@ -134,6 +134,12 @@ jobs:
         run: |
           codesign --force --deep --sign - target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app
 
+      - name: Remove quarantine attribute
+        run: |
+          # Remove quarantine attribute to prevent Gatekeeper warnings
+          xattr -cr target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app
+          echo "✓ Quarantine attribute removed from app bundle"
+
       - name: Create fancy DMG
         run: |
           # Create DMG with custom layout and styling
@@ -161,6 +167,7 @@ jobs:
           name: macos-${{ matrix.target }}
           path: |
             ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
+            ${{ env.BINARY_NAME }}-remove-quarantine.sh
 
   release:
     name: Create Release
@@ -168,6 +175,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Get version
         shell: bash
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -182,6 +192,46 @@ jobs:
           mkdir release
           find artifacts -type f -exec cp {} release/ \;
           ls -lah release/
+
+      - name: Update Homebrew Cask
+        run: |
+          # Update version in Homebrew cask
+          sed -i "s/version \".*\"/version \"${{ env.VERSION }}\"/" homebrew/sanchaar.rb
+
+          # Note: SHA256 will be set to :no_check for flexibility
+          # Users can verify using the .sha256 files provided with the release
+
+          cp homebrew/sanchaar.rb release/sanchaar.rb
+
+      - name: Publish to Homebrew Tap
+        env:
+          TAP_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Clone the tap repository
+          git clone https://github.com/nrjais/homebrew-tap.git tap-repo
+          cd tap-repo
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create Casks directory if it doesn't exist
+          mkdir -p Casks
+
+          # Copy the updated formula
+          cp ../homebrew/sanchaar.rb Casks/sanchaar.rb
+
+          # Commit and push if there are changes
+          git add Casks/sanchaar.rb
+          if git diff --staged --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "Update sanchaar to version ${{ env.VERSION }}"
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/nrjais/homebrew-tap.git main
+            echo "✓ Published sanchaar@${{ env.VERSION }} to homebrew-tap"
+          fi
+
+          cd ..
 
       - name: Create release
         uses: softprops/action-gh-release@v2
