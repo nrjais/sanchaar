@@ -1,7 +1,8 @@
 use iced::Theme;
+use iced_plugins::{PluginManager, PluginManagerBuilder};
+use iced_window_state_plugin::WindowStatePlugin;
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
-use serde::{Deserialize, Serialize};
 use tabs::collection_tab::CollectionTab;
 use tabs::cookies_tab::CookiesTab;
 use tabs::history_tab::HistoryTab;
@@ -12,6 +13,7 @@ use core::persistence::history::HistoryDatabase;
 use std::sync::Arc;
 pub use tabs::http_tab::*;
 
+use crate::APP_NAME;
 use crate::commands::JobState;
 use crate::components::split::Direction;
 use crate::state::popups::Popup;
@@ -89,16 +91,6 @@ impl PaneConfig {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WindowState {
-    pub x: f32,
-    pub y: f32,
-    pub width: f32,
-    pub height: f32,
-    #[serde(default, skip)]
-    pub changed: bool,
-}
-
 #[derive(Debug)]
 pub struct AppState {
     pub common: CommonState,
@@ -108,13 +100,18 @@ pub struct AppState {
     pub pane_config: PaneConfig,
     pub split_direction: Direction,
     pub theme: Theme,
-    pub window_state: WindowState,
+    pub manager: PluginManager,
 }
 
 impl AppState {
-    pub fn new(window_state: WindowState) -> Self {
+    pub fn new() -> Self {
+        let manager = PluginManagerBuilder::new()
+            .with_plugin(WindowStatePlugin::new(APP_NAME.to_string()))
+            .build();
+
         let store = create_cookie_store();
         Self {
+            manager,
             active_tab: TabKey::ZERO,
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
@@ -130,7 +127,6 @@ impl AppState {
             pane_config: PaneConfig::new(),
             split_direction: Direction::Horizontal,
             theme: Theme::GruvboxDark,
-            window_state,
         }
     }
 

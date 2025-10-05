@@ -5,19 +5,17 @@ pub mod components;
 pub mod hotkeys;
 pub mod state;
 mod subscription;
-mod window;
-
-const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
-
-use std::borrow::Cow;
 
 use iced::{
-    Point, Size,
+    Size,
     window::{Position, Settings},
 };
+use iced_window_state_plugin::{WindowState, WindowStatePlugin};
 use state::AppState;
+use std::borrow::Cow;
 
-use crate::window::load_window_state;
+const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
+const APP_NAME: &str = "Sanchaar";
 
 fn main() {
     env_logger::init();
@@ -31,17 +29,11 @@ fn main() {
 }
 
 pub fn app() -> Result<(), iced::Error> {
-    let (window_state, maximized) = load_window_state();
+    let window_state = WindowStatePlugin::load(APP_NAME);
+    let maximized = window_state.is_none();
+    let window_state = window_state.unwrap_or(WindowState::default());
 
-    let state_init = {
-        let window_state = window_state.clone();
-        move || {
-            (
-                AppState::new(window_state.clone()),
-                commands::init_command(),
-            )
-        }
-    };
+    let state_init = { move || (AppState::new(), commands::init_command()) };
 
     iced::application(state_init, app::update, app::view)
         .theme(AppState::theme)
@@ -49,8 +41,8 @@ pub fn app() -> Result<(), iced::Error> {
         .subscription(subscription::all)
         .font(Cow::from(HACK_REG_BYTES))
         .window(Settings {
-            size: Size::new(window_state.width, window_state.height),
-            position: Position::Specific(Point::new(window_state.x, window_state.y)),
+            size: window_state.size,
+            position: Position::Specific(window_state.position),
             maximized,
             min_size: Some(Size::new(900.0, 600.0)),
             ..Default::default()

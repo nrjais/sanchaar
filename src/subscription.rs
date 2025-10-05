@@ -1,7 +1,8 @@
 use iced::Subscription;
 
-use crate::{app::AppMsg, hotkeys, state::AppState, window};
+use crate::{app::AppMsg, hotkeys, state::AppState};
 
 pub fn all(state: &AppState) -> Subscription<AppMsg> {
-    Subscription::batch([hotkeys::subscription(state), window::subscription(state)])
+    let plugin_subscription = state.manager.subscriptions().map(AppMsg::Plugin);
+    Subscription::batch([hotkeys::subscription(state), plugin_subscription])
 }

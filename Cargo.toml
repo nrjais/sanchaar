@@ -106,6 +106,8 @@ iced = { git = "https://github.com/nrjais/iced", branch = "editor", features = [
 iced_core = { git = "https://github.com/nrjais/iced", branch = "editor", features = [
   "advanced",
 ] }
+iced_plugins = { git = "https://github.com/nrjais/iced_plugins", branch = "fork" }
+iced_window_state_plugin = { git = "https://github.com/nrjais/iced_plugins", branch = "fork" }
 indexmap = "2.11"
 jsonformat = "2.1.0"
 jsonpath-rust = "1.0"
@@ -147,6 +149,8 @@ env_logger.workspace = true
 humansize.workspace = true
 iced.workspace = true
 iced_core.workspace = true
+iced_plugins.workspace = true
+iced_window_state_plugin.workspace = true
 indexmap.workspace = true
 jsonformat.workspace = true
 jsonpath-rust.workspace = true

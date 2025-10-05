@@ -6,7 +6,6 @@ use log::info;
 use std::time::Instant;
 
 use crate::state::session::{self, SessionState, load_session_state};
-use crate::window::write_window_state;
 use crate::{
     app::AppMsg,
     state::{AppState, RequestDirtyState, Tab, TabKey},
@@ -277,24 +276,6 @@ fn search_history(state: &mut AppState) -> Task<TaskMsg> {
     })
 }
 
-fn save_window_state(state: &mut AppState) -> Task<TaskMsg> {
-    let task = BackgroundTask::SaveWindowState;
-    if !schedule_task(state, task, DELAY) {
-        return Task::none();
-    }
-
-    let window_state = state.window_state.clone();
-    Task::future(async move {
-        match write_window_state(&window_state).await {
-            Ok(_) => TaskMsg::Completed(BackgroundTask::SaveWindowState),
-            Err(e) => {
-                log::error!("Error saving window state: {e:?}");
-                TaskMsg::Completed(BackgroundTask::SaveWindowState)
-            }
-        }
-    })
-}
-
 fn save_collections(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveCollections;
     let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
@@ -346,7 +327,6 @@ pub fn background(state: &mut AppState) -> Task<TaskMsg> {
         load_history(state),
         search_history(state),
         save_collections(state),
-        save_window_state(state),
     ])
 }
 
