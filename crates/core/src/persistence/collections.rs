@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use crate::http::KeyValList;
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
+use crate::http::{CollectionKey, KeyValList};
 use crate::persistence::Version;
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
@@ -39,8 +39,9 @@ pub struct EncodedCollection {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum CollectionConfig {
-    Path(PathBuf),
+    Local { path: PathBuf, key: CollectionKey },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -79,7 +80,10 @@ async fn create_collections_state(collections_file: PathBuf) -> Result<Collectio
     .await?;
 
     let state = CollectionsState {
-        open: vec![CollectionConfig::Path(default_path)],
+        open: vec![CollectionConfig::Local {
+            path: default_path,
+            key: CollectionKey::new(),
+        }],
     };
 
     let data = toml::to_string_pretty(&state)?;
@@ -122,8 +126,8 @@ pub async fn load() -> Result<Vec<Collection>> {
 
     for collection in collections {
         match collection {
-            CollectionConfig::Path(path) => {
-                let col = open_collection(path).await;
+            CollectionConfig::Local { path, key } => {
+                let col = open_collection(path, key).await;
                 match col {
                     Ok(col) => result.push(col),
                     Err(e) => {
@@ -142,7 +146,10 @@ pub async fn save(collection: Vec<Collection>) -> Result<()> {
     let state = CollectionsState {
         open: collection
             .into_iter()
-            .map(|col| CollectionConfig::Path(col.path.clone()))
+            .map(|col| CollectionConfig::Local {
+                path: col.path.clone(),
+                key: col.key,
+            })
             .collect(),
     };
 
@@ -152,7 +159,10 @@ pub async fn save(collection: Vec<Collection>) -> Result<()> {
     Ok(())
 }
 
-pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error> {
+pub async fn open_collection(
+    path: PathBuf,
+    key: CollectionKey,
+) -> Result<Collection, anyhow::Error> {
     let data = fs::read_to_string(path.join(COLLECTION_ROOT_FILE)).await?;
 
     let collection: EncodedCollection = toml::from_str(&data)?;
@@ -167,6 +177,7 @@ pub async fn open_collection(path: PathBuf) -> Result<Collection, anyhow::Error>
         .and_then(|n| environments.find_by_name(n));
 
     Ok(Collection {
+        key,
         name: collection.name,
         entries,
         scripts,

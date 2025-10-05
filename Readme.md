@@ -160,7 +160,7 @@ Download the latest release for your platform from the [Releases page](https://g
   - [ ] Logging and tracing request
   - [ ] Reduce clones
   - [x] Variable highlighting
-  - [ ] Session persistence
+  - [x] Session persistence
 
 
 ## Star History

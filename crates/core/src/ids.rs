@@ -2,8 +2,9 @@
 macro_rules! new_id_type {
     ( $(#[$outer:meta])* $vis:vis struct $name:ident; $($rest:tt)* ) => {
         $(#[$outer])*
-        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+        #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, serde::Serialize, serde::Deserialize)]
         #[repr(transparent)]
+        #[serde(transparent)]
         $vis struct $name(uuid::Uuid);
 
         impl $name {
@@ -12,6 +13,7 @@ macro_rules! new_id_type {
             pub fn new() -> Self {
                 Self(uuid::Uuid::new_v4())
             }
+
         }
 
         impl std::fmt::Display for $name {

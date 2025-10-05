@@ -5,6 +5,7 @@ use iced::Task;
 use log::info;
 use std::time::Instant;
 
+use crate::state::session::{self, SessionState, load_session_state};
 use crate::window::write_window_state;
 use crate::{
     app::AppMsg,
@@ -39,6 +40,7 @@ pub enum BackgroundTask {
     LoadHistory,
     SearchHistory,
     SaveWindowState,
+    SaveSessionState,
 }
 
 fn remove_task(state: &mut AppState, task: BackgroundTask) {
@@ -81,6 +83,7 @@ fn schedule_task(state: &mut AppState, task: BackgroundTask, delay: u64) -> bool
 #[derive(Debug, Clone)]
 pub enum TaskMsg {
     CollectionsLoaded(Vec<Collection>),
+    SessionLoaded(Option<SessionState>),
     Completed(BackgroundTask),
     UpdateDirtyTabs(Vec<(TabKey, RequestDirtyState)>),
     HistoryInitialized(Option<HistoryDatabase>),
@@ -94,6 +97,11 @@ impl TaskMsg {
             TaskMsg::CollectionsLoaded(collection) => {
                 state.common.collections.insert_all(collection);
                 task_done(state, BackgroundTask::SaveCollections);
+            }
+            TaskMsg::SessionLoaded(session) => {
+                if let Some(session) = session {
+                    state.restore_session(session)
+                }
             }
             TaskMsg::Completed(task) => {
                 task_done(state, task);
@@ -152,8 +160,7 @@ fn save_open_collections(state: &mut AppState) -> Task<TaskMsg> {
 
 fn save_environments(state: &mut AppState) -> Task<TaskMsg> {
     let task = BackgroundTask::SaveEnvironments;
-    let schedule = state.common.collections.dirty && schedule_task(state, task, DELAY);
-    if !schedule {
+    if !schedule_task(state, task, DELAY) {
         return Task::none();
     }
 
@@ -312,11 +319,31 @@ fn save_collections(state: &mut AppState) -> Task<TaskMsg> {
     Task::batch(tasks).map(|_| TaskMsg::Completed(BackgroundTask::SaveCollections))
 }
 
+fn save_session_state(state: &mut AppState) -> Task<TaskMsg> {
+    let task = BackgroundTask::SaveSessionState;
+    if !schedule_task(state, task, DELAY) {
+        return Task::none();
+    }
+
+    println!("Saving session state");
+    let session_state = SessionState::from_app_state(state);
+    Task::future(async move {
+        match session::save_session_state(&session_state).await {
+            Ok(_) => TaskMsg::Completed(BackgroundTask::SaveSessionState),
+            Err(e) => {
+                log::error!("Error saving session state: {e:?}");
+                TaskMsg::Completed(BackgroundTask::SaveSessionState)
+            }
+        }
+    })
+}
+
 pub fn background(state: &mut AppState) -> Task<TaskMsg> {
     Task::batch([
         save_open_collections(state),
         save_environments(state),
         check_dirty_requests(state),
+        save_session_state(state),
         load_history(state),
         search_history(state),
         save_collections(state),
@@ -343,9 +370,27 @@ pub async fn init_history_db_cmd() -> Option<HistoryDatabase> {
     }
 }
 
+pub async fn load_session_state_cmd() -> Option<SessionState> {
+    match load_session_state().await {
+        Ok(session) => {
+            info!("Session state loaded successfully");
+            Some(session)
+        }
+        Err(e) => {
+            log::info!("No session state found or error loading: {e:?}");
+            None
+        }
+    }
+}
+
 pub fn init_command() -> Task<AppMsg> {
     Task::batch([
-        Task::perform(load_collections_cmd(), TaskMsg::CollectionsLoaded).map(AppMsg::Command),
+        Task::perform(load_collections_cmd(), TaskMsg::CollectionsLoaded)
+            .chain(Task::perform(
+                load_session_state_cmd(),
+                TaskMsg::SessionLoaded,
+            ))
+            .map(AppMsg::Command),
         Task::perform(init_history_db_cmd(), TaskMsg::HistoryInitialized).map(AppMsg::Command),
     ])
 }

@@ -30,6 +30,7 @@ fn main() {
 }
 
 pub fn app() -> Result<(), iced::Error> {
+    env_logger::init();
     let (window_state, maximized) = load_window_state();
 
     let state_init = {

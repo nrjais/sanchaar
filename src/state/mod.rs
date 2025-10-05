@@ -21,6 +21,7 @@ pub mod environment;
 pub mod popups;
 pub mod request;
 pub mod response;
+pub mod session;
 pub mod tabs;
 pub mod utils;
 

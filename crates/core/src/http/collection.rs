@@ -1,6 +1,6 @@
 use super::KeyValList;
 use super::environment::{Environment, EnvironmentChain, EnvironmentKey};
-use crate::http::VarMap;
+use crate::http::{CollectionKey, VarMap};
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
@@ -52,6 +52,7 @@ impl std::fmt::Display for Script {
 
 #[derive(Debug, Clone)]
 pub struct Collection {
+    pub key: CollectionKey,
     pub name: String,
     pub path: PathBuf,
     pub entries: Vec<Entry>,
@@ -170,6 +171,31 @@ impl Collection {
                 && item.id == id
             {
                 return Some(item);
+            }
+        }
+        None
+    }
+
+    pub fn get_relative_path(&self, id: RequestId) -> Option<PathBuf> {
+        let path = self.path.clone();
+        for entry in self.iter() {
+            if let Entry::Item(item) = entry
+                && item.id == id
+            {
+                return item.path.strip_prefix(&path).ok().map(|p| p.to_path_buf());
+            }
+        }
+        None
+    }
+
+    pub fn from_relative_path(&self, path: &PathBuf) -> Option<RequestId> {
+        let collection_path = self.path.clone();
+        let path = collection_path.join(path);
+        for entry in self.iter() {
+            if let Entry::Item(item) = entry
+                && item.path == *path
+            {
+                return Some(item.id);
             }
         }
         None
@@ -330,6 +356,7 @@ impl Collection {
 impl Default for Collection {
     fn default() -> Self {
         Self {
+            key: CollectionKey::new(),
             name: "New Collection".to_string(),
             entries: vec![],
             path: PathBuf::new(),

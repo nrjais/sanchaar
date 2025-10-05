@@ -214,8 +214,9 @@ pub fn open_collection_cmd() -> Task<Option<Collection>> {
             .await?;
 
         let path = handle.path().to_owned();
+        let key = CollectionKey::new();
 
-        let col = open_collection(path).await.ok()?;
+        let col = open_collection(path, key).await.ok()?;
 
         Some(col)
     };

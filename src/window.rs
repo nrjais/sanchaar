@@ -66,7 +66,7 @@ pub fn load_window_state() -> (WindowState, bool) {
         .as_ref()
         .context("Failed to find data directory")
         .map(|dirs| dirs.data_local_dir())
-        .and_then(|path| read_window_state(path))
+        .and_then(read_window_state)
         .inspect_err(|e| log::error!("Error reading window state: {e:?}"))
         .map(|state| (state, false))
         .unwrap_or((DEFAULT_WINDOW_STATE, true))
@@ -74,10 +74,7 @@ pub fn load_window_state() -> (WindowState, bool) {
 
 pub fn subscription(_: &AppState) -> iced::Subscription<AppMsg> {
     listen_with(|event, _, _| match &event {
-        iced::Event::Window(w) => match w {
-            window::Event::Moved(_) | window::Event::Resized(_) => Some(event),
-            _ => None,
-        },
+        iced::Event::Window(window::Event::Moved(_) | window::Event::Resized(_)) => Some(event),
         _ => None,
     })
     .map(Message::Event)

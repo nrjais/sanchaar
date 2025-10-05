@@ -183,12 +183,7 @@ impl Collections {
         };
 
         self.dirty();
-
-        let key = CollectionKey::new();
-        self.entries.insert(key, collection);
-        self.entries
-            .get(&key)
-            .expect("Inserted collection not found")
+        self.entries.entry(collection.key).or_insert(collection)
     }
 
     fn dirty(&mut self) {

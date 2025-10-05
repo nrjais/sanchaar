@@ -27,7 +27,7 @@ pub enum Auth {
     Bearer { token: String },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumString, VariantArray, Display, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, VariantArray, Display, Default)]
 pub enum Method {
     #[default]
     GET,

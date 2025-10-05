@@ -93,6 +93,7 @@ cookie_store = "0.22"
 core = { path = "crates/core" }
 directories = "6.0"
 dotenvy = "0.15.3"
+env_logger = "0.11"
 humansize = "2.1"
 iced = { git = "https://github.com/nrjais/iced", branch = "editor", features = [
   "advanced",
@@ -134,7 +135,7 @@ strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
 toml = "0.9"
 urlencoding = "2.1"
-uuid = { version = "1.0", features = ["v4"] }
+uuid = { version = "1.0", features = ["serde", "v4"] }
 
 [dependencies]
 anyhow.workspace = true
@@ -142,6 +143,7 @@ chrono.workspace = true
 cookie_store.workspace = true
 core.workspace = true
 directories.workspace = true
+env_logger.workspace = true
 humansize.workspace = true
 iced.workspace = true
 iced_core.workspace = true
