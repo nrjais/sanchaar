@@ -31,6 +31,13 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+      - name: Override Cargo.toml version
+        shell: bash
+        run: |
+          echo "Replacing version placeholder with ${{ env.VERSION }}"
+          sed -i 's/0.1.0-prerelease.1/${{ env.VERSION }}/g' Cargo.toml
+          echo "Updated Cargo.toml:"
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -110,6 +117,13 @@ jobs:
       - name: Get version
         shell: bash
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Override Cargo.toml version
+        shell: bash
+        run: |
+          echo "Replacing version placeholder with ${{ env.VERSION }}"
+          sed -i '' 's/0.1.0-prerelease.1/${{ env.VERSION }}/g' Cargo.toml
+          echo "Updated Cargo.toml:"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
