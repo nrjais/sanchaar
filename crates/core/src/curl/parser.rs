@@ -398,15 +398,70 @@ fn tokenize_command(command: &str) -> Result<Vec<String>> {
     let mut in_single_quote = false;
     let mut in_double_quote = false;
     let mut escape_next = false;
-    let chars = command.chars().peekable();
+    let mut chars = command.chars().peekable();
 
-    for ch in chars {
+    while let Some(ch) = chars.next() {
         if escape_next {
             // Special handling for backslash-newline (line continuation in bash)
-            if ch == '\n' || ch == '\r' {
+            if ch == '\n' {
                 // Treat backslash-newline as line continuation (just skip it)
                 escape_next = false;
                 continue;
+            } else if ch == '\r' {
+                // Handle \r or \r\n as line continuation
+                // Peek ahead to see if there's a \n following the \r
+                if chars.peek() == Some(&'\n') {
+                    chars.next(); // Consume the \n
+                }
+                escape_next = false;
+                continue;
+            } else if ch == '\\' {
+                // Escaped backslash - check what follows
+                if let Some(&next_ch) = chars.peek() {
+                    match next_ch {
+                        'n' => {
+                            // \\n -> treat as newline separator
+                            chars.next(); // Consume the 'n'
+                            if !current.is_empty() {
+                                tokens.push(current.clone());
+                                current.clear();
+                            }
+                            escape_next = false;
+                            continue;
+                        }
+                        't' => {
+                            // \\t -> treat as tab separator
+                            chars.next(); // Consume the 't'
+                            if !current.is_empty() {
+                                tokens.push(current.clone());
+                                current.clear();
+                            }
+                            escape_next = false;
+                            continue;
+                        }
+                        'r' => {
+                            // \\r -> treat as carriage return separator
+                            chars.next(); // Consume the 'r'
+                            if !current.is_empty() {
+                                tokens.push(current.clone());
+                                current.clear();
+                            }
+                            escape_next = false;
+                            continue;
+                        }
+                        _ => {
+                            // For other characters after \\, keep the backslash
+                            current.push('\\');
+                            escape_next = false;
+                            continue;
+                        }
+                    }
+                } else {
+                    // Backslash at end of input
+                    current.push('\\');
+                    escape_next = false;
+                    continue;
+                }
             }
             current.push(ch);
             escape_next = false;
@@ -1110,6 +1165,69 @@ mod tests {
             req.body,
             RequestBody::Json(r#"{"data":"value"}"#.to_string())
         );
+    }
+
+    #[test]
+    fn test_backslash_carriage_return_line_continuation() {
+        // Backslash-carriage return should work as line continuation
+        let cmd = "curl -X POST \\\rhttps://api.example.com \\\r-H \"Auth: token\"";
+        let req = parse_curl_command(cmd).unwrap();
+        assert_eq!(req.method, Method::POST);
+        assert_eq!(req.url, "https://api.example.com");
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Auth" && h.value == "token")
+        );
+    }
+
+    #[test]
+    fn test_backslash_crlf_line_continuation() {
+        // Windows-style \r\n line continuation
+        let cmd = "curl -X POST \\\r\nhttps://api.example.com \\\r\n-H \"Content-Type: application/json\" \\\r\n-d '{\"key\":\"value\"}'";
+        let req = parse_curl_command(cmd).unwrap();
+        assert_eq!(req.method, Method::POST);
+        assert_eq!(req.url, "https://api.example.com");
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Content-Type" && h.value == "application/json")
+        );
+        assert_eq!(
+            req.body,
+            RequestBody::Json(r#"{"key":"value"}"#.to_string())
+        );
+    }
+
+    #[test]
+    fn test_escaped_backslash_with_n() {
+        // \\n in the input should be treated as escaped newline sequence (like \n in strings)
+        // This allows parsing curl commands that use \\n as a separator
+        let cmd =
+            r#"curl -X POST https://api.example.com \\n-H "Auth: token" \\n-d '{"key":"value"}'"#;
+        let req = parse_curl_command(cmd).unwrap();
+
+        assert_eq!(req.method, Method::POST);
+        assert_eq!(req.url, "https://api.example.com");
+        assert!(
+            req.headers
+                .iter()
+                .any(|h| h.name == "Auth" && h.value == "token")
+        );
+        assert_eq!(
+            req.body,
+            RequestBody::Json(r#"{"key":"value"}"#.to_string())
+        );
+    }
+
+    #[test]
+    fn test_escaped_backslash_with_t() {
+        // \\t in the input should be treated as escaped tab sequence
+        let cmd = r#"curl\\t-X\\tPOST\\thttps://api.example.com"#;
+        let req = parse_curl_command(cmd).unwrap();
+
+        assert_eq!(req.method, Method::POST);
+        assert_eq!(req.url, "https://api.example.com");
     }
 
     #[test]
