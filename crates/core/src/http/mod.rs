@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub mod collection;
 pub mod environment;
 pub mod request;
+pub mod request_loader;
 
 crate::new_id_type! {
     pub struct CollectionKey;

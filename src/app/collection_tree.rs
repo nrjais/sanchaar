@@ -10,6 +10,7 @@ use iced::{Element, Length, Task, clipboard, padding};
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
 };
+use crate::state::tabs::perf_tab::PerfTab;
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{CollectionKey, CollectionRequest, request::Request};
 
@@ -31,6 +32,7 @@ pub enum CollectionTreeMsg {
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
     OpenHistory,
+    OpenPerformance,
 }
 
 impl CollectionTreeMsg {
@@ -71,6 +73,9 @@ impl CollectionTreeMsg {
             CollectionTreeMsg::ActionComplete => (),
             CollectionTreeMsg::OpenHistory => {
                 state.open_unique_tab(Tab::History(HistoryTab::new()));
+            }
+            CollectionTreeMsg::OpenPerformance => {
+                state.open_tab(Tab::Perf(PerfTab::new()));
             }
         };
         Task::none()
@@ -184,6 +189,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
     let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
     let history = icon_button(icons::History).on_press(CollectionTreeMsg::OpenHistory);
+    let perf = icon_button(icons::Speedometer).on_press(CollectionTreeMsg::OpenPerformance);
 
     Column::new()
         .push(
@@ -192,6 +198,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
                     .push(tooltip("Create Collection", create_col))
                     .push(tooltip("Open Collection", open_col))
                     .push(tooltip("History", history))
+                    .push(tooltip("Performance", perf))
                     .width(Length::Shrink)
                     .align_y(Vertical::Center)
                     .spacing(8),

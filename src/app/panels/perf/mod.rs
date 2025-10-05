@@ -1,0 +1,58 @@
+use iced::padding;
+use iced::{
+    Element, Length, Task,
+    widget::{Column, container},
+};
+
+use crate::components::split::split;
+use crate::state::{AppState, tabs::perf_tab::PerfTab};
+
+pub mod config_pane;
+pub mod report_pane;
+
+#[derive(Debug, Clone)]
+pub enum PerfTabMsg {
+    Config(config_pane::ConfigMsg),
+    Report(report_pane::ReportMsg),
+    SplitResize(f32),
+}
+
+impl PerfTabMsg {
+    pub fn update(self, state: &mut AppState) -> Task<Self> {
+        match self {
+            PerfTabMsg::Config(msg) => msg.update(state).map(PerfTabMsg::Config),
+            PerfTabMsg::Report(msg) => msg.update(state).map(PerfTabMsg::Report),
+            PerfTabMsg::SplitResize(ratio) => {
+                let Some(crate::state::Tab::Perf(tab)) = state.active_tab_mut() else {
+                    return Task::none();
+                };
+                tab.set_split_at(ratio);
+                Task::none()
+            }
+        }
+    }
+}
+
+pub fn view<'a>(state: &'a AppState, tab: &'a PerfTab) -> Element<'a, PerfTabMsg> {
+    let config_view = config_pane::view(state, tab).map(PerfTabMsg::Config);
+    let report_view = report_pane::view(tab).map(PerfTabMsg::Report);
+
+    let panes = split(
+        config_view,
+        report_view,
+        tab.split_at,
+        state.split_direction,
+        PerfTabMsg::SplitResize,
+    )
+    .handle_width(8.)
+    .line_width(2.);
+
+    let content = container(panes).padding(padding::top(4));
+
+    Column::new()
+        .push(content)
+        .height(Length::Fill)
+        .width(Length::Fill)
+        .spacing(4)
+        .into()
+}

@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use core::http::request::{Auth, Method, Request, RequestBody};
-use core::http::{CollectionKey, CollectionRequest, KeyValList};
+use core::http::{CollectionKey, CollectionRequest, KeyValList, RequestId};
+use core::perf::PerfConfig;
 use core::persistence::collections::project_dirs;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -12,6 +13,7 @@ use super::tabs::cookies_tab::CookiesTab;
 use super::tabs::history_tab::HistoryTab;
 use super::{AppState, HttpTab, PaneConfig, Tab, TabKey};
 use crate::components::split::Direction;
+use crate::state::tabs::perf_tab::PerfTab;
 
 const SESSION_STATE_FILE: &str = "session_state.json";
 
@@ -176,12 +178,21 @@ pub struct SerializableCollectionTab {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SerializablePerfTab {
+    pub split_at: f32,
+    pub config: PerfConfig,
+    pub collection: Option<CollectionKey>,
+    pub request: Option<RequestId>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SerializableTab {
     Http(Box<SerializableHttpTab>),
     Collection(SerializableCollectionTab),
     CookieStore,
     History,
+    Perf(SerializablePerfTab),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -254,6 +265,7 @@ impl SessionState {
             .iter()
             .filter_map(|(key, tab)| {
                 let serializable_tab = match tab {
+                    Tab::Perf(_) => None,
                     Tab::Http(http_tab) => {
                         let request = http_tab.request().to_request();
                         let collection_ref = state
@@ -371,6 +383,14 @@ impl AppState {
                 }
                 SerializableTab::CookieStore => Tab::CookieStore(CookiesTab::new(&self.common)),
                 SerializableTab::History => Tab::History(HistoryTab::new()),
+                SerializableTab::Perf(session) => {
+                    let mut tab = PerfTab::new();
+                    tab.set_split_at(session.split_at);
+                    tab.config = session.config;
+                    tab.collection = session.collection;
+                    tab.request = session.request;
+                    Tab::Perf(tab)
+                }
             };
 
             self.tabs.insert(tab_key, tab);

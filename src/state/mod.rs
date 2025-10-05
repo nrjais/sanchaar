@@ -6,6 +6,7 @@ use reqwest_cookie_store::CookieStoreRwLock;
 use tabs::collection_tab::CollectionTab;
 use tabs::cookies_tab::CookiesTab;
 use tabs::history_tab::HistoryTab;
+use tabs::perf_tab::PerfTab;
 
 use core::client::{create_client, create_cookie_store};
 use core::http::{CollectionRequest, Collections};
@@ -37,6 +38,7 @@ pub enum Tab {
     Collection(CollectionTab),
     CookieStore(CookiesTab),
     History(HistoryTab),
+    Perf(PerfTab),
 }
 
 impl Tab {
@@ -47,6 +49,7 @@ impl Tab {
                 | (Tab::Collection(_), Tab::Collection(_))
                 | (Tab::CookieStore(_), Tab::CookieStore(_))
                 | (Tab::History(_), Tab::History(_))
+                | (Tab::Perf(_), Tab::Perf(_))
         )
     }
 }

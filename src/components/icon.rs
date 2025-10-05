@@ -74,4 +74,5 @@ pub mod icons {
     pub const SplitHorizontal: NerdIcon = NerdIcon('');
     pub const OpenSideBar: NerdIcon = NerdIcon('');
     pub const CloseSideBar: NerdIcon = NerdIcon('');
+    pub const Speedometer: NerdIcon = NerdIcon('󰓅');
 }
