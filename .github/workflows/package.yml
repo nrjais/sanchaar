@@ -195,13 +195,28 @@ jobs:
 
       - name: Update Homebrew Cask
         run: |
-          # Update version in Homebrew cask
-          sed -i "s/version \".*\"/version \"${{ env.VERSION }}\"/" homebrew/sanchaar.rb
+          # Extract checksums from the sha256 files
+          INTEL_SHA256=$(cat release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-x86_64-apple-darwin.dmg.sha256 | awk '{print $1}')
+          ARM_SHA256=$(cat release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-aarch64-apple-darwin.dmg.sha256 | awk '{print $1}')
 
-          # Note: SHA256 will be set to :no_check for flexibility
-          # Users can verify using the .sha256 files provided with the release
+          echo "Intel SHA256: $INTEL_SHA256"
+          echo "ARM SHA256: $ARM_SHA256"
 
-          cp homebrew/sanchaar.rb release/sanchaar.rb
+          # Copy the template
+          cp homebrew/sanchaar.rb homebrew/sanchaar-updated.rb
+
+          # Update version
+          sed -i "s/version \".*\"/version \"${{ env.VERSION }}\"/" homebrew/sanchaar-updated.rb
+
+          # Replace SHA256 placeholders with actual checksums
+          sed -i "s/REPLACE_WITH_X86_64_SHA256/$INTEL_SHA256/" homebrew/sanchaar-updated.rb
+          sed -i "s/REPLACE_WITH_ARM64_SHA256/$ARM_SHA256/" homebrew/sanchaar-updated.rb
+
+          echo "Updated Homebrew cask:"
+          cat homebrew/sanchaar-updated.rb
+
+          # Copy to release directory
+          cp homebrew/sanchaar-updated.rb release/sanchaar.rb
 
       - name: Publish to Homebrew Tap
         env:
@@ -222,8 +237,8 @@ jobs:
           BRANCH_NAME="update-sanchaar-${{ env.VERSION }}"
           git checkout -b "$BRANCH_NAME"
 
-          # Copy the updated formula
-          cp ../homebrew/sanchaar.rb Casks/sanchaar.rb
+          # Copy the updated formula (with checksums)
+          cp ../homebrew/sanchaar-updated.rb Casks/sanchaar.rb
 
           # Commit and push if there are changes
           git add Casks/sanchaar.rb
@@ -249,12 +264,19 @@ jobs:
           if [ -n "$EXISTING_PR" ]; then
             echo "PR already exists: #$EXISTING_PR"
           else
+            # Get checksums for PR description
+            INTEL_SHA_SHORT=$(cat ../release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-x86_64-apple-darwin.dmg.sha256 | awk '{print $1}' | cut -c1-16)
+            ARM_SHA_SHORT=$(cat ../release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-aarch64-apple-darwin.dmg.sha256 | awk '{print $1}' | cut -c1-16)
+
             # Create PR body
             PR_BODY="This PR updates the sanchaar cask to version \`${{ env.VERSION }}\`.
 
           ## Changes
           - Updated version to \`${{ env.VERSION }}\`
           - Updated download URLs for the new release
+          - Updated SHA256 checksums:
+            - Intel (x86_64): \`${INTEL_SHA_SHORT}...\`
+            - ARM (aarch64): \`${ARM_SHA_SHORT}...\`
 
           ## Release Notes
           See the [release notes](https://github.com/nrjais/sanchaar/releases/tag/${{ env.VERSION }}) for details.
