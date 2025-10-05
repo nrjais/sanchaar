@@ -103,6 +103,12 @@ pub struct AppState {
     pub manager: PluginManager,
 }
 
+impl Default for AppState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AppState {
     pub fn new() -> Self {
         let manager = PluginManagerBuilder::new()

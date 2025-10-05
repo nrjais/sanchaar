@@ -10,7 +10,7 @@ use iced::{
     Size,
     window::{Position, Settings},
 };
-use iced_window_state_plugin::{WindowState, WindowStatePlugin};
+use iced_window_state_plugin::WindowStatePlugin;
 use state::AppState;
 use std::borrow::Cow;
 
@@ -31,7 +31,7 @@ fn main() {
 pub fn app() -> Result<(), iced::Error> {
     let window_state = WindowStatePlugin::load(APP_NAME);
     let maximized = window_state.is_none();
-    let window_state = window_state.unwrap_or(WindowState::default());
+    let window_state = window_state.unwrap_or_default();
 
     let state_init = { move || (AppState::new(), commands::init_command()) };
 
