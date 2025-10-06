@@ -4,6 +4,7 @@ use std::time::Duration;
 use iced::{
     Alignment, Border, Element, Length, Point, Rectangle, Task,
     advanced::widget,
+    padding,
     widget::{Button, Column, Row, button, container, rule, space, text},
 };
 
@@ -147,34 +148,31 @@ fn config_view<'a>(tab: &'a PerfTab) -> Element<'a, ConfigMsg> {
         .push(timeout.width(Length::FillPortion(1)));
 
     let has_request = tab.request.is_some();
-    let can_start = has_request && tab.state == PerfState::Idle;
-    let is_running = tab.state == PerfState::Running;
 
-    let start_stop_button = if is_running {
-        button_with_icon(icons::CloseBox, "Stop", ConfigMsg::StopTest)
+    let start_stop_button = match &tab.state {
+        PerfState::Running => button_with_icon(icons::CloseBox, "Stop", ConfigMsg::StopTest)
             .style(button::danger)
-            .on_press(ConfigMsg::StopTest)
-    } else {
-        button_with_icon(icons::Send, "Start", ConfigMsg::StartTest)
+            .on_press(ConfigMsg::StopTest),
+        PerfState::Idle => button_with_icon(icons::Send, "Start", ConfigMsg::StartTest)
             .style(button::primary)
-            .on_press_maybe(can_start.then_some(ConfigMsg::StartTest))
+            .on_press_maybe(has_request.then_some(ConfigMsg::StartTest)),
+        PerfState::Completed | PerfState::Failed | PerfState::Cancelled => {
+            button_with_icon(icons::Replay, "Restart", ConfigMsg::StartTest)
+                .style(button::primary)
+                .on_press_maybe(has_request.then_some(ConfigMsg::StartTest))
+        }
     };
 
-    let reset_button = button_with_icon(icons::Delete, "Reset", ConfigMsg::Reset)
-        .style(button::secondary)
-        .on_press(ConfigMsg::Reset);
-
-    let controls = Row::new()
-        .push(start_stop_button)
-        .push(reset_button)
-        .spacing(12)
-        .width(Length::Fill);
+    let start_stop_button = container(start_stop_button)
+        .width(Length::Fill)
+        .padding(padding::top(16))
+        .align_x(Alignment::Center);
 
     Column::from_iter([
         duration.into(),
         concurrency.into(),
         timeout.into(),
-        controls.into(),
+        start_stop_button.into(),
     ])
     .spacing(8)
     .width(Length::FillPortion(1))
@@ -353,12 +351,12 @@ fn empty_drop_zone<'a>() -> Column<'a, ConfigMsg> {
 fn button_with_icon<'a, M: 'a>(ico: NerdIcon, label: &'a str, on_press: M) -> Button<'a, M> {
     button(
         Row::new()
-            .push(icon(ico))
-            .push(text(label))
-            .spacing(8)
+            .push(icon(ico).size(20))
+            .push(text(label).size(20))
+            .spacing(12)
             .align_y(Alignment::Center),
     )
-    .padding([4, 8])
+    .padding([4, 12])
     .style(button::primary)
     .on_press(on_press)
 }

@@ -61,6 +61,7 @@ pub mod icons {
     pub const Edit: NerdIcon = NerdIcon('󰷉');
     pub const EditLines: NerdIcon = NerdIcon('󱩽');
     pub const Send: NerdIcon = NerdIcon('󰒊');
+    pub const Replay: NerdIcon = NerdIcon('󰑙');
     pub const SendUp: NerdIcon = NerdIcon('');
     pub const Path: NerdIcon = NerdIcon('');
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');

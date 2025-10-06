@@ -35,7 +35,7 @@ impl PerfTabMsg {
 
 pub fn view<'a>(state: &'a AppState, tab: &'a PerfTab) -> Element<'a, PerfTabMsg> {
     let config_view = config_pane::view(state, tab).map(PerfTabMsg::Config);
-    let report_view = report_pane::view(tab).map(PerfTabMsg::Report);
+    let report_view = report_pane::view(state, tab).map(PerfTabMsg::Report);
 
     let panes = split(
         config_view,

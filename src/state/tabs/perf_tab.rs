@@ -49,10 +49,8 @@ impl PerfTab {
     }
 
     pub fn start_test(&mut self) {
+        self.reset();
         self.state = PerfState::Running;
-        self.progress = 0;
-        self.metrics = None;
-        self.stats = None;
     }
 
     pub fn update_progress(&mut self, metrics: PerfMetrics) {
