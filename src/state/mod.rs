@@ -38,7 +38,7 @@ pub enum Tab {
     Collection(CollectionTab),
     CookieStore(CookiesTab),
     History(HistoryTab),
-    Perf(PerfTab),
+    Perf(Box<PerfTab>),
 }
 
 impl Tab {

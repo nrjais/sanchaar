@@ -181,8 +181,7 @@ pub struct SerializableCollectionTab {
 pub struct SerializablePerfTab {
     pub split_at: f32,
     pub config: PerfConfig,
-    pub collection: Option<CollectionKey>,
-    pub request: Option<RequestId>,
+    pub request: Option<(CollectionKey, RequestId)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -265,7 +264,6 @@ impl SessionState {
             .iter()
             .filter_map(|(key, tab)| {
                 let serializable_tab = match tab {
-                    Tab::Perf(_) => None,
                     Tab::Http(http_tab) => {
                         let request = http_tab.request().to_request();
                         let collection_ref = state
@@ -304,6 +302,11 @@ impl SessionState {
                     }
                     Tab::CookieStore(_) => Some(SerializableTab::CookieStore),
                     Tab::History(_) => Some(SerializableTab::History),
+                    Tab::Perf(perf_tab) => Some(SerializableTab::Perf(SerializablePerfTab {
+                        split_at: perf_tab.split_at,
+                        config: perf_tab.config.clone(),
+                        request: perf_tab.request.map(|request| (request.0, request.1)),
+                    })),
                 };
                 serializable_tab.map(|tab| (*key, tab))
             })
@@ -387,9 +390,10 @@ impl AppState {
                     let mut tab = PerfTab::new();
                     tab.set_split_at(session.split_at);
                     tab.config = session.config;
-                    tab.collection = session.collection;
-                    tab.request = session.request;
-                    Tab::Perf(tab)
+                    tab.request = session
+                        .request
+                        .map(|(col_key, req_id)| CollectionRequest(col_key, req_id));
+                    Tab::Perf(Box::new(tab))
                 }
             };
 

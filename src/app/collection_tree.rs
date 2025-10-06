@@ -10,7 +10,6 @@ use iced::{Element, Length, Point, Rectangle, Task, advanced::widget, clipboard,
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
 };
-use crate::state::tabs::perf_tab::PerfTab;
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{CollectionKey, CollectionRequest, request::Request};
 
@@ -80,7 +79,7 @@ impl CollectionTreeMsg {
                 state.open_unique_tab(Tab::History(HistoryTab::new()));
             }
             CollectionTreeMsg::OpenPerformance => {
-                state.open_tab(Tab::Perf(PerfTab::new()));
+                state.open_tab(Tab::Perf(Box::default()));
             }
             CollectionTreeMsg::RequestDrop(point, _, request) => {
                 return iced_drop::zones_on_point(
@@ -91,11 +90,10 @@ impl CollectionTreeMsg {
                 );
             }
             CollectionTreeMsg::HandleDropZones(zones, request) => {
-                // Check if dropped on perf config drop zone
+                // TODO: Cleanup this code
                 let perf_zone_id = widget::Id::from("perf_request_drop_zone");
                 for (zone_id, _) in zones {
                     if zone_id == perf_zone_id {
-                        // Update the active perf tab if it exists
                         if let Some(Tab::Perf(tab)) = state.active_tab_mut() {
                             tab.set_request(request);
                         }

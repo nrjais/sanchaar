@@ -1,4 +1,4 @@
-use core::http::{CollectionKey, CollectionRequest, RequestId};
+use core::http::CollectionRequest;
 use core::perf::{PerfConfig, PerfMetrics, PerfStats};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -12,8 +12,7 @@ pub enum PerfState {
 #[derive(Debug)]
 pub struct PerfTab {
     pub name: String,
-    pub collection: Option<CollectionKey>,
-    pub request: Option<RequestId>,
+    pub request: Option<CollectionRequest>,
     pub config: PerfConfig,
     pub state: PerfState,
     pub metrics: Option<PerfMetrics>,
@@ -26,7 +25,6 @@ impl PerfTab {
     pub fn new() -> Self {
         Self {
             name: "Performance".to_owned(),
-            collection: None,
             request: None,
             config: PerfConfig::default(),
             state: PerfState::Idle,
@@ -42,8 +40,7 @@ impl PerfTab {
     }
 
     pub fn set_request(&mut self, request: CollectionRequest) {
-        self.collection = Some(request.0);
-        self.request = Some(request.1);
+        self.request = Some(request);
     }
 
     pub fn start_test(&mut self) {
