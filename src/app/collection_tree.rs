@@ -84,7 +84,7 @@ impl CollectionTreeMsg {
                 return iced_drop::zones_on_point(
                     move |zones| CollectionTreeMsg::HandleDropZones(zones, request),
                     point,
-                    None,
+                    Some(vec![PERF_REQUEST_DROP_ZONE]),
                     None,
                 );
             }

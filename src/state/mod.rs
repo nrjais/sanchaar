@@ -204,6 +204,15 @@ impl AppState {
         }
     }
 
+    pub fn reorder_tab(&mut self, dragged_tab: TabKey, target_tab: TabKey) {
+        let dragged_index = self.tabs.get_index_of(&dragged_tab);
+        let target_index = self.tabs.get_index_of(&target_tab);
+
+        if let Some((from_idx, to_idx)) = dragged_index.zip(target_index) {
+            self.tabs.move_index(from_idx, to_idx);
+        }
+    }
+
     pub(crate) fn close_all_tabs(&mut self) {
         self.tabs.clear();
         self.active_tab = TabKey::ZERO;

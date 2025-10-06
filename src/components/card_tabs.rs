@@ -1,8 +1,8 @@
 use crate::components::{horizontal_line, icon, icons};
 use iced::widget::button::{Status, Style};
-use iced::widget::{Column, space};
+use iced::widget::{Column, Id, space};
 use iced::{
-    Border, Center, Element, Length, Shadow, Vector,
+    Border, Center, Element, Length, Point, Rectangle, Shadow, Vector,
     widget::{Row, Text, button, container},
 };
 
@@ -11,22 +11,24 @@ pub enum TabBarAction<T: Clone> {
     NewTab,
     CloseTab(T),
     ChangeTab(T),
+    TabDrop(Point, Rectangle, T),
+    HandleDropZones(Vec<(Id, Rectangle)>, T),
 }
 
-pub struct CardTab<'a, T> {
+pub struct CardTab<'a, T: Copy> {
     pub id: T,
     pub icon: Text<'a>,
     pub label: Text<'a>,
 }
 
-pub fn card_tab<'a, T: Eq>(id: T, icon: Text<'a>, label: Text<'a>) -> CardTab<'a, T> {
+pub fn card_tab<'a, T: Eq + Copy>(id: T, icon: Text<'a>, label: Text<'a>) -> CardTab<'a, T> {
     CardTab { id, icon, label }
 }
 
-pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
+pub fn card_tabs<'a, T: Eq + Copy + std::fmt::Display + 'static, M: 'a + Clone>(
     active: T,
     tabs: Vec<CardTab<'a, T>>,
-    on_action: impl Fn(TabBarAction<T>) -> M,
+    on_action: impl Fn(TabBarAction<T>) -> M + 'a + Copy,
     suffix: Option<Element<'a, M>>,
 ) -> Element<'a, M> {
     let mut tabs_row = Row::new().align_y(Center).spacing(4);
@@ -37,12 +39,9 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
     } in tabs
     {
         let is_active = id == active;
-        let change_id = id.clone();
-        let close_id = id.clone();
-
         let close_button = button(icon(icons::Close).size(18).line_height(1.))
             .padding(4)
-            .on_press(on_action(TabBarAction::CloseTab(close_id)))
+            .on_press(on_action(TabBarAction::CloseTab(id)))
             .style(move |theme: &iced::Theme, status| {
                 let palette = theme.extended_palette();
                 let mut style = button::text(theme, Status::Active);
@@ -64,8 +63,12 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
             .push(label)
             .push(close_button);
 
-        tabs_row = tabs_row.push(
-            button(tab_content)
+        let droppable = iced_drop::droppable(tab_content)
+            .on_press(on_action(TabBarAction::ChangeTab(id)))
+            .on_drop(move |point, bounds| on_action(TabBarAction::TabDrop(point, bounds, id)));
+
+        let tab_button = container(
+            button(droppable)
                 .padding([2, 4])
                 .style(move |theme: &iced::Theme, status| {
                     let palette = theme.extended_palette();
@@ -121,8 +124,11 @@ pub fn card_tabs<'a, T: Eq + Clone, M: 'a + Clone>(
                         ..Style::default()
                     }
                 })
-                .on_press(on_action(TabBarAction::ChangeTab(change_id))),
+                .on_press(on_action(TabBarAction::ChangeTab(id))),
         )
+        .id(format!("tab-{}", id));
+
+        tabs_row = tabs_row.push(tab_button);
     }
 
     tabs_row = tabs_row

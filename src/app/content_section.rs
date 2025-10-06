@@ -34,6 +34,26 @@ impl MainPageMsg {
                     ChangeTab(tab) => state.switch_tab(tab),
                     NewTab => state.open_tab(Tab::Http(HttpTab::new_def())),
                     CloseTab(key) => state.close_tab(key),
+                    TabDrop(point, _, dragged_tab) => {
+                        return iced_drop::zones_on_point(
+                            move |zones| Self::TabBarAction(HandleDropZones(zones, dragged_tab)),
+                            point,
+                            None,
+                            None,
+                        );
+                    }
+                    HandleDropZones(zones, dragged_tab) => {
+                        let target_tab_keys: Vec<_> = state.tabs.keys().copied().collect();
+                        for (zone_id, _) in zones {
+                            for target_key in &target_tab_keys {
+                                let expected_zone_id = format!("tab-{}", target_key).into();
+                                if zone_id == expected_zone_id {
+                                    state.reorder_tab(dragged_tab, *target_key);
+                                    return Task::none();
+                                }
+                            }
+                        }
+                    }
                 }
                 Task::none()
             }
