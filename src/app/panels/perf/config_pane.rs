@@ -2,15 +2,14 @@ use core::http::CollectionRequest;
 use std::time::Duration;
 
 use iced::{
-    Alignment, Border, Element, Length, Point, Rectangle, Task,
-    advanced::widget,
-    padding,
+    Alignment, Border, Element, Length, Point, Rectangle, Task, padding,
     widget::{Button, Column, Row, button, container, rule, space, text},
 };
 
 use crate::{
     commands::perf::PerfResult,
     components::{icon, icons, split::Direction, text_input},
+    ids::PERF_REQUEST_DROP_ZONE,
     state::{
         AppState, Tab,
         tabs::perf_tab::{PerfState, PerfTab},
@@ -180,8 +179,6 @@ fn config_view<'a>(tab: &'a PerfTab) -> Element<'a, ConfigMsg> {
 }
 
 fn request_selector_view<'a>(tab: &'a PerfTab, state: &'a AppState) -> Element<'a, ConfigMsg> {
-    let drop_zone_id = widget::Id::from("perf_request_drop_zone");
-
     let request = tab
         .request
         .and_then(|request| state.common.collections.get_ref(request));
@@ -197,7 +194,7 @@ fn request_selector_view<'a>(tab: &'a PerfTab, state: &'a AppState) -> Element<'
     };
 
     container(content)
-        .id(drop_zone_id)
+        .id(PERF_REQUEST_DROP_ZONE)
         .width(Length::FillPortion(1))
         .style(container::bordered_box)
         .padding(12)

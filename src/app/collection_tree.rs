@@ -5,11 +5,12 @@ use iced::widget::text::Wrapping;
 use iced::widget::{
     Button, Column, Row, Scrollable, Tooltip, button, column, container, hover, row, text,
 };
-use iced::{Element, Length, Point, Rectangle, Task, advanced::widget, clipboard, padding};
+use iced::{Element, Length, Point, Rectangle, Task, clipboard, padding};
 
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
 };
+use crate::ids::PERF_REQUEST_DROP_ZONE;
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{CollectionKey, CollectionRequest, request::Request};
 
@@ -90,16 +91,14 @@ impl CollectionTreeMsg {
                 );
             }
             CollectionTreeMsg::HandleDropZones(zones, request) => {
-                // TODO: Cleanup this code
-                let perf_zone_id = widget::Id::from("perf_request_drop_zone");
-                for (zone_id, _) in zones {
-                    if zone_id == perf_zone_id {
+                zones
+                    .iter()
+                    .find(|(zone_id, _)| *zone_id == PERF_REQUEST_DROP_ZONE)
+                    .inspect(|(_, _)| {
                         if let Some(Tab::Perf(tab)) = state.active_tab_mut() {
                             tab.set_request(request);
                         }
-                        break;
-                    }
-                }
+                    });
             }
         };
         Task::none()
@@ -416,34 +415,41 @@ fn context_button_request(
 ) -> Element<'_, CollectionTreeMsg> {
     let collection_request = CollectionRequest(col, item.id);
 
-    let base = button(
-        row([
-            icon(icons::API)
-                .size(16)
-                .style(|t| text::Style {
-                    color: Some(t.extended_palette().success.strong.color),
-                })
-                .align_x(iced::Alignment::Start)
-                .into(),
-            text(&item.name).wrapping(Wrapping::None).size(16).into(),
-        ])
-        .align_y(iced::Alignment::Center)
-        .clip(true)
-        .spacing(8),
-    )
-    .style(|theme, status| {
-        if status == Status::Hovered || status == Status::Pressed {
-            button::subtle(theme, Status::Hovered)
-        } else {
-            button::text(theme, Status::Active)
-        }
-    })
-    .padding(padding::left(12 * indent + 4))
-    .width(Length::Fill);
+    let base = row([
+        icon(icons::API)
+            .size(16)
+            .style(|t| text::Style {
+                color: Some(t.extended_palette().success.strong.color),
+            })
+            .align_x(iced::Alignment::Start)
+            .into(),
+        text(&item.name).wrapping(Wrapping::None).size(16).into(),
+    ])
+    .align_y(iced::Alignment::Center)
+    .width(Length::Fill)
+    .clip(true)
+    .spacing(8);
+
+    let droppable = iced_drop::droppable(base)
+        .on_press(CollectionTreeMsg::OpenRequest(collection_request))
+        .on_drop(move |point, bounds| {
+            CollectionTreeMsg::RequestDrop(point, bounds, collection_request)
+        });
+
+    let base = button(droppable)
+        .on_press(CollectionTreeMsg::OpenRequest(collection_request))
+        .style(|theme, status| {
+            if status == Status::Hovered || status == Status::Pressed {
+                button::subtle(theme, Status::Hovered)
+            } else {
+                button::text(theme, Status::Active)
+            }
+        })
+        .padding(padding::left(12 * indent + 4))
+        .width(Length::Fill);
 
     let request_id = item.id;
-
-    let base_with_context = context_menu(
+    context_menu(
         base,
         vec![
             menu_item(
@@ -462,14 +468,8 @@ fn context_button_request(
                 CollectionTreeMsg::ContextMenu(col, MenuAction::DeleteRequest(request_id)),
             ),
         ],
-    );
-
-    iced_drop::droppable(base_with_context)
-        .on_press(CollectionTreeMsg::OpenRequest(collection_request))
-        .on_drop(move |point, bounds| {
-            CollectionTreeMsg::RequestDrop(point, bounds, collection_request)
-        })
-        .into()
+    )
+    .into()
 }
 
 fn context_button_collection<'a>(
