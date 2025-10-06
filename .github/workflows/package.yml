@@ -229,9 +229,6 @@ jobs:
           echo "Updated Homebrew cask:"
           cat homebrew/sanchaar-updated.rb
 
-          # Copy to release directory
-          cp homebrew/sanchaar-updated.rb release/sanchaar.rb
-
       - name: Publish to Homebrew Tap
         env:
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
