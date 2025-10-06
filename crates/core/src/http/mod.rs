@@ -144,7 +144,7 @@ impl Collections {
 
     pub fn insert(&mut self, collection: Collection) {
         self.dirty();
-        self.entries.insert(CollectionKey::new(), collection);
+        self.entries.insert(collection.key, collection);
     }
 
     pub fn get_envs(&self, key: CollectionKey) -> Option<&Environments> {
