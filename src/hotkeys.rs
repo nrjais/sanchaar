@@ -49,11 +49,14 @@ fn handle_hotkeys(
     modifiers: keyboard::Modifiers,
     state: &mut AppState,
 ) -> Task<Message> {
-    if !modifiers.command() {
+    if state.common.popup.is_some() {
+        if key == Key::Named(Named::Escape) {
+            Popup::close(&mut state.common);
+        }
         return Task::none();
     }
 
-    if state.common.popup.is_some() {
+    if !modifiers.command() {
         return Task::none();
     }
 
@@ -72,7 +75,13 @@ fn handle_hotkeys(
                 Task::none()
             }
         }
-        Key::Named(Named::Escape) => focus_previous(),
+        Key::Named(Named::Escape) => {
+            if state.common.popup.is_some() {
+                Popup::close(&mut state.common);
+                return Task::none();
+            }
+            focus_previous()
+        }
         _ => Task::none(),
     }
 }
