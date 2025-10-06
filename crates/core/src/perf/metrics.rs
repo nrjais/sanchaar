@@ -40,9 +40,14 @@ impl Clone for Histogram {
     }
 }
 
+impl Default for Histogram {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Histogram {
     pub fn new() -> Self {
-        // Buckets in milliseconds: 1, 2, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 30000, +inf
         let buckets = vec![
             1.0,
             2.0,
@@ -51,13 +56,27 @@ impl Histogram {
             25.0,
             50.0,
             100.0,
-            250.0,
+            200.0,
+            300.0,
             500.0,
-            1000.0,
+            700.0,
+            900.0,
+            1200.0,
+            1500.0,
+            2000.0,
             2500.0,
+            3000.0,
+            4000.0,
             5000.0,
+            7000.0,
             10000.0,
+            15000.0,
+            20000.0,
+            25000.0,
             30000.0,
+            40000.0,
+            50000.0,
+            60000.0,
             f64::INFINITY,
         ];
         let counts = buckets.iter().map(|_| AtomicU64::new(0)).collect();
@@ -76,7 +95,6 @@ impl Histogram {
         let millis = duration.as_millis() as u64;
         let millis_f64 = duration.as_secs_f64() * 1000.0;
 
-        // Find the appropriate bucket
         for (i, &boundary) in self.buckets.iter().enumerate() {
             if millis_f64 <= boundary {
                 self.counts[i].fetch_add(1, Ordering::Relaxed);
@@ -87,7 +105,6 @@ impl Histogram {
         self.total_count.fetch_add(1, Ordering::Relaxed);
         self.sum_millis.fetch_add(millis, Ordering::Relaxed);
 
-        // Update min
         let mut current_min = self.min_millis.load(Ordering::Relaxed);
         while millis < current_min {
             match self.min_millis.compare_exchange(
@@ -101,7 +118,6 @@ impl Histogram {
             }
         }
 
-        // Update max
         let mut current_max = self.max_millis.load(Ordering::Relaxed);
         while millis > current_max {
             match self.max_millis.compare_exchange(
@@ -128,7 +144,6 @@ impl Histogram {
         for (i, count) in self.counts.iter().enumerate() {
             cumulative += count.load(Ordering::Relaxed);
             if cumulative >= target {
-                // Return the bucket boundary (upper bound)
                 let millis = self.buckets[i];
                 return Some(Duration::from_millis(millis as u64));
             }

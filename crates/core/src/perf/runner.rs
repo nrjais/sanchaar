@@ -71,7 +71,6 @@ impl PerfRunner {
             let progress_callback = Arc::clone(&progress_callback);
             let semaphore = Arc::clone(&semaphore);
             let metrics = Arc::clone(&metrics);
-            let start_time = start_time;
             let timeout = self.config.timeout;
 
             let task = tokio::spawn(async move {

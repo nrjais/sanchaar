@@ -15,7 +15,7 @@ pub fn fmt_duration(d: std::time::Duration) -> String {
     duration
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SendOnDrop {
     pub sender: Option<Sender<()>>,
 }
