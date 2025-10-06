@@ -22,9 +22,13 @@ impl ResponsePaneMsg {
             Self::Completed(msg) => msg.update(tab).map(ResponsePaneMsg::Completed),
             Self::CancelRequest => {
                 let res_state = &tab.response.state;
-                if let ResponseState::Executing = res_state {
-                    state.cancel_tab_tasks(active_tab);
+                let is_executing = matches!(res_state, ResponseState::Executing);
+                if let Some(Tab::Http(tab)) = state.get_tab_mut(active_tab)
+                    && is_executing
+                {
+                    tab.cancel_tasks();
                 }
+
                 Task::none()
             }
         }

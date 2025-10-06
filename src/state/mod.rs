@@ -18,7 +18,6 @@ use crate::APP_NAME;
 use crate::commands::JobState;
 use crate::components::split::Direction;
 use crate::state::popups::Popup;
-use crate::state::response::ResponseState;
 
 pub mod environment;
 pub mod popups;
@@ -190,13 +189,6 @@ impl AppState {
 
     pub fn active_tab(&self) -> Option<&Tab> {
         self.tabs.get(&self.active_tab)
-    }
-
-    pub fn cancel_tab_tasks(&mut self, tab: TabKey) {
-        if let Some(Tab::Http(tab)) = self.get_tab_mut(tab) {
-            tab.cancel_tasks();
-            tab.response.state = ResponseState::Idle;
-        }
     }
 
     pub fn close_tab(&mut self, tab: TabKey) {

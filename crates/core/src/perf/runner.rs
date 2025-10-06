@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, Semaphore};
+use tokio::sync::{Mutex, Semaphore, oneshot};
 
 use super::metrics::PerfMetrics;
 use crate::client::send_request;
@@ -40,6 +40,7 @@ impl PerfRunner {
         &self,
         request: Request,
         env: EnvironmentChain,
+        mut cancel_rx: oneshot::Receiver<()>,
         progress_callback: impl Fn(PerfMetrics) + Send + Sync + 'static,
     ) -> anyhow::Result<PerfMetrics> {
         let built_request = transform_request(self.client.clone(), request, env).await?;
@@ -56,14 +57,15 @@ impl PerfRunner {
 
         let mut tasks = Vec::new();
 
-        // Run for the specified duration
         loop {
-            // Check if test duration has elapsed
+            if cancel_rx.try_recv().is_ok() {
+                anyhow::bail!("Benchmark cancelled");
+            }
+
             if start_time.elapsed() >= self.config.duration {
                 break;
             }
 
-            // Spawn a new task
             let client = self.client.clone();
             let request = built_request.try_clone().unwrap();
             let progress_callback = Arc::clone(&progress_callback);
@@ -75,26 +77,21 @@ impl PerfRunner {
             let task = tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.unwrap();
 
-                // Send request with timeout
                 let result = tokio::time::timeout(timeout, send_request(client, request)).await;
 
                 let mut metrics = metrics.lock().await;
                 match result {
                     Ok(Ok(response)) => {
-                        // Record success
                         metrics.record_success(response.duration, response.status.as_u16());
                     }
                     Ok(Err(e)) => {
-                        // Request failed
                         metrics.record_failure(e.to_string());
                     }
                     Err(_) => {
-                        // Timeout
                         metrics.record_failure("Request timeout".to_string());
                     }
                 }
 
-                // Call progress callback with snapshot
                 let mut snapshot = metrics.clone();
                 snapshot.total_duration = start_time.elapsed();
                 progress_callback(snapshot);
@@ -102,11 +99,9 @@ impl PerfRunner {
 
             tasks.push(task);
 
-            // Small delay to avoid tight loop
             tokio::time::sleep(Duration::from_millis(1)).await;
         }
 
-        // Wait for all active tasks to complete
         for task in tasks {
             let _ = task.await;
         }

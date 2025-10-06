@@ -85,7 +85,7 @@ impl ConfigMsg {
             }
             ConfigMsg::StartTest => start_benchmark(state, ConfigMsg::PerfTestCompleted),
             ConfigMsg::StopTest => {
-                tab.reset();
+                tab.cancel_test();
                 Task::none()
             }
             ConfigMsg::ClearRequest => {
@@ -107,6 +107,7 @@ impl ConfigMsg {
                     PerfResult::Error(_) => {
                         tab.fail_test();
                     }
+                    _ => {}
                 }
                 Task::none()
             }

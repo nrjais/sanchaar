@@ -1,9 +1,10 @@
-use tokio::sync::oneshot;
+use tokio::sync::oneshot::Sender;
 
 use crate::commands::builders::ResponseResult;
 use crate::state::response::ResponsePane;
 use core::http::request::Request;
 use core::http::{CollectionKey, CollectionRequest};
+use core::utils::SendOnDrop;
 
 use crate::state::request::RequestPane;
 use crate::state::response::{CompletedResponse, ResponseState};
@@ -21,7 +22,7 @@ pub struct HttpTab {
     pub collection_ref: CollectionRequest,
     request: RequestPane,
     pub response: ResponsePane,
-    pub tasks: Vec<oneshot::Sender<()>>,
+    pub cancel: SendOnDrop,
     pub editing_name: Option<String>,
     pub split_at: f32,
     pub request_dirty_state: RequestDirtyState,
@@ -34,7 +35,7 @@ impl HttpTab {
             collection_ref: req_ref,
             request: RequestPane::from(request),
             response: ResponsePane::new(),
-            tasks: Vec::new(),
+            cancel: SendOnDrop::new(),
             split_at: 0.45,
             editing_name: None,
             request_dirty_state: RequestDirtyState::Clean,
@@ -85,13 +86,12 @@ impl HttpTab {
     }
 
     pub fn cancel_tasks(&mut self) {
-        for task in self.tasks.drain(..) {
-            let _ = task.send(());
-        }
+        self.cancel.cancel();
+        self.response.state = ResponseState::Idle;
     }
 
-    pub fn add_task(&mut self, task: oneshot::Sender<()>) {
-        self.tasks.push(task);
+    pub fn add_task(&mut self, task: Sender<()>) {
+        self.cancel.with(task);
     }
 
     pub fn collection_key(&self) -> CollectionKey {
@@ -110,11 +110,5 @@ impl HttpTab {
             }
             ResponseResult::Cancelled => (),
         }
-    }
-}
-
-impl Drop for HttpTab {
-    fn drop(&mut self) {
-        self.cancel_tasks();
     }
 }

@@ -28,6 +28,7 @@ pub fn view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
             }
         }
         PerfState::Failed => failed_view(),
+        PerfState::Cancelled => cancelled_view(),
     };
 
     container(content)
@@ -40,7 +41,11 @@ fn empty_view<'a>() -> Element<'a, ReportMsg> {
     Column::new()
         .push(text("Performance Report").size(20))
         .push(space::vertical().height(20))
-        .push(text("Configure and run to see results here.").size(14))
+        .push(
+            text("Configure and run to see results here.")
+                .size(14)
+                .color(colors::WHITE),
+        )
         .spacing(4)
         .align_x(Alignment::Center)
         .into()
@@ -106,11 +111,19 @@ fn running_view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
             0.0
         };
 
+        let success_color = if success_rate > 95.0 {
+            colors::GREEN
+        } else if success_rate > 80.0 {
+            colors::YELLOW
+        } else {
+            colors::RED
+        };
+
         content = content
             .push(
                 row![
                     Column::new()
-                        .push(text("Total Requests").size(12).color(colors::DIM_GRAY))
+                        .push(text("Total Requests").size(12).color(colors::GRAY))
                         .push(
                             text(stats.total_requests.to_string())
                                 .size(28)
@@ -120,7 +133,7 @@ fn running_view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
                         .width(Length::FillPortion(1))
                         .align_x(Alignment::Center),
                     Column::new()
-                        .push(text("Requests/sec").size(12).color(colors::DIM_GRAY))
+                        .push(text("Requests/sec").size(12).color(colors::GRAY))
                         .push(
                             text(format!("{:.1}", stats.requests_per_second))
                                 .size(28)
@@ -130,16 +143,12 @@ fn running_view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
                         .width(Length::FillPortion(1))
                         .align_x(Alignment::Center),
                     Column::new()
-                        .push(text("Success Rate").size(12).color(colors::DIM_GRAY))
-                        .push(text(format!("{:.1}%", success_rate)).size(28).color(
-                            if success_rate > 95.0 {
-                                colors::GREEN
-                            } else if success_rate > 80.0 {
-                                colors::YELLOW
-                            } else {
-                                colors::RED
-                            }
-                        ))
+                        .push(text("Success Rate").size(12).color(colors::GRAY))
+                        .push(
+                            text(format!("{:.1}%", success_rate))
+                                .size(28)
+                                .color(success_color)
+                        )
                         .spacing(4)
                         .width(Length::FillPortion(1))
                         .align_x(Alignment::Center),
@@ -149,7 +158,7 @@ fn running_view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
             .push(space::vertical().height(24))
             .push(
                 Column::new()
-                    .push(text("Detailed Statistics").size(16).color(colors::CYAN))
+                    .push(text("Statistics").size(16).color(colors::CYAN))
                     .push(space::vertical().height(8))
                     .push(stat_row_owned(
                         "Successful".to_string(),
@@ -172,7 +181,7 @@ fn running_view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
             .push(space::vertical().height(16))
             .push(
                 Column::new()
-                    .push(text("Response Times").size(16).color(colors::CYAN))
+                    .push(text("Response Latencies").size(16).color(colors::CYAN))
                     .push(space::vertical().height(8))
                     .push(stat_row_owned(
                         "Min".to_string(),
@@ -215,21 +224,30 @@ fn failed_view<'a>() -> Element<'a, ReportMsg> {
                 .color(colors::WHITE),
         )
         .spacing(4)
+        .align_x(Alignment::Center)
+        .into()
+}
+
+fn cancelled_view<'a>() -> Element<'a, ReportMsg> {
+    Column::new()
+        .push(text("Benchmark Cancelled").size(20).color(colors::YELLOW))
+        .push(space::vertical().height(20))
+        .push(
+            text("The performance benchmark was cancelled.")
+                .size(14)
+                .color(colors::WHITE),
+        )
+        .spacing(4)
+        .align_x(Alignment::Center)
         .into()
 }
 
 fn completed_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
     let mut content = Column::new()
         .push(
-            text("Performance Test Results")
-                .size(20)
-                .color(colors::GREEN),
-        )
-        .push(space::vertical().height(20))
-        .push(
             Column::new()
-                .push(text("Summary").size(16).color(colors::CYAN))
-                .push(space::vertical().height(8))
+                .push(text("Summary").size(20).color(colors::CYAN))
+                .push(space::vertical().height(4))
                 .push(stat_row_owned(
                     "Total Requests".to_string(),
                     stats.total_requests.to_string(),
@@ -272,12 +290,8 @@ fn completed_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
         .push(space::vertical().height(16))
         .push(
             Column::new()
-                .push(
-                    text("Response Time Percentiles")
-                        .size(16)
-                        .color(colors::CYAN),
-                )
-                .push(space::vertical().height(8))
+                .push(text("Response Latencies").size(20).color(colors::CYAN))
+                .push(space::vertical().height(4))
                 .push(stat_row_owned(
                     "Min".to_string(),
                     format_duration(stats.min),
@@ -307,9 +321,9 @@ fn completed_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
 
     if !stats.status_codes.is_empty() {
         let mut status_column = Column::new()
-            .push(space::vertical().height(16))
-            .push(text("Status Codes").size(16).color(colors::CYAN))
-            .push(space::vertical().height(8));
+            .push(space::vertical().height(12))
+            .push(text("Status Distribution").size(20).color(colors::CYAN))
+            .push(space::vertical().height(4));
 
         let mut status_codes: Vec<_> = stats.status_codes.iter().collect();
         status_codes.sort_by_key(|(code, _)| *code);
@@ -381,9 +395,8 @@ fn completed_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
 
 fn stat_row_owned(label: String, value: String) -> Element<'static, ReportMsg> {
     row![
-        text(label).size(14).width(Length::FillPortion(2)),
+        text(label).width(Length::FillPortion(2)),
         text(value)
-            .size(14)
             .width(Length::FillPortion(1))
             .color(colors::WHITE),
     ]
