@@ -155,8 +155,8 @@ fn history_tab<'a>(key: TabKey, tab: &'a HistoryTab) -> CardTab<'a, TabKey> {
     card_tab(key, icon(icons::History), text(&tab.name))
 }
 
-fn perf_tab<'a>(key: TabKey, tab: &'a PerfTab) -> CardTab<'a, TabKey> {
-    card_tab(key, icon(icons::Speedometer), text(&tab.name))
+fn perf_tab<'a>(key: TabKey, _tab: &'a PerfTab) -> CardTab<'a, TabKey> {
+    card_tab(key, icon(icons::Speedometer), text("Performance"))
 }
 
 fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {

@@ -14,7 +14,6 @@ pub enum PerfState {
 
 #[derive(Debug)]
 pub struct PerfTab {
-    pub name: String,
     pub request: Option<CollectionRequest>,
     pub config: PerfConfig,
     pub state: PerfState,
@@ -28,7 +27,6 @@ pub struct PerfTab {
 impl PerfTab {
     pub fn new() -> Self {
         Self {
-            name: "Performance".to_owned(),
             request: None,
             config: PerfConfig::default(),
             state: PerfState::Idle,

@@ -1,3 +1,4 @@
+use iced::advanced::widget;
 use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
 use iced::widget::space::horizontal;
@@ -34,10 +35,7 @@ pub enum CollectionTreeMsg {
     OpenHistory,
     OpenPerformance,
     RequestDrop(Point, Rectangle, CollectionRequest),
-    HandleDropZones(
-        Vec<(iced::advanced::widget::Id, Rectangle)>,
-        CollectionRequest,
-    ),
+    HandleDropZones(Vec<(widget::Id, Rectangle)>, CollectionRequest),
 }
 
 impl CollectionTreeMsg {
