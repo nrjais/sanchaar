@@ -150,7 +150,7 @@ fn cookie_tab<'a>(key: TabKey) -> CardTab<'a, TabKey> {
 }
 
 fn history_tab<'a>(key: TabKey, tab: &'a HistoryTab) -> CardTab<'a, TabKey> {
-    card_tab(key, icon(icons::CheckBold), text(&tab.name))
+    card_tab(key, icon(icons::History), text(&tab.name))
 }
 
 fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {
