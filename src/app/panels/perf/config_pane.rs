@@ -15,7 +15,7 @@ use crate::{
         tabs::perf_tab::{PerfState, PerfTab},
     },
 };
-use crate::{commands::perf::run_perf_test, components::NerdIcon};
+use crate::{commands::perf::start_benchmark, components::NerdIcon};
 
 #[derive(Debug, Clone)]
 pub enum ConfigMsg {
@@ -83,10 +83,7 @@ impl ConfigMsg {
                 }
                 Task::none()
             }
-            ConfigMsg::StartTest => {
-                tab.start_test();
-                run_perf_test(state, ConfigMsg::PerfTestCompleted)
-            }
+            ConfigMsg::StartTest => start_benchmark(state, ConfigMsg::PerfTestCompleted),
             ConfigMsg::StopTest => {
                 tab.reset();
                 Task::none()
@@ -101,6 +98,9 @@ impl ConfigMsg {
             }
             ConfigMsg::PerfTestCompleted(result) => {
                 match result {
+                    PerfResult::Progress(metrics) => {
+                        tab.update_progress((*metrics).clone());
+                    }
                     PerfResult::Completed(metrics) => {
                         tab.complete_test((*metrics).clone());
                     }

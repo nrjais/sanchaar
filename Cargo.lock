@@ -12,6 +12,7 @@ dependencies = [
  "core",
  "directories",
  "env_logger",
+ "futures",
  "humansize",
  "iced",
  "iced_core",
