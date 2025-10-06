@@ -61,7 +61,9 @@ pub mod icons {
     pub const Edit: NerdIcon = NerdIcon('󰷉');
     pub const EditLines: NerdIcon = NerdIcon('󱩽');
     pub const Send: NerdIcon = NerdIcon('󰒊');
+    pub const Replay: NerdIcon = NerdIcon('󰑙');
     pub const SendUp: NerdIcon = NerdIcon('');
+    pub const Path: NerdIcon = NerdIcon('');
     pub const ContentSave: NerdIcon = NerdIcon('󰆓');
     pub const DotsCircle: NerdIcon = NerdIcon('󱥸');
     pub const Dot: NerdIcon = NerdIcon('•');
@@ -74,4 +76,5 @@ pub mod icons {
     pub const SplitHorizontal: NerdIcon = NerdIcon('');
     pub const OpenSideBar: NerdIcon = NerdIcon('');
     pub const CloseSideBar: NerdIcon = NerdIcon('');
+    pub const Speedometer: NerdIcon = NerdIcon('󰓅');
 }

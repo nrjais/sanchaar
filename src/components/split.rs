@@ -61,7 +61,7 @@ where
 }
 
 /// How the split is oriented.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Direction {
     /// The separator is a horizontal [`Rule`], separating a top and bottom widget.
     ///

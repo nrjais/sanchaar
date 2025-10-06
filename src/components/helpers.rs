@@ -31,8 +31,8 @@ pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tool
 }
 
 pub fn text_input<'a, M: Clone + 'a>(
-    placeholder: &'a str,
-    value: &'a str,
+    placeholder: &str,
+    value: &str,
     on_change: impl Fn(String) -> M + 'a + Clone,
 ) -> TextInput<'a, M> {
     iced::widget::text_input(placeholder, value)

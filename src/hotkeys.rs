@@ -164,6 +164,7 @@ fn save_tab(state: &mut AppState) -> Task<Message> {
         }
         Tab::CookieStore(_) => Task::none(),
         Tab::History(_) => Task::none(),
+        Tab::Perf(_) => Task::none(),
     }
 }
 

@@ -11,6 +11,7 @@ use crate::components::split::vertical_split;
 use crate::components::{CardTab, TabBarAction, card_tab, card_tabs, colors, icon, icons};
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::history_tab::HistoryTab;
+use crate::state::tabs::perf_tab::PerfTab;
 use crate::state::{AppState, HttpTab, Tab, TabKey};
 use core::http::request::Method;
 
@@ -127,6 +128,7 @@ fn tabs_view<'a>(
             Tab::Collection(tab) => col_tab(*key, tab),
             Tab::CookieStore(_) => cookie_tab(*key),
             Tab::History(tab) => history_tab(*key, tab),
+            Tab::Perf(tab) => perf_tab(*key, tab),
         })
         .collect();
 
@@ -151,6 +153,10 @@ fn cookie_tab<'a>(key: TabKey) -> CardTab<'a, TabKey> {
 
 fn history_tab<'a>(key: TabKey, tab: &'a HistoryTab) -> CardTab<'a, TabKey> {
     card_tab(key, icon(icons::History), text(&tab.name))
+}
+
+fn perf_tab<'a>(key: TabKey, _tab: &'a PerfTab) -> CardTab<'a, TabKey> {
+    card_tab(key, icon(icons::Speedometer), text("Performance"))
 }
 
 fn tab_card<'a>(key: TabKey, tab: &'a HttpTab) -> CardTab<'a, TabKey> {

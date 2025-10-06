@@ -1,3 +1,4 @@
+use iced::advanced::widget;
 use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
 use iced::widget::space::horizontal;
@@ -5,11 +6,12 @@ use iced::widget::text::Wrapping;
 use iced::widget::{
     Button, Column, Row, Scrollable, Tooltip, button, column, container, hover, row, text,
 };
-use iced::{Element, Length, Task, clipboard, padding};
+use iced::{Element, Length, Point, Rectangle, Task, clipboard, padding};
 
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
 };
+use crate::ids::PERF_REQUEST_DROP_ZONE;
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::{CollectionKey, CollectionRequest, request::Request};
 
@@ -31,6 +33,9 @@ pub enum CollectionTreeMsg {
     ContextMenu(CollectionKey, MenuAction),
     ActionComplete,
     OpenHistory,
+    OpenPerformance,
+    RequestDrop(Point, Rectangle, CollectionRequest),
+    HandleDropZones(Vec<(widget::Id, Rectangle)>, CollectionRequest),
 }
 
 impl CollectionTreeMsg {
@@ -71,6 +76,27 @@ impl CollectionTreeMsg {
             CollectionTreeMsg::ActionComplete => (),
             CollectionTreeMsg::OpenHistory => {
                 state.open_unique_tab(Tab::History(HistoryTab::new()));
+            }
+            CollectionTreeMsg::OpenPerformance => {
+                state.open_tab(Tab::Perf(Box::default()));
+            }
+            CollectionTreeMsg::RequestDrop(point, _, request) => {
+                return iced_drop::zones_on_point(
+                    move |zones| CollectionTreeMsg::HandleDropZones(zones, request),
+                    point,
+                    None,
+                    None,
+                );
+            }
+            CollectionTreeMsg::HandleDropZones(zones, request) => {
+                zones
+                    .iter()
+                    .find(|(zone_id, _)| *zone_id == PERF_REQUEST_DROP_ZONE)
+                    .inspect(|(_, _)| {
+                        if let Some(Tab::Perf(tab)) = state.active_tab_mut() {
+                            tab.set_request(request);
+                        }
+                    });
             }
         };
         Task::none()
@@ -184,6 +210,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);
     let open_col = icon_button(icons::FolderOpen).on_press(CollectionTreeMsg::OpenCollection);
     let history = icon_button(icons::History).on_press(CollectionTreeMsg::OpenHistory);
+    let perf = icon_button(icons::Speedometer).on_press(CollectionTreeMsg::OpenPerformance);
 
     Column::new()
         .push(
@@ -192,6 +219,7 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
                     .push(tooltip("Create Collection", create_col))
                     .push(tooltip("Open Collection", open_col))
                     .push(tooltip("History", history))
+                    .push(tooltip("Performance", perf))
                     .width(Length::Shrink)
                     .align_y(Vertical::Center)
                     .spacing(8),
@@ -385,31 +413,38 @@ fn context_button_request(
 ) -> Element<'_, CollectionTreeMsg> {
     let collection_request = CollectionRequest(col, item.id);
 
-    let base = button(
-        row([
-            icon(icons::API)
-                .size(16)
-                .style(|t| text::Style {
-                    color: Some(t.extended_palette().success.strong.color),
-                })
-                .align_x(iced::Alignment::Start)
-                .into(),
-            text(&item.name).wrapping(Wrapping::None).size(16).into(),
-        ])
-        .align_y(iced::Alignment::Center)
-        .clip(true)
-        .spacing(8),
-    )
-    .style(|theme, status| {
-        if status == Status::Hovered || status == Status::Pressed {
-            button::subtle(theme, Status::Hovered)
-        } else {
-            button::text(theme, status)
-        }
-    })
-    .padding(padding::left(12 * indent + 4))
+    let base = row([
+        icon(icons::API)
+            .size(16)
+            .style(|t| text::Style {
+                color: Some(t.extended_palette().success.strong.color),
+            })
+            .align_x(iced::Alignment::Start)
+            .into(),
+        text(&item.name).wrapping(Wrapping::None).size(16).into(),
+    ])
+    .align_y(iced::Alignment::Center)
     .width(Length::Fill)
-    .on_press(CollectionTreeMsg::OpenRequest(collection_request));
+    .clip(true)
+    .spacing(8);
+
+    let droppable = iced_drop::droppable(base)
+        .on_press(CollectionTreeMsg::OpenRequest(collection_request))
+        .on_drop(move |point, bounds| {
+            CollectionTreeMsg::RequestDrop(point, bounds, collection_request)
+        });
+
+    let base = button(droppable)
+        .on_press(CollectionTreeMsg::OpenRequest(collection_request))
+        .style(|theme, status| {
+            if status == Status::Hovered || status == Status::Pressed {
+                button::subtle(theme, Status::Hovered)
+            } else {
+                button::text(theme, Status::Active)
+            }
+        })
+        .padding(padding::left(12 * indent + 4))
+        .width(Length::Fill);
 
     let request_id = item.id;
     context_menu(

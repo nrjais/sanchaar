@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use core::http::request::{Auth, Method, Request, RequestBody};
-use core::http::{CollectionKey, CollectionRequest, KeyValList};
+use core::http::{CollectionKey, CollectionRequest, KeyValList, RequestId};
+use core::perf::PerfConfig;
 use core::persistence::collections::project_dirs;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -12,6 +13,7 @@ use super::tabs::cookies_tab::CookiesTab;
 use super::tabs::history_tab::HistoryTab;
 use super::{AppState, HttpTab, PaneConfig, Tab, TabKey};
 use crate::components::split::Direction;
+use crate::state::tabs::perf_tab::PerfTab;
 
 const SESSION_STATE_FILE: &str = "session_state.json";
 
@@ -176,12 +178,20 @@ pub struct SerializableCollectionTab {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SerializablePerfTab {
+    pub split_at: f32,
+    pub config: PerfConfig,
+    pub request: Option<(CollectionKey, RequestId)>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SerializableTab {
     Http(Box<SerializableHttpTab>),
     Collection(SerializableCollectionTab),
     CookieStore,
     History,
+    Perf(SerializablePerfTab),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -292,6 +302,11 @@ impl SessionState {
                     }
                     Tab::CookieStore(_) => Some(SerializableTab::CookieStore),
                     Tab::History(_) => Some(SerializableTab::History),
+                    Tab::Perf(perf_tab) => Some(SerializableTab::Perf(SerializablePerfTab {
+                        split_at: perf_tab.split_at,
+                        config: perf_tab.config.clone(),
+                        request: perf_tab.request.map(|request| (request.0, request.1)),
+                    })),
                 };
                 serializable_tab.map(|tab| (*key, tab))
             })
@@ -371,6 +386,15 @@ impl AppState {
                 }
                 SerializableTab::CookieStore => Tab::CookieStore(CookiesTab::new(&self.common)),
                 SerializableTab::History => Tab::History(HistoryTab::new()),
+                SerializableTab::Perf(session) => {
+                    let mut tab = PerfTab::new();
+                    tab.set_split_at(session.split_at);
+                    tab.config = session.config;
+                    tab.request = session
+                        .request
+                        .map(|(col_key, req_id)| CollectionRequest(col_key, req_id));
+                    Tab::Perf(Box::new(tab))
+                }
             };
 
             self.tabs.insert(tab_key, tab);

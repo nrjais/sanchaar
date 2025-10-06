@@ -3,6 +3,7 @@ pub mod app;
 pub mod commands;
 pub mod components;
 pub mod hotkeys;
+pub mod ids;
 pub mod state;
 mod subscription;
 

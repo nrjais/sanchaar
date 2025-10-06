@@ -7,6 +7,7 @@ pub mod collection;
 pub mod cookie_store;
 pub mod history;
 pub mod http;
+pub mod perf;
 
 #[derive(Debug, Clone)]
 pub enum PanelMsg {
@@ -14,6 +15,7 @@ pub enum PanelMsg {
     Collection(collection::CollectionTabMsg),
     Cookies(cookie_store::CookieTabMsg),
     History(history::HistoryTabMsg),
+    Perf(perf::PerfTabMsg),
 }
 
 impl PanelMsg {
@@ -23,6 +25,7 @@ impl PanelMsg {
             PanelMsg::Collection(msg) => msg.update(state).map(PanelMsg::Collection),
             PanelMsg::Cookies(msg) => msg.update(state).map(PanelMsg::Cookies),
             PanelMsg::History(msg) => msg.update(state).map(PanelMsg::History),
+            PanelMsg::Perf(msg) => msg.update(state).map(PanelMsg::Perf),
         }
     }
 }
@@ -36,6 +39,7 @@ pub fn view<'a>(state: &'a AppState, tab: &'a Tab) -> iced::Element<'a, PanelMsg
         }
         Tab::CookieStore(tab) => cookie_store::view(tab).map(PanelMsg::Cookies),
         Tab::History(tab) => history::view(state, tab).map(PanelMsg::History),
+        Tab::Perf(tab) => perf::view(state, tab).map(PanelMsg::Perf),
     };
 
     container::Container::new(req)
