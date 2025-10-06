@@ -138,7 +138,7 @@ impl Collections {
     pub fn insert_all(&mut self, collections: Vec<Collection>) {
         self.dirty();
         for collection in collections {
-            self.entries.insert(CollectionKey::new(), collection);
+            self.entries.insert(collection.key, collection);
         }
     }
 
