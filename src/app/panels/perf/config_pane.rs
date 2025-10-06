@@ -2,19 +2,17 @@ use core::http::CollectionRequest;
 use std::time::Duration;
 
 use iced::{
-    Alignment, Element, Length, Task,
-    widget::{Column, Row, button, container, row, space, text},
+    Element, Length, Point, Rectangle, Task,
+    advanced::widget,
+    widget::{Column, Row, container, rule, space, text},
 };
 
+use crate::commands::perf::run_perf_test;
 use crate::{
     commands::perf::PerfResult,
     components::{split::Direction, text_input},
-    state::{
-        AppState, Tab,
-        tabs::perf_tab::{PerfState, PerfTab},
-    },
+    state::{AppState, Tab, tabs::perf_tab::PerfTab},
 };
-use crate::{commands::perf::run_perf_test, components::colors};
 
 #[derive(Debug, Clone)]
 pub enum ConfigMsg {
@@ -25,6 +23,11 @@ pub enum ConfigMsg {
     StartTest,
     Reset,
     PerfTestCompleted(PerfResult),
+    Drop(Point, Rectangle, CollectionRequest),
+    HandleZones(
+        Vec<(iced::advanced::widget::Id, Rectangle)>,
+        CollectionRequest,
+    ),
 }
 
 impl ConfigMsg {
@@ -35,6 +38,19 @@ impl ConfigMsg {
 
         match self {
             ConfigMsg::SelectRequest => Task::none(),
+            ConfigMsg::Drop(point, _, request) => iced_drop::zones_on_point(
+                move |zones| ConfigMsg::HandleZones(zones, request),
+                point,
+                None,
+                None,
+            ),
+            ConfigMsg::HandleZones(zones, request) => {
+                if !zones.is_empty() {
+                    // Request was dropped on the drop zone
+                    tab.set_request(request);
+                }
+                Task::none()
+            }
             ConfigMsg::UpdateTestDuration(val) => {
                 if let Ok(secs) = val.parse::<u64>() {
                     tab.config.duration = Duration::from_secs(secs.max(1));
@@ -122,22 +138,53 @@ fn config_view<'a>(tab: &'a PerfTab) -> Element<'a, ConfigMsg> {
         .into()
 }
 
-fn request_selector_view<'a>(tab: &'a PerfTab) -> Element<'a, ConfigMsg> {
-    text("request selector")
+fn request_selector_view<'a>(tab: &'a PerfTab, state: &'a AppState) -> Element<'a, ConfigMsg> {
+    let drop_zone_id = widget::Id::from("perf_request_drop_zone");
+
+    let content = if let (Some(col_key), Some(req_id)) = (tab.collection, tab.request) {
+        if let Some(col_req) = state
+            .common
+            .collections
+            .get_ref(CollectionRequest(col_key, req_id))
+        {
+            Column::new()
+                .push(text("Selected Request:").size(14))
+                .push(text(&col_req.name).size(18))
+                .spacing(8)
+        } else {
+            Column::new().push(text("Drag and drop a request here").size(16))
+        }
+    } else {
+        Column::new().push(text("Drag and drop a request here").size(16))
+    };
+
+    container(content)
+        .id(drop_zone_id)
         .width(Length::FillPortion(1))
+        .padding(16)
+        .style(|theme: &iced::Theme| container::Style {
+            border: iced::Border {
+                width: 2.0,
+                color: theme.extended_palette().primary.weak.color,
+                radius: 8.0.into(),
+            },
+            ..Default::default()
+        })
         .into()
 }
 
 pub fn view<'a>(state: &'a AppState, tab: &'a PerfTab) -> Element<'a, ConfigMsg> {
     let config_view = config_view(tab);
-    let result_view = request_selector_view(tab);
+    let result_view = request_selector_view(tab, state);
 
     if state.split_direction == Direction::Vertical {
-        Column::from_iter([config_view, result_view])
+        let separator = rule::horizontal(2).into();
+        Column::from_iter([config_view, separator, result_view])
             .spacing(16)
             .into()
     } else {
-        Row::from_iter([config_view, result_view])
+        let separator = rule::vertical(2).into();
+        Row::from_iter([result_view, separator, config_view])
             .spacing(16)
             .into()
     }

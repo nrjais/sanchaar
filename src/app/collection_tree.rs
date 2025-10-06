@@ -5,7 +5,7 @@ use iced::widget::text::Wrapping;
 use iced::widget::{
     Button, Column, Row, Scrollable, Tooltip, button, column, container, hover, row, text,
 };
-use iced::{Element, Length, Task, clipboard, padding};
+use iced::{Element, Length, Point, Rectangle, Task, advanced::widget, clipboard, padding};
 
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
@@ -33,6 +33,11 @@ pub enum CollectionTreeMsg {
     ActionComplete,
     OpenHistory,
     OpenPerformance,
+    RequestDrop(Point, Rectangle, CollectionRequest),
+    HandleDropZones(
+        Vec<(iced::advanced::widget::Id, Rectangle)>,
+        CollectionRequest,
+    ),
 }
 
 impl CollectionTreeMsg {
@@ -76,6 +81,27 @@ impl CollectionTreeMsg {
             }
             CollectionTreeMsg::OpenPerformance => {
                 state.open_tab(Tab::Perf(PerfTab::new()));
+            }
+            CollectionTreeMsg::RequestDrop(point, _, request) => {
+                return iced_drop::zones_on_point(
+                    move |zones| CollectionTreeMsg::HandleDropZones(zones, request),
+                    point,
+                    None,
+                    None,
+                );
+            }
+            CollectionTreeMsg::HandleDropZones(zones, request) => {
+                // Check if dropped on perf config drop zone
+                let perf_zone_id = widget::Id::from("perf_request_drop_zone");
+                for (zone_id, _) in zones {
+                    if zone_id == perf_zone_id {
+                        // Update the active perf tab if it exists
+                        if let Some(Tab::Perf(tab)) = state.active_tab_mut() {
+                            tab.set_request(request);
+                        }
+                        break;
+                    }
+                }
             }
         };
         Task::none()
@@ -411,15 +437,15 @@ fn context_button_request(
         if status == Status::Hovered || status == Status::Pressed {
             button::subtle(theme, Status::Hovered)
         } else {
-            button::text(theme, status)
+            button::text(theme, Status::Active)
         }
     })
     .padding(padding::left(12 * indent + 4))
-    .width(Length::Fill)
-    .on_press(CollectionTreeMsg::OpenRequest(collection_request));
+    .width(Length::Fill);
 
     let request_id = item.id;
-    context_menu(
+
+    let base_with_context = context_menu(
         base,
         vec![
             menu_item(
@@ -438,8 +464,14 @@ fn context_button_request(
                 CollectionTreeMsg::ContextMenu(col, MenuAction::DeleteRequest(request_id)),
             ),
         ],
-    )
-    .into()
+    );
+
+    iced_drop::droppable(base_with_context)
+        .on_press(CollectionTreeMsg::OpenRequest(collection_request))
+        .on_drop(move |point, bounds| {
+            CollectionTreeMsg::RequestDrop(point, bounds, collection_request)
+        })
+        .into()
 }
 
 fn context_button_collection<'a>(
