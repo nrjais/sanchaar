@@ -8,3 +8,6 @@ pub mod perf;
 pub mod persistence;
 pub mod transformers;
 pub mod utils;
+
+pub const APP_NAME: &str = "Sanchaar";
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");

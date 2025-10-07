@@ -12,10 +12,10 @@ use tabs::perf_tab::PerfTab;
 use core::client::{create_client, create_cookie_store};
 use core::http::{CollectionRequest, Collections};
 use core::persistence::history::HistoryDatabase;
+use core::{APP_NAME, APP_VERSION};
 use std::sync::Arc;
 pub use tabs::http_tab::*;
 
-use crate::APP_NAME;
 use crate::app::AppMsg;
 use crate::commands::JobState;
 use crate::components::split::Direction;
@@ -155,7 +155,7 @@ pub fn install_plugins() -> (Plugins, Task<PluginMessage>) {
     let auto_updater = UpdaterConfig {
         owner: "nrjais".to_string(),
         repo: "sanchaar".to_string(),
-        current_version: env!("CARGO_PKG_VERSION").to_string(),
+        current_version: APP_VERSION.to_string(),
         auto_check_interval: 24 * 60 * 60,
         check_on_start: true,
     };

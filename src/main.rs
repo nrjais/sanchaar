@@ -7,6 +7,7 @@ pub mod ids;
 pub mod state;
 mod subscription;
 
+use core::APP_NAME;
 use iced::{
     Size,
     window::{Position, Settings},
@@ -18,7 +19,6 @@ use std::borrow::Cow;
 use crate::{app::AppMsg, state::install_plugins};
 
 const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
-const APP_NAME: &str = "Sanchaar";
 
 fn main() {
     env_logger::init();

@@ -1,3 +1,4 @@
+use core::APP_VERSION;
 use iced::widget::{Column, text};
 use iced::{Element, Task};
 use iced_auto_updater_plugin::{AutoUpdaterMessage, ReleaseInfo};
@@ -41,7 +42,7 @@ pub fn view<'a>(popup_state: &'a UpdateConfirmationState) -> Element<'a, Message
     Column::new()
         .push(text("New update available to install!".to_string()).size(16))
         .push(text(format!("Updated version: {}, ", version)).size(12))
-        .push(text(format!("Current version: {}", env!("CARGO_PKG_VERSION"))).size(12))
+        .push(text(format!("Current version: {}", APP_VERSION)).size(12))
         .spacing(8)
         .width(400)
         .into()

@@ -13,6 +13,7 @@ use crate::http::{
     KeyFileList, KeyValList, KeyValue,
     request::{Auth, Method, Request, RequestBody},
 };
+use crate::{APP_NAME, APP_VERSION};
 
 fn param_enabled(param: &KeyValue) -> bool {
     !param.disabled && !param.name.is_empty()
@@ -54,9 +55,19 @@ fn req_headers(
     env: &EnvironmentChain,
 ) -> RequestBuilder {
     let iter = headers.into_iter().filter(param_enabled);
+    let mut has_user_agent = false;
     for header in iter {
+        if header.name.to_lowercase() == "user-agent" {
+            has_user_agent = true;
+        }
         builder = builder.header(header.name, env.replace(&header.value));
     }
+
+    if !has_user_agent {
+        let user_agent = format!("{}/{}", APP_NAME, APP_VERSION);
+        builder = builder.header("User-Agent", user_agent);
+    }
+
     builder
 }
 
