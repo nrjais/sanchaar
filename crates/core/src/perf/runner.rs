@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, Semaphore};
+use tokio::sync::{Mutex, Semaphore, mpsc};
+use tokio::time::sleep;
 
 use super::metrics::PerfMetrics;
 use crate::client::send_request;
@@ -40,7 +41,7 @@ impl PerfRunner {
         &self,
         request: Request,
         env: EnvironmentChain,
-        progress_callback: impl Fn(PerfMetrics) + Send + Sync + 'static,
+        progress: mpsc::Sender<PerfMetrics>,
     ) -> anyhow::Result<PerfMetrics> {
         let built_request = transform_request(self.client.clone(), request, env).await?;
 
@@ -49,7 +50,6 @@ impl PerfRunner {
         }
 
         let start_time = Instant::now();
-        let progress_callback = Arc::new(progress_callback);
         let metrics = Arc::new(Mutex::new(PerfMetrics::new()));
 
         let semaphore = Arc::new(Semaphore::new(self.config.concurrency));
@@ -63,10 +63,10 @@ impl PerfRunner {
 
             let client = self.client.clone();
             let request = built_request.try_clone().unwrap();
-            let progress_callback = Arc::clone(&progress_callback);
             let semaphore = Arc::clone(&semaphore);
             let metrics = Arc::clone(&metrics);
             let timeout = self.config.timeout;
+            let progress = progress.clone();
 
             let task = tokio::spawn(async move {
                 let _permit = semaphore.acquire().await.unwrap();
@@ -88,12 +88,12 @@ impl PerfRunner {
 
                 let mut snapshot = metrics.clone();
                 snapshot.total_duration = start_time.elapsed();
-                progress_callback(snapshot);
+                let _ = progress.send(snapshot).await;
             });
 
             tasks.push(task);
 
-            tokio::time::sleep(Duration::from_millis(1)).await;
+            sleep(Duration::from_millis(1)).await;
         }
 
         for task in tasks {

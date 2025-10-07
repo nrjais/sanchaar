@@ -27,7 +27,7 @@ pub enum ConfigMsg {
     StopTest,
     ClearRequest,
     Reset,
-    PerfTestCompleted(PerfResult),
+    Benchmark(PerfResult),
     Drop(Point, Rectangle, CollectionRequest),
     HandleZones(
         Vec<(iced::advanced::widget::Id, Rectangle)>,
@@ -83,7 +83,7 @@ impl ConfigMsg {
                 }
                 Task::none()
             }
-            ConfigMsg::StartTest => start_benchmark(state, ConfigMsg::PerfTestCompleted),
+            ConfigMsg::StartTest => start_benchmark(state).map(ConfigMsg::Benchmark),
             ConfigMsg::StopTest => {
                 tab.cancel_test();
                 Task::none()
@@ -96,18 +96,17 @@ impl ConfigMsg {
                 tab.reset();
                 Task::none()
             }
-            ConfigMsg::PerfTestCompleted(result) => {
+            ConfigMsg::Benchmark(result) => {
                 match result {
                     PerfResult::Progress(metrics) => {
-                        tab.update_progress((*metrics).clone());
+                        tab.update_progress(metrics);
                     }
-                    PerfResult::Completed(metrics) => {
-                        tab.complete_test((*metrics).clone());
+                    PerfResult::Completed(Ok(metrics)) => {
+                        tab.complete_test(metrics);
                     }
-                    PerfResult::Error(_) => {
+                    PerfResult::Completed(Err(_)) => {
                         tab.fail_test();
                     }
-                    _ => {}
                 }
                 Task::none()
             }

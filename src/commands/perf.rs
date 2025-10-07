@@ -1,24 +1,63 @@
-use futures::SinkExt;
-use futures::channel::mpsc;
-use iced::{Task, stream};
-use std::sync::Arc;
+use core::http::EnvironmentChain;
+use iced::Task;
+use iced::task::{Straw, sipper};
+use std::path::PathBuf;
+use tokio::sync::mpsc;
 
 use crate::state::{AppState, Tab};
-use core::perf::{PerfMetrics, PerfRunner};
+use core::perf::{PerfConfig, PerfMetrics, PerfRunner};
 use core::persistence::request::read_request;
 
 #[derive(Debug, Clone)]
 pub enum PerfResult {
-    Progress(Arc<PerfMetrics>),
-    Completed(Arc<PerfMetrics>),
+    Progress(PerfMetrics),
+    Completed(Result<PerfMetrics, BenchmarkError>),
+}
+
+#[derive(Debug, Clone)]
+pub enum BenchmarkError {
     Error(String),
     Cancelled,
 }
 
-pub fn start_benchmark<M: Send + Sync + 'static>(
-    state: &mut AppState,
-    msg: impl Fn(PerfResult) -> M + Send + Sync + 'static,
-) -> Task<M> {
+pub fn benchmark(
+    request_path: PathBuf,
+    client: reqwest::Client,
+    config: PerfConfig,
+    env_chain: EnvironmentChain,
+) -> impl Straw<PerfMetrics, PerfMetrics, BenchmarkError> {
+    sipper(move |mut progress| async move {
+        let request = match read_request(&request_path).await {
+            Ok(req) => req,
+            Err(e) => {
+                return Err(BenchmarkError::Error(format!(
+                    "Failed to load request: {}",
+                    e
+                )));
+            }
+        };
+
+        let runner = PerfRunner::new(client, config);
+
+        let (sender, mut receiver) = mpsc::channel(100);
+        let handle = tokio::spawn(async move {
+            while let Some(metrics) = receiver.recv().await {
+                let _ = progress.send(metrics).await;
+            }
+        });
+
+        let result = runner.run(request, env_chain, sender).await;
+
+        let _ = handle.abort();
+
+        match result {
+            Ok(metrics) => Ok(metrics),
+            Err(e) => Err(BenchmarkError::Error(e.to_string())),
+        }
+    })
+}
+
+pub fn start_benchmark(state: &mut AppState) -> Task<PerfResult> {
     let collection_request = match state.active_tab_mut() {
         Some(Tab::Perf(tab)) => tab.request,
         _ => return Task::none(),
@@ -29,17 +68,15 @@ pub fn start_benchmark<M: Send + Sync + 'static>(
     };
 
     let Some(collection) = state.common.collections.get(collection_request.0) else {
-        return Task::perform(
-            async { PerfResult::Error("Collection not found".to_string()) },
-            msg,
-        );
+        return Task::done(PerfResult::Completed(Err(BenchmarkError::Error(
+            "Collection not found".to_string(),
+        ))));
     };
 
     let Some(request_ref) = state.common.collections.get_ref(collection_request) else {
-        return Task::perform(
-            async { PerfResult::Error("Request not found".to_string()) },
-            msg,
-        );
+        return Task::done(PerfResult::Completed(Err(BenchmarkError::Error(
+            "Request not found".to_string(),
+        ))));
     };
 
     let request_path = request_ref.path.clone();
@@ -60,46 +97,10 @@ pub fn start_benchmark<M: Send + Sync + 'static>(
         state.common.client.clone()
     };
 
-    let (task, handle) = Task::run(
-        stream::channel(100, |mut output: mpsc::Sender<PerfResult>| async move {
-            let request = match read_request(&request_path).await {
-                Ok(req) => req,
-                Err(e) => {
-                    let _ = output
-                        .send(PerfResult::Error(format!("Failed to load request: {}", e)))
-                        .await;
-                    return;
-                }
-            };
-
-            let runner = PerfRunner::new(client, config);
-
-            let output_for_progress = output.clone();
-            let result = runner
-                .run(request, env_chain, move |metrics| {
-                    let mut output = output_for_progress.clone();
-                    tokio::spawn(async move {
-                        let _ = output.send(PerfResult::Progress(Arc::new(metrics))).await;
-                    });
-                })
-                .await;
-
-            match result {
-                Ok(metrics) => {
-                    let _ = output.send(PerfResult::Completed(Arc::new(metrics))).await;
-                }
-                Err(e) => {
-                    if e.to_string().contains("cancelled") {
-                        let _ = output.send(PerfResult::Cancelled).await;
-                    } else {
-                        let _ = output
-                            .send(PerfResult::Error(format!("Benchmark failed: {}", e)))
-                            .await;
-                    }
-                }
-            }
-        }),
-        msg,
+    let (task, handle) = Task::sip(
+        benchmark(request_path, client, config, env_chain),
+        PerfResult::Progress,
+        PerfResult::Completed,
     )
     .abortable();
 
