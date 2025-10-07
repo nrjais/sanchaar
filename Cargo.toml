@@ -109,6 +109,7 @@ iced_core = { git = "https://github.com/nrjais/iced", branch = "editor", feature
 ] }
 iced_drop = { git = "https://github.com/nrjais/iced_drop", branch = "master" }
 iced_plugins = { git = "https://github.com/nrjais/iced_plugins", branch = "fork" }
+iced_auto_updater_plugin = { git = "https://github.com/nrjais/iced_plugins", branch = "fork" }
 iced_window_state_plugin = { git = "https://github.com/nrjais/iced_plugins", branch = "fork" }
 indexmap = "2.11"
 jsonformat = "2.1.0"
@@ -154,6 +155,7 @@ iced.workspace = true
 iced_core.workspace = true
 iced_drop.workspace = true
 iced_plugins.workspace = true
+iced_auto_updater_plugin.workspace = true
 iced_window_state_plugin.workspace = true
 indexmap.workspace = true
 jsonformat.workspace = true

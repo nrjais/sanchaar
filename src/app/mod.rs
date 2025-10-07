@@ -1,4 +1,5 @@
 use iced::Task;
+use iced_auto_updater_plugin::AutoUpdaterOutput;
 use iced_plugins::PluginMessage;
 
 use crate::components::modal;
@@ -21,6 +22,7 @@ pub enum AppMsg {
     Popup(PopupMsg),
     Subscription(hotkeys::Message),
     Plugin(PluginMessage),
+    AutoUpdater(AutoUpdaterOutput),
 }
 
 pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
@@ -29,7 +31,8 @@ pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
         AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
         AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
         AppMsg::Subscription(msg) => msg.update(state).map(AppMsg::Subscription),
-        AppMsg::Plugin(msg) => state.manager.update(msg).map(AppMsg::Plugin),
+        AppMsg::Plugin(msg) => state.plugins.manager.update(msg).map(AppMsg::Plugin),
+        AppMsg::AutoUpdater(msg) => handle_auto_updater(state, msg).map(AppMsg::Plugin),
     };
     Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
 }
@@ -44,4 +47,21 @@ pub fn view(state: &AppState) -> iced::Element<AppMsg> {
         // main_page.explain(components::colors::CYAN)
         main_page
     }
+}
+
+fn handle_auto_updater(_state: &mut AppState, msg: AutoUpdaterOutput) -> Task<PluginMessage> {
+    dbg!(&msg);
+    match msg {
+        AutoUpdaterOutput::UpdateAvailable(release_info) => {
+            log::info!("Auto updater update available: {}", release_info.tag_name);
+        }
+        AutoUpdaterOutput::InstallationCompleted => {
+            log::info!("Auto updater installation completed");
+        }
+        AutoUpdaterOutput::Error(err) => {
+            log::error!("Auto updater error: {err}");
+        }
+        _ => {}
+    }
+    Task::none()
 }
