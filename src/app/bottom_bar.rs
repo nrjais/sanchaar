@@ -1,11 +1,11 @@
 use crate::components::{NerdIcon, bordered_top, icon, icons, split, tooltip};
 use iced::{
     Element, Task,
-    widget::{Row, Tooltip, button, space},
+    widget::{Row, Tooltip, button, space, text},
 };
 use iced::{border, padding};
 
-use crate::state::{AppState, Tab, popups::Popup, tabs::cookies_tab::CookiesTab};
+use crate::state::{AppState, Tab, UpdateStatus, popups::Popup, tabs::cookies_tab::CookiesTab};
 
 #[derive(Debug, Clone)]
 pub enum BottomBarMsg {
@@ -13,6 +13,7 @@ pub enum BottomBarMsg {
     OpenCookies,
     ToggleSplit,
     ToggleSideBar,
+    OpenUpdateConfirmation,
 }
 
 impl BottomBarMsg {
@@ -34,6 +35,10 @@ impl BottomBarMsg {
             }
             ToggleSplit => {
                 state.split_direction = state.split_direction.toggle();
+                Task::none()
+            }
+            OpenUpdateConfirmation => {
+                Popup::update_confirmation(&mut state.common);
                 Task::none()
             }
         }
@@ -85,10 +90,36 @@ pub fn view(state: &AppState) -> Element<BottomBarMsg> {
         .align_y(iced::Alignment::Center)
         .padding(padding::left(4));
 
-    let row = Row::new()
-        .push(buttons)
-        .push(space::horizontal())
-        .spacing(2)
-        .padding([0, 4]);
+    let update_status = match state.update_status {
+        UpdateStatus::None => None,
+        UpdateStatus::Available => Some(("Update available", icons::Download, true)),
+        UpdateStatus::Downloading => Some(("Downloading update...", icons::Download, false)),
+        UpdateStatus::Installing => Some(("Installing update...", icons::Gear, false)),
+        UpdateStatus::Completed => Some(("Update ready - restart app", icons::CheckBold, false)),
+    };
+
+    let mut row = Row::new().push(buttons);
+
+    if let Some((status_text, status_icon, clickable)) = update_status {
+        let status_content = Row::new()
+            .push(icon(status_icon).size(14))
+            .push(text(status_text).size(12))
+            .spacing(4)
+            .align_y(iced::Alignment::Center);
+
+        let status_display: Element<BottomBarMsg> = if clickable {
+            button(status_content)
+                .on_press(BottomBarMsg::OpenUpdateConfirmation)
+                .style(button::text)
+                .padding(4)
+                .into()
+        } else {
+            status_content.into()
+        };
+
+        row = row.push(space::horizontal()).push(status_display);
+    }
+
+    row = row.push(space::horizontal()).spacing(2).padding([0, 4]);
     bordered_top(2, row)
 }

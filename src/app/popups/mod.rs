@@ -10,6 +10,7 @@ mod app_settings;
 mod create_collection;
 mod name_popup;
 mod save_request;
+mod update_confirmation;
 
 #[derive(Clone, Debug)]
 pub enum PopupMsg {
@@ -17,6 +18,7 @@ pub enum PopupMsg {
     SaveRequest(save_request::Message),
     RenamePopup(name_popup::Message),
     AppSettings(app_settings::Message),
+    UpdateConfirmation(update_confirmation::Message),
     ClosePopup,
     Ignore,
 }
@@ -28,6 +30,7 @@ impl PopupMsg {
             PopupMsg::SaveRequest(msg) => msg.update(state).map(PopupMsg::SaveRequest),
             PopupMsg::RenamePopup(msg) => msg.update(state).map(PopupMsg::RenamePopup),
             PopupMsg::AppSettings(msg) => msg.update(state).map(PopupMsg::AppSettings),
+            PopupMsg::UpdateConfirmation(msg) => msg.update(state),
             PopupMsg::ClosePopup => {
                 Popup::close(&mut state.common);
                 Task::none()
@@ -59,6 +62,11 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
             app_settings::view(state, data).map(PopupMsg::AppSettings),
             app_settings::done(data).map(PopupMsg::AppSettings),
         ),
+        Popup::UpdateConfirmation(data) => (
+            update_confirmation::title(),
+            update_confirmation::view(state, data).map(PopupMsg::UpdateConfirmation),
+            update_confirmation::done(data).map(PopupMsg::UpdateConfirmation),
+        ),
     };
 
     let buttons = Row::new()
@@ -69,7 +77,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
                 .on_press(PopupMsg::ClosePopup),
         )
         .push(
-            button("Done")
+            button(popup.done())
                 .style(button::primary)
                 .on_press_maybe(done_msg),
         )

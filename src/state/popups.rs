@@ -49,11 +49,27 @@ pub struct AppSettingsState {
 }
 
 #[derive(Debug)]
+pub struct UpdateConfirmationState {}
+
+#[derive(Debug)]
 pub enum Popup {
     CreateCollection(CreateCollectionState),
     SaveRequest(SaveRequestState),
     PopupName(PopupNameState),
     AppSettings(AppSettingsState),
+    UpdateConfirmation(UpdateConfirmationState),
+}
+
+impl Popup {
+    pub fn done(&self) -> &'static str {
+        match self {
+            Popup::CreateCollection(_) => "Create",
+            Popup::SaveRequest(_) => "Save",
+            Popup::PopupName(_) => "Ok",
+            Popup::AppSettings(_) => "Done",
+            Popup::UpdateConfirmation(_) => "Update",
+        }
+    }
 }
 
 fn open_popup(state: &mut CommonState, popup: Popup) {
@@ -92,6 +108,11 @@ impl Popup {
         let popup = Self::AppSettings(AppSettingsState {
             active_tab: AppSettingTabs::General,
         });
+        open_popup(state, popup);
+    }
+
+    pub fn update_confirmation(state: &mut CommonState) {
+        let popup = Self::UpdateConfirmation(UpdateConfirmationState {});
         open_popup(state, popup);
     }
 }

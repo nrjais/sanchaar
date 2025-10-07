@@ -3,6 +3,8 @@ use iced_auto_updater_plugin::AutoUpdaterOutput;
 use iced_plugins::PluginMessage;
 
 use crate::components::modal;
+use crate::state::UpdateStatus;
+use crate::state::popups::Popup;
 use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;
@@ -34,7 +36,11 @@ pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
         AppMsg::Plugin(msg) => state.plugins.manager.update(msg).map(AppMsg::Plugin),
         AppMsg::AutoUpdater(msg) => handle_auto_updater(state, msg).map(AppMsg::Plugin),
     };
-    Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
+    Task::batch([
+        cmd,
+        commands::background(state).map(AppMsg::Command),
+        state.queue.task(),
+    ])
 }
 
 pub fn view(state: &AppState) -> iced::Element<AppMsg> {
@@ -44,22 +50,29 @@ pub fn view(state: &AppState) -> iced::Element<AppMsg> {
         let popup = popups::view(state, popup).map(AppMsg::Popup);
         modal(main_page, popup, AppMsg::Popup(PopupMsg::Ignore))
     } else {
-        // main_page.explain(components::colors::CYAN)
         main_page
     }
 }
 
-fn handle_auto_updater(_state: &mut AppState, msg: AutoUpdaterOutput) -> Task<PluginMessage> {
-    dbg!(&msg);
+fn handle_auto_updater(state: &mut AppState, msg: AutoUpdaterOutput) -> Task<PluginMessage> {
     match msg {
-        AutoUpdaterOutput::UpdateAvailable(release_info) => {
-            log::info!("Auto updater update available: {}", release_info.tag_name);
+        AutoUpdaterOutput::UpdateAvailable(release) => {
+            state.update_status = UpdateStatus::Available;
+            state.pending_release = Some(release);
+        }
+        AutoUpdaterOutput::DownloadStarted(_) => {
+            state.update_status = UpdateStatus::Downloading;
+            Popup::close(&mut state.common);
+        }
+        AutoUpdaterOutput::InstallationStarted => {
+            state.update_status = UpdateStatus::Installing;
+        }
+        AutoUpdaterOutput::Error(_) => {
+            state.update_status = UpdateStatus::None;
+            state.pending_release = None;
         }
         AutoUpdaterOutput::InstallationCompleted => {
-            log::info!("Auto updater installation completed");
-        }
-        AutoUpdaterOutput::Error(err) => {
-            log::error!("Auto updater error: {err}");
+            state.update_status = UpdateStatus::Completed;
         }
         _ => {}
     }

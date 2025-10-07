@@ -1,5 +1,5 @@
 use iced::{Task, Theme};
-use iced_auto_updater_plugin::{AutoUpdaterPlugin, UpdaterConfig};
+use iced_auto_updater_plugin::{AutoUpdaterPlugin, ReleaseInfo, UpdaterConfig};
 use iced_plugins::{PluginHandle, PluginManager, PluginManagerBuilder, PluginMessage};
 use iced_window_state_plugin::WindowStatePlugin;
 use indexmap::IndexMap;
@@ -16,6 +16,7 @@ use std::sync::Arc;
 pub use tabs::http_tab::*;
 
 use crate::APP_NAME;
+use crate::app::AppMsg;
 use crate::commands::JobState;
 use crate::components::split::Direction;
 use crate::state::popups::Popup;
@@ -100,6 +101,36 @@ pub struct Plugins {
     pub manager: PluginManager,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UpdateStatus {
+    None,
+    Available,
+    Downloading,
+    Installing,
+    Completed,
+}
+
+#[derive(Debug)]
+pub struct MessageQueue {
+    queue: Vec<AppMsg>,
+}
+
+impl MessageQueue {
+    pub fn new() -> Self {
+        Self { queue: Vec::new() }
+    }
+}
+
+impl MessageQueue {
+    pub fn push(&mut self, msg: AppMsg) {
+        self.queue.push(msg);
+    }
+
+    pub fn task(&mut self) -> Task<AppMsg> {
+        Task::batch(self.queue.drain(..).map(Task::done))
+    }
+}
+
 #[derive(Debug)]
 pub struct AppState {
     pub common: CommonState,
@@ -110,6 +141,9 @@ pub struct AppState {
     pub pane_config: PaneConfig,
     pub split_direction: Direction,
     pub theme: Theme,
+    pub update_status: UpdateStatus,
+    pub pending_release: Option<ReleaseInfo>,
+    pub queue: MessageQueue,
 }
 
 pub fn install_plugins() -> (Plugins, Task<PluginMessage>) {
@@ -156,6 +190,9 @@ impl AppState {
             pane_config: PaneConfig::new(),
             split_direction: Direction::Horizontal,
             theme: Theme::GruvboxDark,
+            update_status: UpdateStatus::None,
+            pending_release: None,
+            queue: MessageQueue::new(),
         }
     }
 
