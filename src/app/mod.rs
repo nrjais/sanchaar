@@ -4,7 +4,6 @@ use iced_plugins::PluginMessage;
 
 use crate::components::modal;
 use crate::state::UpdateStatus;
-use crate::state::popups::Popup;
 use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;
@@ -57,19 +56,16 @@ pub fn view(state: &AppState) -> iced::Element<AppMsg> {
 fn handle_auto_updater(state: &mut AppState, msg: AutoUpdaterOutput) -> Task<PluginMessage> {
     match msg {
         AutoUpdaterOutput::UpdateAvailable(release) => {
-            state.update_status = UpdateStatus::Available;
-            state.pending_release = Some(release);
+            state.update_status = UpdateStatus::Available(release);
         }
         AutoUpdaterOutput::DownloadStarted(_) => {
             state.update_status = UpdateStatus::Downloading;
-            Popup::close(&mut state.common);
         }
         AutoUpdaterOutput::InstallationStarted => {
             state.update_status = UpdateStatus::Installing;
         }
         AutoUpdaterOutput::Error(_) => {
             state.update_status = UpdateStatus::None;
-            state.pending_release = None;
         }
         AutoUpdaterOutput::InstallationCompleted => {
             state.update_status = UpdateStatus::Completed;

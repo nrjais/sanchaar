@@ -1,3 +1,5 @@
+use iced_auto_updater_plugin::ReleaseInfo;
+
 use crate::state::TabKey;
 use core::http::CollectionKey;
 use core::http::collection::{FolderId, RequestId};
@@ -49,7 +51,7 @@ pub struct AppSettingsState {
 }
 
 #[derive(Debug)]
-pub struct UpdateConfirmationState {}
+pub struct UpdateConfirmationState(pub ReleaseInfo);
 
 #[derive(Debug)]
 pub enum Popup {
@@ -111,8 +113,8 @@ impl Popup {
         open_popup(state, popup);
     }
 
-    pub fn update_confirmation(state: &mut CommonState) {
-        let popup = Self::UpdateConfirmation(UpdateConfirmationState {});
+    pub fn update_confirmation(state: &mut CommonState, release: ReleaseInfo) {
+        let popup = Self::UpdateConfirmation(UpdateConfirmationState(release));
         open_popup(state, popup);
     }
 }

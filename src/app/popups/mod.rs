@@ -64,7 +64,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
         ),
         Popup::UpdateConfirmation(data) => (
             update_confirmation::title(),
-            update_confirmation::view(state, data).map(PopupMsg::UpdateConfirmation),
+            update_confirmation::view(data).map(PopupMsg::UpdateConfirmation),
             update_confirmation::done(data).map(PopupMsg::UpdateConfirmation),
         ),
     };

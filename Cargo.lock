@@ -2024,7 +2024,7 @@ dependencies = [
 [[package]]
 name = "iced_auto_updater_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#db5c45adaeb93010dba862b6bbd0887dbfd1f056"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#fa56121e7a4cf82f52a402f3e9b5c2a249507d96"
 dependencies = [
  "directories",
  "hex",
@@ -2145,7 +2145,7 @@ dependencies = [
 [[package]]
 name = "iced_plugins"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#db5c45adaeb93010dba862b6bbd0887dbfd1f056"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#fa56121e7a4cf82f52a402f3e9b5c2a249507d96"
 dependencies = [
  "iced",
 ]
@@ -2237,13 +2237,14 @@ dependencies = [
 [[package]]
 name = "iced_window_state_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#db5c45adaeb93010dba862b6bbd0887dbfd1f056"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#fa56121e7a4cf82f52a402f3e9b5c2a249507d96"
 dependencies = [
  "directories",
  "iced",
  "iced_plugins",
  "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]

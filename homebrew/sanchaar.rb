@@ -1,5 +1,6 @@
 cask "sanchaar" do
   version "0.1.2"
+  auto_updates true
 
   on_arm do
     sha256 "REPLACE_WITH_ARM64_SHA256"

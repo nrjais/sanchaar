@@ -101,10 +101,10 @@ pub struct Plugins {
     pub manager: PluginManager,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum UpdateStatus {
     None,
-    Available,
+    Available(ReleaseInfo),
     Downloading,
     Installing,
     Completed,
@@ -113,6 +113,12 @@ pub enum UpdateStatus {
 #[derive(Debug)]
 pub struct MessageQueue {
     queue: Vec<AppMsg>,
+}
+
+impl Default for MessageQueue {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MessageQueue {
@@ -142,7 +148,6 @@ pub struct AppState {
     pub split_direction: Direction,
     pub theme: Theme,
     pub update_status: UpdateStatus,
-    pub pending_release: Option<ReleaseInfo>,
     pub queue: MessageQueue,
 }
 
@@ -191,7 +196,6 @@ impl AppState {
             split_direction: Direction::Horizontal,
             theme: Theme::GruvboxDark,
             update_status: UpdateStatus::None,
-            pending_release: None,
             queue: MessageQueue::new(),
         }
     }
