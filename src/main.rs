@@ -15,6 +15,8 @@ use iced_window_state_plugin::WindowStatePlugin;
 use state::AppState;
 use std::borrow::Cow;
 
+use crate::{app::AppMsg, state::install_plugins};
+
 const HACK_REG_BYTES: &[u8] = include_bytes!("../fonts/HackNerdFont-Regular.ttf");
 const APP_NAME: &str = "Sanchaar";
 
@@ -34,7 +36,15 @@ pub fn app() -> Result<(), iced::Error> {
     let maximized = window_state.is_none();
     let window_state = window_state.unwrap_or_default();
 
-    let state_init = { move || (AppState::new(), commands::init_command()) };
+    let state_init = {
+        move || {
+            let (plugins, task) = install_plugins();
+            (
+                AppState::new(plugins),
+                task.map(AppMsg::Plugin).chain(commands::init_command()),
+            )
+        }
+    };
 
     iced::application(state_init, app::update, app::view)
         .theme(AppState::theme)

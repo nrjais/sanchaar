@@ -1,5 +1,6 @@
-use iced::Theme;
-use iced_plugins::{PluginManager, PluginManagerBuilder};
+use iced::{Task, Theme};
+use iced_auto_updater_plugin::{AutoUpdaterPlugin, ReleaseInfo, UpdaterConfig};
+use iced_plugins::{PluginHandle, PluginManager, PluginManagerBuilder, PluginMessage};
 use iced_window_state_plugin::WindowStatePlugin;
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
@@ -15,6 +16,7 @@ use std::sync::Arc;
 pub use tabs::http_tab::*;
 
 use crate::APP_NAME;
+use crate::app::AppMsg;
 use crate::commands::JobState;
 use crate::components::split::Direction;
 use crate::state::popups::Popup;
@@ -94,32 +96,90 @@ impl PaneConfig {
 }
 
 #[derive(Debug)]
+pub struct Plugins {
+    pub auto_updater: PluginHandle<AutoUpdaterPlugin>,
+    pub manager: PluginManager,
+}
+
+#[derive(Debug, Clone)]
+pub enum UpdateStatus {
+    None,
+    Available(ReleaseInfo),
+    Downloading,
+    Installing,
+    Completed,
+}
+
+#[derive(Debug)]
+pub struct MessageQueue {
+    queue: Vec<AppMsg>,
+}
+
+impl Default for MessageQueue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl MessageQueue {
+    pub fn new() -> Self {
+        Self { queue: Vec::new() }
+    }
+}
+
+impl MessageQueue {
+    pub fn push(&mut self, msg: AppMsg) {
+        self.queue.push(msg);
+    }
+
+    pub fn task(&mut self) -> Task<AppMsg> {
+        Task::batch(self.queue.drain(..).map(Task::done))
+    }
+}
+
+#[derive(Debug)]
 pub struct AppState {
     pub common: CommonState,
+    pub plugins: Plugins,
     pub active_tab: TabKey,
     tab_history: indexmap::IndexSet<TabKey>,
     pub tabs: indexmap::IndexMap<TabKey, Tab>,
     pub pane_config: PaneConfig,
     pub split_direction: Direction,
     pub theme: Theme,
-    pub manager: PluginManager,
+    pub update_status: UpdateStatus,
+    pub queue: MessageQueue,
 }
 
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
+pub fn install_plugins() -> (Plugins, Task<PluginMessage>) {
+    let auto_updater = UpdaterConfig {
+        owner: "nrjais".to_string(),
+        repo: "sanchaar".to_string(),
+        current_version: env!("CARGO_PKG_VERSION").to_string(),
+        auto_check_interval: 24 * 60 * 60,
+        check_on_start: true,
+    };
+
+    let mut builder =
+        PluginManagerBuilder::new().with_plugin(WindowStatePlugin::new(APP_NAME.to_string()));
+    let auto_updater = builder.install(AutoUpdaterPlugin::new(APP_NAME.to_string(), auto_updater));
+
+    let (manager, task) = builder.build();
+
+    (
+        Plugins {
+            auto_updater,
+            manager,
+        },
+        task,
+    )
 }
 
 impl AppState {
-    pub fn new() -> Self {
-        let manager = PluginManagerBuilder::new()
-            .with_plugin(WindowStatePlugin::new(APP_NAME.to_string()))
-            .build();
-
+    pub fn new(plugins: Plugins) -> Self {
         let store = create_cookie_store();
         Self {
-            manager,
+            plugins,
             active_tab: TabKey::ZERO,
             tabs: IndexMap::new(),
             tab_history: indexmap::IndexSet::new(),
@@ -135,6 +195,8 @@ impl AppState {
             pane_config: PaneConfig::new(),
             split_direction: Direction::Horizontal,
             theme: Theme::GruvboxDark,
+            update_status: UpdateStatus::None,
+            queue: MessageQueue::new(),
         }
     }
 

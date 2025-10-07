@@ -1,7 +1,9 @@
 use iced::Task;
+use iced_auto_updater_plugin::AutoUpdaterOutput;
 use iced_plugins::PluginMessage;
 
 use crate::components::modal;
+use crate::state::UpdateStatus;
 use popups::PopupMsg;
 
 use crate::app::content_section::MainPageMsg;
@@ -21,6 +23,7 @@ pub enum AppMsg {
     Popup(PopupMsg),
     Subscription(hotkeys::Message),
     Plugin(PluginMessage),
+    AutoUpdater(AutoUpdaterOutput),
 }
 
 pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
@@ -29,9 +32,14 @@ pub fn update(state: &mut AppState, msg: AppMsg) -> Task<AppMsg> {
         AppMsg::MainPage(msg) => msg.update(state).map(AppMsg::MainPage),
         AppMsg::Popup(msg) => msg.update(state).map(AppMsg::Popup),
         AppMsg::Subscription(msg) => msg.update(state).map(AppMsg::Subscription),
-        AppMsg::Plugin(msg) => state.manager.update(msg).map(AppMsg::Plugin),
+        AppMsg::Plugin(msg) => state.plugins.manager.update(msg).map(AppMsg::Plugin),
+        AppMsg::AutoUpdater(msg) => handle_auto_updater(state, msg).map(AppMsg::Plugin),
     };
-    Task::batch([cmd, commands::background(state).map(AppMsg::Command)])
+    Task::batch([
+        cmd,
+        commands::background(state).map(AppMsg::Command),
+        state.queue.task(),
+    ])
 }
 
 pub fn view(state: &AppState) -> iced::Element<AppMsg> {
@@ -41,7 +49,28 @@ pub fn view(state: &AppState) -> iced::Element<AppMsg> {
         let popup = popups::view(state, popup).map(AppMsg::Popup);
         modal(main_page, popup, AppMsg::Popup(PopupMsg::Ignore))
     } else {
-        // main_page.explain(components::colors::CYAN)
         main_page
     }
+}
+
+fn handle_auto_updater(state: &mut AppState, msg: AutoUpdaterOutput) -> Task<PluginMessage> {
+    match msg {
+        AutoUpdaterOutput::UpdateAvailable(release) => {
+            state.update_status = UpdateStatus::Available(release);
+        }
+        AutoUpdaterOutput::DownloadStarted(_) => {
+            state.update_status = UpdateStatus::Downloading;
+        }
+        AutoUpdaterOutput::InstallationStarted => {
+            state.update_status = UpdateStatus::Installing;
+        }
+        AutoUpdaterOutput::Error(_) => {
+            state.update_status = UpdateStatus::None;
+        }
+        AutoUpdaterOutput::InstallationCompleted => {
+            state.update_status = UpdateStatus::Completed;
+        }
+        _ => {}
+    }
+    Task::none()
 }
