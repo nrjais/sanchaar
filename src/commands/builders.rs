@@ -19,7 +19,6 @@ use core::persistence::history::HistoryDatabase;
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
 
-use crate::commands::cancellable_task::{TaskResult, cancellable_task};
 use crate::state::response::ResponseState;
 use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::utils::to_core_kv_list;
@@ -29,7 +28,6 @@ use crate::state::{AppState, CommonState, HttpTab, RequestDirtyState, Tab, TabKe
 pub enum ResponseResult {
     Completed(core::client::Response),
     Error(Arc<anyhow::Error>),
-    Cancelled,
 }
 
 pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<ResponseResult> {
@@ -71,17 +69,17 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
             Ok(response)
         });
 
-    let (cancel_tx, req_fut) = cancellable_task(req_fut);
-
     tab.cancel_tasks();
     tab.response.state = ResponseState::Executing;
-    tab.add_task(cancel_tx);
 
-    Task::perform(req_fut, move |r| match r {
-        TaskResult::Completed(Ok(res)) => ResponseResult::Completed(res),
-        TaskResult::Cancelled => ResponseResult::Cancelled,
-        TaskResult::Completed(Err(e)) => ResponseResult::Error(Arc::new(e)),
+    let (task, handle) = Task::perform(req_fut, move |r| match r {
+        Ok(res) => ResponseResult::Completed(res),
+        Err(e) => ResponseResult::Error(Arc::new(e)),
     })
+    .abortable();
+    tab.add_task(handle);
+
+    task
 }
 
 async fn save_request_to_history(

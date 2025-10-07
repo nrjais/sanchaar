@@ -1,7 +1,6 @@
 use core::http::CollectionRequest;
 use core::perf::{PerfConfig, PerfMetrics, PerfStats};
-use core::utils::SendOnDrop;
-use tokio::sync::oneshot;
+use iced::task::Handle;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PerfState {
@@ -21,7 +20,7 @@ pub struct PerfTab {
     pub stats: Option<PerfStats>,
     pub progress: u64,
     pub split_at: f32,
-    pub cancel: SendOnDrop,
+    pub cancel: Option<Handle>,
 }
 
 impl PerfTab {
@@ -34,7 +33,7 @@ impl PerfTab {
             stats: None,
             progress: 0,
             split_at: 0.45,
-            cancel: SendOnDrop::new(),
+            cancel: None,
         }
     }
 
@@ -75,7 +74,7 @@ impl PerfTab {
     }
 
     pub fn reset(&mut self) {
-        self.cancel.cancel();
+        self.cancel.take();
         self.state = PerfState::Idle;
         self.progress = 0;
         self.metrics = None;
@@ -83,11 +82,11 @@ impl PerfTab {
     }
 
     pub fn cancel_tasks(&mut self) {
-        self.cancel.cancel();
+        self.cancel.take();
     }
 
-    pub fn add_task(&mut self, task: oneshot::Sender<()>) {
-        self.cancel.with(task);
+    pub fn add_task(&mut self, task: Handle) {
+        self.cancel = Some(task.abort_on_drop());
     }
 }
 

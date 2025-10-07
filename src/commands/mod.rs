@@ -14,7 +14,6 @@ use crate::{
 use self::builders::{check_dirty_requests_cmd, load_collections_cmd};
 
 pub mod builders;
-mod cancellable_task;
 pub mod dialog;
 pub mod perf;
 

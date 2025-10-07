@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, Semaphore, oneshot};
+use tokio::sync::{Mutex, Semaphore};
 
 use super::metrics::PerfMetrics;
 use crate::client::send_request;
@@ -40,7 +40,6 @@ impl PerfRunner {
         &self,
         request: Request,
         env: EnvironmentChain,
-        mut cancel_rx: oneshot::Receiver<()>,
         progress_callback: impl Fn(PerfMetrics) + Send + Sync + 'static,
     ) -> anyhow::Result<PerfMetrics> {
         let built_request = transform_request(self.client.clone(), request, env).await?;
@@ -58,10 +57,6 @@ impl PerfRunner {
         let mut tasks = Vec::new();
 
         loop {
-            if cancel_rx.try_recv().is_ok() {
-                anyhow::bail!("Benchmark cancelled");
-            }
-
             if start_time.elapsed() >= self.config.duration {
                 break;
             }

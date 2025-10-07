@@ -2,7 +2,6 @@ use futures::SinkExt;
 use futures::channel::mpsc;
 use iced::{Task, stream};
 use std::sync::Arc;
-use tokio::sync::oneshot;
 
 use crate::state::{AppState, Tab};
 use core::perf::{PerfMetrics, PerfRunner};
@@ -61,13 +60,7 @@ pub fn start_benchmark<M: Send + Sync + 'static>(
         state.common.client.clone()
     };
 
-    let (cancel_tx, cancel_rx) = oneshot::channel();
-
-    if let Some(Tab::Perf(tab)) = state.active_tab_mut() {
-        tab.add_task(cancel_tx);
-    }
-
-    Task::run(
+    let (task, handle) = Task::run(
         stream::channel(100, |mut output: mpsc::Sender<PerfResult>| async move {
             let request = match read_request(&request_path).await {
                 Ok(req) => req,
@@ -83,7 +76,7 @@ pub fn start_benchmark<M: Send + Sync + 'static>(
 
             let output_for_progress = output.clone();
             let result = runner
-                .run(request, env_chain, cancel_rx, move |metrics| {
+                .run(request, env_chain, move |metrics| {
                     let mut output = output_for_progress.clone();
                     tokio::spawn(async move {
                         let _ = output.send(PerfResult::Progress(Arc::new(metrics))).await;
@@ -108,4 +101,11 @@ pub fn start_benchmark<M: Send + Sync + 'static>(
         }),
         msg,
     )
+    .abortable();
+
+    if let Some(Tab::Perf(tab)) = state.active_tab_mut() {
+        tab.add_task(handle);
+    }
+
+    task
 }
