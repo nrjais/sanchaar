@@ -12,7 +12,7 @@ pub mod report_pane;
 
 #[derive(Debug, Clone)]
 pub enum PerfTabMsg {
-    Config(config_pane::ConfigMsg),
+    Config(Box<config_pane::ConfigMsg>),
     Report(report_pane::ReportMsg),
     SplitResize(f32),
 }
@@ -20,7 +20,9 @@ pub enum PerfTabMsg {
 impl PerfTabMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
         match self {
-            PerfTabMsg::Config(msg) => msg.update(state).map(PerfTabMsg::Config),
+            PerfTabMsg::Config(msg) => msg
+                .update(state)
+                .map(|msg| PerfTabMsg::Config(Box::new(msg))),
             PerfTabMsg::Report(msg) => msg.update(state).map(PerfTabMsg::Report),
             PerfTabMsg::SplitResize(ratio) => {
                 let Some(crate::state::Tab::Perf(tab)) = state.active_tab_mut() else {
@@ -34,7 +36,7 @@ impl PerfTabMsg {
 }
 
 pub fn view<'a>(state: &'a AppState, tab: &'a PerfTab) -> Element<'a, PerfTabMsg> {
-    let config_view = config_pane::view(state, tab).map(PerfTabMsg::Config);
+    let config_view = config_pane::view(state, tab).map(|msg| PerfTabMsg::Config(Box::new(msg)));
     let report_view = report_pane::view(state, tab).map(PerfTabMsg::Report);
 
     let panes = split(

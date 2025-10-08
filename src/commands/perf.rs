@@ -48,7 +48,7 @@ pub fn benchmark(
 
         let result = runner.run(request, env_chain, sender).await;
 
-        let _ = handle.abort();
+        handle.abort();
 
         match result {
             Ok(metrics) => Ok(metrics),
