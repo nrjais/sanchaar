@@ -2024,7 +2024,7 @@ dependencies = [
 [[package]]
 name = "iced_auto_updater_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#4750f4a383b0f542212dd5b9803d44eb7a81827e"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#96ae372a5c652e929d335c17bb8b7975b22e374a"
 dependencies = [
  "directories",
  "futures-util",
@@ -2147,7 +2147,7 @@ dependencies = [
 [[package]]
 name = "iced_plugins"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#4750f4a383b0f542212dd5b9803d44eb7a81827e"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#96ae372a5c652e929d335c17bb8b7975b22e374a"
 dependencies = [
  "iced",
 ]
@@ -2240,7 +2240,7 @@ dependencies = [
 [[package]]
 name = "iced_window_state_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#4750f4a383b0f542212dd5b9803d44eb7a81827e"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#96ae372a5c652e929d335c17bb8b7975b22e374a"
 dependencies = [
  "directories",
  "iced",
