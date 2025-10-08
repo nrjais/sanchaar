@@ -1,7 +1,7 @@
 use core::APP_VERSION;
 use iced::widget::{Column, text};
 use iced::{Element, Task};
-use iced_auto_updater_plugin::{AutoUpdaterMessage, ReleaseInfo};
+use iced_auto_updater_plugin::{AutoUpdaterInput, ReleaseInfo};
 use std::borrow::Cow;
 
 use crate::app::AppMsg;
@@ -24,7 +24,7 @@ impl Message {
                 let msg = state
                     .plugins
                     .auto_updater
-                    .message(AutoUpdaterMessage::DownloadAndInstall(release.clone()));
+                    .input(AutoUpdaterInput::DownloadAndInstall(release.clone()));
                 state.queue.push(AppMsg::Plugin(msg));
 
                 Task::none()
