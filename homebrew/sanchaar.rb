@@ -1,6 +1,9 @@
 cask "sanchaar" do
-  version "0.1.2"
   auto_updates true
+  version "0.3.0"
+  name "Sanchaar"
+  desc "Fast offline REST API Client"
+  homepage "https://github.com/nrjais/sanchaar"
 
   on_arm do
     sha256 "REPLACE_WITH_ARM64_SHA256"
