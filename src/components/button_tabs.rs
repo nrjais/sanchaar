@@ -1,12 +1,12 @@
 use crate::components::min_dimension::min_width;
 use iced::Alignment::Center;
 use iced::widget::button::Status;
-use iced::widget::space;
+use iced::widget::{container, space};
+use iced::{Background, Length};
 use iced::{
     Element,
     widget::{Column, Row, Text, button},
 };
-use iced::{Length, border};
 
 pub struct ButtonTab<'a, T> {
     pub id: T,
@@ -58,22 +58,42 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
     for tab in tabs {
         let active = tab.id == active;
         let tab_button = |width: Length| {
-            button((tab.label)())
-                .style(move |theme, _| {
-                    let style = if active {
-                        button::primary(theme, Status::Active)
-                    } else {
-                        button::text(theme, Status::Disabled)
-                    };
-
-                    button::Style {
-                        border: border::rounded(4),
-                        ..style
-                    }
-                })
+            let btn = button((tab.label)())
+                .style(move |theme, _| button::text(theme, Status::Hovered))
                 .width(width)
                 .padding([2, 6])
-                .on_press(on_tab_change(tab.id.clone()))
+                .on_press(on_tab_change(tab.id.clone()));
+
+            if active {
+                Column::new()
+                    .push(btn.style(|theme, _| {
+                        let palette = theme.extended_palette();
+                        let mut style = button::text(theme, Status::Active);
+                        style.background = None;
+                        style.text_color = palette.background.strong.text;
+                        style
+                    }))
+                    .push(
+                        container(space::horizontal())
+                            .width(iced::Length::Fill)
+                            .height(2.0)
+                            .style(move |theme: &iced::Theme| {
+                                let palette = theme.extended_palette();
+                                container::Style {
+                                    background: Some(Background::Color(
+                                        palette.primary.strong.color,
+                                    )),
+                                    ..Default::default()
+                                }
+                            }),
+                    )
+                    .width(width)
+            } else {
+                Column::new()
+                    .push(btn)
+                    .push(space::vertical().height(2.0))
+                    .width(width)
+            }
         };
 
         tabs_row.push(if vertical {
