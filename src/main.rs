@@ -12,9 +12,10 @@ use iced::{
     Size,
     window::{Position, Settings},
 };
-use iced_window_state_plugin::WindowStatePlugin;
+use iced_window_state_plugin::{AppName, WindowState, WindowStatePlugin};
 use state::AppState;
 use std::borrow::Cow;
+use tokio::runtime::Runtime;
 
 use crate::{app::AppMsg, state::install_plugins};
 
@@ -31,8 +32,15 @@ fn main() {
     };
 }
 
+fn load_window_state() -> Option<WindowState> {
+    let app_name = AppName::new("com", "nrjais", APP_NAME);
+    let rt = Runtime::new().unwrap();
+    let window_state = rt.block_on(WindowStatePlugin::load(&app_name));
+    window_state
+}
+
 pub fn app() -> Result<(), iced::Error> {
-    let window_state = WindowStatePlugin::load(APP_NAME);
+    let window_state = load_window_state();
     let maximized = window_state.is_none();
     let window_state = window_state.unwrap_or_default();
 

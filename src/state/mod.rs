@@ -1,7 +1,7 @@
 use iced::{Task, Theme};
 use iced_auto_updater_plugin::{AutoUpdaterPlugin, ReleaseInfo, UpdaterConfig};
 use iced_plugins::{PluginHandle, PluginManager, PluginManagerBuilder, PluginMessage};
-use iced_window_state_plugin::WindowStatePlugin;
+use iced_window_state_plugin::{AppName, WindowStatePlugin};
 use indexmap::IndexMap;
 use reqwest_cookie_store::CookieStoreRwLock;
 use tabs::collection_tab::CollectionTab;
@@ -152,6 +152,7 @@ pub struct AppState {
 }
 
 pub fn install_plugins() -> (Plugins, Task<PluginMessage>) {
+    let app_name = AppName::new("com", "nrjais", APP_NAME);
     let auto_updater = UpdaterConfig {
         owner: "nrjais".to_string(),
         repo: "sanchaar".to_string(),
@@ -160,8 +161,7 @@ pub fn install_plugins() -> (Plugins, Task<PluginMessage>) {
         check_on_start: true,
     };
 
-    let mut builder =
-        PluginManagerBuilder::new().with_plugin(WindowStatePlugin::new(APP_NAME.to_string()));
+    let mut builder = PluginManagerBuilder::new().with_plugin(WindowStatePlugin::new(app_name));
     let auto_updater = builder.install(AutoUpdaterPlugin::new(APP_NAME.to_string(), auto_updater));
 
     let (manager, task) = builder.build();
