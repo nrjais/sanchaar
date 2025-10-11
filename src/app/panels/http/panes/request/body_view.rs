@@ -53,7 +53,6 @@ pub fn body_tab(
         .push(header)
         .push(center(body))
         .spacing(8)
-        .padding([4, 0])
         .into()
 }
 

@@ -274,6 +274,6 @@ pub fn view<'a>(
         .width(Length::Fill)
         .height(Length::Fill)
         .spacing(4)
-        .padding(padding::bottom(4))
+        .padding([8, 0])
         .into()
 }

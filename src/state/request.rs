@@ -30,8 +30,9 @@ pub mod body_types {
 
 pub mod auth_types {
     pub const NONE: &str = "None";
-    pub const BASIC: &str = "Basic";
-    pub const BEARER: &str = "Bearer";
+    pub const BASIC: &str = "Basic Auth";
+    pub const BEARER: &str = "Bearer Token";
+    pub const API_KEY: &str = "API Key";
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]

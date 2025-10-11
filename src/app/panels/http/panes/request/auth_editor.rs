@@ -52,16 +52,16 @@ fn field_row<'a>(
 pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<AuthEditorMsg> {
     let auth = &request.auth;
     let header = Row::new()
-        .push(text("Auth Method"))
-        .push(space::horizontal())
+        .push(text("Auth Type"))
         .push(
             pick_list(
                 RawAuthType::all_variants(),
                 Some(auth.as_str()),
                 AuthEditorMsg::ChangeAuthType,
             )
-            .padding([2, 8]),
+            .padding([2, 6]),
         )
+        .spacing(16)
         .height(Length::Shrink)
         .align_y(iced::Alignment::Center);
 

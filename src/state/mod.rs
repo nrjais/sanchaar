@@ -19,6 +19,7 @@ pub use tabs::http_tab::*;
 use crate::app::AppMsg;
 use crate::commands::JobState;
 use crate::components::split::Direction;
+use crate::debug::UPDATE_CHECK;
 use crate::state::popups::Popup;
 
 pub mod environment;
@@ -158,7 +159,7 @@ pub fn install_plugins() -> (Plugins, Task<PluginMessage>) {
         repo: "sanchaar".to_string(),
         current_version: APP_VERSION.to_string(),
         auto_check_interval: 24 * 60 * 60,
-        check_on_start: true,
+        check_on_start: UPDATE_CHECK,
     };
 
     let mut builder = PluginManagerBuilder::new().with_plugin(WindowStatePlugin::new(app_name));

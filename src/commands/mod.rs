@@ -5,6 +5,7 @@ use iced::Task;
 use log::info;
 use std::time::Instant;
 
+use crate::debug::DELAY;
 use crate::state::session::{self, SessionState, load_session_state};
 use crate::{
     app::AppMsg,
@@ -16,11 +17,6 @@ use self::builders::{check_dirty_requests_cmd, load_collections_cmd};
 pub mod builders;
 pub mod dialog;
 pub mod perf;
-
-#[cfg(not(feature = "default"))]
-const DELAY: u64 = 1;
-#[cfg(feature = "default")]
-const DELAY: u64 = 100000;
 
 #[derive(Debug, Clone)]
 pub struct JobState {

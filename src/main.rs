@@ -2,6 +2,7 @@
 pub mod app;
 pub mod commands;
 pub mod components;
+mod debug;
 pub mod hotkeys;
 pub mod ids;
 pub mod state;
@@ -9,7 +10,7 @@ mod subscription;
 
 use core::APP_NAME;
 use iced::{
-    Size,
+    Size, Task,
     window::{Position, Settings},
 };
 use iced_window_state_plugin::{AppName, WindowState, WindowStatePlugin};
@@ -49,7 +50,7 @@ pub fn app() -> Result<(), iced::Error> {
             let (plugins, task) = install_plugins();
             (
                 AppState::new(plugins),
-                task.map(AppMsg::Plugin).chain(commands::init_command()),
+                Task::batch([task.map(AppMsg::Plugin), commands::init_command()]),
             )
         }
     };
