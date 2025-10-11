@@ -15,7 +15,6 @@ jsonwebtoken.workspace = true
 log.workspace = true
 mime_guess.workspace = true
 parsers.workspace = true
-postman_collection.workspace = true
 regex.workspace = true
 reqwest.workspace = true
 reqwest_cookie_store.workspace = true
