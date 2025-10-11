@@ -13,7 +13,7 @@ use crate::state::tabs::collection_tab::CollectionTab;
 use crate::state::tabs::history_tab::HistoryTab;
 use crate::state::tabs::perf_tab::PerfTab;
 use crate::state::{AppState, HttpTab, Tab, TabKey};
-use core::http::request::Method;
+use lib::http::request::Method;
 
 #[derive(Debug, Clone)]
 pub enum MainPageMsg {

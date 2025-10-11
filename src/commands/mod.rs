@@ -1,7 +1,7 @@
-use core::http::collection::Collection;
-use core::persistence::collections;
-use core::persistence::history::{HistoryDatabase, HistoryEntrySummary, get_history_db_path};
 use iced::Task;
+use lib::http::collection::Collection;
+use lib::persistence::collections;
+use lib::persistence::history::{HistoryDatabase, HistoryEntrySummary, get_history_db_path};
 use log::info;
 use std::time::Instant;
 

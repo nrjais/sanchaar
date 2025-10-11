@@ -1,4 +1,5 @@
 #![allow(mismatched_lifetime_syntaxes)]
+
 pub mod app;
 pub mod commands;
 pub mod components;
@@ -8,12 +9,12 @@ pub mod ids;
 pub mod state;
 mod subscription;
 
-use core::APP_NAME;
 use iced::{
     Size, Task,
     window::{Position, Settings},
 };
 use iced_window_state_plugin::{AppName, WindowState, WindowStatePlugin};
+use lib::APP_NAME;
 use state::AppState;
 use std::borrow::Cow;
 use tokio::runtime::Runtime;

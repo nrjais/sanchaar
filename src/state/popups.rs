@@ -1,9 +1,9 @@
 use iced_auto_updater_plugin::ReleaseInfo;
 
 use crate::state::TabKey;
-use core::http::CollectionKey;
-use core::http::collection::{FolderId, RequestId};
-use core::http::environment::EnvironmentKey;
+use lib::http::CollectionKey;
+use lib::http::collection::{FolderId, RequestId};
+use lib::http::environment::EnvironmentKey;
 use std::path::PathBuf;
 
 use super::CommonState;

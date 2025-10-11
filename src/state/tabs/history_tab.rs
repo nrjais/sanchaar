@@ -1,4 +1,4 @@
-use core::persistence::history::HistoryEntrySummary;
+use lib::persistence::history::HistoryEntrySummary;
 use std::time::Instant;
 
 use crate::components::{

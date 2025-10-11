@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
-use core::http::request::{Auth, Method, Request, RequestBody};
-use core::http::{CollectionKey, CollectionRequest, KeyValList, RequestId};
-use core::perf::PerfConfig;
-use core::persistence::collections::project_dirs;
+use lib::http::request::{Auth, Method, Request, RequestBody};
+use lib::http::{CollectionKey, CollectionRequest, KeyValList, RequestId};
+use lib::perf::PerfConfig;
+use lib::persistence::collections::project_dirs;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -44,7 +44,7 @@ fn serialize_kv_list(list: &KeyValList) -> Vec<SerializableKeyValue> {
 fn deserialize_kv_list(list: Vec<SerializableKeyValue>) -> KeyValList {
     KeyValList::from(
         list.into_iter()
-            .map(|kv| core::http::KeyValue {
+            .map(|kv| lib::http::KeyValue {
                 name: kv.name,
                 value: kv.value,
                 disabled: kv.disabled,
@@ -53,7 +53,7 @@ fn deserialize_kv_list(list: Vec<SerializableKeyValue>) -> KeyValList {
     )
 }
 
-fn serialize_kf_list(list: &core::http::KeyFileList) -> Vec<SerializableKeyFile> {
+fn serialize_kf_list(list: &lib::http::KeyFileList) -> Vec<SerializableKeyFile> {
     list.iter()
         .map(|kf| SerializableKeyFile {
             name: kf.name.clone(),
@@ -63,10 +63,10 @@ fn serialize_kf_list(list: &core::http::KeyFileList) -> Vec<SerializableKeyFile>
         .collect()
 }
 
-fn deserialize_kf_list(list: Vec<SerializableKeyFile>) -> core::http::KeyFileList {
-    core::http::KeyFileList::from(
+fn deserialize_kf_list(list: Vec<SerializableKeyFile>) -> lib::http::KeyFileList {
+    lib::http::KeyFileList::from(
         list.into_iter()
-            .map(|kf| core::http::KeyFile {
+            .map(|kf| lib::http::KeyFile {
                 name: kf.name,
                 path: kf.path,
                 disabled: kf.disabled,

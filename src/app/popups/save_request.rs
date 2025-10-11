@@ -4,8 +4,8 @@ use std::ops::Not;
 use iced::widget::{Column, Row, button, container, scrollable, space, text, text_input};
 use iced::{Element, Length, Task};
 
-use core::http::CollectionKey;
-use core::http::collection::{Collection, Entry, Folder, FolderId};
+use lib::http::CollectionKey;
+use lib::http::collection::{Collection, Entry, Folder, FolderId};
 
 use crate::commands::builders::save_tab_request_cmd;
 use crate::components::{icon, icons};

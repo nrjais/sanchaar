@@ -1,5 +1,5 @@
-use core::persistence::environment::{encode_environments, save_environments};
-use core::persistence::{ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
+use lib::persistence::environment::{encode_environments, save_environments};
+use lib::persistence::{ENVIRONMENTS, REQUESTS, TOML_EXTENSION};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -10,14 +10,14 @@ use rfd::{AsyncFileDialog, FileHandle};
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
-use core::client::send_request;
-use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
-use core::http::request::Request;
-use core::http::{CollectionKey, CollectionRequest, Environment, EnvironmentKey, KeyValList};
-use core::persistence::collections::{self, encode_collection, open_collection, save_collection};
-use core::persistence::history::HistoryDatabase;
-use core::persistence::request::{encode_request, read_request, save_req_to_file};
-use core::transformers::request::transform_request;
+use lib::client::send_request;
+use lib::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
+use lib::http::request::Request;
+use lib::http::{CollectionKey, CollectionRequest, Environment, EnvironmentKey, KeyValList};
+use lib::persistence::collections::{self, encode_collection, open_collection, save_collection};
+use lib::persistence::history::HistoryDatabase;
+use lib::persistence::request::{encode_request, read_request, save_req_to_file};
+use lib::transformers::request::transform_request;
 
 use crate::state::response::ResponseState;
 use crate::state::tabs::collection_tab::CollectionTab;
@@ -26,7 +26,7 @@ use crate::state::{AppState, CommonState, HttpTab, RequestDirtyState, Tab, TabKe
 
 #[derive(Debug, Clone)]
 pub enum ResponseResult {
-    Completed(core::client::Response),
+    Completed(lib::client::Response),
     Error(Arc<anyhow::Error>),
 }
 
@@ -85,7 +85,7 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
 async fn save_request_to_history(
     history_db: &HistoryDatabase,
     request: &Request,
-    response: &core::client::Response,
+    response: &lib::client::Response,
     collection_name: Option<&str>,
 ) -> anyhow::Result<()> {
     history_db

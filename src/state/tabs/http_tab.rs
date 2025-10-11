@@ -4,8 +4,8 @@ use crate::commands::builders::ResponseResult;
 use crate::state::request::RequestPane;
 use crate::state::response::ResponsePane;
 use crate::state::response::{CompletedResponse, ResponseState};
-use core::http::request::Request;
-use core::http::{CollectionKey, CollectionRequest};
+use lib::http::request::Request;
+use lib::http::{CollectionKey, CollectionRequest};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestDirtyState {
@@ -51,7 +51,7 @@ impl HttpTab {
     pub fn from_history(
         name: &str,
         request: Request,
-        response: core::client::Response,
+        response: lib::client::Response,
         req_ref: CollectionRequest,
     ) -> Box<Self> {
         let mut tab = Self::new(name, request, req_ref);

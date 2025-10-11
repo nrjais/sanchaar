@@ -9,10 +9,10 @@ use tabs::cookies_tab::CookiesTab;
 use tabs::history_tab::HistoryTab;
 use tabs::perf_tab::PerfTab;
 
-use core::client::{create_client, create_cookie_store};
-use core::http::{CollectionRequest, Collections};
-use core::persistence::history::HistoryDatabase;
-use core::{APP_NAME, APP_VERSION};
+use lib::client::{create_client, create_cookie_store};
+use lib::http::{CollectionRequest, Collections};
+use lib::persistence::history::HistoryDatabase;
+use lib::{APP_NAME, APP_VERSION};
 use std::sync::Arc;
 pub use tabs::http_tab::*;
 
@@ -30,7 +30,7 @@ pub mod session;
 pub mod tabs;
 pub mod utils;
 
-core::new_id_type! {
+lib::new_id_type! {
     pub struct TabKey;
 }
 

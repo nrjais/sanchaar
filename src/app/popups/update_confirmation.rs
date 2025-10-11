@@ -1,7 +1,7 @@
-use core::APP_VERSION;
 use iced::widget::{Column, text};
 use iced::{Element, Task};
 use iced_auto_updater_plugin::{AutoUpdaterInput, ReleaseInfo};
+use lib::APP_VERSION;
 use std::borrow::Cow;
 
 use crate::app::AppMsg;

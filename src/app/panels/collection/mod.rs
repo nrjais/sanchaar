@@ -2,7 +2,7 @@ pub mod env_editor;
 pub mod env_table;
 mod settings;
 
-use core::http::collection::Collection;
+use lib::http::collection::Collection;
 
 use crate::components::{button_tab, button_tabs};
 use iced::Length;

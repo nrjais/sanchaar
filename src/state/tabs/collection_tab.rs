@@ -1,4 +1,4 @@
-use core::http::{CollectionKey, collection::Collection};
+use lib::http::{CollectionKey, collection::Collection};
 use std::time::Duration;
 
 use crate::components::KeyValList;

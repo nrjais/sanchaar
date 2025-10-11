@@ -1,4 +1,4 @@
-use core::http::Collection;
+use lib::http::Collection;
 
 use iced::{
     Element, Length,

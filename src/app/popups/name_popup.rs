@@ -1,5 +1,5 @@
-use core::http::CollectionRequest;
-use core::http::request::Request;
+use lib::http::CollectionRequest;
+use lib::http::request::Request;
 use std::borrow::Cow;
 
 use iced::widget::{Column, Row, space, text, text_input};

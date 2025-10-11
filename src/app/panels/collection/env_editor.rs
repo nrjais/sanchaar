@@ -4,8 +4,8 @@ use iced::{Element, Length, Task};
 
 use crate::app::panels::collection::env_table;
 use crate::components::LineEditorMsg;
-use core::http::collection::Collection;
-use core::http::environment::EnvironmentKey;
+use lib::http::collection::Collection;
+use lib::http::environment::EnvironmentKey;
 
 use crate::state::popups::{Popup, PopupNameAction};
 use crate::state::tabs::collection_tab::CollectionTab;

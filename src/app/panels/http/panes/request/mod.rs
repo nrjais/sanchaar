@@ -1,5 +1,5 @@
-use core::http::CollectionKey;
-use core::http::collection::Collection;
+use lib::http::CollectionKey;
+use lib::http::collection::Collection;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;

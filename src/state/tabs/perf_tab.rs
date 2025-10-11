@@ -1,6 +1,6 @@
-use core::http::CollectionRequest;
-use core::perf::{PerfConfig, PerfMetrics, PerfStats};
 use iced::task::Handle;
+use lib::http::CollectionRequest;
+use lib::perf::{PerfConfig, PerfMetrics, PerfStats};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PerfState {

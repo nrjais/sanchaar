@@ -12,7 +12,7 @@ use crate::state::{
     AppState,
     tabs::perf_tab::{PerfState, PerfTab},
 };
-use core::perf::PerfStats;
+use lib::perf::PerfStats;
 
 #[derive(Debug, Clone)]
 pub enum ReportMsg {}

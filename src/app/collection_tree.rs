@@ -12,8 +12,8 @@ use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
 };
 use crate::ids::PERF_REQUEST_DROP_ZONE;
-use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
-use core::http::{CollectionKey, CollectionRequest, request::Request};
+use lib::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
+use lib::http::{CollectionKey, CollectionRequest, request::Request};
 
 use crate::commands::builders::{self, open_collection_cmd, open_request_cmd};
 use crate::state::popups::{Popup, PopupNameAction};

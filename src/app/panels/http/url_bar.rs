@@ -13,9 +13,9 @@ use strum::VariantArray;
 use crate::components::{
     LineEditorMsg, NerdIcon, context_menu, icon, icons, line_editor, menu_item,
 };
-use core::curl::{generate_curl_command, parse_curl_command};
-use core::http::collection::Collection;
-use core::http::request::Method;
+use lib::curl::{generate_curl_command, parse_curl_command};
+use lib::http::collection::Collection;
+use lib::http::request::Method;
 
 use crate::commands::builders::{ResponseResult, save_request_cmd, send_request_cmd};
 use crate::state::popups::Popup;

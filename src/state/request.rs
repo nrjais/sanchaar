@@ -1,22 +1,25 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use crate::components::CodeEditorMsg;
-use crate::components::KeyFileList;
-use crate::components::KeyValList;
-use crate::components::KeyValUpdateMsg;
-use crate::components::KeyValue;
-use crate::components::editor::Content;
 use crate::components::editor::ContentAction;
-use crate::state::utils::key_value_from_text;
-use crate::state::utils::key_value_to_text;
+use crate::components::{CodeEditorMsg, editor::Content};
+use crate::components::{KeyFileList, KeyValList};
+use crate::components::{KeyValUpdateMsg, KeyValue};
+use crate::state::utils::{key_value_from_text, key_value_to_text};
 use body_types::*;
-use core::http::request::{Auth, Method, Request, RequestBody};
 use iced::advanced::widget;
+use lib::http::request::{Auth, Method, Request, RequestBody};
 use reqwest::Url;
 use serde_json::Value;
+use strum::EnumString;
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, EnumString)]
+pub enum AuthIn {
+    Query,
+    Header,
+}
 
 pub mod body_types {
     pub const FORM: &str = "URL Encoded";
@@ -33,6 +36,7 @@ pub mod auth_types {
     pub const BASIC: &str = "Basic Auth";
     pub const BEARER: &str = "Bearer Token";
     pub const API_KEY: &str = "API Key";
+    pub const JWT_BEARER: &str = "JWT Bearer";
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -202,7 +206,7 @@ impl BulkEditable {
         }
     }
 
-    fn to_core_kv_list(&self) -> core::http::KeyValList {
+    fn to_core_kv_list(&self) -> lib::http::KeyValList {
         match self {
             Self::KeyValue(keys) => to_core_kv_list(keys),
             Self::Editor(content) => {
@@ -327,7 +331,7 @@ impl RequestPane {
         // self.extract_query_params();
     }
 
-    pub fn update_from_curl(&mut self, request: core::http::request::Request) {
+    pub fn update_from_curl(&mut self, request: lib::http::request::Request) {
         self.method = request.method;
 
         self.url_content

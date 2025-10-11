@@ -1,4 +1,4 @@
-use core::http::collection::Collection;
+use lib::http::collection::Collection;
 use std::{collections::HashSet, sync::Arc, time::Duration};
 
 use crate::components::{KeyValList, KeyValUpdateMsg, key_value_editor, text_input};

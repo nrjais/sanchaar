@@ -90,7 +90,6 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
 cookie_store = "0.22"
-core = { path = "crates/core" }
 directories = "6.0"
 dotenvy = "0.15.3"
 env_logger = "0.11"
@@ -120,7 +119,7 @@ mime_guess = "2.0"
 parsers = { path = "crates/parsers" }
 pest = "2.8"
 pest_derive = "2.8"
-regex = "1.10"
+regex = "1.12"
 reqwest = { version = "0.12", features = ["multipart", "stream"] }
 reqwest_cookie_store = "0.9"
 rfd = { version = "0.15", default-features = false, features = [
@@ -147,7 +146,6 @@ uuid = { version = "1.0", features = ["serde", "v4"] }
 anyhow.workspace = true
 chrono.workspace = true
 cookie_store.workspace = true
-core.workspace = true
 directories.workspace = true
 env_logger.workspace = true
 futures.workspace = true
@@ -161,6 +159,7 @@ iced_window_state_plugin.workspace = true
 indexmap.workspace = true
 jsonformat.workspace = true
 jsonpath-rust.workspace = true
+lib = { package = "core", path = "crates/core" }
 log.workspace = true
 parsers.workspace = true
 reqwest.workspace = true

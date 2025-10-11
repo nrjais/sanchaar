@@ -1,4 +1,4 @@
-use core::client;
+use lib::client;
 use std::sync::Arc;
 
 use crate::components::editor::{self, Content};

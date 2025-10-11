@@ -1,4 +1,4 @@
-use core::http::CollectionRequest;
+use lib::http::CollectionRequest;
 use std::time::Duration;
 
 use iced::{
@@ -201,8 +201,8 @@ fn request_selector_view<'a>(tab: &'a PerfTab, state: &'a AppState) -> Element<'
 }
 
 fn selected_request_view<'a>(
-    request: &'a core::http::RequestRef,
-    collection: &'a core::http::Collection,
+    request: &'a lib::http::RequestRef,
+    collection: &'a lib::http::Collection,
 ) -> Column<'a, ConfigMsg> {
     let request_badge = container(
         Row::new()

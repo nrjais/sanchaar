@@ -1,12 +1,12 @@
-use core::http::EnvironmentChain;
 use iced::Task;
 use iced::task::{Straw, sipper};
+use lib::http::EnvironmentChain;
 use std::path::PathBuf;
 use tokio::sync::mpsc;
 
 use crate::state::{AppState, Tab};
-use core::perf::{PerfConfig, PerfMetrics, PerfRunner};
-use core::persistence::request::read_request;
+use lib::perf::{PerfConfig, PerfMetrics, PerfRunner};
+use lib::persistence::request::read_request;
 
 #[derive(Debug, Clone)]
 pub enum PerfResult {
