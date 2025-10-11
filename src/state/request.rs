@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use crate::components::editor::ContentAction;
 use crate::components::{CodeEditorMsg, editor::Content};
 use crate::components::{KeyFileList, KeyValList};
 use crate::components::{KeyValUpdateMsg, KeyValue};
 use crate::state::utils::{key_value_from_text, key_value_to_text};
-use body_types::*;
 use iced::advanced::widget;
 use lib::http::request::{Auth, Method, Request, RequestBody};
 use reqwest::Url;
 use serde_json::Value;
-use strum::EnumString;
+use strum::{Display, EnumString, IntoStaticStr, VariantNames};
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
 
@@ -19,16 +19,6 @@ use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_cor
 pub enum AuthIn {
     Query,
     Header,
-}
-
-pub mod body_types {
-    pub const FORM: &str = "URL Encoded";
-    pub const MULTIPART: &str = "Multipart";
-    pub const JSON: &str = "JSON";
-    pub const XML: &str = "XML";
-    pub const TEXT: &str = "Text";
-    pub const FILE: &str = "File";
-    pub const NONE: &str = "None";
 }
 
 pub mod auth_types {
@@ -104,15 +94,22 @@ impl RawAuthType {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Display, VariantNames, IntoStaticStr, EnumString)]
 pub enum RawRequestBody {
     #[default]
+    #[strum(serialize = "None")]
     None,
+    #[strum(serialize = "URL Encoded")]
     Form(KeyValList),
+    #[strum(serialize = "Multipart")]
     Multipart(KeyValList, KeyFileList),
+    #[strum(serialize = "JSON")]
     Json(Content),
+    #[strum(serialize = "XML")]
     XML(Content),
+    #[strum(serialize = "Text")]
     Text(Content),
+    #[strum(serialize = "File")]
     File(Option<PathBuf>),
 }
 
@@ -146,23 +143,9 @@ impl RawRequestBody {
             RequestBody::None => RawRequestBody::None,
         }
     }
-}
 
-impl RawRequestBody {
     pub fn as_str(&self) -> &'static str {
-        match self {
-            RawRequestBody::Form(_) => FORM,
-            RawRequestBody::Json(_) => JSON,
-            RawRequestBody::XML(_) => XML,
-            RawRequestBody::Text(_) => TEXT,
-            RawRequestBody::File(_) => FILE,
-            RawRequestBody::None => NONE,
-            RawRequestBody::Multipart(_, _) => MULTIPART,
-        }
-    }
-
-    pub fn all_variants() -> &'static [&'static str] {
-        &[FORM, MULTIPART, JSON, XML, TEXT, FILE, NONE]
+        self.into()
     }
 }
 
@@ -250,18 +233,9 @@ pub struct RequestPane {
 
 impl RequestPane {
     pub(crate) fn change_body_type(&mut self, content_type: &str) {
-        let new_body = self
-            .body_cache
-            .remove(content_type)
-            .unwrap_or_else(|| match content_type {
-                FORM => RawRequestBody::Form(KeyValList::new()),
-                JSON => RawRequestBody::Json(Default::default()),
-                XML => RawRequestBody::XML(Default::default()),
-                TEXT => RawRequestBody::Text(Default::default()),
-                FILE => RawRequestBody::File(Default::default()),
-                MULTIPART => RawRequestBody::Multipart(KeyValList::new(), KeyFileList::new()),
-                _ => RawRequestBody::None,
-            });
+        let new_body = self.body_cache.remove(content_type).unwrap_or_else(|| {
+            RawRequestBody::from_str(content_type).unwrap_or(RawRequestBody::None)
+        });
         let old_body = std::mem::replace(&mut self.body, new_body);
         self.body_cache.insert(old_body.as_str(), old_body);
     }

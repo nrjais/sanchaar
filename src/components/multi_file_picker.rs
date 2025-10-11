@@ -7,7 +7,7 @@ use iced::{
 use std::ops::Not;
 use std::path::PathBuf;
 
-use crate::components::tooltip;
+use crate::components::{ellipsis, tooltip};
 
 use super::{icon, icons};
 
@@ -193,13 +193,6 @@ pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerU
             .and_then(|p| p.to_str())
             .unwrap_or("Select a file");
 
-        const MAX_LEN: usize = 15;
-        let ellipsis = if path.len() > MAX_LEN {
-            format!("...{}", &path[path.len() - MAX_LEN..])
-        } else {
-            path.to_owned()
-        };
-
         let value = container(
             Row::new()
                 .push(tooltip(
@@ -207,11 +200,12 @@ pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerU
                     button(icon(icons::FolderOpen).size(size))
                         .on_press(FilePickerUpdateMsg::OpenFilePicker(idx))
                         .style(button::primary)
-                        .padding([2, 6]),
+                        .padding([2, 12]),
                 ))
-                .push(tooltip(path, text(ellipsis).size(size)))
-                .height(Length::Fill)
-                .spacing(spacing)
+                .push(tooltip(path, ellipsis(path, 6., size as f32)))
+                .height(Length::Shrink)
+                .width(Length::Fill)
+                .spacing(8)
                 .align_y(iced::Alignment::Center),
         )
         .width(Length::FillPortion(3));
@@ -222,6 +216,7 @@ pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerU
                 .push(value)
                 .push(actions)
                 .height(Length::Shrink)
+                .align_y(iced::Alignment::Center)
                 .spacing(spacing),
         )
         .style(container::bordered_box)

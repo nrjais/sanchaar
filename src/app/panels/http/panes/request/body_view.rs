@@ -9,6 +9,7 @@ use iced::{
     widget::{Column, Row, button, center, container, pick_list, scrollable, text},
 };
 use std::{collections::HashSet, path::PathBuf, sync::Arc};
+use strum::VariantNames;
 
 pub fn body_tab(
     body: &RawRequestBody,
@@ -28,7 +29,7 @@ pub fn body_tab(
         .push(text("Content Type"))
         .push(
             pick_list(
-                RawRequestBody::all_variants(),
+                RawRequestBody::VARIANTS,
                 Some(body.as_str()),
                 RequestPaneMsg::ChangeBodyType,
             )

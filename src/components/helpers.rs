@@ -1,7 +1,9 @@
 use iced::{
-    Border, Element, Font, Length, Theme,
+    Alignment, Border, Element, Font, Length, Size, Theme,
     font::Weight,
-    widget::{Container, TextInput, Tooltip, container, text, tooltip::Position},
+    widget::{
+        Container, TextInput, Tooltip, container, responsive, text, tooltip::Position, value,
+    },
 };
 
 pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
@@ -47,4 +49,25 @@ pub fn bold<'a, M: 'a>(txt: &'a str) -> Element<'a, M> {
             ..Font::DEFAULT
         })
         .into()
+}
+
+pub fn ellipsis<'a, M: 'a>(txt: &'a str, multiple: f32, size: f32) -> Element<'a, M> {
+    responsive(move |s: Size| -> Element<'a, M> {
+        let txt_width = txt.len() as f32 * multiple;
+        if s.width > txt_width {
+            text(txt)
+                .size(size)
+                .align_y(Alignment::Center)
+                .height(Length::Shrink)
+                .into()
+        } else {
+            let max_chars = (s.width / multiple).min(txt.len() as f32) - 2. * multiple;
+            value(format!("...{}", &txt[txt.len() - max_chars as usize..]))
+                .size(size)
+                .align_y(Alignment::Center)
+                .height(Length::Shrink)
+                .into()
+        }
+    })
+    .into()
 }
