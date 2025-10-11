@@ -273,7 +273,7 @@ pub fn view<'a>(
         .push(tab_content)
         .width(Length::Fill)
         .height(Length::Fill)
-        .spacing(4)
-        .padding([8, 0])
+        .spacing(8)
+        .padding([4, 0])
         .into()
 }
