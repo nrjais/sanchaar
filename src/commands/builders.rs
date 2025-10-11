@@ -14,7 +14,9 @@ use core::client::send_request;
 use core::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use core::http::request::Request;
 use core::http::{CollectionKey, CollectionRequest, Environment, EnvironmentKey, KeyValList};
-use core::persistence::collections::{self, encode_collection, open_collection, save_collection};
+use core::persistence::collections::{
+    self, encode_collection, import_postman_collection, open_collection, save_collection,
+};
 use core::persistence::history::HistoryDatabase;
 use core::persistence::request::{encode_request, read_request, save_req_to_file};
 use core::transformers::request::transform_request;
@@ -429,6 +431,26 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
             Ok(_) => (),
             Err(e) => {
                 log::error!("Error saving collection: {e:?}");
+            }
+        },
+    )
+}
+
+pub fn import_postman_collection_cmd(
+    _state: &mut CommonState,
+    postman_file: PathBuf,
+    collection_name: String,
+) -> Task<()> {
+    Task::perform(
+        import_postman_collection(postman_file, collection_name),
+        move |result| match result {
+            Ok(_collection) => {
+                log::info!("Successfully imported Postman collection");
+                // The collection will be loaded on next app start
+                // TODO: Add it to the state immediately
+            }
+            Err(e) => {
+                log::error!("Error importing Postman collection: {e:?}");
             }
         },
     )
