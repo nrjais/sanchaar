@@ -35,8 +35,8 @@ fn main() {
 fn load_window_state() -> Option<WindowState> {
     let app_name = AppName::new("com", "nrjais", APP_NAME);
     let rt = Runtime::new().unwrap();
-    let window_state = rt.block_on(WindowStatePlugin::load(&app_name));
-    window_state
+
+    rt.block_on(WindowStatePlugin::load(&app_name))
 }
 
 pub fn app() -> Result<(), iced::Error> {
