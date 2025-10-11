@@ -120,6 +120,7 @@ mime_guess = "2.0"
 parsers = { path = "crates/parsers" }
 pest = "2.8"
 pest_derive = "2.8"
+postman_collection = "0.2"
 regex = "1.10"
 reqwest = { version = "0.12", features = ["multipart", "stream"] }
 reqwest_cookie_store = "0.9"

@@ -25,6 +25,17 @@ pub fn open_file_dialog(title: &str) -> Task<Option<FileHandle>> {
     )
 }
 
+pub fn open_file_dialog_with_filter(title: &str, extensions: &'static [&'static str]) -> Task<Option<Arc<FileHandle>>> {
+    Task::perform(
+        AsyncFileDialog::new()
+            .set_title(title)
+            .add_filter("Files", extensions)
+            .pick_file()
+            .map(|res| res.map(Arc::new)),
+        identity,
+    )
+}
+
 pub fn create_file_dialog(title: &str) -> Task<Option<Arc<FileHandle>>> {
     Task::perform(
         AsyncFileDialog::new()
