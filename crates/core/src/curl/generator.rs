@@ -56,6 +56,12 @@ pub fn generate_curl_command(request: &Request) -> String {
                 shell_quote(&format!("Authorization: Bearer {}", token))
             ));
         }
+        Auth::APIKey { .. } => {
+            todo!()
+        }
+        Auth::JWTBearer { .. } => {
+            todo!()
+        }
         Auth::None => {}
     }
 

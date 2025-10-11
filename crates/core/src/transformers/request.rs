@@ -240,5 +240,11 @@ fn req_auth(builder: RequestBuilder, auth: Auth, env: &EnvironmentChain) -> Requ
             let token = env.replace(&token);
             builder.bearer_auth(token)
         }
+        Auth::APIKey { .. } => {
+            todo!()
+        }
+        Auth::JWTBearer { .. } => {
+            todo!()
+        }
     }
 }

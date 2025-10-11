@@ -5,6 +5,7 @@ use iced::{
     Element, Length,
     widget::{Column, Row, center, container, pick_list, space, text},
 };
+use strum::VariantNames;
 
 use crate::state::request::{RawAuthType, RequestPane};
 
@@ -55,7 +56,7 @@ pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<A
         .push(text("Auth Type"))
         .push(
             pick_list(
-                RawAuthType::all_variants(),
+                RawAuthType::VARIANTS,
                 Some(auth.as_str()),
                 AuthEditorMsg::ChangeAuthType,
             )
@@ -112,5 +113,7 @@ fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEdit
                 .width(Length::Shrink)
                 .into()
         }
+        RawAuthType::APIKey { .. } => todo!(),
+        RawAuthType::JWTBearer { .. } => todo!(),
     }
 }

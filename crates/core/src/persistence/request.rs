@@ -5,7 +5,7 @@ use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
 use crate::assertions::Assertions;
-use crate::http::request::{Auth, Method, Request, RequestBody};
+use crate::http::request::{Auth, AuthIn, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList};
 use crate::persistence::Version;
 
@@ -65,7 +65,7 @@ pub struct EncodedRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 pub enum EncodedRequestBody {
     Form(Vec<EncodedKeyValue>),
     Multipart {
@@ -79,9 +79,51 @@ pub enum EncodedRequestBody {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EncodedAuthIn {
+    Query,
+    Header,
+}
+
+impl From<AuthIn> for EncodedAuthIn {
+    fn from(val: AuthIn) -> Self {
+        match val {
+            AuthIn::Query => EncodedAuthIn::Query,
+            AuthIn::Header => EncodedAuthIn::Header,
+        }
+    }
+}
+
+impl From<EncodedAuthIn> for AuthIn {
+    fn from(val: EncodedAuthIn) -> Self {
+        match val {
+            EncodedAuthIn::Query => AuthIn::Query,
+            EncodedAuthIn::Header => AuthIn::Header,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EncodedAuthType {
-    Basic { username: String, password: String },
-    Bearer { token: String },
+    Basic {
+        username: String,
+        password: String,
+    },
+    Bearer {
+        token: String,
+    },
+    APIKey {
+        key: String,
+        value: String,
+        add_to: EncodedAuthIn,
+    },
+    JWTBearer {
+        secret: String,
+        payload: String,
+        key: String,
+        add_to: EncodedAuthIn,
+    },
 }
 
 pub fn encode_request(req: Request) -> EncodedRequest {
@@ -157,6 +199,22 @@ fn encode_auth(auth: Auth) -> Option<EncodedAuthType> {
         Auth::None => None,
         Auth::Basic { username, password } => Some(EncodedAuthType::Basic { username, password }),
         Auth::Bearer { token } => Some(EncodedAuthType::Bearer { token }),
+        Auth::APIKey { key, value, add_to } => Some(EncodedAuthType::APIKey {
+            key,
+            value,
+            add_to: add_to.into(),
+        }),
+        Auth::JWTBearer {
+            secret,
+            payload,
+            key,
+            add_to,
+        } => Some(EncodedAuthType::JWTBearer {
+            secret,
+            payload,
+            key,
+            add_to: add_to.into(),
+        }),
     }
 }
 
@@ -195,6 +253,22 @@ fn decode_auth(auth: Option<EncodedAuthType>) -> Auth {
         None => Auth::None,
         Some(EncodedAuthType::Basic { username, password }) => Auth::Basic { username, password },
         Some(EncodedAuthType::Bearer { token }) => Auth::Bearer { token },
+        Some(EncodedAuthType::APIKey { key, value, add_to }) => Auth::APIKey {
+            key,
+            value,
+            add_to: add_to.into(),
+        },
+        Some(EncodedAuthType::JWTBearer {
+            secret,
+            payload,
+            key,
+            add_to,
+        }) => Auth::JWTBearer {
+            secret,
+            payload,
+            key,
+            add_to: add_to.into(),
+        },
     }
 }
 

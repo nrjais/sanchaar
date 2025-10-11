@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use lib::http::request::{Auth, Method, Request, RequestBody};
-use lib::http::{CollectionKey, CollectionRequest, KeyValList, RequestId};
+use lib::http::request::{Auth, AuthIn, Method, Request, RequestBody};
+use lib::http::{self, CollectionKey, CollectionRequest, KeyFileList, KeyValList, RequestId};
 use lib::perf::PerfConfig;
 use lib::persistence::collections::project_dirs;
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,7 @@ fn serialize_kv_list(list: &KeyValList) -> Vec<SerializableKeyValue> {
 fn deserialize_kv_list(list: Vec<SerializableKeyValue>) -> KeyValList {
     KeyValList::from(
         list.into_iter()
-            .map(|kv| lib::http::KeyValue {
+            .map(|kv| http::KeyValue {
                 name: kv.name,
                 value: kv.value,
                 disabled: kv.disabled,
@@ -53,7 +53,7 @@ fn deserialize_kv_list(list: Vec<SerializableKeyValue>) -> KeyValList {
     )
 }
 
-fn serialize_kf_list(list: &lib::http::KeyFileList) -> Vec<SerializableKeyFile> {
+fn serialize_kf_list(list: &KeyFileList) -> Vec<SerializableKeyFile> {
     list.iter()
         .map(|kf| SerializableKeyFile {
             name: kf.name.clone(),
@@ -63,10 +63,10 @@ fn serialize_kf_list(list: &lib::http::KeyFileList) -> Vec<SerializableKeyFile> 
         .collect()
 }
 
-fn deserialize_kf_list(list: Vec<SerializableKeyFile>) -> lib::http::KeyFileList {
-    lib::http::KeyFileList::from(
+fn deserialize_kf_list(list: Vec<SerializableKeyFile>) -> KeyFileList {
+    KeyFileList::from(
         list.into_iter()
-            .map(|kf| lib::http::KeyFile {
+            .map(|kf| http::KeyFile {
                 name: kf.name,
                 path: kf.path,
                 disabled: kf.disabled,
@@ -79,8 +79,24 @@ fn deserialize_kf_list(list: Vec<SerializableKeyFile>) -> lib::http::KeyFileList
 #[serde(rename_all = "snake_case")]
 pub enum SerializableAuth {
     None,
-    Basic { username: String, password: String },
-    Bearer { token: String },
+    Basic {
+        username: String,
+        password: String,
+    },
+    Bearer {
+        token: String,
+    },
+    APIKey {
+        key: String,
+        value: String,
+        add_to: AuthIn,
+    },
+    JWTBearer {
+        secret: String,
+        payload: String,
+        key: String,
+        add_to: AuthIn,
+    },
 }
 
 impl From<Auth> for SerializableAuth {
@@ -89,6 +105,18 @@ impl From<Auth> for SerializableAuth {
             Auth::None => SerializableAuth::None,
             Auth::Basic { username, password } => SerializableAuth::Basic { username, password },
             Auth::Bearer { token } => SerializableAuth::Bearer { token },
+            Auth::APIKey { key, value, add_to } => SerializableAuth::APIKey { key, value, add_to },
+            Auth::JWTBearer {
+                secret,
+                payload,
+                key,
+                add_to,
+            } => SerializableAuth::JWTBearer {
+                secret,
+                payload,
+                key,
+                add_to,
+            },
         }
     }
 }
@@ -99,6 +127,18 @@ impl From<SerializableAuth> for Auth {
             SerializableAuth::None => Auth::None,
             SerializableAuth::Basic { username, password } => Auth::Basic { username, password },
             SerializableAuth::Bearer { token } => Auth::Bearer { token },
+            SerializableAuth::APIKey { key, value, add_to } => Auth::APIKey { key, value, add_to },
+            SerializableAuth::JWTBearer {
+                secret,
+                payload,
+                key,
+                add_to,
+            } => Auth::JWTBearer {
+                secret,
+                payload,
+                key,
+                add_to,
+            },
         }
     }
 }

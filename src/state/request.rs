@@ -8,25 +8,36 @@ use crate::components::{KeyFileList, KeyValList};
 use crate::components::{KeyValUpdateMsg, KeyValue};
 use crate::state::utils::{key_value_from_text, key_value_to_text};
 use iced::advanced::widget;
-use lib::http::request::{Auth, Method, Request, RequestBody};
+use lib::http::request::{self, Auth, Method, Request, RequestBody};
 use reqwest::Url;
 use serde_json::Value;
 use strum::{Display, EnumString, IntoStaticStr, VariantNames};
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::Display, EnumString)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, strum::Display, EnumString)]
 pub enum AuthIn {
+    #[default]
     Query,
     Header,
 }
 
-pub mod auth_types {
-    pub const NONE: &str = "None";
-    pub const BASIC: &str = "Basic Auth";
-    pub const BEARER: &str = "Bearer Token";
-    pub const API_KEY: &str = "API Key";
-    pub const JWT_BEARER: &str = "JWT Bearer";
+impl From<&AuthIn> for request::AuthIn {
+    fn from(val: &AuthIn) -> Self {
+        match val {
+            AuthIn::Query => request::AuthIn::Query,
+            AuthIn::Header => request::AuthIn::Header,
+        }
+    }
+}
+
+impl From<request::AuthIn> for AuthIn {
+    fn from(val: request::AuthIn) -> Self {
+        match val {
+            request::AuthIn::Query => AuthIn::Query,
+            request::AuthIn::Header => AuthIn::Header,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -39,16 +50,30 @@ pub enum ReqTabId {
     PreRequest,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Display, VariantNames, IntoStaticStr, EnumString)]
 pub enum RawAuthType {
     #[default]
+    #[strum(serialize = "None")]
     None,
+    #[strum(serialize = "Basic Auth")]
     Basic {
         username: Content,
         password: Content,
     },
-    Bearer {
-        token: Content,
+    #[strum(serialize = "Bearer Token")]
+    Bearer { token: Content },
+    #[strum(serialize = "API Key")]
+    APIKey {
+        key: Content,
+        value: Content,
+        add_to: AuthIn,
+    },
+    #[strum(serialize = "JWT Bearer")]
+    JWTBearer {
+        secret: Content,
+        payload: Content,
+        key: Content,
+        add_to: AuthIn,
     },
 }
 
@@ -63,6 +88,22 @@ impl RawAuthType {
             RawAuthType::Bearer { token } => Auth::Bearer {
                 token: token.text().trim().to_string(),
             },
+            RawAuthType::APIKey { key, value, add_to } => Auth::APIKey {
+                key: key.text().trim().to_string(),
+                value: value.text().trim().to_string(),
+                add_to: add_to.into(),
+            },
+            RawAuthType::JWTBearer {
+                secret,
+                payload,
+                key,
+                add_to,
+            } => Auth::JWTBearer {
+                secret: secret.text().trim().to_string(),
+                payload: payload.text().trim().to_string(),
+                key: key.text().trim().to_string(),
+                add_to: add_to.into(),
+            },
         }
     }
 
@@ -76,21 +117,27 @@ impl RawAuthType {
             Auth::Bearer { token } => RawAuthType::Bearer {
                 token: Content::with_text(&token),
             },
+            Auth::APIKey { key, value, add_to } => RawAuthType::APIKey {
+                key: Content::with_text(&key),
+                value: Content::with_text(&value),
+                add_to: add_to.into(),
+            },
+            Auth::JWTBearer {
+                secret,
+                payload,
+                key,
+                add_to,
+            } => RawAuthType::JWTBearer {
+                secret: Content::with_text(&secret),
+                payload: Content::with_text(&payload),
+                key: Content::with_text(&key),
+                add_to: add_to.into(),
+            },
         }
     }
 
     pub fn as_str(&self) -> &'static str {
-        use auth_types::*;
-        match self {
-            RawAuthType::Basic { .. } => BASIC,
-            RawAuthType::Bearer { .. } => BEARER,
-            RawAuthType::None => NONE,
-        }
-    }
-
-    pub fn all_variants() -> &'static [&'static str] {
-        use auth_types::*;
-        &[NONE, BASIC, BEARER]
+        self.into()
     }
 }
 
@@ -241,17 +288,7 @@ impl RequestPane {
     }
 
     pub fn change_auth_type(&mut self, auth_type: &str) {
-        self.auth = match auth_type {
-            auth_types::NONE => RawAuthType::None,
-            auth_types::BASIC => RawAuthType::Basic {
-                username: Content::new(),
-                password: Content::new(),
-            },
-            auth_types::BEARER => RawAuthType::Bearer {
-                token: Content::new(),
-            },
-            _ => RawAuthType::None,
-        };
+        self.auth = RawAuthType::from_str(auth_type).unwrap_or(RawAuthType::None);
     }
 
     pub fn to_request(&self) -> Request {
@@ -305,7 +342,7 @@ impl RequestPane {
         // self.extract_query_params();
     }
 
-    pub fn update_from_curl(&mut self, request: lib::http::request::Request) {
+    pub fn update_from_curl(&mut self, request: request::Request) {
         self.method = request.method;
 
         self.url_content

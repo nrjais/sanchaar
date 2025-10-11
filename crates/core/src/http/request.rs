@@ -20,11 +20,35 @@ pub enum RequestBody {
     None,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AuthIn {
+    #[default]
+    Query,
+    Header,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Auth {
     None,
-    Basic { username: String, password: String },
-    Bearer { token: String },
+    Basic {
+        username: String,
+        password: String,
+    },
+    Bearer {
+        token: String,
+    },
+    APIKey {
+        key: String,
+        value: String,
+        add_to: AuthIn,
+    },
+    JWTBearer {
+        secret: String,
+        payload: String,
+        key: String,
+        add_to: AuthIn,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumString, VariantArray, Display, Default)]
