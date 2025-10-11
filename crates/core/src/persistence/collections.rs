@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use crate::http::collection::{Collection, Entry, Folder, FolderId, RequestId, RequestRef, Script};
 use crate::http::{CollectionKey, KeyValList};
+use crate::import::postman;
 use crate::persistence::Version;
 use anyhow::{Context, Result};
 use directories::ProjectDirs;
@@ -307,4 +308,18 @@ pub async fn save_script(path: PathBuf, name: &str, content: &str) -> Result<()>
     fs::create_dir_all(&path).await?;
     fs::write(path, content).await?;
     Ok(())
+}
+
+pub async fn import_postman_collection(
+    postman_path: PathBuf,
+    collection_name: String,
+) -> Result<Collection> {
+    let dirs = project_dirs().context("Failed to find project dir during import")?;
+    let data_dir = dirs.data_dir();
+    let collection_path = data_dir.join(&collection_name);
+
+    postman::import_postman_collection(&postman_path, &collection_path).await?;
+
+    let key = CollectionKey::new();
+    open_collection(collection_path, key).await
 }

@@ -8,10 +8,19 @@ use std::path::PathBuf;
 
 use super::CommonState;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CollectionCreationMode {
+    New,
+    ImportPostman,
+}
+
 #[derive(Debug)]
 pub struct CreateCollectionState {
+    pub mode: CollectionCreationMode,
     pub name: String,
     pub path: Option<PathBuf>,
+    // For import mode
+    pub import_file_path: Option<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -65,7 +74,10 @@ pub enum Popup {
 impl Popup {
     pub fn done(&self) -> &'static str {
         match self {
-            Popup::CreateCollection(_) => "Create",
+            Popup::CreateCollection(state) => match state.mode {
+                CollectionCreationMode::New => "Create",
+                CollectionCreationMode::ImportPostman => "Import",
+            },
             Popup::SaveRequest(_) => "Save",
             Popup::PopupName(_) => "Ok",
             Popup::AppSettings(_) => "Done",
@@ -100,8 +112,10 @@ impl Popup {
 
     pub fn create_collection(state: &mut CommonState) {
         let popup = Self::CreateCollection(CreateCollectionState {
+            mode: CollectionCreationMode::New,
             name: String::new(),
             path: None,
+            import_file_path: None,
         });
         open_popup(state, popup);
     }
