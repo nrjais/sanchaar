@@ -433,3 +433,23 @@ pub fn save_collection_cmd(collection: &mut Collection, tab: &mut CollectionTab)
         },
     )
 }
+
+pub fn import_postman_collection_cmd(
+    _state: &mut CommonState,
+    postman_file: PathBuf,
+    collection_name: String,
+) -> Task<()> {
+    Task::perform(
+        import_postman_collection(postman_file, collection_name),
+        move |result| match result {
+            Ok(_collection) => {
+                log::info!("Successfully imported Postman collection");
+                // The collection will be loaded on next app start
+                // TODO: Add it to the state immediately
+            }
+            Err(e) => {
+                log::error!("Error importing Postman collection: {e:?}");
+            }
+        },
+    )
+}
