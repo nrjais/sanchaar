@@ -82,7 +82,6 @@ sqlx = { version = "0.8", features = [
   "chrono",
   "runtime-tokio",
   "sqlite",
-  "tls-rustls-aws-lc-rs",
   "uuid",
 ] }
 strum = { version = "0.27", features = ["derive"] }
