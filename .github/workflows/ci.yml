@@ -101,8 +101,11 @@ jobs:
       - name: Build (x86_64)
         if: matrix.target != 'aarch64-unknown-linux-gnu'
         run: |
-          # Explicitly unset any cross-compilation variables
-          unset CC CXX CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER 2>/dev/null || true
+          # Explicitly set native compilers for x86_64
+          if [ "${{ matrix.target }}" = "x86_64-unknown-linux-gnu" ]; then
+            export CC=gcc
+            export CXX=g++
+          fi
           cargo build --release --target ${{ matrix.target }} --no-default-features
 
       - name: Build (ARM64)
