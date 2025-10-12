@@ -103,13 +103,18 @@ jobs:
           rm -rf target/*/release/build/aws-lc-sys-* || true
           rm -rf target/release/build/aws-lc-sys-* || true
 
-      - name: Build (x86_64)
-        if: matrix.target != 'aarch64-unknown-linux-gnu'
+      - name: Build (Linux x86_64)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
         env:
-          CC: ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'gcc' || '' }}
-          CXX: ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'g++' || '' }}
-          CC_x86_64_unknown_linux_gnu: ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'gcc' || '' }}
-          CXX_x86_64_unknown_linux_gnu: ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'g++' || '' }}
+          CC: gcc
+          CXX: g++
+          CC_x86_64_unknown_linux_gnu: gcc
+          CXX_x86_64_unknown_linux_gnu: g++
+        run: |
+          cargo build --release --target ${{ matrix.target }} --no-default-features
+
+      - name: Build (macOS)
+        if: matrix.target == 'x86_64-apple-darwin' || matrix.target == 'aarch64-apple-darwin'
         run: |
           cargo build --release --target ${{ matrix.target }} --no-default-features
 
