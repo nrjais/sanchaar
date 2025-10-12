@@ -89,18 +89,25 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          key: linux-${{ matrix.target }}
+          key: linux-${{ matrix.target }}-v2
+          cache-all-crates: false
 
       - name: Install cargo-packager
         run: cargo install cargo-packager --locked
 
+      - name: Clean cached build scripts
+        run: |
+          # Remove cached build scripts that may have wrong compiler baked in
+          rm -rf target/release/build/aws-lc-sys-* || true
+          rm -rf target/release/build/libsqlite3-sys-* || true
+          rm -rf target/x86_64-unknown-linux-gnu/release/build/aws-lc-sys-* || true
+          rm -rf target/x86_64-unknown-linux-gnu/release/build/libsqlite3-sys-* || true
+          rm -rf target/aarch64-unknown-linux-gnu/release/build/aws-lc-sys-* || true
+          rm -rf target/aarch64-unknown-linux-gnu/release/build/libsqlite3-sys-* || true
+
       - name: Build packages with cargo-packager (x86_64)
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          # Completely clean the target directory for this architecture
-          rm -rf target/x86_64-unknown-linux-gnu || true
-          rm -rf target/release || true
-
           # Unset any potentially conflicting variables
           unset CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER || true
           unset PKG_CONFIG_ALLOW_CROSS || true
