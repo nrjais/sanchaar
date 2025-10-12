@@ -94,6 +94,11 @@ jobs:
       - name: Install cargo-packager
         run: cargo install cargo-packager --locked
 
+      - name: Clean aws-lc-sys build artifacts
+        run: |
+          rm -rf target/*/release/build/aws-lc-sys-* || true
+          rm -rf target/release/build/aws-lc-sys-* || true
+
       - name: Build packages with cargo-packager (x86_64)
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         env:

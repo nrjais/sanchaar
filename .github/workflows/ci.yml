@@ -98,6 +98,11 @@ jobs:
         with:
           key: ${{ matrix.os }}-${{ matrix.target }}
 
+      - name: Clean aws-lc-sys build artifacts
+        run: |
+          rm -rf target/*/release/build/aws-lc-sys-* || true
+          rm -rf target/release/build/aws-lc-sys-* || true
+
       - name: Build (x86_64)
         if: matrix.target != 'aarch64-unknown-linux-gnu'
         env:
