@@ -64,7 +64,11 @@ parsers = { path = "crates/parsers" }
 pest = "2.8"
 pest_derive = "2.8"
 regex = "1.12"
-reqwest = { version = "0.12",default-features = false, features = ["rustls-tls", "multipart", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = [
+  "multipart",
+  "rustls-tls",
+  "stream",
+] }
 reqwest_cookie_store = "0.9"
 rfd = { version = "0.15", default-features = false, features = [
   "tokio",
@@ -76,8 +80,9 @@ serde_with = "3.9.0"
 similar = "2.5"
 sqlx = { version = "0.8", features = [
   "chrono",
-  "runtime-tokio-native-tls",
+  "runtime-tokio",
   "sqlite",
+  "tls-rustls-aws-lc-rs",
   "uuid",
 ] }
 strum = { version = "0.27", features = ["derive"] }

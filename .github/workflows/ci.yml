@@ -113,6 +113,4 @@ jobs:
           export CXX=aarch64-linux-gnu-g++
           export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
           export PKG_CONFIG_ALLOW_CROSS=1
-          export OPENSSL_STATIC=1
-          export OPENSSL_NO_VENDOR=0
           cargo build --release --target ${{ matrix.target }} --no-default-features
