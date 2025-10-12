@@ -113,7 +113,7 @@ fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEdit
                 .width(Length::Shrink)
                 .into()
         }
-        RawAuthType::APIKey { .. } => todo!(),
-        RawAuthType::JWTBearer { .. } => todo!(),
+        RawAuthType::APIKey { .. } => text("API Key").into(),
+        RawAuthType::JWTBearer { .. } => text("JWT Bearer").into(),
     }
 }

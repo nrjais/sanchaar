@@ -72,8 +72,8 @@ impl UndoStack {
                     content.perform(Action::Edit(Edit::Backspace));
                     paste_prev_selection(action, content);
                 }
-                Edit::Indent => todo!(),
-                Edit::Unindent => todo!(),
+                Edit::Indent => {}
+                Edit::Unindent => {}
                 edit @ (Edit::Backspace | Edit::Delete) => {
                     let char = match edit {
                         Edit::Backspace => action.char_at_cursor,
@@ -115,8 +115,8 @@ impl UndoStack {
                 Edit::Paste(_) | Edit::Enter | Edit::Delete | Edit::Backspace => {
                     content.perform(Action::Edit(action.edit.clone()));
                 }
-                Edit::Indent => todo!(),
-                Edit::Unindent => todo!(),
+                Edit::Indent => {}
+                Edit::Unindent => {}
             }
             break;
         }
