@@ -94,10 +94,13 @@ jobs:
       - name: Install cargo-packager
         run: cargo install cargo-packager --locked
 
-      - name: Clean aws-lc-sys build artifacts
+      - name: Clean build artifacts
         run: |
-          rm -rf target/*/release/build/aws-lc-sys-* || true
-          rm -rf target/release/build/aws-lc-sys-* || true
+          # Clean all build artifacts to prevent cross-contamination
+          rm -rf target/release/build/* || true
+          rm -rf target/${{ matrix.target }}/release/build/* || true
+          cargo clean -p aws-lc-sys || true
+          cargo clean -p libsqlite3-sys || true
 
       - name: Build packages with cargo-packager (x86_64)
         if: matrix.target == 'x86_64-unknown-linux-gnu'
@@ -106,8 +109,11 @@ jobs:
           CXX: g++
           CC_x86_64_unknown_linux_gnu: gcc
           CXX_x86_64_unknown_linux_gnu: g++
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: ""
         run: |
+          # Verify compiler settings
+          echo "Building for x86_64 with CC=$CC CXX=$CXX"
+          which gcc
+          gcc --version
           cargo packager --release --target ${{ matrix.target }} --formats deb,appimage,pacman
 
       - name: Build packages with cargo-packager (ARM64)
