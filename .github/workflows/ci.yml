@@ -107,26 +107,32 @@ jobs:
         with:
           key: ${{ matrix.os }}-${{ matrix.target }}
 
-      - name: Clean build artifacts
-        run: |
-          # Clean all build artifacts to prevent cross-contamination
-          rm -rf target/release/build/* || true
-          rm -rf target/${{ matrix.target }}/release/build/* || true
-          cargo clean -p aws-lc-sys || true
-          cargo clean -p libsqlite3-sys || true
-
       - name: Build (Linux x86_64)
         if: matrix.target == 'x86_64-unknown-linux-gnu'
-        env:
-          CC: gcc
-          CXX: g++
-          CC_x86_64_unknown_linux_gnu: gcc
-          CXX_x86_64_unknown_linux_gnu: g++
         run: |
+          # Completely clean the target directory for this architecture
+          rm -rf target/x86_64-unknown-linux-gnu || true
+          rm -rf target/release || true
+
+          # Unset any potentially conflicting variables
+          unset CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER || true
+          unset PKG_CONFIG_ALLOW_CROSS || true
+
+          # Explicitly set compilers
+          export CC=gcc
+          export CXX=g++
+          export CC_x86_64_unknown_linux_gnu=gcc
+          export CXX_x86_64_unknown_linux_gnu=g++
+          export HOST_CC=gcc
+
           # Verify compiler settings
-          echo "Building for x86_64 with CC=$CC CXX=$CXX"
+          echo "Building for x86_64 with:"
+          echo "  CC=$CC"
+          echo "  CXX=$CXX"
+          echo "  CC_x86_64_unknown_linux_gnu=$CC_x86_64_unknown_linux_gnu"
           which gcc
           gcc --version
+
           cargo build --release --target ${{ matrix.target }} --no-default-features
 
       - name: Build (macOS)
