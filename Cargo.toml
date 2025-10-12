@@ -4,75 +4,19 @@ version.workspace = true
 edition.workspace = true
 description.workspace = true
 
-[package.metadata.bundle]
-name = "Sanchaar"
+[package.metadata.packager]
+product-name = "Sanchaar"
 identifier = "com.nrjais.sanchaar"
-icon = [
+icons = [
   "assets/16x16.png",
-  "assets/16x16@2x.png",
   "assets/32x32.png",
-  "assets/32x32@2x.png",
-  "assets/64x64.png",
-  "assets/64x64@2x.png",
+  "assets/48x48.png",
   "assets/128x128.png",
-  "assets/128x128@2x.png",
   "assets/256x256.png",
-  "assets/256x256@2x.png",
   "assets/512x512.png",
-  "assets/512x512@2x.png",
+  "assets/sanchaar.ico",
 ]
-category = "DeveloperTool"
-short_description = "A fast offline REST API Client"
-
-[package.metadata.deb]
-maintainer = "Sanchaar <sanchaar@nrjais.com>"
-copyright = "2025, Sanchaar Contributors"
-license-file = ["LICENSE", "4"]
-extended-description = """\
-Sanchaar is an offline REST API client built using Iced in Rust. \
-It is a simple tool to test REST APIs without the need of internet connection. \
-It supports GET, POST, PUT, DELETE requests with path, query and header parameters."""
-depends = "$auto"
-section = "net"
-priority = "optional"
-assets = [
-  ["target/release/Sanchaar", "usr/bin/", "755"],
-  [
-    "assets/512x512.png",
-    "usr/share/icons/hicolor/512x512/apps/sanchaar.png",
-    "644",
-  ],
-  [
-    "assets/256x256.png",
-    "usr/share/icons/hicolor/256x256/apps/sanchaar.png",
-    "644",
-  ],
-  [
-    "assets/128x128.png",
-    "usr/share/icons/hicolor/128x128/apps/sanchaar.png",
-    "644",
-  ],
-  [
-    "assets/48x48.png",
-    "usr/share/icons/hicolor/48x48/apps/sanchaar.png",
-    "644",
-  ],
-  [
-    "assets/32x32.png",
-    "usr/share/icons/hicolor/32x32/apps/sanchaar.png",
-    "644",
-  ],
-  [
-    "assets/16x16.png",
-    "usr/share/icons/hicolor/16x16/apps/sanchaar.png",
-    "644",
-  ],
-  ["Readme.md", "usr/share/doc/sanchaar/README", "644"],
-]
-
-[package.metadata.deb.variants.arm64]
-maintainer = "Sanchaar <sanchaar@nrjais.com>"
-depends = "$auto"
+before-packaging-command = "cargo build --release --no-default-features"
 
 [workspace]
 members = [

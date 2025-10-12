@@ -46,6 +46,8 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             arch: amd64
+          - target: aarch64-unknown-linux-gnu
+            arch: arm64
 
     steps:
       - name: Checkout
@@ -55,12 +57,12 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Override Cargo.toml version
+      - name: Override version in Cargo.toml
         shell: bash
         run: |
           echo "Replacing version placeholder with ${{ env.VERSION }}"
           sed -i 's/0.1.0-prerelease.1/${{ env.VERSION }}/g' Cargo.toml
-          echo "Updated Cargo.toml:"
+          echo "Updated version to ${{ env.VERSION }}"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -68,13 +70,15 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation tools
+      - name: Install cross-compilation tools (ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Install system dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install -y \
             libssl-dev \
             libxcb-shape0-dev \
@@ -86,42 +90,36 @@ jobs:
         with:
           key: linux-${{ matrix.target }}
 
-      - name: Build
-        run: |
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            export CC=aarch64-linux-gnu-gcc
-            export CXX=aarch64-linux-gnu-g++
-            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-            export PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig
-            export PKG_CONFIG_ALLOW_CROSS=1
-            export OPENSSL_DIR=/usr
-            export OPENSSL_INCLUDE_DIR=/usr/include
-            export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu
-          fi
-          cargo build --release --target ${{ matrix.target }} --no-default-features
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --locked
 
-      - name: Install cargo-deb
-        if: matrix.arch == 'amd64'
-        run: cargo install cargo-deb
-
-      - name: Create .deb package
-        if: matrix.arch == 'amd64'
+      - name: Set up cross-compilation environment (ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
-          cargo deb --target ${{ matrix.target }} --no-build --no-strip --no-default-features
-          cp target/${{ matrix.target }}/debian/*.deb ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb
+          echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CXX=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
+
+      - name: Build packages with cargo-packager
+        run: |
+          cargo packager --release --target ${{ matrix.target }} --formats deb,appimage,pacman
 
       - name: Generate checksums
         run: |
-          if [ -f "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb" ]; then
-            sha256sum ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.deb.sha256
-          fi
+          cd target/${{ matrix.target }}/release/bundle
+          find . -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \) -exec sh -c 'sha256sum "{}" > "{}.sha256"' \;
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ matrix.target }}
           path: |
-            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.arch }}.*
+            target/${{ matrix.target }}/release/bundle/**/*.deb
+            target/${{ matrix.target }}/release/bundle/**/*.AppImage
+            target/${{ matrix.target }}/release/bundle/**/*.tar.gz
+            target/${{ matrix.target }}/release/bundle/**/PKGBUILD
+            target/${{ matrix.target }}/release/bundle/**/*.sha256
 
   build-macos:
     name: Build macOS (${{ matrix.target }})
@@ -143,12 +141,12 @@ jobs:
         shell: bash
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Override Cargo.toml version
+      - name: Override version in Cargo.toml
         shell: bash
         run: |
           echo "Replacing version placeholder with ${{ env.VERSION }}"
           sed -i '' 's/0.1.0-prerelease.1/${{ env.VERSION }}/g' Cargo.toml
-          echo "Updated Cargo.toml:"
+          echo "Updated version to ${{ env.VERSION }}"
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -160,53 +158,25 @@ jobs:
         with:
           key: macos-${{ matrix.target }}
 
-      - name: Install cargo-bundle
-        run: cargo install cargo-bundle
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --locked
 
-      - name: Install create-dmg
-        run: brew install create-dmg
-
-      - name: Build bundle
-        run: cargo bundle --release --target ${{ matrix.target }} --no-default-features
-
-      - name: Ad-hoc code sign
+      - name: Build packages with cargo-packager
         run: |
-          codesign --force --deep --sign - target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app
-
-      - name: Remove quarantine attribute
-        run: |
-          # Remove quarantine attribute to prevent Gatekeeper warnings
-          xattr -cr target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app
-          echo "✓ Quarantine attribute removed from app bundle"
-
-      - name: Create fancy DMG
-        run: |
-          # Create DMG with custom layout and styling
-          create-dmg \
-            --volname "${{ env.BINARY_NAME }}" \
-            --background "assets/dmg-background.png" \
-            --window-pos 200 120 \
-            --window-size 660 450 \
-            --icon-size 120 \
-            --icon "${{ env.BINARY_NAME }}.app" 180 170 \
-            --hide-extension "${{ env.BINARY_NAME }}.app" \
-            --app-drop-link 480 170 \
-            --no-internet-enable \
-            --hdiutil-quiet \
-            "${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg" \
-            "target/${{ matrix.target }}/release/bundle/osx/${{ env.BINARY_NAME }}.app"
+          cargo packager --release --target ${{ matrix.target }} --formats dmg
 
       - name: Generate checksums
         run: |
-          shasum -a 256 ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg > ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.dmg.sha256
+          cd target/${{ matrix.target }}/release/bundle
+          find . -type f -name "*.dmg" -exec sh -c 'shasum -a 256 "{}" > "{}.sha256"' \;
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.target }}
           path: |
-            ${{ env.BINARY_NAME }}-${{ env.VERSION }}-${{ matrix.target }}.*
-            ${{ env.BINARY_NAME }}-remove-quarantine.sh
+            target/${{ matrix.target }}/release/bundle/**/*.dmg
+            target/${{ matrix.target }}/release/bundle/**/*.sha256
 
   release:
     name: Create Release
@@ -234,9 +204,21 @@ jobs:
 
       - name: Update Homebrew Cask
         run: |
+          # Find the DMG files dynamically
+          INTEL_DMG_SHA256_FILE=$(find release -name "*x86_64*.dmg.sha256" -o -name "*x64*.dmg.sha256" | head -1)
+          ARM_DMG_SHA256_FILE=$(find release -name "*aarch64*.dmg.sha256" -o -name "*arm64*.dmg.sha256" | head -1)
+
+          if [ -z "$INTEL_DMG_SHA256_FILE" ] || [ -z "$ARM_DMG_SHA256_FILE" ]; then
+            echo "Error: Could not find DMG checksum files"
+            echo "Intel file: $INTEL_DMG_SHA256_FILE"
+            echo "ARM file: $ARM_DMG_SHA256_FILE"
+            ls -la release/
+            exit 1
+          fi
+
           # Extract checksums from the sha256 files
-          INTEL_SHA256=$(cat release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-x86_64-apple-darwin.dmg.sha256 | awk '{print $1}')
-          ARM_SHA256=$(cat release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-aarch64-apple-darwin.dmg.sha256 | awk '{print $1}')
+          INTEL_SHA256=$(cat "$INTEL_DMG_SHA256_FILE" | awk '{print $1}')
+          ARM_SHA256=$(cat "$ARM_DMG_SHA256_FILE" | awk '{print $1}')
 
           echo "Intel SHA256: $INTEL_SHA256"
           echo "ARM SHA256: $ARM_SHA256"
@@ -300,9 +282,12 @@ jobs:
           if [ -n "$EXISTING_PR" ]; then
             echo "PR already exists: #$EXISTING_PR"
           else
-            # Get checksums for PR description
-            INTEL_SHA_SHORT=$(cat ../release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-x86_64-apple-darwin.dmg.sha256 | awk '{print $1}' | cut -c1-16)
-            ARM_SHA_SHORT=$(cat ../release/${{ env.BINARY_NAME }}-${{ env.VERSION }}-aarch64-apple-darwin.dmg.sha256 | awk '{print $1}' | cut -c1-16)
+            # Get checksums for PR description (find files dynamically)
+            INTEL_DMG_SHA256_FILE=$(find ../release -name "*x86_64*.dmg.sha256" -o -name "*x64*.dmg.sha256" | head -1)
+            ARM_DMG_SHA256_FILE=$(find ../release -name "*aarch64*.dmg.sha256" -o -name "*arm64*.dmg.sha256" | head -1)
+
+            INTEL_SHA_SHORT=$(cat "$INTEL_DMG_SHA256_FILE" | awk '{print $1}' | cut -c1-16)
+            ARM_SHA_SHORT=$(cat "$ARM_DMG_SHA256_FILE" | awk '{print $1}' | cut -c1-16)
 
             # Create PR body
             PR_BODY="This PR updates the sanchaar cask to version \`${{ env.VERSION }}\`.
