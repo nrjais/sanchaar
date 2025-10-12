@@ -70,14 +70,8 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation tools (ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu perl make
-
-      - name: Install system dependencies (x86_64)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+      - name: Install linux dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -85,7 +79,8 @@ jobs:
             libxcb-shape0-dev \
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
-            pkg-config
+            pkg-config \
+            gcc
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -95,48 +90,8 @@ jobs:
       - name: Install cargo-packager
         run: cargo install cargo-packager --locked
 
-      - name: Clean cached build scripts
+      - name: Build packages
         run: |
-          # Remove cached build scripts that may have wrong compiler baked in
-          rm -rf target/release/build/aws-lc-sys-* || true
-          rm -rf target/release/build/libsqlite3-sys-* || true
-          rm -rf target/x86_64-unknown-linux-gnu/release/build/aws-lc-sys-* || true
-          rm -rf target/x86_64-unknown-linux-gnu/release/build/libsqlite3-sys-* || true
-          rm -rf target/aarch64-unknown-linux-gnu/release/build/aws-lc-sys-* || true
-          rm -rf target/aarch64-unknown-linux-gnu/release/build/libsqlite3-sys-* || true
-
-      - name: Build packages with cargo-packager (x86_64)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: |
-          # Unset any potentially conflicting variables
-          unset CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER || true
-          unset PKG_CONFIG_ALLOW_CROSS || true
-
-          # Explicitly set compilers
-          export CC=gcc
-          export CXX=g++
-          export CC_x86_64_unknown_linux_gnu=gcc
-          export CXX_x86_64_unknown_linux_gnu=g++
-          export HOST_CC=gcc
-
-          # Verify compiler settings
-          echo "Building for x86_64 with:"
-          echo "  CC=$CC"
-          echo "  CXX=$CXX"
-          echo "  CC_x86_64_unknown_linux_gnu=$CC_x86_64_unknown_linux_gnu"
-          which gcc
-          gcc --version
-
-          cargo packager --release --target ${{ matrix.target }} --formats deb,appimage,pacman
-
-      - name: Build packages with cargo-packager (ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          # Set cross-compilation environment variables
-          export CC=aarch64-linux-gnu-gcc
-          export CXX=aarch64-linux-gnu-g++
-          export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-          export PKG_CONFIG_ALLOW_CROSS=1
           cargo packager --release --target ${{ matrix.target }} --formats deb,appimage,pacman
 
       - name: Generate checksums
