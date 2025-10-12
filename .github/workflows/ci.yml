@@ -81,11 +81,7 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-          # Add ARM64 architecture and install ARM-specific dependencies
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-          sudo apt-get install -y libssl-dev:arm64
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu perl make
 
       - name: Install system dependencies (Linux x86_64)
         if: runner.os == 'Linux' && matrix.target == 'x86_64-unknown-linux-gnu'
@@ -93,16 +89,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libssl-dev \
-            libxcb-shape0-dev \
-            libxcb-xfixes0-dev \
-            libxkbcommon-dev \
-            pkg-config
-
-      - name: Install system dependencies (Linux ARM64)
-        if: runner.os == 'Linux' && matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
             libxcb-shape0-dev \
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
@@ -123,8 +109,6 @@ jobs:
           CXX: aarch64-linux-gnu-g++
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
           PKG_CONFIG_ALLOW_CROSS: "1"
-          PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
-          OPENSSL_DIR: /usr
-          OPENSSL_INCLUDE_DIR: /usr/include
-          OPENSSL_LIB_DIR: /usr/lib/aarch64-linux-gnu
+          OPENSSL_STATIC: "1"
+          OPENSSL_NO_VENDOR: "0"
         run: cargo build --release --target ${{ matrix.target }} --no-default-features
