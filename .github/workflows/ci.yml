@@ -27,7 +27,7 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Install system dependencies (Linux)
+      - name: Install linux dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
@@ -36,7 +36,8 @@ jobs:
             libxcb-shape0-dev \
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
-            pkg-config
+            pkg-config \
+            gcc
 
       - uses: Swatinem/rust-cache@v2
 
@@ -60,6 +61,8 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
           - os: macos-latest
@@ -75,7 +78,7 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.target }}
 
-      - name: Install system dependencies (Linux)
+      - name: Install linux dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
@@ -84,11 +87,17 @@ jobs:
             libxcb-shape0-dev \
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
-            pkg-config
+            pkg-config \
+            gcc \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu
 
       - uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.os }}-${{ matrix.target }}
+          key: ${{ matrix.os }}-${{ matrix.target }}-v2
+          cache-all-crates: false
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }} --no-default-features
+        run: |
+          cargo build --release --target ${{ matrix.target }} --no-default-features

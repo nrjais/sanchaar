@@ -4,12 +4,12 @@ cask "sanchaar" do
   on_arm do
     sha256 "REPLACE_WITH_ARM64_SHA256"
 
-    url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar-#{version}-aarch64-apple-darwin.dmg"
+    url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar_#{version}_aarch64.dmg"
   end
   on_intel do
     sha256 "REPLACE_WITH_X86_64_SHA256"
 
-    url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar-#{version}-x86_64-apple-darwin.dmg"
+    url "https://github.com/nrjais/sanchaar/releases/download/#{version}/Sanchaar_#{version}_x64.dmg"
   end
 
   name "Sanchaar"
