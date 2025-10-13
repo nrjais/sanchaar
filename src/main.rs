@@ -68,6 +68,6 @@ pub fn app() -> Result<(), iced::Error> {
             min_size: Some(Size::new(900.0, 600.0)),
             ..Default::default()
         })
-        .title("Sanchaar")
+        .title(APP_NAME)
         .run()
 }
