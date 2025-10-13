@@ -80,7 +80,9 @@ jobs:
             libxcb-xfixes0-dev \
             libxkbcommon-dev \
             pkg-config \
-            gcc
+            gcc \
+            clang \
+            mold
 
       - uses: Swatinem/rust-cache@v2
         with:
