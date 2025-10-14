@@ -5,7 +5,7 @@ use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufWriter};
 
 use crate::assertions::Assertions;
-use crate::http::request::{Auth, AuthIn, Method, Request, RequestBody};
+use crate::http::request::{Auth, AuthIn, JwtAlgorithm, Method, Request, RequestBody};
 use crate::http::{KeyFile, KeyFileList};
 use crate::persistence::Version;
 
@@ -85,6 +85,25 @@ pub enum EncodedAuthIn {
     Header,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+#[derive(Default)]
+pub enum EncodedJwtAlgorithm {
+    #[default]
+    HS256,
+    HS384,
+    HS512,
+    RS256,
+    RS384,
+    RS512,
+    ES256,
+    ES384,
+    PS256,
+    PS384,
+    PS512,
+    EdDSA,
+}
+
 impl From<AuthIn> for EncodedAuthIn {
     fn from(val: AuthIn) -> Self {
         match val {
@@ -99,6 +118,44 @@ impl From<EncodedAuthIn> for AuthIn {
         match val {
             EncodedAuthIn::Query => AuthIn::Query,
             EncodedAuthIn::Header => AuthIn::Header,
+        }
+    }
+}
+
+impl From<JwtAlgorithm> for EncodedJwtAlgorithm {
+    fn from(val: JwtAlgorithm) -> Self {
+        match val {
+            JwtAlgorithm::HS256 => EncodedJwtAlgorithm::HS256,
+            JwtAlgorithm::HS384 => EncodedJwtAlgorithm::HS384,
+            JwtAlgorithm::HS512 => EncodedJwtAlgorithm::HS512,
+            JwtAlgorithm::RS256 => EncodedJwtAlgorithm::RS256,
+            JwtAlgorithm::RS384 => EncodedJwtAlgorithm::RS384,
+            JwtAlgorithm::RS512 => EncodedJwtAlgorithm::RS512,
+            JwtAlgorithm::ES256 => EncodedJwtAlgorithm::ES256,
+            JwtAlgorithm::ES384 => EncodedJwtAlgorithm::ES384,
+            JwtAlgorithm::PS256 => EncodedJwtAlgorithm::PS256,
+            JwtAlgorithm::PS384 => EncodedJwtAlgorithm::PS384,
+            JwtAlgorithm::PS512 => EncodedJwtAlgorithm::PS512,
+            JwtAlgorithm::EdDSA => EncodedJwtAlgorithm::EdDSA,
+        }
+    }
+}
+
+impl From<EncodedJwtAlgorithm> for JwtAlgorithm {
+    fn from(val: EncodedJwtAlgorithm) -> Self {
+        match val {
+            EncodedJwtAlgorithm::HS256 => JwtAlgorithm::HS256,
+            EncodedJwtAlgorithm::HS384 => JwtAlgorithm::HS384,
+            EncodedJwtAlgorithm::HS512 => JwtAlgorithm::HS512,
+            EncodedJwtAlgorithm::RS256 => JwtAlgorithm::RS256,
+            EncodedJwtAlgorithm::RS384 => JwtAlgorithm::RS384,
+            EncodedJwtAlgorithm::RS512 => JwtAlgorithm::RS512,
+            EncodedJwtAlgorithm::ES256 => JwtAlgorithm::ES256,
+            EncodedJwtAlgorithm::ES384 => JwtAlgorithm::ES384,
+            EncodedJwtAlgorithm::PS256 => JwtAlgorithm::PS256,
+            EncodedJwtAlgorithm::PS384 => JwtAlgorithm::PS384,
+            EncodedJwtAlgorithm::PS512 => JwtAlgorithm::PS512,
+            EncodedJwtAlgorithm::EdDSA => JwtAlgorithm::EdDSA,
         }
     }
 }
@@ -119,6 +176,8 @@ pub enum EncodedAuthType {
         add_to: EncodedAuthIn,
     },
     JWTBearer {
+        #[serde(default)]
+        algorithm: EncodedJwtAlgorithm,
         secret: String,
         payload: String,
         add_to: EncodedAuthIn,
@@ -204,10 +263,12 @@ fn encode_auth(auth: Auth) -> Option<EncodedAuthType> {
             add_to: add_to.into(),
         }),
         Auth::JWTBearer {
+            algorithm,
             secret,
             payload,
             add_to,
         } => Some(EncodedAuthType::JWTBearer {
+            algorithm: algorithm.into(),
             secret,
             payload,
             add_to: add_to.into(),
@@ -256,10 +317,12 @@ fn decode_auth(auth: Option<EncodedAuthType>) -> Auth {
             add_to: add_to.into(),
         },
         Some(EncodedAuthType::JWTBearer {
+            algorithm,
             secret,
             payload,
             add_to,
         }) => Auth::JWTBearer {
+            algorithm: algorithm.into(),
             secret,
             payload,
             add_to: add_to.into(),

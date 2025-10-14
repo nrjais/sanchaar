@@ -60,6 +60,7 @@ iced_window_state_plugin = { git = "https://github.com/nrjais/iced_plugins", bra
 indexmap = "2.11"
 jsonformat = "2.1.0"
 jsonpath-rust = "1.0"
+jsonwebtoken = "9.3"
 log = "0.4"
 mime_guess = "2.0"
 parsers = { path = "crates/parsers" }

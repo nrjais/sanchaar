@@ -24,10 +24,12 @@ pub enum AuthEditorMsg {
     APIKeyName(LineEditorMsg),
     APIKeyValue(LineEditorMsg),
     APIKeyAddTo(&'static str),
+    JWTBearerAlgorithm(&'static str),
     JWTBearerSecret(LineEditorMsg),
     JWTBearerPayload(CodeEditorMsg),
     JWTBearerAddTo(&'static str),
 }
+
 impl AuthEditorMsg {
     pub(crate) fn update(self, request: &mut RequestPane) {
         match self {
@@ -60,6 +62,12 @@ impl AuthEditorMsg {
             AuthEditorMsg::APIKeyAddTo(update) => {
                 if let RawAuthType::APIKey { add_to, .. } = &mut request.auth {
                     *add_to = AuthIn::from_str(update).unwrap_or(AuthIn::Header);
+                }
+            }
+            AuthEditorMsg::JWTBearerAlgorithm(algo) => {
+                if let RawAuthType::JWTBearer { algorithm, .. } = &mut request.auth {
+                    use crate::state::request::JwtAlgo;
+                    *algorithm = JwtAlgo::from_str(algo).unwrap_or(JwtAlgo::HS256);
                 }
             }
             AuthEditorMsg::JWTBearerSecret(line_editor_msg) => {
@@ -156,10 +164,11 @@ fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEdit
         }
         RawAuthType::APIKey { key, value, add_to } => api_key_view(key, value, *add_to),
         RawAuthType::JWTBearer {
+            algorithm,
             secret,
             payload,
             add_to,
-        } => jwt_bearer_view(secret, payload, *add_to),
+        } => jwt_bearer_view(*algorithm, secret, payload, *add_to),
     }
 }
 
@@ -191,11 +200,22 @@ fn api_key_view<'a>(
 }
 
 fn jwt_bearer_view<'a>(
+    algorithm: crate::state::request::JwtAlgo,
     secret: &'a editor::Content,
     payload: &'a editor::Content,
     add_to: AuthIn,
 ) -> Element<'a, AuthEditorMsg> {
+    use crate::state::request::JwtAlgo;
+
     Column::new()
+        .push(field_row(
+            "Algorithm",
+            pick_list(
+                JwtAlgo::VARIANTS,
+                Some(algorithm.as_str()),
+                AuthEditorMsg::JWTBearerAlgorithm,
+            ),
+        ))
         .push(field_row(
             "Add To",
             pick_list(

@@ -11,6 +11,7 @@ directories.workspace = true
 dotenvy.workspace = true
 iced.workspace = true
 indexmap.workspace = true
+jsonwebtoken.workspace = true
 log.workspace = true
 mime_guess.workspace = true
 parsers.workspace = true

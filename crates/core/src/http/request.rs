@@ -1,3 +1,4 @@
+use jsonwebtoken::Algorithm;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use strum::{Display, EnumString, VariantArray};
@@ -28,6 +29,43 @@ pub enum AuthIn {
     Header,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum JwtAlgorithm {
+    #[default]
+    HS256,
+    HS384,
+    HS512,
+    RS256,
+    RS384,
+    RS512,
+    ES256,
+    ES384,
+    PS256,
+    PS384,
+    PS512,
+    EdDSA,
+}
+
+impl From<&JwtAlgorithm> for Algorithm {
+    fn from(val: &JwtAlgorithm) -> Self {
+        match val {
+            JwtAlgorithm::HS256 => Algorithm::HS256,
+            JwtAlgorithm::HS384 => Algorithm::HS384,
+            JwtAlgorithm::HS512 => Algorithm::HS512,
+            JwtAlgorithm::RS256 => Algorithm::RS256,
+            JwtAlgorithm::RS384 => Algorithm::RS384,
+            JwtAlgorithm::RS512 => Algorithm::RS512,
+            JwtAlgorithm::ES256 => Algorithm::ES256,
+            JwtAlgorithm::ES384 => Algorithm::ES384,
+            JwtAlgorithm::PS256 => Algorithm::PS256,
+            JwtAlgorithm::PS384 => Algorithm::PS384,
+            JwtAlgorithm::PS512 => Algorithm::PS512,
+            JwtAlgorithm::EdDSA => Algorithm::EdDSA,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Auth {
     None,
@@ -44,6 +82,7 @@ pub enum Auth {
         add_to: AuthIn,
     },
     JWTBearer {
+        algorithm: JwtAlgorithm,
         secret: String,
         payload: String,
         add_to: AuthIn,

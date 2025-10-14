@@ -8,7 +8,7 @@ use crate::components::{KeyFileList, KeyValList};
 use crate::components::{KeyValUpdateMsg, KeyValue};
 use crate::state::utils::{key_value_from_text, key_value_to_text};
 use iced::advanced::widget;
-use lib::http::request::{self, Auth, Method, Request, RequestBody};
+use lib::http::request::{self, Auth, JwtAlgorithm, Method, Request, RequestBody};
 use reqwest::Url;
 use serde_json::Value;
 use strum::{Display, EnumString, IntoStaticStr, VariantNames};
@@ -57,6 +57,79 @@ impl From<request::AuthIn> for AuthIn {
     }
 }
 
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Default,
+    VariantNames,
+    Display,
+    EnumString,
+    IntoStaticStr,
+)]
+pub enum JwtAlgo {
+    #[default]
+    HS256,
+    HS384,
+    HS512,
+    RS256,
+    RS384,
+    RS512,
+    ES256,
+    ES384,
+    PS256,
+    PS384,
+    PS512,
+    EdDSA,
+}
+
+impl JwtAlgo {
+    pub fn as_str(&self) -> &'static str {
+        self.into()
+    }
+}
+
+impl From<&JwtAlgo> for JwtAlgorithm {
+    fn from(val: &JwtAlgo) -> Self {
+        match val {
+            JwtAlgo::HS256 => JwtAlgorithm::HS256,
+            JwtAlgo::HS384 => JwtAlgorithm::HS384,
+            JwtAlgo::HS512 => JwtAlgorithm::HS512,
+            JwtAlgo::RS256 => JwtAlgorithm::RS256,
+            JwtAlgo::RS384 => JwtAlgorithm::RS384,
+            JwtAlgo::RS512 => JwtAlgorithm::RS512,
+            JwtAlgo::ES256 => JwtAlgorithm::ES256,
+            JwtAlgo::ES384 => JwtAlgorithm::ES384,
+            JwtAlgo::PS256 => JwtAlgorithm::PS256,
+            JwtAlgo::PS384 => JwtAlgorithm::PS384,
+            JwtAlgo::PS512 => JwtAlgorithm::PS512,
+            JwtAlgo::EdDSA => JwtAlgorithm::EdDSA,
+        }
+    }
+}
+
+impl From<JwtAlgorithm> for JwtAlgo {
+    fn from(val: JwtAlgorithm) -> Self {
+        match val {
+            JwtAlgorithm::HS256 => JwtAlgo::HS256,
+            JwtAlgorithm::HS384 => JwtAlgo::HS384,
+            JwtAlgorithm::HS512 => JwtAlgo::HS512,
+            JwtAlgorithm::RS256 => JwtAlgo::RS256,
+            JwtAlgorithm::RS384 => JwtAlgo::RS384,
+            JwtAlgorithm::RS512 => JwtAlgo::RS512,
+            JwtAlgorithm::ES256 => JwtAlgo::ES256,
+            JwtAlgorithm::ES384 => JwtAlgo::ES384,
+            JwtAlgorithm::PS256 => JwtAlgo::PS256,
+            JwtAlgorithm::PS384 => JwtAlgo::PS384,
+            JwtAlgorithm::PS512 => JwtAlgo::PS512,
+            JwtAlgorithm::EdDSA => JwtAlgo::EdDSA,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ReqTabId {
     #[default]
@@ -87,6 +160,7 @@ pub enum RawAuthType {
     },
     #[strum(serialize = "JWT Bearer")]
     JWTBearer {
+        algorithm: JwtAlgo,
         secret: Content,
         payload: Content,
         add_to: AuthIn,
@@ -110,10 +184,12 @@ impl RawAuthType {
                 add_to: add_to.into(),
             },
             RawAuthType::JWTBearer {
+                algorithm,
                 secret,
                 payload,
                 add_to,
             } => Auth::JWTBearer {
+                algorithm: algorithm.into(),
                 secret: secret.text().trim().to_string(),
                 payload: payload.text().trim().to_string(),
                 add_to: add_to.into(),
@@ -137,10 +213,12 @@ impl RawAuthType {
                 add_to: add_to.into(),
             },
             Auth::JWTBearer {
+                algorithm,
                 secret,
                 payload,
                 add_to,
             } => RawAuthType::JWTBearer {
+                algorithm: algorithm.into(),
                 secret: Content::with_text(&secret),
                 payload: Content::with_text(&payload),
                 add_to: add_to.into(),

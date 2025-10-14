@@ -23,15 +23,20 @@
 
 use crate::http::{
     KeyValList,
-    request::{Auth, Method, Request, RequestBody},
+    request::{Auth, AuthIn, Method, Request, RequestBody},
 };
+use jsonwebtoken::{EncodingKey, Header, encode};
+use serde_json::Value;
 
 /// Generate a curl command string from a Request
 pub fn generate_curl_command(request: &Request) -> String {
-    // Build URL with query params and path params
-    let url = build_url(&request.url, &request.query_params, &request.path_params);
+    let url = build_url(
+        &request.url,
+        &request.query_params,
+        &request.path_params,
+        &request.auth,
+    );
 
-    // Build first line: curl [method] url
     let has_body = !matches!(request.body, RequestBody::None);
     let first_line = if request.method != Method::GET || (request.method == Method::GET && has_body)
     {
@@ -56,11 +61,37 @@ pub fn generate_curl_command(request: &Request) -> String {
                 shell_quote(&format!("Authorization: Bearer {}", token))
             ));
         }
-        Auth::APIKey { .. } => {
-            todo!()
+        Auth::APIKey { key, value, add_to } => {
+            if *add_to == AuthIn::Header {
+                lines.push(format!(
+                    "  -H {}",
+                    shell_quote(&format!("{}: {}", key, value))
+                ));
+            }
         }
-        Auth::JWTBearer { .. } => {
-            todo!()
+        Auth::JWTBearer {
+            algorithm,
+            secret,
+            payload,
+            add_to,
+        } => {
+            // Only add header if AuthIn::Header, query params are handled in build_url
+            if *add_to == AuthIn::Header {
+                let claims: Value =
+                    serde_json::from_str(payload).unwrap_or(Value::Object(Default::default()));
+
+                let token = encode(
+                    &Header::new(algorithm.into()),
+                    &claims,
+                    &EncodingKey::from_secret(secret.as_bytes()),
+                )
+                .unwrap_or_else(|_| String::new());
+
+                lines.push(format!(
+                    "  -H {}",
+                    shell_quote(&format!("Authorization: Bearer {}", token))
+                ));
+            }
         }
         Auth::None => {}
     }
@@ -82,8 +113,13 @@ pub fn generate_curl_command(request: &Request) -> String {
     lines.join(" \\\n")
 }
 
-/// Build URL with query params and path params
-fn build_url(base_url: &str, query_params: &KeyValList, path_params: &KeyValList) -> String {
+/// Build URL with query params, path params, and auth if it should be added to query
+fn build_url(
+    base_url: &str,
+    query_params: &KeyValList,
+    path_params: &KeyValList,
+    auth: &Auth,
+) -> String {
     let mut url = base_url.to_string();
 
     // Substitute path parameters
@@ -97,22 +133,46 @@ fn build_url(base_url: &str, query_params: &KeyValList, path_params: &KeyValList
         }
     }
 
-    // Add query parameters
-    let enabled_query_params: Vec<_> = query_params
+    let mut all_query_params: Vec<(String, String)> = query_params
         .iter()
         .filter(|p| !p.disabled && !p.name.is_empty())
+        .map(|p| (p.name.clone(), p.value.clone()))
         .collect();
 
-    if !enabled_query_params.is_empty() {
+    match auth {
+        Auth::APIKey { key, value, add_to } if *add_to == AuthIn::Query => {
+            all_query_params.push((key.clone(), value.clone()));
+        }
+        Auth::JWTBearer {
+            algorithm,
+            secret,
+            payload,
+            add_to,
+        } if *add_to == AuthIn::Query => {
+            let claims: Value =
+                serde_json::from_str(payload).unwrap_or(Value::Object(Default::default()));
+
+            let token = encode(
+                &Header::new(algorithm.into()),
+                &claims,
+                &EncodingKey::from_secret(secret.as_bytes()),
+            )
+            .unwrap_or_else(|_| String::new());
+            all_query_params.push(("token".to_string(), token));
+        }
+        _ => {}
+    }
+
+    if !all_query_params.is_empty() {
         let separator = if url.contains('?') { '&' } else { '?' };
 
-        let query_string = enabled_query_params
+        let query_string = all_query_params
             .iter()
-            .map(|p| {
+            .map(|(name, value)| {
                 format!(
                     "{}={}",
-                    urlencoding::encode(&p.name),
-                    urlencoding::encode(&p.value)
+                    urlencoding::encode(name),
+                    urlencoding::encode(value)
                 )
             })
             .collect::<Vec<_>>()
@@ -233,7 +293,7 @@ fn is_safe_unquoted(s: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue};
+    use crate::http::{KeyFile, KeyFileList, KeyValList, KeyValue, request::JwtAlgorithm};
     use std::path::PathBuf;
 
     #[test]
@@ -1003,5 +1063,103 @@ mod tests {
                 .iter()
                 .any(|h| h.name == "X-Custom-Header")
         );
+    }
+
+    #[test]
+    fn test_api_key_auth_header() {
+        let req = Request {
+            method: Method::GET,
+            url: "https://api.example.com/data".to_string(),
+            auth: Auth::APIKey {
+                key: "X-API-Key".to_string(),
+                value: "secret123".to_string(),
+                add_to: AuthIn::Header,
+            },
+            ..Default::default()
+        };
+        let cmd = generate_curl_command(&req);
+        assert!(cmd.contains("-H 'X-API-Key: secret123'"));
+    }
+
+    #[test]
+    fn test_api_key_auth_query() {
+        let req = Request {
+            method: Method::GET,
+            url: "https://api.example.com/data".to_string(),
+            auth: Auth::APIKey {
+                key: "api_key".to_string(),
+                value: "secret123".to_string(),
+                add_to: AuthIn::Query,
+            },
+            ..Default::default()
+        };
+        let cmd = generate_curl_command(&req);
+        assert!(cmd.contains("api_key=secret123"));
+        assert!(!cmd.contains("-H"));
+    }
+
+    #[test]
+    fn test_jwt_bearer_auth_header() {
+        let req = Request {
+            method: Method::GET,
+            url: "https://api.example.com/protected".to_string(),
+            auth: Auth::JWTBearer {
+                algorithm: JwtAlgorithm::HS256,
+                secret: "my-secret".to_string(),
+                payload: r#"{"sub":"user123","exp":1234567890}"#.to_string(),
+                add_to: AuthIn::Header,
+            },
+            ..Default::default()
+        };
+        let cmd = generate_curl_command(&req);
+        // Should contain Authorization header with Bearer token
+        assert!(cmd.contains("-H 'Authorization: Bearer "));
+        // The JWT should be a non-empty string
+        assert!(cmd.len() > 50); // JWT tokens are quite long
+    }
+
+    #[test]
+    fn test_jwt_bearer_auth_query() {
+        let req = Request {
+            method: Method::GET,
+            url: "https://api.example.com/data".to_string(),
+            auth: Auth::JWTBearer {
+                algorithm: JwtAlgorithm::HS256,
+                secret: "my-secret".to_string(),
+                payload: r#"{"sub":"user123"}"#.to_string(),
+                add_to: AuthIn::Query,
+            },
+            ..Default::default()
+        };
+        let cmd = generate_curl_command(&req);
+        // Should contain token as query parameter
+        assert!(cmd.contains("token="));
+        // Should not have Authorization header
+        assert!(!cmd.contains("Authorization"));
+    }
+
+    #[test]
+    fn test_api_key_with_existing_query_params() {
+        let req = Request {
+            method: Method::GET,
+            url: "https://api.example.com/search".to_string(),
+            query_params: KeyValList::from(vec![KeyValue {
+                disabled: false,
+                name: "q".to_string(),
+                value: "test".to_string(),
+            }]),
+            auth: Auth::APIKey {
+                key: "api_key".to_string(),
+                value: "secret123".to_string(),
+                add_to: AuthIn::Query,
+            },
+            ..Default::default()
+        };
+        let cmd = generate_curl_command(&req);
+        // Should contain both query params
+        assert!(cmd.contains("q=test"));
+        assert!(cmd.contains("api_key=secret123"));
+        assert!(cmd.contains("?"));
+        assert!(cmd.contains("&"));
     }
 }

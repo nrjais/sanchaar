@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use lib::http::request::{Auth, AuthIn, Method, Request, RequestBody};
+use lib::http::request::{Auth, AuthIn, JwtAlgorithm, Method, Request, RequestBody};
 use lib::http::{self, CollectionKey, CollectionRequest, KeyFileList, KeyValList, RequestId};
 use lib::perf::PerfConfig;
 use lib::persistence::collections::project_dirs;
@@ -92,6 +92,7 @@ pub enum SerializableAuth {
         add_to: AuthIn,
     },
     JWTBearer {
+        algorithm: JwtAlgorithm,
         secret: String,
         payload: String,
         add_to: AuthIn,
@@ -106,10 +107,12 @@ impl From<Auth> for SerializableAuth {
             Auth::Bearer { token } => SerializableAuth::Bearer { token },
             Auth::APIKey { key, value, add_to } => SerializableAuth::APIKey { key, value, add_to },
             Auth::JWTBearer {
+                algorithm,
                 secret,
                 payload,
                 add_to,
             } => SerializableAuth::JWTBearer {
+                algorithm,
                 secret,
                 payload,
                 add_to,
@@ -126,10 +129,12 @@ impl From<SerializableAuth> for Auth {
             SerializableAuth::Bearer { token } => Auth::Bearer { token },
             SerializableAuth::APIKey { key, value, add_to } => Auth::APIKey { key, value, add_to },
             SerializableAuth::JWTBearer {
+                algorithm,
                 secret,
                 payload,
                 add_to,
             } => Auth::JWTBearer {
+                algorithm,
                 secret,
                 payload,
                 add_to,

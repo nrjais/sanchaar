@@ -1,17 +1,19 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
+use jsonwebtoken::{EncodingKey, Header, encode};
 use mime::{APPLICATION_JSON, TEXT_PLAIN, TEXT_XML};
 use mime_guess::{Mime, mime};
 use reqwest::multipart::Part;
 use reqwest::{RequestBuilder, Url};
 use reqwest::{header::CONTENT_TYPE, multipart::Form};
+use serde_json::Value;
 use tokio::fs::File;
 
 use crate::http::environment::EnvironmentChain;
 use crate::http::{
     KeyFileList, KeyValList, KeyValue,
-    request::{Auth, Method, Request, RequestBody},
+    request::{Auth, AuthIn, Method, Request, RequestBody},
 };
 use crate::{APP_NAME, APP_VERSION};
 
@@ -240,11 +242,38 @@ fn req_auth(builder: RequestBuilder, auth: Auth, env: &EnvironmentChain) -> Requ
             let token = env.replace(&token);
             builder.bearer_auth(token)
         }
-        Auth::APIKey { .. } => {
-            todo!()
+        Auth::APIKey { key, value, add_to } => {
+            let key = env.replace(&key);
+            let value = env.replace(&value);
+
+            match add_to {
+                AuthIn::Header => builder.header(key, value),
+                AuthIn::Query => builder.query(&[(key, value)]),
+            }
         }
-        Auth::JWTBearer { .. } => {
-            todo!()
+        Auth::JWTBearer {
+            algorithm,
+            secret,
+            payload,
+            add_to,
+        } => {
+            let secret = env.replace(&secret);
+            let payload = env.replace(&payload);
+
+            let claims: Value =
+                serde_json::from_str(&payload).unwrap_or(Value::Object(Default::default()));
+
+            let token = encode(
+                &Header::new((&algorithm).into()),
+                &claims,
+                &EncodingKey::from_secret(secret.as_bytes()),
+            )
+            .unwrap_or_else(|_| String::new());
+
+            match add_to {
+                AuthIn::Header => builder.bearer_auth(token),
+                AuthIn::Query => builder.query(&[("token", token)]),
+            }
         }
     }
 }

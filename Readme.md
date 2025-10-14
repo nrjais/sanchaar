@@ -78,6 +78,8 @@ Download the latest release from the [Releases page](https://github.com/nrjais/s
 - [ ] Authentication
   - [x] Basic
   - [x] Bearer
+  - [x] API key
+  - [x] JWT
   - [ ] OAuth
   - [ ] OAuth2
   - [ ] AWS
