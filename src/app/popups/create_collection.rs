@@ -1,3 +1,4 @@
+use core::http::Collection;
 use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -24,6 +25,7 @@ pub enum Message {
     CreateCollection(String, PathBuf),
     ImportCollection(PathBuf, String),
     ModeChanged(CollectionCreationMode),
+    OpenCollection(Option<Collection>),
 }
 
 impl Message {
@@ -52,6 +54,13 @@ impl Message {
                 data.path = handle.map(|h| h.path().to_owned());
                 Task::none()
             }
+            Message::OpenCollection(collection) => {
+                if let Some(collection) = collection {
+                    state.common.collections.insert(collection);
+                }
+                state.common.popup = None;
+                Task::none()
+            }
             Message::FileSelected(handle) => {
                 if let Some(h) = handle {
                     data.import_file_path = Some(h.path().to_owned());
@@ -67,12 +76,13 @@ impl Message {
                     .map(|_| Message::Done)
             }
             Message::ImportCollection(file_path, collection_name) => {
+                let collection_path = PathBuf::from(format!("collections/{}", collection_name));
                 builders::import_postman_collection_cmd(
                     &mut state.common,
                     file_path,
-                    collection_name,
+                    collection_path,
                 )
-                .map(|_| Message::Done)
+                .map(Message::OpenCollection)
             }
             Message::Done => {
                 state.common.popup = None;

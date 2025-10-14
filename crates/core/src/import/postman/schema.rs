@@ -8,11 +8,13 @@ use ::std::{
     ops::Deref,
     option::Option,
     result::Result,
+    str::FromStr,
     string::String,
     vec::Vec,
 };
 
 use ::serde::{Deserialize, Deserializer, Serialize};
+use serde_json::Value;
 
 use self::error::ConversionError;
 
@@ -149,7 +151,7 @@ impl Display for AuthType {
         }
     }
 }
-impl ::std::str::FromStr for AuthType {
+impl FromStr for AuthType {
     type Err = ConversionError;
     fn from_str(value: &str) -> Result<Self, ConversionError> {
         match value {
@@ -264,7 +266,7 @@ pub struct Cookie {
     pub expires: Option<String>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub extensions: Vec<::serde_json::Value>,
+    pub extensions: Vec<Value>,
 
     #[serde(rename = "hostOnly", default, skip_serializing_if = "Option::is_none")]
     pub host_only: Option<bool>,
@@ -288,6 +290,7 @@ pub struct Cookie {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value: Option<String>,
 }
+
 impl From<&Cookie> for Cookie {
     fn from(value: &Cookie) -> Self {
         value.clone()
@@ -843,7 +846,7 @@ impl Display for RequestBodyMode {
         }
     }
 }
-impl ::std::str::FromStr for RequestBodyMode {
+impl FromStr for RequestBodyMode {
     type Err = ConversionError;
     fn from_str(value: &str) -> Result<Self, ConversionError> {
         match value {
@@ -950,7 +953,7 @@ impl Display for RequestMethodSubtype0 {
         }
     }
 }
-impl ::std::str::FromStr for RequestMethodSubtype0 {
+impl FromStr for RequestMethodSubtype0 {
     type Err = ConversionError;
     fn from_str(value: &str) -> Result<Self, ConversionError> {
         match value {
@@ -1298,7 +1301,7 @@ impl TryFrom<&VersionObjectIdentifier> for VersionObjectIdentifier {
         Ok(value.clone())
     }
 }
-impl ::std::str::FromStr for VersionObjectIdentifier {
+impl FromStr for VersionObjectIdentifier {
     type Err = ConversionError;
     fn from_str(value: &str) -> Result<Self, ConversionError> {
         if value.chars().count() > 10usize {
