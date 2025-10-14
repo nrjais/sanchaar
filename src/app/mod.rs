@@ -64,7 +64,8 @@ fn handle_auto_updater(state: &mut AppState, msg: AutoUpdaterOutput) -> Task<Plu
         AutoUpdaterOutput::InstallationStarted => {
             state.update_status = UpdateStatus::Installing;
         }
-        AutoUpdaterOutput::Error(_) => {
+        AutoUpdaterOutput::Error(msg) => {
+            log::error!("Auto updater error: {:?}", msg);
             state.update_status = UpdateStatus::None;
         }
         AutoUpdaterOutput::InstallationCompleted => {

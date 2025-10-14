@@ -100,6 +100,14 @@ jobs:
           cargo build --release --no-default-features
           cargo packager --release --formats deb,appimage,pacman
 
+      - name: Rename packages with linux suffix
+        run: |
+          cd target/release
+          mv Sanchaar_${{ env.VERSION }}_*.deb Sanchaar_${{ runner.os }}_${{ matrix.arch }}.deb
+          mv Sanchaar_${{ env.VERSION }}_*.AppImage Sanchaar_${{ runner.os }}_${{ matrix.arch }}.AppImage
+          mv Sanchaar_${{ env.VERSION }}_*.tar.gz Sanchaar_${{ runner.os }}_${{ matrix.arch }}.tar.gz
+          ls -lah
+
       - name: Generate checksums
         run: |
           cd target/release
@@ -124,9 +132,9 @@ jobs:
       matrix:
         include:
           - target: x86_64-apple-darwin
-            arch: Intel
+            arch: x86_64
           - target: aarch64-apple-darwin
-            arch: AppleSilicon
+            arch: aarch64
 
     steps:
       - name: Checkout
@@ -160,6 +168,12 @@ jobs:
         run: |
           cargo build --release --target ${{ matrix.target }} --no-default-features
           cargo packager --release --target ${{ matrix.target }} --formats dmg
+
+      - name: Rename packages with macos suffix
+        run: |
+          cd target/${{ matrix.target }}/release
+          mv Sanchaar_${{ env.VERSION }}_*.dmg Sanchaar_macOS_${{ runner.os }}_${{ matrix.arch }}.dmg
+          ls -lah
 
       - name: Generate checksums
         run: |
