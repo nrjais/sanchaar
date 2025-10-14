@@ -172,7 +172,7 @@ jobs:
       - name: Rename packages with macos suffix
         run: |
           cd target/${{ matrix.target }}/release
-          mv Sanchaar_${{ env.VERSION }}_*.dmg Sanchaar_macOS_${{ runner.os }}_${{ matrix.arch }}.dmg
+          mv Sanchaar_${{ env.VERSION }}_*.dmg Sanchaar_macOS_${{ matrix.arch }}.dmg
           ls -lah
 
       - name: Generate checksums

@@ -17,6 +17,9 @@ icons = [
   "assets/sanchaar.ico",
 ]
 
+[package.metadata.packager.macos]
+signing-identity = "-"
+
 [workspace]
 members = [
   "crates/core",
@@ -117,11 +120,14 @@ strum.workspace = true
 tokio.workspace = true
 uuid.workspace = true
 
-[target.'cfg(target_os = "linux")'.dependencies]
-rfd = { workspace = true, default-features = false, features = ["xdg-portal", "async-std"] }
-
 [target.'cfg(not(target_os = "linux"))'.dependencies]
 rfd = { workspace = true, default-features = false, features = ["tokio"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rfd = { workspace = true, default-features = false, features = [
+  "async-std",
+  "xdg-portal"
+] }
 
 [features]
 default = ["iced/debug", "iced/hot"]
