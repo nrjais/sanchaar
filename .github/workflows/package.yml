@@ -292,22 +292,7 @@ jobs:
           if [ -n "$EXISTING_PR" ]; then
             echo "PR already exists: #$EXISTING_PR"
           else
-            # Get checksums for PR description (find files dynamically)
-            INTEL_DMG_SHA256_FILE=$(find ../release -name "*x86_64*.dmg.sha256" -o -name "*x64*.dmg.sha256" | head -1)
-            ARM_DMG_SHA256_FILE=$(find ../release -name "*aarch64*.dmg.sha256" -o -name "*arm64*.dmg.sha256" | head -1)
-
-            INTEL_SHA_SHORT=$(cat "$INTEL_DMG_SHA256_FILE" | awk '{print $1}' | cut -c1-16)
-            ARM_SHA_SHORT=$(cat "$ARM_DMG_SHA256_FILE" | awk '{print $1}' | cut -c1-16)
-
-            # Create PR body
             PR_BODY="This PR updates the sanchaar cask to version \`${{ env.VERSION }}\`.
-
-          ## Changes
-          - Updated version to \`${{ env.VERSION }}\`
-          - Updated download URLs for the new release
-          - Updated SHA256 checksums:
-            - Intel (x86_64): \`${INTEL_SHA_SHORT}...\`
-            - ARM (aarch64): \`${ARM_SHA_SHORT}...\`
 
           ## Release Notes
           See the [release notes](https://github.com/nrjais/sanchaar/releases/tag/${{ env.VERSION }}) for details.
