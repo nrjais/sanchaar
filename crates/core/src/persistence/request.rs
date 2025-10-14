@@ -121,7 +121,6 @@ pub enum EncodedAuthType {
     JWTBearer {
         secret: String,
         payload: String,
-        key: String,
         add_to: EncodedAuthIn,
     },
 }
@@ -207,12 +206,10 @@ fn encode_auth(auth: Auth) -> Option<EncodedAuthType> {
         Auth::JWTBearer {
             secret,
             payload,
-            key,
             add_to,
         } => Some(EncodedAuthType::JWTBearer {
             secret,
             payload,
-            key,
             add_to: add_to.into(),
         }),
     }
@@ -261,12 +258,10 @@ fn decode_auth(auth: Option<EncodedAuthType>) -> Auth {
         Some(EncodedAuthType::JWTBearer {
             secret,
             payload,
-            key,
             add_to,
         }) => Auth::JWTBearer {
             secret,
             payload,
-            key,
             add_to: add_to.into(),
         },
     }

@@ -46,7 +46,6 @@ pub enum Auth {
     JWTBearer {
         secret: String,
         payload: String,
-        key: String,
         add_to: AuthIn,
     },
 }

@@ -1,9 +1,15 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::HashSet, str::FromStr, sync::Arc};
 
-use crate::components::{LineEditorMsg, icon, icons, line_editor};
+use crate::{
+    components::{
+        CodeEditorMsg, ContentType, LineEditorMsg, code_editor, editor, icon, icons, line_editor,
+    },
+    state::request::AuthIn,
+};
 use iced::{
-    Element, Length,
-    widget::{Column, Row, center, container, pick_list, space, text},
+    Element,
+    Length::{self},
+    widget::{Column, Row, center, container, pick_list, text},
 };
 use strum::VariantNames;
 
@@ -15,6 +21,12 @@ pub enum AuthEditorMsg {
     BearerToken(LineEditorMsg),
     BasicUsername(LineEditorMsg),
     BasicPassword(LineEditorMsg),
+    APIKeyName(LineEditorMsg),
+    APIKeyValue(LineEditorMsg),
+    APIKeyAddTo(&'static str),
+    JWTBearerSecret(LineEditorMsg),
+    JWTBearerPayload(CodeEditorMsg),
+    JWTBearerAddTo(&'static str),
 }
 impl AuthEditorMsg {
     pub(crate) fn update(self, request: &mut RequestPane) {
@@ -35,6 +47,36 @@ impl AuthEditorMsg {
                     action.update(password);
                 }
             }
+            AuthEditorMsg::APIKeyName(line_editor_msg) => {
+                if let RawAuthType::APIKey { key, .. } = &mut request.auth {
+                    line_editor_msg.update(key);
+                }
+            }
+            AuthEditorMsg::APIKeyValue(line_editor_msg) => {
+                if let RawAuthType::APIKey { value, .. } = &mut request.auth {
+                    line_editor_msg.update(value);
+                }
+            }
+            AuthEditorMsg::APIKeyAddTo(update) => {
+                if let RawAuthType::APIKey { add_to, .. } = &mut request.auth {
+                    *add_to = AuthIn::from_str(update).unwrap_or(AuthIn::Header);
+                }
+            }
+            AuthEditorMsg::JWTBearerSecret(line_editor_msg) => {
+                if let RawAuthType::JWTBearer { secret, .. } = &mut request.auth {
+                    line_editor_msg.update(secret);
+                }
+            }
+            AuthEditorMsg::JWTBearerPayload(line_editor_msg) => {
+                if let RawAuthType::JWTBearer { payload, .. } = &mut request.auth {
+                    line_editor_msg.update(payload);
+                }
+            }
+            AuthEditorMsg::JWTBearerAddTo(update) => {
+                if let RawAuthType::JWTBearer { add_to, .. } = &mut request.auth {
+                    *add_to = AuthIn::from_str(update).unwrap_or(AuthIn::Header);
+                }
+            }
         }
     }
 }
@@ -44,9 +86,8 @@ fn field_row<'a>(
     field: impl Into<Element<'a, AuthEditorMsg>>,
 ) -> Element<'a, AuthEditorMsg> {
     Row::new()
-        .push(text(label))
-        .push(space::horizontal())
-        .push(field)
+        .push(text(label).width(Length::FillPortion(2)))
+        .push(container(field).width(Length::FillPortion(3)))
         .into()
 }
 
@@ -70,8 +111,8 @@ pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<A
 
     Column::new()
         .push(header)
-        .push(center(body).padding(8))
-        .spacing(4)
+        .push(center(body))
+        .spacing(12)
         .into()
 }
 
@@ -113,7 +154,67 @@ fn auth_body(auth: &RawAuthType, vars: Arc<HashSet<String>>) -> Element<AuthEdit
                 .width(Length::Shrink)
                 .into()
         }
-        RawAuthType::APIKey { .. } => text("API Key").into(),
-        RawAuthType::JWTBearer { .. } => text("JWT Bearer").into(),
+        RawAuthType::APIKey { key, value, add_to } => api_key_view(key, value, *add_to),
+        RawAuthType::JWTBearer {
+            secret,
+            payload,
+            add_to,
+        } => jwt_bearer_view(secret, payload, *add_to),
     }
+}
+
+fn api_key_view<'a>(
+    key: &'a editor::Content,
+    value: &'a editor::Content,
+    add_to: AuthIn,
+) -> Element<'a, AuthEditorMsg> {
+    Column::new()
+        .push(field_row(
+            "Add To",
+            pick_list(
+                AuthIn::VARIANTS,
+                Some(add_to.as_str()),
+                AuthEditorMsg::APIKeyAddTo,
+            ),
+        ))
+        .push(field_row(
+            "Name",
+            line_editor(key).map(AuthEditorMsg::APIKeyName),
+        ))
+        .push(field_row(
+            "Key",
+            line_editor(value).map(AuthEditorMsg::APIKeyValue),
+        ))
+        .height(Length::Fill)
+        .spacing(4)
+        .into()
+}
+
+fn jwt_bearer_view<'a>(
+    secret: &'a editor::Content,
+    payload: &'a editor::Content,
+    add_to: AuthIn,
+) -> Element<'a, AuthEditorMsg> {
+    Column::new()
+        .push(field_row(
+            "Add To",
+            pick_list(
+                AuthIn::VARIANTS,
+                Some(add_to.as_str()),
+                AuthEditorMsg::JWTBearerAddTo,
+            ),
+        ))
+        .push(field_row(
+            "Secret",
+            line_editor(secret).map(AuthEditorMsg::JWTBearerSecret),
+        ))
+        .push(field_row(
+            "Payload",
+            code_editor(payload, ContentType::Json)
+                .editable()
+                .map(AuthEditorMsg::JWTBearerPayload),
+        ))
+        .height(Length::Fill)
+        .spacing(4)
+        .into()
 }

@@ -15,11 +15,28 @@ use strum::{Display, EnumString, IntoStaticStr, VariantNames};
 
 use super::utils::{from_core_kf_list, from_core_kv_list, to_core_kf_list, to_core_kv_list};
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, strum::Display, EnumString)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    VariantNames,
+    strum::Display,
+    EnumString,
+    IntoStaticStr,
+)]
 pub enum AuthIn {
     #[default]
     Query,
     Header,
+}
+
+impl AuthIn {
+    pub fn as_str(&self) -> &'static str {
+        self.into()
+    }
 }
 
 impl From<&AuthIn> for request::AuthIn {
@@ -72,7 +89,6 @@ pub enum RawAuthType {
     JWTBearer {
         secret: Content,
         payload: Content,
-        key: Content,
         add_to: AuthIn,
     },
 }
@@ -96,12 +112,10 @@ impl RawAuthType {
             RawAuthType::JWTBearer {
                 secret,
                 payload,
-                key,
                 add_to,
             } => Auth::JWTBearer {
                 secret: secret.text().trim().to_string(),
                 payload: payload.text().trim().to_string(),
-                key: key.text().trim().to_string(),
                 add_to: add_to.into(),
             },
         }
@@ -125,12 +139,10 @@ impl RawAuthType {
             Auth::JWTBearer {
                 secret,
                 payload,
-                key,
                 add_to,
             } => RawAuthType::JWTBearer {
                 secret: Content::with_text(&secret),
                 payload: Content::with_text(&payload),
-                key: Content::with_text(&key),
                 add_to: add_to.into(),
             },
         }

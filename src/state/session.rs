@@ -94,7 +94,6 @@ pub enum SerializableAuth {
     JWTBearer {
         secret: String,
         payload: String,
-        key: String,
         add_to: AuthIn,
     },
 }
@@ -109,12 +108,10 @@ impl From<Auth> for SerializableAuth {
             Auth::JWTBearer {
                 secret,
                 payload,
-                key,
                 add_to,
             } => SerializableAuth::JWTBearer {
                 secret,
                 payload,
-                key,
                 add_to,
             },
         }
@@ -131,12 +128,10 @@ impl From<SerializableAuth> for Auth {
             SerializableAuth::JWTBearer {
                 secret,
                 payload,
-                key,
                 add_to,
             } => Auth::JWTBearer {
                 secret,
                 payload,
-                key,
                 add_to,
             },
         }
