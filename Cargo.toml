@@ -16,7 +16,6 @@ icons = [
   "assets/512x512.png",
   "assets/sanchaar.ico",
 ]
-before-packaging-command = "cargo build --release --no-default-features"
 
 [workspace]
 members = [

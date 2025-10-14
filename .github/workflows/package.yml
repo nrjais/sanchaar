@@ -97,6 +97,7 @@ jobs:
 
       - name: Build packages
         run: |
+          cargo build --release --target ${{ matrix.target }} --no-default-features
           cargo packager --release --formats deb,appimage,pacman
 
       - name: Generate checksums
@@ -157,7 +158,8 @@ jobs:
 
       - name: Build packages with cargo-packager
         run: |
-          cargo packager --release --formats dmg
+          cargo build --release --target ${{ matrix.target }} --no-default-features
+          cargo packager --release --target ${{ matrix.target }} --formats dmg
 
       - name: Generate checksums
         run: |
