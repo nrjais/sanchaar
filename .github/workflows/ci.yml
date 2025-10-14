@@ -79,7 +79,7 @@ jobs:
         with:
           toolchain: stable
           targets: ${{ matrix.target }}
-      - uses: rui314/setup-mold@v2
+      - uses: rui314/setup-mold@v1
         if: runner.os == 'Linux'
 
       - name: Install linux dependencies
@@ -95,7 +95,7 @@ jobs:
             gcc \
             gcc-aarch64-linux-gnu \
             g++-aarch64-linux-gnu \
-            clang 
+            clang
 
       - uses: Swatinem/rust-cache@v2
         with:
