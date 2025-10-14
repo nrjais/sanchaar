@@ -312,14 +312,9 @@ pub async fn save_script(path: PathBuf, name: &str, content: &str) -> Result<()>
 
 pub async fn import_postman_collection(
     postman_path: PathBuf,
-    collection_name: String,
+    collection_path: PathBuf,
 ) -> Result<Collection> {
-    let dirs = project_dirs().context("Failed to find project dir during import")?;
-    let data_dir = dirs.data_dir();
-    let collection_path = data_dir.join(&collection_name);
-
     postman::import_postman_collection(&postman_path, &collection_path).await?;
-
     let key = CollectionKey::new();
     open_collection(collection_path, key).await
 }

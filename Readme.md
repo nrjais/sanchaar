@@ -99,6 +99,7 @@ Download the latest release from the [Releases page](https://github.com/nrjais/s
   - [x] Remove
   - [x] Rename collection/folder
   - [ ] Export/Import
+    - [x] Import Postman collections
   - [ ] Settings
     - [x] Update default env
     - [x] Collection headers
@@ -143,6 +144,7 @@ Download the latest release from the [Releases page](https://github.com/nrjais/s
   - [ ] Select environment by name
   - [x] Run tests by path
   - [ ] Run all collection tests
+  - [x] Import Postman collections
 - [ ] Code export
 - [ ] Body Viewer improvements
   - [x] Json path filter
