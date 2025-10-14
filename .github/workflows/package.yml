@@ -101,7 +101,7 @@ jobs:
 
       - name: Generate checksums
         run: |
-          cd target/${{ matrix.target }}/release/bundle
+          cd target/${{ matrix.target }}/release
           find . -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \) -exec sh -c 'sha256sum "{}" > "{}.sha256"' \;
 
       - name: Upload artifacts
@@ -109,11 +109,11 @@ jobs:
         with:
           name: linux-${{ matrix.target }}
           path: |
-            target/${{ matrix.target }}/release/bundle/**/*.deb
-            target/${{ matrix.target }}/release/bundle/**/*.AppImage
-            target/${{ matrix.target }}/release/bundle/**/*.tar.gz
-            target/${{ matrix.target }}/release/bundle/**/PKGBUILD
-            target/${{ matrix.target }}/release/bundle/**/*.sha256
+            target/${{ matrix.target }}/release/**/*.deb
+            target/${{ matrix.target }}/release/**/*.AppImage
+            target/${{ matrix.target }}/release/**/*.tar.gz
+            target/${{ matrix.target }}/release/**/PKGBUILD
+            target/${{ matrix.target }}/release/**/*.sha256
 
   build-macos:
     name: Build macOS (${{ matrix.target }})
@@ -161,7 +161,7 @@ jobs:
 
       - name: Generate checksums
         run: |
-          cd target/${{ matrix.target }}/release/bundle
+          cd target/${{ matrix.target }}/release
           find . -type f -name "*.dmg" -exec sh -c 'shasum -a 256 "{}" > "{}.sha256"' \;
 
       - name: Upload artifacts
@@ -169,8 +169,8 @@ jobs:
         with:
           name: macos-${{ matrix.target }}
           path: |
-            target/${{ matrix.target }}/release/bundle/**/*.dmg
-            target/${{ matrix.target }}/release/bundle/**/*.sha256
+            target/${{ matrix.target }}/release/**/*.dmg
+            target/${{ matrix.target }}/release/**/*.sha256
 
   release:
     name: Create Release
