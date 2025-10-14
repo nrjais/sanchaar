@@ -39,14 +39,16 @@ jobs:
 
   build-linux:
     name: Build Linux (${{ matrix.target }})
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     needs: check-branch
     strategy:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
             arch: amd64
           - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
             arch: arm64
 
     steps:
@@ -63,6 +65,8 @@ jobs:
           echo "Replacing version placeholder with ${{ env.VERSION }}"
           sed -i 's/0.1.0-prerelease.1/${{ env.VERSION }}/g' Cargo.toml
           echo "Updated version to ${{ env.VERSION }}"
+
+      - uses: rui314/setup-mold@v1
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -81,8 +85,7 @@ jobs:
             libxkbcommon-dev \
             pkg-config \
             gcc \
-            clang \
-            mold
+            clang
 
       - uses: Swatinem/rust-cache@v2
         with:
