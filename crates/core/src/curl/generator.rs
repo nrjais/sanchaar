@@ -23,18 +23,21 @@
 
 use crate::http::{
     KeyValList,
+    environment::EnvironmentChain,
     request::{Auth, AuthIn, Method, Request, RequestBody},
 };
 use jsonwebtoken::{EncodingKey, Header, encode};
 use serde_json::Value;
 
 /// Generate a curl command string from a Request
-pub fn generate_curl_command(request: &Request) -> String {
+pub fn generate_curl_command(request: &Request, env: EnvironmentChain) -> String {
+    let env = &env;
     let url = build_url(
         &request.url,
         &request.query_params,
         &request.path_params,
         &request.auth,
+        env,
     );
 
     let has_body = !matches!(request.body, RequestBody::None);
@@ -50,12 +53,15 @@ pub fn generate_curl_command(request: &Request) -> String {
     // Add authentication
     match &request.auth {
         Auth::Basic { username, password } => {
+            let username = env.replace(username);
+            let password = env.replace(password);
             lines.push(format!(
                 "  -u {}",
                 shell_quote(&format!("{}:{}", username, password))
             ));
         }
         Auth::Bearer { token } => {
+            let token = env.replace(token);
             lines.push(format!(
                 "  -H {}",
                 shell_quote(&format!("Authorization: Bearer {}", token))
@@ -63,6 +69,8 @@ pub fn generate_curl_command(request: &Request) -> String {
         }
         Auth::APIKey { key, value, add_to } => {
             if *add_to == AuthIn::Header {
+                let key = env.replace(key);
+                let value = env.replace(value);
                 lines.push(format!(
                     "  -H {}",
                     shell_quote(&format!("{}: {}", key, value))
@@ -77,8 +85,11 @@ pub fn generate_curl_command(request: &Request) -> String {
         } => {
             // Only add header if AuthIn::Header, query params are handled in build_url
             if *add_to == AuthIn::Header {
+                let secret = env.replace(secret);
+                let payload = env.replace(payload);
+
                 let claims: Value =
-                    serde_json::from_str(payload).unwrap_or(Value::Object(Default::default()));
+                    serde_json::from_str(&payload).unwrap_or(Value::Object(Default::default()));
 
                 let token = encode(
                     &Header::new(algorithm.into()),
@@ -99,15 +110,16 @@ pub fn generate_curl_command(request: &Request) -> String {
     // Add headers (skip disabled ones)
     for header in request.headers.iter() {
         if !header.disabled {
+            let value = env.replace(&header.value);
             lines.push(format!(
                 "  -H {}",
-                shell_quote(&format!("{}: {}", header.name, header.value))
+                shell_quote(&format!("{}: {}", header.name, value))
             ));
         }
     }
 
     // Add body
-    add_body_to_lines(&mut lines, &request.body);
+    add_body_to_lines(&mut lines, &request.body, env);
 
     // Join with backslash line continuation
     lines.join(" \\\n")
@@ -119,29 +131,30 @@ fn build_url(
     query_params: &KeyValList,
     path_params: &KeyValList,
     auth: &Auth,
+    env: &EnvironmentChain,
 ) -> String {
-    let mut url = base_url.to_string();
+    let mut url = env.replace(base_url);
 
     // Substitute path parameters
     for param in path_params.iter() {
         if !param.disabled && !param.name.is_empty() {
-            // Replace :param or {param} with the value
+            let value = env.replace(&param.value);
             let colon_pattern = format!(":{}", param.name);
-            let brace_pattern = format!("{{{}}}", param.name);
-            url = url.replace(&colon_pattern, &param.value);
-            url = url.replace(&brace_pattern, &param.value);
+            url = url.replace(&colon_pattern, &value);
         }
     }
 
     let mut all_query_params: Vec<(String, String)> = query_params
         .iter()
         .filter(|p| !p.disabled && !p.name.is_empty())
-        .map(|p| (p.name.clone(), p.value.clone()))
+        .map(|p| (p.name.clone(), env.replace(&p.value)))
         .collect();
 
     match auth {
         Auth::APIKey { key, value, add_to } if *add_to == AuthIn::Query => {
-            all_query_params.push((key.clone(), value.clone()));
+            let key = env.replace(key);
+            let value = env.replace(value);
+            all_query_params.push((key, value));
         }
         Auth::JWTBearer {
             algorithm,
@@ -149,8 +162,11 @@ fn build_url(
             payload,
             add_to,
         } if *add_to == AuthIn::Query => {
+            let secret = env.replace(secret);
+            let payload = env.replace(payload);
+
             let claims: Value =
-                serde_json::from_str(payload).unwrap_or(Value::Object(Default::default()));
+                serde_json::from_str(&payload).unwrap_or(Value::Object(Default::default()));
 
             let token = encode(
                 &Header::new(algorithm.into()),
@@ -185,31 +201,35 @@ fn build_url(
 }
 
 /// Add body to curl command lines
-fn add_body_to_lines(lines: &mut Vec<String>, body: &RequestBody) {
+fn add_body_to_lines(lines: &mut Vec<String>, body: &RequestBody, env: &EnvironmentChain) {
     match body {
         RequestBody::Json(data) => {
             lines.push(format!(
                 "  -H {}",
                 shell_quote("Content-Type: application/json")
             ));
-            lines.push(format!("  -d {}", shell_quote(data)));
+            let data = env.replace(data);
+            lines.push(format!("  -d {}", shell_quote(&data)));
         }
         RequestBody::XML(data) => {
             lines.push(format!(
                 "  -H {}",
                 shell_quote("Content-Type: application/xml")
             ));
-            lines.push(format!("  -d {}", shell_quote(data)));
+            let data = env.replace(data);
+            lines.push(format!("  -d {}", shell_quote(&data)));
         }
         RequestBody::Text(data) => {
-            lines.push(format!("  -d {}", shell_quote(data)));
+            let data = env.replace(data);
+            lines.push(format!("  -d {}", shell_quote(&data)));
         }
         RequestBody::Form(form_data) => {
             for field in form_data.iter() {
                 if !field.disabled && !field.name.is_empty() {
+                    let value = env.replace(&field.value);
                     lines.push(format!(
                         "  -F {}",
-                        shell_quote(&format!("{}={}", field.name, field.value))
+                        shell_quote(&format!("{}={}", field.name, value))
                     ));
                 }
             }
@@ -218,9 +238,10 @@ fn add_body_to_lines(lines: &mut Vec<String>, body: &RequestBody) {
             // Add form fields
             for field in params.iter() {
                 if !field.disabled && !field.name.is_empty() {
+                    let value = env.replace(&field.value);
                     lines.push(format!(
                         "  -F {}",
-                        shell_quote(&format!("{}={}", field.name, field.value))
+                        shell_quote(&format!("{}={}", field.name, value))
                     ));
                 }
             }
@@ -303,7 +324,8 @@ mod tests {
             url: "https://api.example.com/users".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Simple GET: curl and URL on same line
         assert_eq!(cmd, "curl https://api.example.com/users");
     }
@@ -316,7 +338,8 @@ mod tests {
             body: RequestBody::Json(r#"{"name":"John"}"#.to_string()),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X POST"));
         assert!(cmd.contains("-H 'Content-Type: application/json'"));
         assert!(cmd.contains(r#"-d '{"name":"John"}'"#));
@@ -331,7 +354,8 @@ mod tests {
             body: RequestBody::XML("<data><value>test</value></data>".to_string()),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X PUT"));
         assert!(cmd.contains("-H 'Content-Type: application/xml'"));
         assert!(cmd.contains("-d '<data><value>test</value></data>'"));
@@ -348,7 +372,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Simple user:pass doesn't need quotes
         assert!(cmd.contains("-u user:pass"));
     }
@@ -363,7 +388,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-H 'Authorization: Bearer mytoken123'"));
     }
 
@@ -386,7 +412,8 @@ mod tests {
             ]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Each header should be on its own line
         assert!(cmd.contains("-H 'X-Custom: value'"));
         assert!(cmd.contains("-H 'Accept: application/json'"));
@@ -412,7 +439,8 @@ mod tests {
             ]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(!cmd.contains("X-Disabled"));
         assert!(cmd.contains("X-Enabled"));
     }
@@ -436,7 +464,8 @@ mod tests {
             ]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // URL encoding uses %20 for space
         assert!(cmd.contains("q=rust%20programming"));
         assert!(cmd.contains("limit=10"));
@@ -454,7 +483,8 @@ mod tests {
             }]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("?existing=value&new=param"));
     }
 
@@ -470,7 +500,8 @@ mod tests {
             }]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("users/123/posts"));
     }
 
@@ -486,7 +517,8 @@ mod tests {
             }]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("users/456/posts"));
     }
 
@@ -509,7 +541,8 @@ mod tests {
             ])),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-F name=John"));
         assert!(cmd.contains("-F email=john@example.com"));
     }
@@ -533,7 +566,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-F name=John"));
         assert!(cmd.contains("-F avatar=@/path/to/image.jpg"));
     }
@@ -546,7 +580,8 @@ mod tests {
             body: RequestBody::File(Some(PathBuf::from("/data/file.bin"))),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("--data-binary @/data/file.bin"));
     }
 
@@ -582,7 +617,8 @@ mod tests {
             url: "https://api.example.com/users/123".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X DELETE"));
     }
 
@@ -594,7 +630,8 @@ mod tests {
             body: RequestBody::Json(r#"{"status":"updated"}"#.to_string()),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X PATCH"));
     }
 
@@ -605,7 +642,8 @@ mod tests {
             url: "https://api.example.com".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X OPTIONS"));
     }
 
@@ -616,7 +654,8 @@ mod tests {
             url: "https://api.example.com".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X HEAD"));
     }
 
@@ -628,7 +667,8 @@ mod tests {
             body: RequestBody::Text("plain text data".to_string()),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-d 'plain text data'"));
     }
 
@@ -660,7 +700,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-X POST"));
         assert!(cmd.contains("-H 'X-API-Key: secret123'"));
         assert!(cmd.contains("-H 'Accept: application/json'"));
@@ -682,7 +723,8 @@ mod tests {
             }]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should be URL encoded (space becomes %20, special chars are encoded)
         assert!(cmd.contains("q=hello%20world"));
         assert!(cmd.contains("%21")); // ! encoded
@@ -707,7 +749,8 @@ mod tests {
             ]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(!cmd.contains("skip"));
         assert!(cmd.contains("include=me"));
     }
@@ -731,7 +774,8 @@ mod tests {
             ]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("123"));
         assert!(cmd.contains(":type")); // Not replaced
     }
@@ -755,7 +799,8 @@ mod tests {
             ])),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(!cmd.contains("skip"));
         assert!(cmd.contains("-F include=me"));
     }
@@ -782,7 +827,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(!cmd.contains("skip"));
         assert!(cmd.contains("include=@/include.jpg"));
     }
@@ -799,7 +845,8 @@ mod tests {
             }]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-H 'X-Empty: '"));
     }
 
@@ -814,7 +861,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-u 'user@domain.com:p@ss:word!'"));
     }
 
@@ -826,7 +874,8 @@ mod tests {
             body: RequestBody::Json(r#"{"message":"He said \"Hello\""}"#.to_string()),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // The shell quoting should handle the quotes properly
         assert!(cmd.contains("-d"));
     }
@@ -838,7 +887,8 @@ mod tests {
             url: "http://localhost:8080/api".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("localhost:8080"));
     }
 
@@ -849,7 +899,8 @@ mod tests {
             url: "https://user:pass@api.example.com".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("user:pass@api.example.com"));
     }
 
@@ -872,7 +923,8 @@ mod tests {
             ]),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("users/123/posts/456"));
     }
 
@@ -885,7 +937,8 @@ mod tests {
             body: RequestBody::Json(r#"{"query":"test"}"#.to_string()),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should include -X GET when there's a body
         assert!(cmd.contains("-X GET"));
         assert!(cmd.contains("-d"));
@@ -899,7 +952,8 @@ mod tests {
             body: RequestBody::File(None),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should not add --data-binary if path is None
         assert!(!cmd.contains("--data-binary"));
     }
@@ -919,7 +973,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should not add file upload if path is None
         assert!(!cmd.contains("file=@"));
     }
@@ -936,7 +991,8 @@ mod tests {
             }])),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-F data=key=value"));
     }
 
@@ -947,7 +1003,8 @@ mod tests {
             url: "http://[2001:db8::1]:8080/api".to_string(),
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("[2001:db8::1]:8080"));
     }
 
@@ -975,7 +1032,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
 
         // Verify structure: first line should have curl, method, and url
         let lines: Vec<&str> = cmd.split(" \\\n").collect();
@@ -1010,7 +1068,8 @@ mod tests {
         };
 
         // Generate curl command
-        let curl_cmd = generate_curl_command(&original_req);
+        let env = EnvironmentChain::new();
+        let curl_cmd = generate_curl_command(&original_req, env);
 
         // Parse it back
         let parsed_req = parse_curl_command(&curl_cmd).expect("Failed to parse generated curl");
@@ -1048,7 +1107,8 @@ mod tests {
             ..Default::default()
         };
 
-        let curl_cmd = generate_curl_command(&original_req);
+        let env = EnvironmentChain::new();
+        let curl_cmd = generate_curl_command(&original_req, env);
         let parsed_req = parse_curl_command(&curl_cmd).expect("Failed to parse");
 
         assert_eq!(parsed_req.method, original_req.method);
@@ -1077,7 +1137,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("-H 'X-API-Key: secret123'"));
     }
 
@@ -1093,7 +1154,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         assert!(cmd.contains("api_key=secret123"));
         assert!(!cmd.contains("-H"));
     }
@@ -1111,7 +1173,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should contain Authorization header with Bearer token
         assert!(cmd.contains("-H 'Authorization: Bearer "));
         // The JWT should be a non-empty string
@@ -1131,7 +1194,8 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should contain token as query parameter
         assert!(cmd.contains("token="));
         // Should not have Authorization header
@@ -1155,11 +1219,54 @@ mod tests {
             },
             ..Default::default()
         };
-        let cmd = generate_curl_command(&req);
+        let env = EnvironmentChain::new();
+        let cmd = generate_curl_command(&req, env);
         // Should contain both query params
         assert!(cmd.contains("q=test"));
         assert!(cmd.contains("api_key=secret123"));
         assert!(cmd.contains("?"));
         assert!(cmd.contains("&"));
+    }
+
+    #[test]
+    fn test_variable_replacement() {
+        use crate::http::environment::EnvironmentChain;
+        use std::collections::HashMap;
+        use std::sync::Arc;
+
+        // Create environment with variables
+        let mut vars = HashMap::new();
+        vars.insert(
+            "BASE_URL".to_string(),
+            "https://api.example.com".to_string(),
+        );
+        vars.insert("API_KEY".to_string(), "my-secret-key".to_string());
+        vars.insert("USER_NAME".to_string(), "john_doe".to_string());
+
+        let env = EnvironmentChain::from_iter(Arc::new(HashMap::new()), vec![Arc::new(vars)]);
+
+        let req = Request {
+            method: Method::POST,
+            url: "{{BASE_URL}}/users".to_string(),
+            headers: KeyValList::from(vec![KeyValue {
+                disabled: false,
+                name: "X-API-Key".to_string(),
+                value: "{{API_KEY}}".to_string(),
+            }]),
+            body: RequestBody::Json(r#"{"username":"{{USER_NAME}}"}"#.to_string()),
+            ..Default::default()
+        };
+
+        let cmd = generate_curl_command(&req, env);
+
+        // Variables should be replaced
+        assert!(cmd.contains("https://api.example.com/users"));
+        assert!(cmd.contains("X-API-Key: my-secret-key"));
+        assert!(cmd.contains(r#"{"username":"john_doe"}"#));
+
+        // Original variable placeholders should not be present
+        assert!(!cmd.contains("{{BASE_URL}}"));
+        assert!(!cmd.contains("{{API_KEY}}"));
+        assert!(!cmd.contains("{{USER_NAME}}"));
     }
 }

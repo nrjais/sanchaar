@@ -83,7 +83,9 @@ impl UrlBarMsg {
             }
             UrlBarMsg::Done => (),
             UrlBarMsg::CopyCurl => {
-                let curl = generate_curl_command(&tab.request().to_request());
+                let collection = state.common.collections.get(tab.collection_ref.0);
+                let env = collection.map(|c| c.env_chain()).unwrap_or_default();
+                let curl = generate_curl_command(&tab.request().to_request(), env);
                 return clipboard::write(curl);
             }
         }
