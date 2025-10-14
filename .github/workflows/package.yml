@@ -97,12 +97,12 @@ jobs:
 
       - name: Build packages
         run: |
-          cargo build --release --target ${{ matrix.target }} --no-default-features
+          cargo build --release --no-default-features
           cargo packager --release --formats deb,appimage,pacman
 
       - name: Generate checksums
         run: |
-          cd target/${{ matrix.target }}/release
+          cd target/release
           find . -type f \( -name "*.deb" -o -name "*.AppImage" -o -name "*.tar.gz" \) -exec sh -c 'sha256sum "{}" > "{}.sha256"' \;
 
       - name: Upload artifacts
@@ -110,11 +110,11 @@ jobs:
         with:
           name: linux-${{ matrix.target }}
           path: |
-            target/${{ matrix.target }}/release/**/*.deb
-            target/${{ matrix.target }}/release/**/*.AppImage
-            target/${{ matrix.target }}/release/**/*.tar.gz
-            target/${{ matrix.target }}/release/**/PKGBUILD
-            target/${{ matrix.target }}/release/**/*.sha256
+            target/release/**/*.deb
+            target/release/**/*.AppImage
+            target/release/**/*.tar.gz
+            target/release/**/PKGBUILD
+            target/release/**/*.sha256
 
   build-macos:
     name: Build macOS (${{ matrix.target }})
