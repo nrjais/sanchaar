@@ -185,7 +185,7 @@ fn headers_view(
         .into()
 }
 
-fn script_view<'a>(
+fn _script_view<'a>(
     col: Option<&'a Collection>,
     tab: &'a HttpTab,
 ) -> iced::Element<'a, RequestPaneMsg> {
@@ -251,7 +251,8 @@ pub fn view<'a>(
             auth_view(request, Arc::clone(&vars)).map(RequestPaneMsg::AuthEditorAction)
         }
         ReqTabId::Body => body_tab(&request.body, vars),
-        ReqTabId::PreRequest => script_view(col, tab),
+        // ReqTabId::PreRequest => script_view(col, tab),
+        ReqTabId::PreRequest => Column::new().into(), // TODO: Implement script
     };
 
     let tabs = button_tabs(
