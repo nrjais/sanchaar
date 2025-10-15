@@ -276,15 +276,11 @@ fn extract_body(body: Option<RequestBody>) -> SanchaarRequestBody {
                     .formdata
                     .iter()
                     .filter_map(|p| {
-                        if let Some(subtype0) = &p.subtype_0 {
-                            Some(KeyValue {
-                                disabled: subtype0.disabled,
-                                name: subtype0.key.clone(),
-                                value: subtype0.value.clone().unwrap_or_default(),
-                            })
-                        } else {
-                            None
-                        }
+                        p.subtype_0.as_ref().map(|subtype0| KeyValue {
+                            disabled: subtype0.disabled,
+                            name: subtype0.key.clone(),
+                            value: subtype0.value.clone().unwrap_or_default(),
+                        })
                     })
                     .collect();
                 SanchaarRequestBody::Form(KeyValList::from(params))

@@ -130,12 +130,12 @@ Download the latest release from the [Releases page](https://github.com/nrjais/s
   - [ ] Proxy
   - [ ] About
 - [ ] Cookies
-  - [ ] List/Remove
+  - [x] List/Remove
   - [ ] Edit/Add ?
-- [ ] History
-  - [ ] List
-  - [ ] Clear
-  - [ ] Open from history
+- [x] History
+  - [x] List
+  - [x] Clear
+  - [x] Open from history
 - [ ] Mock APIs
 - [ ] CLI
   - [x] Run request by path

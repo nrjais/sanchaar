@@ -14,7 +14,9 @@ use lib::client::send_request;
 use lib::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use lib::http::request::Request;
 use lib::http::{CollectionKey, CollectionRequest, Environment, EnvironmentKey, KeyValList};
-use lib::persistence::collections::{self, encode_collection, import_postman_collection, open_collection, save_collection};
+use lib::persistence::collections::{
+    self, encode_collection, import_postman_collection, open_collection, save_collection,
+};
 use lib::persistence::history::HistoryDatabase;
 use lib::persistence::request::{encode_request, read_request, save_req_to_file};
 use lib::transformers::request::transform_request;
