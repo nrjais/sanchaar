@@ -20,10 +20,12 @@ pub enum Message {
     NameChanged(String),
     OpenFolderDialog,
     OpenFileDialog,
+    OpenTargetFolderDialog,
     FolderSelected(Option<Arc<FileHandle>>),
     FileSelected(Option<Arc<FileHandle>>),
+    TargetFolderSelected(Option<Arc<FileHandle>>),
     CreateCollection(String, PathBuf),
-    ImportCollection(PathBuf, String),
+    ImportCollection(PathBuf, PathBuf, String),
     ModeChanged(CollectionCreationMode),
     OpenCollection(Option<Collection>),
 }
@@ -50,8 +52,15 @@ impl Message {
                 open_file_dialog_with_filter("Select Postman Collection", &["json"])
                     .map(Message::FileSelected)
             }
+            Message::OpenTargetFolderDialog => {
+                open_folder_dialog("Select target location").map(Message::TargetFolderSelected)
+            }
             Message::FolderSelected(handle) => {
                 data.path = handle.map(|h| h.path().to_owned());
+                Task::none()
+            }
+            Message::TargetFolderSelected(handle) => {
+                data.import_target_path = handle.map(|h| h.path().to_owned());
                 Task::none()
             }
             Message::OpenCollection(collection) => {
@@ -75,8 +84,8 @@ impl Message {
                 builders::create_collection_cmd(&mut state.common, name, path)
                     .map(|_| Message::Done)
             }
-            Message::ImportCollection(file_path, collection_name) => {
-                let collection_path = PathBuf::from(format!("collections/{}", collection_name));
+            Message::ImportCollection(file_path, target_path, collection_name) => {
+                let collection_path = target_path.join(collection_name);
                 builders::import_postman_collection_cmd(
                     &mut state.common,
                     file_path,
@@ -102,14 +111,19 @@ pub fn done(data: &CreateCollectionState) -> Option<Message> {
     }
 
     match data.mode {
-        CollectionCreationMode::New => data
+        CollectionCreationMode::CreateNew => data
             .path
             .as_ref()
             .map(|path| Message::CreateCollection(data.name.clone(), path.clone())),
-        CollectionCreationMode::ImportPostman => data
-            .import_file_path
-            .as_ref()
-            .map(|path| Message::ImportCollection(path.clone(), data.name.clone())),
+        CollectionCreationMode::ImportPostman => {
+            let file_path = data.import_file_path.as_ref()?;
+            let target_path = data.import_target_path.as_ref()?;
+            Some(Message::ImportCollection(
+                file_path.clone(),
+                target_path.clone(),
+                data.name.clone(),
+            ))
+        }
     }
 }
 
@@ -120,10 +134,8 @@ pub(crate) fn view<'a>(
     let mode_tabs = button_tabs(
         data.mode,
         [
-            button_tab(CollectionCreationMode::New, || text("New Collection")),
-            button_tab(CollectionCreationMode::ImportPostman, || {
-                text("Import from Postman")
-            }),
+            button_tab(CollectionCreationMode::CreateNew, || text("Create")),
+            button_tab(CollectionCreationMode::ImportPostman, || text("Import")),
         ]
         .into_iter(),
         Message::ModeChanged,
@@ -135,13 +147,14 @@ pub(crate) fn view<'a>(
         .push(space::horizontal())
         .push(
             text_input("Collection name", &data.name)
+                .padding([2, 4])
                 .on_input(Message::NameChanged)
                 .on_paste(Message::NameChanged),
         )
         .spacing(4);
 
     let content = match data.mode {
-        CollectionCreationMode::New => {
+        CollectionCreationMode::CreateNew => {
             let path = Row::new()
                 .push(text("Location"))
                 .push(space::horizontal())
@@ -174,7 +187,7 @@ pub(crate) fn view<'a>(
                             data.import_file_path
                                 .as_ref()
                                 .and_then(|p| p.to_str())
-                                .unwrap_or("Browse for Postman collection"),
+                                .unwrap_or("Select Postman collection"),
                         )
                         .size(16),
                     )
@@ -185,7 +198,31 @@ pub(crate) fn view<'a>(
                 .align_y(iced::Alignment::Center)
                 .spacing(4);
 
-            Column::new().push(file_path).push(name).spacing(4)
+            let target_path = Row::new()
+                .push(text("Location"))
+                .push(space::horizontal())
+                .push(
+                    button(
+                        text(
+                            data.import_target_path
+                                .as_ref()
+                                .and_then(|p| p.to_str())
+                                .unwrap_or("Save Location"),
+                        )
+                        .size(16),
+                    )
+                    .style(button::subtle)
+                    .padding([2, 6])
+                    .on_press(Message::OpenTargetFolderDialog),
+                )
+                .align_y(iced::Alignment::Center)
+                .spacing(4);
+
+            Column::new()
+                .push(name)
+                .push(file_path)
+                .push(target_path)
+                .spacing(4)
         }
     };
 

@@ -160,13 +160,13 @@ fn convert_request(request: Request, description: Option<&Description>) -> Resul
             auth,
             ..
         } => {
-            let url_str = extract_url(url);
+            let (url_str, path_params) = extract_url_and_path_params(url);
             let method = extract_method(method);
             let headers = extract_headers(header);
             let body = extract_body(body);
             let auth = extract_auth(auth);
             let desc = extract_description(description);
-            let (query_params, path_params) = extract_params(&url_str);
+            let query_params = extract_query_params(&url_str);
 
             Ok(SanchaarRequest {
                 description: desc,
@@ -196,11 +196,27 @@ fn convert_request(request: Request, description: Option<&Description>) -> Resul
     }
 }
 
-fn extract_url(url: Option<Url>) -> String {
+fn extract_url_and_path_params(url: Option<Url>) -> (String, KeyValList) {
     match url {
-        Some(Url::String(s)) => s,
-        Some(Url::Object { raw, .. }) => raw.unwrap_or_else(|| "https://example.com".to_string()),
-        None => "https://example.com".to_string(),
+        Some(Url::String(s)) => (s, KeyValList::new()),
+        Some(Url::Object { raw, variable, .. }) => {
+            let url_str = raw.unwrap_or_else(|| "https://example.com".to_string());
+            let path_params = variable
+                .iter()
+                .map(|v| KeyValue {
+                    disabled: v.disabled,
+                    name: v.key.clone(),
+                    value: v
+                        .value
+                        .as_ref()
+                        .and_then(|val| val.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                })
+                .collect::<Vec<_>>();
+            (url_str, KeyValList::from(path_params))
+        }
+        None => ("https://example.com".to_string(), KeyValList::new()),
     }
 }
 
@@ -327,9 +343,8 @@ fn extract_description(desc: Option<&Description>) -> String {
     }
 }
 
-fn extract_params(url_str: &str) -> (KeyValList, KeyValList) {
+fn extract_query_params(url_str: &str) -> KeyValList {
     let mut query_params = Vec::new();
-    let path_params = Vec::new();
 
     if let Some(query_start) = url_str.find('?') {
         let query_string = &url_str[query_start + 1..];
@@ -352,10 +367,7 @@ fn extract_params(url_str: &str) -> (KeyValList, KeyValList) {
         }
     }
 
-    (
-        KeyValList::from(query_params),
-        KeyValList::from(path_params),
-    )
+    KeyValList::from(query_params)
 }
 
 fn sanitize_name(name: &str) -> String {
