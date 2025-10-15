@@ -1,7 +1,7 @@
 #![allow(unused_variables)]
 #![allow(clippy::large_enum_variant)]
 
-use ::std::{
+use std::{
     convert::{From, TryFrom},
     default::Default,
     fmt::{self, Display, Formatter},
@@ -13,8 +13,8 @@ use ::std::{
     vec::Vec,
 };
 
-use ::serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::{Map, Value};
 
 use self::error::ConversionError;
 
@@ -71,7 +71,7 @@ pub struct Auth {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub hawk: Vec<AuthAttribute>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub noauth: Option<::serde_json::Value>,
+    pub noauth: Option<Value>,
 
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ntlm: Vec<AuthAttribute>,
@@ -96,7 +96,7 @@ pub struct AuthAttribute {
     #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
     pub type_: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub value: Option<::serde_json::Value>,
+    pub value: Option<Value>,
 }
 impl From<&AuthAttribute> for AuthAttribute {
     fn from(value: &AuthAttribute) -> Self {
@@ -214,7 +214,7 @@ impl From<&Certificate> for Certificate {
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct CertificateCert {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub src: Option<::serde_json::Value>,
+    pub src: Option<Value>,
 }
 impl From<&CertificateCert> for CertificateCert {
     fn from(value: &CertificateCert) -> Self {
@@ -225,7 +225,7 @@ impl From<&CertificateCert> for CertificateCert {
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct CertificateKey {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub src: Option<::serde_json::Value>,
+    pub src: Option<Value>,
 }
 impl From<&CertificateKey> for CertificateKey {
     fn from(value: &CertificateKey) -> Self {
@@ -333,7 +333,7 @@ pub enum Description {
         type_: Option<String>,
 
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        version: Option<::serde_json::Value>,
+        version: Option<Value>,
     },
     String(String),
     Null,
@@ -454,7 +454,7 @@ impl From<&FormParameterSubtype1> for FormParameterSubtype1 {
 #[serde(untagged)]
 pub enum FormParameterSubtype1Src {
     Null,
-    Array(Vec<::serde_json::Value>),
+    Array(Vec<Value>),
     String(String),
 }
 impl From<&Self> for FormParameterSubtype1Src {
@@ -462,8 +462,8 @@ impl From<&Self> for FormParameterSubtype1Src {
         value.clone()
     }
 }
-impl From<Vec<::serde_json::Value>> for FormParameterSubtype1Src {
-    fn from(value: Vec<::serde_json::Value>) -> Self {
+impl From<Vec<Value>> for FormParameterSubtype1Src {
+    fn from(value: Vec<Value>) -> Self {
         Self::Array(value)
     }
 }
@@ -630,6 +630,7 @@ pub struct ItemGroup {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub event: Option<EventList>,
 
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub item: Vec<Items>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -673,14 +674,14 @@ impl From<ItemGroup> for Items {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 #[serde(transparent)]
-pub struct ProtocolProfileBehavior(pub ::serde_json::Map<String, ::serde_json::Value>);
+pub struct ProtocolProfileBehavior(pub Map<String, Value>);
 impl Deref for ProtocolProfileBehavior {
-    type Target = ::serde_json::Map<String, ::serde_json::Value>;
-    fn deref(&self) -> &::serde_json::Map<String, ::serde_json::Value> {
+    type Target = Map<String, Value>;
+    fn deref(&self) -> &Map<String, Value> {
         &self.0
     }
 }
-impl From<ProtocolProfileBehavior> for ::serde_json::Map<String, ::serde_json::Value> {
+impl From<ProtocolProfileBehavior> for Map<String, Value> {
     fn from(value: ProtocolProfileBehavior) -> Self {
         value.0
     }
@@ -690,8 +691,8 @@ impl From<&ProtocolProfileBehavior> for ProtocolProfileBehavior {
         value.clone()
     }
 }
-impl From<::serde_json::Map<String, ::serde_json::Value>> for ProtocolProfileBehavior {
-    fn from(value: ::serde_json::Map<String, ::serde_json::Value>) -> Self {
+impl From<Map<String, Value>> for ProtocolProfileBehavior {
+    fn from(value: Map<String, Value>) -> Self {
         Self(value)
     }
 }
@@ -786,13 +787,13 @@ pub struct RequestBody {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub formdata: Vec<FormParameter>,
     #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-    pub graphql: ::serde_json::Map<String, ::serde_json::Value>,
+    pub graphql: Map<String, Value>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mode: Option<RequestBodyMode>,
 
     #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
-    pub options: ::serde_json::Map<String, ::serde_json::Value>,
+    pub options: Map<String, Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub raw: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -895,13 +896,19 @@ impl From<HeaderList> for RequestHeader {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug, Default)]
-pub struct RequestMethod {
-    #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
-    pub subtype_0: Option<RequestMethodSubtype0>,
-    #[serde(flatten, default, skip_serializing_if = "Option::is_none")]
-    pub subtype_1: Option<String>,
+#[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum RequestMethod {
+    Standard(RequestMethodSubtype0),
+    Custom(String),
 }
+
+impl Default for RequestMethod {
+    fn default() -> Self {
+        RequestMethod::Standard(RequestMethodSubtype0::Get)
+    }
+}
+
 impl From<&RequestMethod> for RequestMethod {
     fn from(value: &RequestMethod) -> Self {
         value.clone()
@@ -1027,7 +1034,7 @@ pub struct Response {
     pub status: Option<String>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub timings: Option<::serde_json::Map<String, ::serde_json::Value>>,
+    pub timings: Option<Map<String, Value>>,
 }
 impl From<&Response> for Response {
     fn from(value: &Response) -> Self {
@@ -1068,6 +1075,9 @@ pub struct Script {
 
     #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
     pub type_: Option<String>,
+
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub packages: Map<String, Value>,
 }
 impl From<&Script> for Script {
     fn from(value: &Script) -> Self {
@@ -1178,30 +1188,30 @@ impl From<&Self> for UrlObjectPathArrayItem {
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
-#[serde(untagged)]
-pub enum Variable {
-    Variant0(VariableVariant0),
-    Variant1(VariableVariant1),
-    Variant2(VariableVariant2),
+pub struct Variable {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<Description>,
+
+    #[serde(default)]
+    pub disabled: bool,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+
+    pub key: String,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub type_: Option<String>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub value: Option<::serde_json::Value>,
 }
-impl From<&Self> for Variable {
+impl From<&Variable> for Variable {
     fn from(value: &Variable) -> Self {
         value.clone()
-    }
-}
-impl From<VariableVariant0> for Variable {
-    fn from(value: VariableVariant0) -> Self {
-        Self::Variant0(value)
-    }
-}
-impl From<VariableVariant1> for Variable {
-    fn from(value: VariableVariant1) -> Self {
-        Self::Variant1(value)
-    }
-}
-impl From<VariableVariant2> for Variable {
-    fn from(value: VariableVariant2) -> Self {
-        Self::Variant2(value)
     }
 }
 
@@ -1230,33 +1240,6 @@ impl From<Vec<Variable>> for VariableList {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[serde(deny_unknown_fields)]
-pub enum VariableVariant0 {}
-impl From<&Self> for VariableVariant0 {
-    fn from(value: &VariableVariant0) -> Self {
-        *value
-    }
-}
-
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[serde(deny_unknown_fields)]
-pub enum VariableVariant1 {}
-impl From<&Self> for VariableVariant1 {
-    fn from(value: &VariableVariant1) -> Self {
-        *value
-    }
-}
-
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[serde(deny_unknown_fields)]
-pub enum VariableVariant2 {}
-impl From<&Self> for VariableVariant2 {
-    fn from(value: &VariableVariant2) -> Self {
-        *value
-    }
-}
-
 #[derive(Deserialize, Serialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum Version {
@@ -1266,7 +1249,7 @@ pub enum Version {
 
         major: u64,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        meta: Option<::serde_json::Value>,
+        meta: Option<Value>,
 
         minor: u64,
 
