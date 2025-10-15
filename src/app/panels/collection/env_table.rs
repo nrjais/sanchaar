@@ -15,6 +15,10 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
     let editor = &tab.env_editor;
     let vars = col.dotenv_env_chain().all_var_set();
 
+    if editor.variables.is_empty() && editor.environments.is_empty() {
+        return container(text("No variables found, add new variable/environments")).into();
+    }
+
     let mut columns = vec![
         table::column(bold("Key"), |(index, env): (usize, &EnvVariable)| {
             container(
@@ -51,6 +55,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
     }));
 
     container(table(columns, editor.variables.iter().enumerate()))
+        .style(container::bordered_box)
         .height(Length::Shrink)
         .width(Length::Shrink)
         .into()
