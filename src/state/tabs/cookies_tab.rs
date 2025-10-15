@@ -25,4 +25,30 @@ impl CookiesTab {
             .cloned()
             .collect()
     }
+
+    pub fn delete_cookie(&mut self, name: &str, domain: &str, path: &str) {
+        let mut store = self.store.write().expect("Lock");
+        let cookies_to_remove: Vec<_> = store
+            .iter_any()
+            .filter(|cookie| {
+                cookie.name() == name
+                    && cookie.domain().unwrap_or_default() == domain
+                    && cookie.path().unwrap_or_default() == path
+            })
+            .cloned()
+            .collect();
+
+        for cookie in cookies_to_remove {
+            store.remove(
+                cookie.domain().unwrap_or_default(),
+                cookie.path().unwrap_or_default(),
+                cookie.name(),
+            );
+        }
+    }
+
+    pub fn clear_all(&mut self) {
+        let mut store = self.store.write().expect("Lock");
+        store.clear();
+    }
 }
