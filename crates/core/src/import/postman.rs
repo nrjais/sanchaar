@@ -5,7 +5,9 @@ pub mod schema;
 use anyhow::{Context, Result};
 use schema::*;
 use serde::Deserialize;
+use std::future::Future;
 use std::path::Path;
+use std::pin::Pin;
 use tokio::fs;
 
 use crate::http::collection::{Entry, Folder, FolderId, RequestId, RequestRef};
@@ -18,7 +20,6 @@ use crate::persistence::collections::{EncodedCollection, save_collection};
 use crate::persistence::request::{encode_request, save_req_to_file};
 use crate::persistence::{REQUESTS, TOML_EXTENSION};
 
-/// Root Postman Collection structure
 #[derive(Debug, Clone, Deserialize)]
 pub struct PostmanCollection {
     pub info: Info,
@@ -31,19 +32,35 @@ pub struct PostmanCollection {
 }
 
 pub async fn import_postman_collection(postman_path: &Path, output_dir: &Path) -> Result<()> {
+    log::info!(
+        "Starting Postman collection import from: {:?}",
+        postman_path
+    );
+    log::info!("Output directory: {:?}", output_dir);
+    log::info!("Import module version: 2024-10-14-v3 (Variable fix + directory fix)");
+
     let content = fs::read_to_string(postman_path)
         .await
         .context("Failed to read Postman collection file")?;
 
-    let postman_collection: PostmanCollection =
-        serde_json::from_str(&content).context("Failed to parse Postman collection JSON")?;
+    let postman_collection: PostmanCollection = serde_json::from_str(&content)
+        .map_err(|e| {
+            log::error!("Detailed parse error: {}", e);
+            log::error!("Error at line {}, column {}", e.line(), e.column());
+            e
+        })
+        .context("Failed to parse Postman collection JSON")?;
 
     let collection_name = sanitize_name(&postman_collection.info.name);
-    let collection_dir = output_dir.join(&collection_name);
-    fs::create_dir_all(&collection_dir).await?;
 
-    let requests_dir = collection_dir.join(REQUESTS);
-    fs::create_dir_all(&requests_dir).await?;
+    fs::create_dir_all(output_dir)
+        .await
+        .context("Failed to create collection directory")?;
+
+    let requests_dir = output_dir.join(REQUESTS);
+    fs::create_dir_all(&requests_dir)
+        .await
+        .context("Failed to create requests directory")?;
 
     let mut entries = Vec::new();
     for item in postman_collection.item {
@@ -62,12 +79,12 @@ pub async fn import_postman_collection(postman_path: &Path, output_dir: &Path) -
         headers: vec![],
     };
 
-    save_collection(collection_dir.clone(), encoded_collection).await?;
+    save_collection(output_dir.to_path_buf(), encoded_collection).await?;
 
     log::info!(
         "Successfully imported Postman collection '{}' to {:?}",
         collection_name,
-        collection_dir
+        output_dir
     );
 
     Ok(())
@@ -76,7 +93,7 @@ pub async fn import_postman_collection(postman_path: &Path, output_dir: &Path) -
 fn process_item(
     item: Items,
     base_path: &Path,
-) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<Option<Entry>>> + Send + '_>> {
+) -> Pin<Box<dyn Future<Output = Result<Option<Entry>>> + Send + '_>> {
     Box::pin(async move {
         match item {
             Items::Variant0(item) => process_request_item(item, base_path).await.map(Some),
@@ -91,9 +108,15 @@ async fn process_request_item(item: Item, base_path: &Path) -> Result<Entry> {
 
     let sanchaar_request = convert_request(item.request, item.description.as_ref())?;
 
+    fs::create_dir_all(base_path)
+        .await
+        .with_context(|| format!("Failed to create directory: {:?}", base_path))?;
+
     let request_path = base_path.join(format!("{}{}", sanitized_name, TOML_EXTENSION));
     let encoded_request = encode_request(sanchaar_request);
-    save_req_to_file(request_path.clone(), encoded_request).await?;
+    save_req_to_file(request_path.clone(), encoded_request)
+        .await
+        .with_context(|| format!("Failed to save request to: {:?}", request_path))?;
 
     Ok(Entry::Item(RequestRef {
         id: RequestId::new(),
@@ -107,7 +130,9 @@ async fn process_folder(folder: ItemGroup, base_path: &Path) -> Result<Entry> {
     let sanitized_name = sanitize_name(&name);
 
     let folder_path = base_path.join(&sanitized_name);
-    fs::create_dir_all(&folder_path).await?;
+    fs::create_dir_all(&folder_path)
+        .await
+        .with_context(|| format!("Failed to create folder: {:?}", folder_path))?;
 
     let mut entries = Vec::new();
     for item in folder.item {
@@ -181,16 +206,18 @@ fn extract_url(url: Option<Url>) -> String {
 
 fn extract_method(method: Option<RequestMethod>) -> SanchaarMethod {
     method
-        .and_then(|m| m.subtype_0)
         .map(|m| match m {
-            RequestMethodSubtype0::Get => SanchaarMethod::GET,
-            RequestMethodSubtype0::Post => SanchaarMethod::POST,
-            RequestMethodSubtype0::Put => SanchaarMethod::PUT,
-            RequestMethodSubtype0::Delete => SanchaarMethod::DELETE,
-            RequestMethodSubtype0::Patch => SanchaarMethod::PATCH,
-            RequestMethodSubtype0::Head => SanchaarMethod::HEAD,
-            RequestMethodSubtype0::Options => SanchaarMethod::OPTIONS,
-            _ => SanchaarMethod::GET,
+            RequestMethod::Standard(s) => match s {
+                RequestMethodSubtype0::Get => SanchaarMethod::GET,
+                RequestMethodSubtype0::Post => SanchaarMethod::POST,
+                RequestMethodSubtype0::Put => SanchaarMethod::PUT,
+                RequestMethodSubtype0::Delete => SanchaarMethod::DELETE,
+                RequestMethodSubtype0::Patch => SanchaarMethod::PATCH,
+                RequestMethodSubtype0::Head => SanchaarMethod::HEAD,
+                RequestMethodSubtype0::Options => SanchaarMethod::OPTIONS,
+                _ => SanchaarMethod::GET,
+            },
+            RequestMethod::Custom(s) => s.to_uppercase().parse().unwrap_or(SanchaarMethod::GET),
         })
         .unwrap_or(SanchaarMethod::GET)
 }
