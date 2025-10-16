@@ -9,20 +9,25 @@ fn is_json_content_type(content_type: &str) -> bool {
     matches!(main_type, "application/json" | "text/json") || main_type.ends_with("+json")
 }
 
+fn is_html_content_type(content_type: &str) -> bool {
+    let content_type = content_type.to_lowercase();
+    let main_type = content_type.split(';').next().unwrap_or("").trim();
+    matches!(main_type, "text/html") || main_type.ends_with("+html")
+}
+
+fn is_xml_content_type(content_type: &str) -> bool {
+    let content_type = content_type.to_lowercase();
+    let main_type = content_type.split(';').next().unwrap_or("").trim();
+    matches!(main_type, "application/xml" | "text/xml") || main_type.ends_with("+xml")
+}
+
 fn is_text_content_type(content_type: &str) -> bool {
     let content_type = content_type.to_lowercase();
     let main_type = content_type.split(';').next().unwrap_or("").trim();
 
     matches!(
         main_type,
-        "text/plain"
-            | "text/html"
-            | "text/css"
-            | "text/javascript"
-            | "text/csv"
-            | "text/xml"
-            | "text/yaml"
-            | "text/markdown"
+        "text/plain" | "text/css" | "text/javascript" | "text/csv" | "text/yaml" | "text/markdown"
     ) || main_type.starts_with("text/")
 }
 
@@ -30,6 +35,8 @@ fn is_text_content_type(content_type: &str) -> bool {
 pub enum ContentType {
     Json,
     Text,
+    XML,
+    Html,
     Buffer,
 }
 
@@ -38,6 +45,8 @@ impl ContentType {
         match self {
             ContentType::Json => "json",
             ContentType::Text => "text",
+            ContentType::Html => "html",
+            ContentType::XML => "xml",
             ContentType::Buffer => "buffer",
         }
     }
@@ -56,6 +65,8 @@ impl FromStr for ContentType {
         match s {
             "json" => Ok(ContentType::Json),
             "text" => Ok(ContentType::Text),
+            "html" => Ok(ContentType::Html),
+            "xml" => Ok(ContentType::XML),
             "buffer" => Ok(ContentType::Buffer),
             _ => Err(anyhow::anyhow!("Invalid content type: {}", s)),
         }
@@ -97,22 +108,19 @@ pub async fn send_request(client: Client, req: Request) -> anyhow::Result<Respon
 
     let data = res.bytes().await?.to_vec().into();
 
-    let body: ResponseBody = if is_json_content_type(content_type) {
-        ResponseBody {
-            content_type: ContentType::Json,
-            data,
-        }
+    let content_type = if is_json_content_type(content_type) {
+        ContentType::Json
     } else if is_text_content_type(content_type) {
-        ResponseBody {
-            content_type: ContentType::Text,
-            data,
-        }
+        ContentType::Text
+    } else if is_html_content_type(content_type) {
+        ContentType::Html
+    } else if is_xml_content_type(content_type) {
+        ContentType::XML
     } else {
-        ResponseBody {
-            content_type: ContentType::Buffer,
-            data,
-        }
+        ContentType::Buffer
     };
+
+    let body = ResponseBody { content_type, data };
 
     let size_bytes = body.data.len();
 

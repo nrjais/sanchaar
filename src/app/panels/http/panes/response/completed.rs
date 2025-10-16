@@ -1,3 +1,4 @@
+use lib::client;
 use lib::utils::fmt_duration;
 use std::sync::Arc;
 
@@ -102,10 +103,12 @@ fn body_view(cr: &CompletedResponse, mode: BodyMode) -> Element<CompletedMsg> {
 
     let content = cr.selected_content(mode);
     let is_json = cr.result.body.is_json();
-    let content_type = if is_json {
-        ContentType::Json
-    } else {
-        ContentType::Text
+    let content_type = match cr.result.body.content_type {
+        client::ContentType::Json => ContentType::Json,
+        client::ContentType::Text => ContentType::Text,
+        client::ContentType::Html => ContentType::HTML,
+        client::ContentType::XML => ContentType::XML,
+        client::ContentType::Buffer => ContentType::Text, //TODO: Show buffer correctly
     };
 
     let editor =

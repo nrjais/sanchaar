@@ -8,6 +8,7 @@ pub enum ContentType {
     Json,
     Text,
     XML,
+    HTML,
 }
 
 pub struct CodeEditor<'a> {
@@ -57,6 +58,7 @@ impl ContentType {
             ContentType::Json => "json",
             ContentType::Text => "txt",
             ContentType::XML => "xml",
+            ContentType::HTML => "html",
         }
     }
 }
