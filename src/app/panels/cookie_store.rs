@@ -1,7 +1,7 @@
-use crate::components::{bold, icon, icon_button, icons, tooltip};
+use crate::components::{LineEditorMsg, bold, icon, icon_button, icons, line_editor, tooltip};
 use cookie_store::Cookie;
 use iced::widget::text::Wrapping;
-use iced::widget::{button, container, scrollable, table, text};
+use iced::widget::{button, column, container, row, scrollable, table, text};
 use iced::{Alignment, Element, Length, Task};
 
 use crate::state::tabs::cookies_tab::CookiesTab;
@@ -11,6 +11,8 @@ use crate::state::{AppState, Tab};
 pub enum CookieTabMsg {
     DeleteCookie(String, String, String),
     ClearAllCookies,
+    SearchChanged(LineEditorMsg),
+    ClearSearch,
 }
 
 impl CookieTabMsg {
@@ -27,11 +29,44 @@ impl CookieTabMsg {
                 tab.clear_all();
                 Task::none()
             }
+            CookieTabMsg::SearchChanged(update) => {
+                update.update(&mut tab.search_query);
+                let query = tab.search_query.text().trim().to_string();
+                tab.set_search_query(&query);
+                Task::none()
+            }
+            CookieTabMsg::ClearSearch => {
+                tab.clear_search_query();
+                Task::none()
+            }
         }
     }
 }
 
 pub fn view<'a>(tab: &'a CookiesTab) -> Element<'a, CookieTabMsg> {
+    let is_empty = tab.search_query_text.is_empty();
+    let cookies = tab.cookies();
+
+    let search_placeholder = "Search (name, value, domain)...";
+
+    let search_input = container(
+        line_editor(&tab.search_query)
+            .placeholder(search_placeholder)
+            .highlight(false)
+            .map(CookieTabMsg::SearchChanged),
+    )
+    .width(Length::FillPortion(1));
+
+    let clear_all_button = icon_button(icons::Delete, Some(24), Some(8))
+        .style(button::danger)
+        .on_press_maybe((!cookies.is_empty()).then_some(CookieTabMsg::ClearAllCookies));
+
+    let clear_all_button = tooltip("Remove all cookies", clear_all_button);
+
+    let search_row = row![search_input, clear_all_button]
+        .align_y(Alignment::Center)
+        .spacing(8);
+
     let columns = [
         table::column(bold("Name"), |cookie: Cookie<'static>| {
             text(cookie.name().to_string())
@@ -69,7 +104,7 @@ pub fn view<'a>(tab: &'a CookiesTab) -> Element<'a, CookieTabMsg> {
 
             tooltip(
                 "Delete cookie",
-                button(icon(icons::Delete).size(16))
+                button(icon(icons::Delete).size(20))
                     .padding([0, 4])
                     .style(button::text)
                     .on_press(CookieTabMsg::DeleteCookie(name, domain, path)),
@@ -79,7 +114,24 @@ pub fn view<'a>(tab: &'a CookiesTab) -> Element<'a, CookieTabMsg> {
         .align_y(Alignment::Center),
     ];
 
-    let table_view = scrollable(table(columns, tab.cookies()).padding_x(8).padding_y(4));
+    let content: Element<'a, CookieTabMsg> = if cookies.is_empty() {
+        let message = if is_empty {
+            "No cookies found"
+        } else {
+            "No matching cookies found"
+        };
+        text(message).into()
+    } else {
+        container(scrollable(
+            table(columns, cookies.to_vec()).padding_x(8).padding_y(4),
+        ))
+        .style(container::bordered_box)
+        .into()
+    };
 
-    container(table_view).style(container::bordered_box).into()
+    column![search_row, content]
+        .spacing(8)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
