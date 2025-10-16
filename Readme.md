@@ -103,7 +103,7 @@ Download the latest release from the [Releases page](https://github.com/nrjais/s
   - [ ] Settings
     - [x] Update default env
     - [x] Collection headers
-    - [x] Collection Variables
+    - [ ] Collection Variables
     - [x] SSL verification
     - [ ] Collection auth
     - [ ] Request preset
@@ -165,10 +165,10 @@ Download the latest release from the [Releases page](https://github.com/nrjais/s
   - [x] Save environment (Cmd + S - In environment view)
   - [x] App Setting (Cmd + ,)
   - [x] Collection Setting (Cmd + ; - In http tab)
-- [ ] Other improvemetns
+- [ ] Other improvements
   - [ ] Error handling
   - [ ] Logging and tracing request
-  - [ ] Reduce clones
+  - [ ] Reduce clones / Performance
   - [x] Variable highlighting
   - [x] Session persistence
 
