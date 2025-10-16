@@ -1,10 +1,12 @@
+use std::time::Duration;
+
 use iced::padding;
 use iced::{
     Element, Length, Task,
     widget::{Column, container},
 };
 
-use crate::components::split::split;
+use crate::components::split::vertical_split;
 use crate::state::{AppState, tabs::perf_tab::PerfTab};
 
 pub mod config_pane;
@@ -39,15 +41,15 @@ pub fn view<'a>(state: &'a AppState, tab: &'a PerfTab) -> Element<'a, PerfTabMsg
     let config_view = config_pane::view(state, tab).map(|msg| PerfTabMsg::Config(Box::new(msg)));
     let report_view = report_pane::view(state, tab).map(PerfTabMsg::Report);
 
-    let panes = split(
+    let panes = vertical_split(
         config_view,
         report_view,
         tab.split_at,
-        state.split_direction,
         PerfTabMsg::SplitResize,
     )
-    .handle_width(8.)
-    .line_width(2.);
+    .direction(state.split_direction)
+    .focus_delay(Duration::from_millis(50))
+    .handle_width(8.);
 
     let content = container(panes).padding(padding::top(4));
 

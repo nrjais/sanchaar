@@ -1,8 +1,10 @@
-use crate::components::split::split;
+use std::time::Duration;
+
 use iced::padding;
 use iced::widget::Column;
 use iced::{Element, Task, widget::container};
 
+use crate::components::split::vertical_split;
 use crate::state::{AppState, HttpTab, Tab};
 
 use self::panes::{request, response};
@@ -46,15 +48,15 @@ pub fn view<'a>(state: &'a AppState, tab: &'a HttpTab) -> Element<'a, HttpTabMsg
 
     let request_view = request::view(tab, col).map(HttpTabMsg::Req);
     let response_view = response::view(tab).map(HttpTabMsg::Res);
-    let panes = split(
+    let panes = vertical_split(
         request_view,
         response_view,
         tab.split_at,
-        state.split_direction,
         HttpTabMsg::SplitResize,
     )
-    .handle_width(8.)
-    .line_width(2.);
+    .direction(state.split_direction)
+    .focus_delay(Duration::from_millis(50))
+    .handle_width(8.);
 
     let req_res = container(panes).padding(padding::top(4));
     Column::new()

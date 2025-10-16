@@ -35,7 +35,7 @@ impl BottomBarMsg {
                 Task::none()
             }
             ToggleSplit => {
-                state.split_direction = state.split_direction.toggle();
+                state.split_direction = state.split_direction.opposite();
                 Task::none()
             }
             OpenUpdateConfirmation(release) => {

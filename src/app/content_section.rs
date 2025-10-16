@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use collection_tree::CollectionTreeMsg;
 use iced::font::Weight;
 use iced::widget::{Column, container, text};
@@ -97,7 +99,7 @@ fn split_content(state: &AppState) -> Element<MainPageMsg> {
             MainPageMsg::SplitResize,
         )
         .handle_width(8.)
-        .line_width(2.)
+        .focus_delay(Duration::from_millis(50))
         .into()
     } else {
         tab_content
