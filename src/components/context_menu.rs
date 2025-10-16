@@ -235,7 +235,7 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
                 content: &mut self.menu,
                 tree: &mut second[0],
                 state,
-                position: position + translation + Vector::new(10.0, 10.0),
+                position: position + translation + Vector::new(4.0, 4.0),
             }))
         });
 
