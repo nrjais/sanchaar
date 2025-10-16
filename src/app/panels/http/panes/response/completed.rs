@@ -5,9 +5,10 @@ use humansize::{BINARY, format_size};
 use iced::widget::{Column, Row, button, container, space, text};
 use iced::{Alignment, Color, Element, Length, Task, Theme, clipboard};
 
+use crate::components::editor::Content;
 use crate::components::{
     CodeEditorMsg, ContentType, LineEditorMsg, button_tab, button_tabs, code_editor, colors, icon,
-    icons, key_value_viewer, line_editor,
+    icons, key_value_viewer, line_editor, tooltip,
 };
 
 use crate::commands::builders::write_file_cmd;
@@ -27,6 +28,7 @@ pub enum CompletedMsg {
     Done,
     JsonPathFilter(LineEditorMsg),
     CopyHeadersToClipboard,
+    ToggleJsonPathFilter,
 }
 
 impl CompletedMsg {
@@ -56,11 +58,21 @@ impl CompletedMsg {
             }
             CompletedMsg::Done => (),
             CompletedMsg::JsonPathFilter(action) => {
-                action.update(&mut res.json_path_filter);
+                if let Some(json_path_filter) = res.json_path_filter.as_mut() {
+                    action.update(json_path_filter);
+                }
                 res.apply_json_path_filter();
             }
             CompletedMsg::CopyHeadersToClipboard => {
                 return clipboard::write(headers_to_string(&res.result.headers));
+            }
+            CompletedMsg::ToggleJsonPathFilter => {
+                if res.json_path_filter.is_none() {
+                    res.json_path_filter = Some(Content::new());
+                } else {
+                    res.json_path_filter = None;
+                }
+                res.apply_json_path_filter();
             }
         }
         Task::none()
@@ -78,10 +90,15 @@ fn status_color(status: reqwest::StatusCode) -> Color {
 }
 
 fn body_view(cr: &CompletedResponse, mode: BodyMode) -> Element<CompletedMsg> {
-    let json_path_filter = line_editor(&cr.json_path_filter)
-        .placeholder("$.filter")
-        .highlight(false)
-        .map(CompletedMsg::JsonPathFilter);
+    let json_path_filter = cr
+        .json_path_filter
+        .as_ref()
+        .map(|filter| -> Element<CompletedMsg> {
+            line_editor(filter)
+                .placeholder("$.filter")
+                .highlight(false)
+                .map(CompletedMsg::JsonPathFilter)
+        });
 
     let content = cr.selected_content(mode);
     let is_json = cr.result.body.is_json();
@@ -95,7 +112,7 @@ fn body_view(cr: &CompletedResponse, mode: BodyMode) -> Element<CompletedMsg> {
         code_editor(content, content_type).map(move |msg| CompletedMsg::CodeViewerMsg(mode, msg));
 
     Column::new()
-        .push(is_json.then_some(json_path_filter))
+        .push(is_json.then_some(json_path_filter).flatten())
         .push(editor)
         .spacing(4)
         .height(iced::Length::Fill)
@@ -103,20 +120,31 @@ fn body_view(cr: &CompletedResponse, mode: BodyMode) -> Element<CompletedMsg> {
         .into()
 }
 
-fn body_actions<'a>(status_size: u32, mode: BodyMode) -> Row<'a, CompletedMsg> {
+fn body_actions<'a>(status_size: u32, mode: BodyMode, is_json: bool) -> Row<'a, CompletedMsg> {
+    let filter = tooltip(
+        "Filter",
+        button(icon(icons::Filter).size(status_size))
+            .padding([2, 4])
+            .style(button::text)
+            .on_press(CompletedMsg::ToggleJsonPathFilter),
+    );
+    let show_filter = is_json && mode == BodyMode::Pretty;
     Row::new()
-        .push(
+        .push(show_filter.then_some(filter))
+        .push(tooltip(
+            "Copy",
             button(icon(icons::Copy).size(status_size))
                 .padding([2, 4])
                 .style(button::text)
                 .on_press(CompletedMsg::CopyBodyToClipboard(mode)),
-        )
-        .push(
+        ))
+        .push(tooltip(
+            "Download",
             button(icon(icons::Download).size(status_size))
                 .padding([2, 4])
                 .style(button::text)
                 .on_press(CompletedMsg::SaveResponse),
-        )
+        ))
 }
 
 fn headers_actions<'a>(status_size: u32) -> Row<'a, CompletedMsg> {
@@ -149,8 +177,12 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
     };
 
     let actions = match tab.response.active_tab {
-        ResponseTabId::BodyPreview => body_actions(status_size, BodyMode::Pretty),
-        ResponseTabId::BodyRaw => body_actions(status_size, BodyMode::Raw),
+        ResponseTabId::BodyPreview => {
+            body_actions(status_size, BodyMode::Pretty, cr.result.body.is_json())
+        }
+        ResponseTabId::BodyRaw => {
+            body_actions(status_size, BodyMode::Raw, cr.result.body.is_json())
+        }
         ResponseTabId::Headers => headers_actions(status_size),
     };
     let actions = actions.spacing(8).padding(0).align_y(Alignment::Center);

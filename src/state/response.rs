@@ -25,7 +25,7 @@ pub struct CompletedResponse {
     pub content: Option<editor::Content>,
     pub raw: editor::Content,
     pub filtered_content: Option<editor::Content>,
-    pub json_path_filter: editor::Content,
+    pub json_path_filter: Option<editor::Content>,
     pub value: Option<Value>,
 }
 
@@ -54,7 +54,10 @@ impl CompletedResponse {
 
     pub fn apply_json_path_filter(&mut self) {
         self.filtered_content = None;
-        let filter = self.json_path_filter.text().trim().to_string();
+        let Some(json_path_filter) = self.json_path_filter.as_ref() else {
+            return;
+        };
+        let filter = json_path_filter.text().trim().to_string();
         if filter.is_empty() {
             return;
         }
@@ -81,7 +84,7 @@ impl CompletedResponse {
             raw: Content::with_text(raw.as_str()),
             value,
             filtered_content: None,
-            json_path_filter: Content::new(),
+            json_path_filter: None,
         }
     }
 }

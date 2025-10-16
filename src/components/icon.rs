@@ -54,8 +54,7 @@ pub mod icons {
     pub const Import: NerdIcon = NerdIcon('󰋺');
     pub const Download: NerdIcon = NerdIcon('');
     pub const Copy: NerdIcon = NerdIcon('');
-    pub const Preview: NerdIcon = NerdIcon('󰍉');
-    pub const NoPreview: NerdIcon = NerdIcon('󰦀');
+    pub const Filter: NerdIcon = NerdIcon('');
     pub const FileCancel: NerdIcon = NerdIcon('󰷆');
     pub const Error: NerdIcon = NerdIcon('');
     pub const Edit: NerdIcon = NerdIcon('󰷉');
