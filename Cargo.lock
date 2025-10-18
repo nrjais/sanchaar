@@ -20,7 +20,7 @@ dependencies = [
  "iced_drop",
  "iced_plugins",
  "iced_window_state_plugin",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "jsonformat",
  "jsonpath-rust",
  "log",
@@ -790,7 +790,7 @@ dependencies = [
  "directories",
  "dotenvy",
  "iced",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "jsonwebtoken",
  "log",
  "mime_guess",
@@ -1946,7 +1946,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_core",
  "iced_debug",
@@ -1963,7 +1963,7 @@ dependencies = [
 [[package]]
 name = "iced_auto_updater_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#40901764570236223ba3ffae461a6f0da268b8c5"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#5be08df7f027fd0ab01baac809533394b51c1cc1"
 dependencies = [
  "directories",
  "futures-util",
@@ -1981,7 +1981,7 @@ dependencies = [
 [[package]]
 name = "iced_beacon"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "bincode 1.3.3",
  "futures",
@@ -1996,7 +1996,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "bitflags 2.9.4",
  "bytes",
@@ -2014,7 +2014,7 @@ dependencies = [
 [[package]]
 name = "iced_debug"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "cargo-hot-protocol",
  "iced_beacon",
@@ -2026,7 +2026,7 @@ dependencies = [
 [[package]]
 name = "iced_devtools"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_debug",
  "iced_program",
@@ -2045,7 +2045,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "futures",
  "iced_core",
@@ -2059,7 +2059,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -2077,7 +2077,7 @@ dependencies = [
 [[package]]
 name = "iced_highlighter"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_core",
  "syntect",
@@ -2086,7 +2086,7 @@ dependencies = [
 [[package]]
 name = "iced_plugins"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#40901764570236223ba3ffae461a6f0da268b8c5"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#5be08df7f027fd0ab01baac809533394b51c1cc1"
 dependencies = [
  "iced",
 ]
@@ -2094,7 +2094,7 @@ dependencies = [
 [[package]]
 name = "iced_program"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -2103,7 +2103,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -2115,7 +2115,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "bytes",
  "iced_core",
@@ -2129,7 +2129,7 @@ dependencies = [
 [[package]]
 name = "iced_store_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#40901764570236223ba3ffae461a6f0da268b8c5"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#5be08df7f027fd0ab01baac809533394b51c1cc1"
 dependencies = [
  "directories",
  "iced",
@@ -2142,7 +2142,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2158,7 +2158,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "bitflags 2.9.4",
  "bytemuck",
@@ -2177,7 +2177,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_highlighter",
  "iced_renderer",
@@ -2192,7 +2192,7 @@ dependencies = [
 [[package]]
 name = "iced_window_state_plugin"
 version = "0.1.0"
-source = "git+https://github.com/nrjais/iced_plugins?branch=fork#40901764570236223ba3ffae461a6f0da268b8c5"
+source = "git+https://github.com/nrjais/iced_plugins?branch=fork#5be08df7f027fd0ab01baac809533394b51c1cc1"
 dependencies = [
  "directories",
  "iced",
@@ -2206,7 +2206,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.14.0-dev"
-source = "git+https://github.com/nrjais/iced?branch=editor#1e33919c0847513876325dd1650512a896078988"
+source = "git+https://github.com/nrjais/iced?branch=editor#a3e790cbdc94b3e0145c47374df39f67b9e71d77"
 dependencies = [
  "iced_debug",
  "iced_program",
@@ -2347,9 +2347,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.11.4"
+version = "2.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b0f83760fb341a774ed326568e19f5a863af4a952def8c39f9ab92fd95b88e5"
+checksum = "6717a8d2a5a929a1a2eb43a12812498ed141a0bcfb7e8f7844fbdbe4303bba9f"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.0",
@@ -2732,13 +2732,13 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "1.0.4"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78bed444cc8a2160f01cbcf811ef18cac863ad68ae8ca62092e8db51d51c761c"
+checksum = "69d83b0086dc8ecf3ce9ae2874b2d1290252e2a30720bea58a5c6639b0092873"
 dependencies = [
  "libc",
  "wasi",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2781,7 +2781,7 @@ dependencies = [
  "half",
  "hashbrown 0.15.5",
  "hexf-parse",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "libm",
  "log",
  "num-traits",
@@ -3577,7 +3577,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "740ebea15c5d1428f910cd1a5f52cebf8d25006245ed8ade92702f4943d91e07"
 dependencies = [
  "base64",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "quick-xml 0.38.3",
  "serde",
  "time",
@@ -4133,9 +4133,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.32"
+version = "0.23.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd3c25631629d034ce7cd9940adc9d45762d46de2b0f57193c4443b92c6d4d40"
+checksum = "751e04a496ca00bb97a5e043158d23d66b5aabf2e1d5aa2a0aaebb1aafe6f82c"
 dependencies = [
  "once_cell",
  "ring",
@@ -4354,7 +4354,7 @@ dependencies = [
  "chrono",
  "hex",
  "indexmap 1.9.3",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "schemars 0.9.0",
  "schemars 1.0.4",
  "serde_core",
@@ -4637,7 +4637,7 @@ dependencies = [
  "futures-util",
  "hashbrown 0.15.5",
  "hashlink",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "log",
  "memchr",
  "once_cell",
@@ -4910,9 +4910,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.106"
+version = "2.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ede7c438028d4436d71104916910f5bb611972c5cfd7f89b8300a8186e6fada6"
+checksum = "2a26dbd934e5451d21ef060c018dae56fc073894c5a7896f882928a76e6d081b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5195,7 +5195,7 @@ version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0dc8b1fb61449e27716ec0e1bdf0f6b8f3e8f6b05391e8497b8b6d7804ea6d8"
 dependencies = [
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "serde_core",
  "serde_spanned",
  "toml_datetime",
@@ -5219,7 +5219,7 @@ version = "0.23.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6485ef6d0d9b5d0ec17244ff7eb05310113c3f316f2d14200d4de56b3cb98f8d"
 dependencies = [
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "toml_datetime",
  "toml_parser",
  "winnow",
@@ -5824,7 +5824,7 @@ dependencies = [
  "cfg_aliases",
  "document-features",
  "hashbrown 0.15.5",
- "indexmap 2.11.4",
+ "indexmap 2.12.0",
  "log",
  "naga",
  "once_cell",
