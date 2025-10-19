@@ -44,6 +44,21 @@ impl KeyValList {
     pub fn extend(&mut self, vals: KeyValList) {
         self.0.extend(vals.0);
     }
+
+    pub fn push(&mut self, val: KeyValue) {
+        self.0.push(val);
+    }
+
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&KeyValue) -> bool,
+    {
+        self.0.retain(f);
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
 }
 
 impl IntoIterator for KeyValList {

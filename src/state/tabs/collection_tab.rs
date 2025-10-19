@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use crate::components::KeyValList;
 
+use crate::components::editor;
 use crate::state::environment::EnvironmentsEditor;
 use crate::state::{environment::environment_keyvals, utils::from_core_kv_list};
 
@@ -11,6 +12,7 @@ pub enum CollectionTabId {
     #[default]
     Settings,
     Environments,
+    Scripts,
 }
 
 #[derive(Debug)]
@@ -25,6 +27,9 @@ pub struct CollectionTab {
     pub timeout: Duration,
     pub timeout_str: String,
     pub edited: bool,
+    pub selected_script: Option<String>,
+    pub script_content: editor::Content,
+    pub script_edited: bool,
 }
 
 impl CollectionTab {
@@ -46,6 +51,9 @@ impl CollectionTab {
             timeout: col.timeout,
             timeout_str: col.timeout.as_millis().to_string(),
             edited: false,
+            selected_script: None,
+            script_content: editor::Content::new(),
+            script_edited: false,
         }
     }
 }

@@ -458,6 +458,7 @@ impl HistoryEntry {
             path_params,
             assertions: Default::default(),
             pre_request: None,
+            post_request: None,
         })
     }
 

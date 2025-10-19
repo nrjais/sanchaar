@@ -17,6 +17,7 @@ mime_guess.workspace = true
 parsers.workspace = true
 regex.workspace = true
 reqwest.workspace = true
+rquickjs.workspace = true
 reqwest_cookie_store.workspace = true
 serde.workspace = true
 serde_json.workspace = true

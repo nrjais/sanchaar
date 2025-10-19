@@ -60,6 +60,8 @@ pub struct EncodedRequest {
     pub body: Option<EncodedRequestBody>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pre_request: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub post_request: Option<String>,
     #[serde(default, skip_serializing_if = "Assertions::is_empty")]
     pub assertions: Assertions,
 }
@@ -196,6 +198,7 @@ pub fn encode_request(req: Request) -> EncodedRequest {
         description,
         assertions,
         pre_request,
+        post_request,
     } = req;
 
     let encoded_method = match method {
@@ -221,6 +224,7 @@ pub fn encode_request(req: Request) -> EncodedRequest {
         auth: encode_auth(auth),
         body: encode_body(body),
         pre_request,
+        post_request,
         assertions,
     }
 }
@@ -341,6 +345,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         params: path_params,
         auth,
         pre_request,
+        post_request,
         assertions,
         ..
     } = req;
@@ -356,6 +361,7 @@ fn decode_request(req: EncodedRequest) -> Request {
         description,
         assertions,
         pre_request,
+        post_request,
     }
 }
 

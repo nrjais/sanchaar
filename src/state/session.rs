@@ -399,6 +399,7 @@ impl AppState {
                         path_params: deserialize_kv_list(http_tab.request.path_params),
                         assertions: Default::default(),
                         pre_request: http_tab.request.pre_request,
+                        post_request: None,
                     };
 
                     let collection_ref = if let Some(collection_ref) = http_tab.collection_ref {

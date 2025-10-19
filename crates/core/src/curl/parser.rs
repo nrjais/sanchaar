@@ -379,6 +379,7 @@ impl CurlParser {
             auth,
             assertions: Default::default(),
             pre_request: None,
+            post_request: None,
         })
     }
 }

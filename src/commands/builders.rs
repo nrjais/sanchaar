@@ -42,6 +42,20 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
         request.headers = headers;
     }
 
+    // Load pre-request script content if script name is specified
+    let pre_request_script_path = if let Some(script_name) = &request.pre_request {
+        collection.and_then(|col| col.get_script_path(script_name))
+    } else {
+        None
+    };
+
+    // Load post-request script content if script name is specified
+    let post_request_script_path = if let Some(script_name) = &request.post_request {
+        collection.and_then(|col| col.get_script_path(script_name))
+    } else {
+        None
+    };
+
     let env = collection.map(|c| c.env_chain()).unwrap_or_default();
     let disable_ssl = collection.map(|c| c.disable_ssl).unwrap_or_default();
     let client = if disable_ssl {
@@ -54,22 +68,61 @@ pub fn send_request_cmd(state: &mut CommonState, tab: &mut HttpTab) -> Task<Resp
     let collection_name = collection.map(|c| c.name.clone());
     let request_for_history = request.clone();
 
-    let req_fut = transform_request(client.clone(), request, env)
-        .and_then(move |req| send_request(client, req))
-        .and_then(move |response| async move {
-            if let Some(db) = history_db
-                && let Err(e) = save_request_to_history(
-                    &db,
-                    &request_for_history,
-                    &response,
-                    collection_name.as_deref(),
-                )
-                .await
-            {
-                log::error!("Failed to save request to history: {e}");
+    let client_for_send = client.clone();
+    let req_fut = async move {
+        // Load pre-request script content from file if path is available
+        if let Some(script_path) = pre_request_script_path {
+            match tokio::fs::read_to_string(script_path).await {
+                Ok(script_content) => {
+                    request.pre_request = Some(script_content);
+                }
+                Err(e) => {
+                    log::error!("Failed to load pre-request script: {}", e);
+                    request.pre_request = None;
+                }
             }
-            Ok(response)
-        });
+        }
+
+        transform_request(client, request, env).await
+    }
+    .and_then(move |req| send_request(client_for_send, req))
+    .and_then(move |response| async move {
+        // Load and execute post-request script if present
+        if let Some(script_path) = post_request_script_path {
+            match tokio::fs::read_to_string(script_path).await {
+                Ok(script_content) if !script_content.trim().is_empty() => {
+                    use lib::scripting::runner::run_post_request_script;
+                    match run_post_request_script(&script_content, &response, None) {
+                        Ok(_variables) => {
+                            log::info!("Post-request script executed successfully");
+                            // Variables could be stored/used for next request
+                        }
+                        Err(e) => {
+                            log::warn!("Post-request script execution failed: {}", e);
+                            // Continue even if post-request script fails
+                        }
+                    }
+                }
+                Err(e) => {
+                    log::error!("Failed to load post-request script: {}", e);
+                }
+                _ => {}
+            }
+        }
+
+        if let Some(db) = history_db
+            && let Err(e) = save_request_to_history(
+                &db,
+                &request_for_history,
+                &response,
+                collection_name.as_deref(),
+            )
+            .await
+        {
+            log::error!("Failed to save request to history: {e}");
+        }
+        Ok(response)
+    });
 
     tab.cancel_tasks();
     tab.response.state = ResponseState::Executing;

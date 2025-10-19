@@ -7,6 +7,7 @@ pub mod ids;
 pub mod import;
 pub mod perf;
 pub mod persistence;
+pub mod scripting;
 pub mod transformers;
 pub mod utils;
 

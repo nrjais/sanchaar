@@ -4,7 +4,7 @@ use crate::http::{CollectionKey, VarMap};
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
-    persistence::{REQUESTS, SCRIPTS, TOML_EXTENSION, TS_EXTENSION},
+    persistence::{JS_EXTENSION, REQUESTS, SCRIPTS, TOML_EXTENSION},
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -297,7 +297,7 @@ impl Collection {
     }
 
     pub(crate) fn create_script(&mut self, name: String) -> Option<PathBuf> {
-        let name = format!("{name}.{TS_EXTENSION}");
+        let name = format!("{name}.{JS_EXTENSION}");
         let path = self.path.join(SCRIPTS).join(&name);
 
         self.scripts.push(Script {
@@ -308,7 +308,7 @@ impl Collection {
         Some(path)
     }
 
-    pub(crate) fn get_script_path(&self, s: &str) -> Option<PathBuf> {
+    pub fn get_script_path(&self, s: &str) -> Option<PathBuf> {
         self.scripts
             .iter()
             .find(|script| script.name == s)

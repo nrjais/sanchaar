@@ -67,6 +67,7 @@ parsers = { path = "crates/parsers" }
 pest = "2.8"
 pest_derive = "2.8"
 regex = "1.12"
+rquickjs = { version = "0.9", features = ["array-buffer", "classes", "loader", "parallel"] }
 reqwest = { version = "0.12", default-features = false, features = [
   "multipart",
   "rustls-tls",

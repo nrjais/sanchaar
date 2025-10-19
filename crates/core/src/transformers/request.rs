@@ -84,9 +84,26 @@ fn req_params(
 
 pub async fn transform_request(
     client: reqwest::Client,
-    req: Request,
+    mut req: Request,
     env: EnvironmentChain,
 ) -> anyhow::Result<reqwest::Request> {
+    // Execute pre-request script if present
+    if let Some(pre_request_script) = &req.pre_request
+        && !pre_request_script.trim().is_empty()
+    {
+        use crate::scripting::runner::run_pre_request_script;
+        match run_pre_request_script(pre_request_script, &req, None) {
+            Ok((modified_request, _variables)) => {
+                req = modified_request;
+                log::info!("Pre-request script executed successfully");
+            }
+            Err(e) => {
+                log::warn!("Pre-request script execution failed: {}", e);
+                // Continue with original request even if script fails
+            }
+        }
+    }
+
     let Request {
         method,
         url,
