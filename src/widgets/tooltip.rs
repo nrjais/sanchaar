@@ -218,13 +218,16 @@ where
             let is_idle: bool = *state == State::Idle;
             if was_idle != is_idle {
                 shell.invalidate_layout();
-                shell.request_redraw();
-            } else if self.position == Position::FollowCursor && *state != previous_state {
-                if was_idle {
-                    shell.request_redraw_at(hover_time + self.duration);
-                } else {
+                if is_idle {
+                    // Cursor left, redraw immediately to hide tooltip
                     shell.request_redraw();
+                } else {
+                    // Started hovering, schedule redraw after duration
+                    shell.request_redraw_at(hover_time + self.duration);
                 }
+            } else if self.position == Position::FollowCursor && *state != previous_state {
+                // For FollowCursor, redraw on every cursor movement while hovering
+                shell.request_redraw();
             }
         }
 

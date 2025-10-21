@@ -3,15 +3,14 @@ use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
 use iced::widget::space::horizontal;
 use iced::widget::text::Wrapping;
-use iced::widget::{
-    Button, Column, Row, Scrollable, Tooltip, button, column, container, hover, row, text,
-};
+use iced::widget::{Button, Column, Row, Scrollable, button, column, container, hover, row, text};
 use iced::{Element, Length, Point, Rectangle, Task, clipboard, padding};
 
 use crate::components::{
     self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
 };
 use crate::ids::PERF_REQUEST_DROP_ZONE;
+use crate::widgets::tooltip::Tooltip;
 use lib::http::collection::{Collection, Entry, FolderId, RequestId, RequestRef};
 use lib::http::{CollectionKey, CollectionRequest, request::Request};
 

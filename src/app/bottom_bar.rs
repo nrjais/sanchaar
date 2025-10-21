@@ -1,7 +1,10 @@
-use crate::components::{NerdIcon, bordered_top, icon, icons, split, tooltip};
+use crate::{
+    components::{NerdIcon, bordered_top, icon, icons, split, tooltip},
+    widgets::tooltip::Tooltip,
+};
 use iced::{
     Alignment, Element, Task,
-    widget::{Row, Tooltip, button, space, text},
+    widget::{Row, button, space, text},
 };
 use iced::{border, padding};
 
