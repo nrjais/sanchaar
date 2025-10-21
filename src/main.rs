@@ -7,7 +7,8 @@ mod debug;
 pub mod hotkeys;
 pub mod ids;
 pub mod state;
-mod subscription;
+pub mod subscription;
+pub mod widgets;
 
 use iced::{
     Size, Task,

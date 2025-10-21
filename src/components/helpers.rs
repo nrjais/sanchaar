@@ -1,9 +1,12 @@
 use iced::{
     Alignment, Border, Element, Font, Length, Size, Theme,
     font::Weight,
-    widget::{
-        Container, TextInput, Tooltip, container, responsive, text, tooltip::Position, value,
-    },
+    widget::{Container, TextInput, container, responsive, text, value},
+};
+
+use crate::widgets::{
+    self,
+    tooltip::{Position, Tooltip},
 };
 
 pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
@@ -11,7 +14,7 @@ pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
 }
 
 pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tooltip<'a, M> {
-    iced::widget::tooltip(
+    widgets::tooltip(
         base,
         container(text(msg))
             .style(|theme: &Theme| {
