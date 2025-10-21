@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, Semaphore, mpsc};
-use tokio::time::sleep;
+use tokio::sync::{Mutex, mpsc};
 
 use super::metrics::PerfMetrics;
 use crate::client::send_request;
@@ -49,51 +48,51 @@ impl PerfRunner {
             anyhow::bail!("Request with file body not supported for performance testing");
         }
 
-        let start_time = Instant::now();
         let metrics = Arc::new(Mutex::new(PerfMetrics::new()));
 
-        let semaphore = Arc::new(Semaphore::new(self.config.concurrency));
-
         let mut tasks = Vec::new();
+        let start_time = Instant::now();
 
-        loop {
-            if start_time.elapsed() >= self.config.duration {
-                break;
-            }
-
+        for _ in 0..self.config.concurrency {
             let client = self.client.clone();
             let request = built_request.try_clone().unwrap();
-            let semaphore = Arc::clone(&semaphore);
             let metrics = Arc::clone(&metrics);
             let timeout = self.config.timeout;
             let progress = progress.clone();
+            let duration = self.config.duration;
 
             let task = tokio::spawn(async move {
-                let _permit = semaphore.acquire().await.unwrap();
+                loop {
+                    let request = request.try_clone().unwrap();
+                    let metrics = Arc::clone(&metrics);
+                    let client = client.clone();
 
-                let result = tokio::time::timeout(timeout, send_request(client, request)).await;
+                    if start_time.elapsed() >= duration {
+                        return;
+                    }
 
-                let mut metrics = metrics.lock().await;
-                match result {
-                    Ok(Ok(response)) => {
-                        metrics.record_success(response.duration, response.status.as_u16());
+                    let result = tokio::time::timeout(timeout, send_request(client, request)).await;
+
+                    let mut metrics = metrics.lock().await;
+                    match result {
+                        Ok(Ok(response)) => {
+                            metrics.record_success(response.duration, response.status.as_u16());
+                        }
+                        Ok(Err(e)) => {
+                            metrics.record_failure(e.to_string());
+                        }
+                        Err(_) => {
+                            metrics.record_failure("Request timeout".to_string());
+                        }
                     }
-                    Ok(Err(e)) => {
-                        metrics.record_failure(e.to_string());
-                    }
-                    Err(_) => {
-                        metrics.record_failure("Request timeout".to_string());
-                    }
+
+                    let mut snapshot = metrics.clone();
+                    snapshot.total_duration = start_time.elapsed();
+                    let _ = progress.send(snapshot).await;
                 }
-
-                let mut snapshot = metrics.clone();
-                snapshot.total_duration = start_time.elapsed();
-                let _ = progress.send(snapshot).await;
             });
 
             tasks.push(task);
-
-            sleep(Duration::from_millis(1)).await;
         }
 
         for task in tasks {

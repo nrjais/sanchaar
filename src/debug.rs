@@ -11,6 +11,6 @@ mod local {
 
 #[cfg(not(feature = "default"))]
 mod release {
-    pub const UPDATE_CHECK: bool = true;
     pub const DELAY: u64 = 1;
+    pub const UPDATE_CHECK: bool = true;
 }

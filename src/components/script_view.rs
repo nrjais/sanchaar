@@ -6,20 +6,11 @@ use crate::components::editor::Content;
 use crate::components::{ContentType, code_editor, icon_button, icons, tooltip};
 
 /// Configuration for script view behavior
+#[derive(Default)]
 pub struct ScriptViewConfig {
     pub editable: bool,
     pub show_create_button: bool,
     pub enable_type_tabs: bool,
-}
-
-impl Default for ScriptViewConfig {
-    fn default() -> Self {
-        Self {
-            editable: false,
-            show_create_button: false,
-            enable_type_tabs: false,
-        }
-    }
 }
 
 /// Renders a script selector dropdown with optional create/remove/save buttons
@@ -34,7 +25,7 @@ pub fn script_selector<'a, Message: 'a + Clone>(
     let picker = pick_list(
         scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
         selected,
-        move |s| on_select(s),
+        on_select,
     )
     .placeholder("Select Script")
     .width(Length::Fill)
