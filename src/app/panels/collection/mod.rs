@@ -1,5 +1,6 @@
 pub mod env_editor;
 pub mod env_table;
+mod scripts;
 mod settings;
 
 use lib::http::collection::Collection;
@@ -17,6 +18,7 @@ pub enum CollectionTabMsg {
     TabChange(CollectionTabId),
     EnvEditor(env_editor::Message),
     Settings(settings::Message),
+    Scripts(scripts::Message),
 }
 
 impl CollectionTabMsg {
@@ -31,6 +33,7 @@ impl CollectionTabMsg {
             }
             CollectionTabMsg::EnvEditor(msg) => msg.update(state).map(CollectionTabMsg::EnvEditor),
             CollectionTabMsg::Settings(msg) => msg.update(state).map(CollectionTabMsg::Settings),
+            CollectionTabMsg::Scripts(msg) => msg.update(state).map(CollectionTabMsg::Scripts),
         }
     }
 }
@@ -41,6 +44,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Coll
             env_editor::view(tab, col).map(CollectionTabMsg::EnvEditor)
         }
         CollectionTabId::Settings => settings::view(tab, col).map(CollectionTabMsg::Settings),
+        CollectionTabId::Scripts => scripts::view(tab, col).map(CollectionTabMsg::Scripts),
     };
 
     let tabs = button_tabs(
@@ -48,6 +52,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Coll
         [
             button_tab(CollectionTabId::Settings, || text("Settings")),
             button_tab(CollectionTabId::Environments, || text("Environments")),
+            button_tab(CollectionTabId::Scripts, || text("Scripts")),
         ]
         .into_iter(),
         CollectionTabMsg::TabChange,

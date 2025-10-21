@@ -140,6 +140,13 @@ pub enum ReqTabId {
     PreRequest,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum ScriptType {
+    #[default]
+    PreRequest,
+    PostRequest,
+}
+
 #[derive(Debug, Default, Display, VariantNames, IntoStaticStr, EnumString)]
 pub enum RawAuthType {
     #[default]
@@ -366,6 +373,10 @@ pub struct RequestPane {
     pub tab: ReqTabId,
     pub body_cache: HashMap<&'static str, RawRequestBody>,
     pub pre_request: Option<String>,
+    pub post_request: Option<String>,
+    pub script_content: Option<Content>,
+    pub script_edited: bool,
+    pub script_type: ScriptType,
 }
 
 impl RequestPane {
@@ -393,6 +404,7 @@ impl RequestPane {
             path_params: to_core_kv_list(&self.path_params),
             assertions: Default::default(),
             pre_request: self.pre_request.clone(),
+            post_request: self.post_request.clone(),
         }
     }
 
@@ -409,6 +421,10 @@ impl RequestPane {
             tab: ReqTabId::Params,
             body_cache: HashMap::new(),
             pre_request: request.pre_request,
+            post_request: request.post_request,
+            script_content: None,
+            script_edited: false,
+            script_type: ScriptType::PreRequest,
         }
     }
 

@@ -32,7 +32,7 @@ pub struct SaveRequestState {
     pub folder_id: Option<FolderId>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PopupNameAction {
     RenameCollection(CollectionKey),
     RenameFolder(CollectionKey, FolderId),
@@ -40,6 +40,7 @@ pub enum PopupNameAction {
     CreateFolder(CollectionKey, Option<FolderId>),
     NewRequest(CollectionKey, Option<FolderId>),
     NewScript(CollectionKey),
+    RenameScript(CollectionKey, String),
     CreateEnvironment(TabKey),
     RenameEnvironment(TabKey, EnvironmentKey),
 }

@@ -5,7 +5,7 @@ pub use release::*;
 
 #[cfg(feature = "default")]
 mod local {
-    pub const DELAY: u64 = 100000;
+    pub const DELAY: u64 = 5;
     pub const UPDATE_CHECK: bool = false;
 }
 

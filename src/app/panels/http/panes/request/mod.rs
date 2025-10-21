@@ -1,21 +1,20 @@
-use lib::http::CollectionKey;
 use lib::http::collection::Collection;
 use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use iced::padding;
-use iced::widget::{Column, Row, button, pick_list, scrollable, space};
+use iced::widget::{Column, Row, button, scrollable, space};
 use iced::{Length, Task, widget::text};
 
 use crate::commands::dialog::open_file_dialog;
 use crate::components::{CodeEditorMsg, FilePickerUpdateMsg};
 use crate::components::{
     FilePickerAction, KeyValUpdateMsg, button_tab, button_tabs, icon_button, icons,
-    key_value_editor, tooltip,
+    key_value_editor,
 };
-use crate::state::popups::{Popup, PopupNameAction};
-use crate::state::request::{BulkEditMsg, ReqTabId};
+
+use crate::state::request::{BulkEditMsg, ReqTabId, ScriptType as ReqScriptType};
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
 
@@ -41,21 +40,52 @@ pub enum RequestPaneMsg {
     ChangeBodyFile(Option<PathBuf>),
     ChangeBodyType(&'static str),
     ChangePreRequestScript(Option<String>),
+    ChangePostRequestScript(Option<String>),
+    ChangeScriptType(ReqScriptType),
+    LoadScriptContent(String),
+    ScriptEditorAction(CodeEditorMsg),
+    SaveScript,
+    ScriptSaved,
     OpenFilePicker,
-    CreateScript(CollectionKey),
     FormatBody,
 }
 
 impl RequestPaneMsg {
     pub fn update(self, state: &mut AppState) -> Task<Self> {
-        let Some(Tab::Http(tab)) = state.active_tab_mut() else {
+        let Some(Tab::Http(http_tab)) = state.active_tab_mut() else {
             return Task::none();
         };
-        let request = tab.request_mut();
+        let request = http_tab.request_mut();
 
         match self {
             Self::TabSelected(tab) => {
                 request.tab = tab;
+
+                // When switching to Script tab, load the script content if not already loaded
+                if tab == ReqTabId::PreRequest && request.script_content.is_none() {
+                    let script_name = match request.script_type {
+                        ReqScriptType::PreRequest => request.pre_request.clone(),
+                        ReqScriptType::PostRequest => request.post_request.clone(),
+                    };
+
+                    if let Some(script_name) = script_name {
+                        let col_key = http_tab.collection_key();
+                        let col = state.common.collections.get(col_key);
+                        if let Some(col) = col
+                            && let Some(path) = col.get_script_path(&script_name)
+                        {
+                            return Task::perform(tokio::fs::read_to_string(path), |result| {
+                                match result {
+                                    Ok(content) => RequestPaneMsg::LoadScriptContent(content),
+                                    Err(e) => {
+                                        log::error!("Failed to load script: {}", e);
+                                        RequestPaneMsg::LoadScriptContent(String::new())
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
             }
             Self::Headers(msg) => {
                 request.headers.update(msg);
@@ -67,7 +97,129 @@ impl RequestPaneMsg {
                 request.path_params.update(msg);
             }
             Self::ChangePreRequestScript(script) => {
-                request.pre_request = script;
+                request.pre_request = script.clone();
+                request.script_type = ReqScriptType::PreRequest;
+                // Load script content if a script is selected
+                if let Some(script_name) = script {
+                    let col_key = http_tab.collection_key();
+                    let col = state.common.collections.get(col_key);
+                    if let Some(col) = col
+                        && let Some(path) = col.get_script_path(&script_name)
+                    {
+                        return Task::perform(
+                            tokio::fs::read_to_string(path),
+                            |result| match result {
+                                Ok(content) => RequestPaneMsg::LoadScriptContent(content),
+                                Err(e) => {
+                                    log::error!("Failed to load script: {}", e);
+                                    RequestPaneMsg::LoadScriptContent(String::new())
+                                }
+                            },
+                        );
+                    }
+                } else {
+                    request.script_content = None;
+                    request.script_edited = false;
+                }
+            }
+            Self::ChangePostRequestScript(script) => {
+                request.post_request = script.clone();
+                request.script_type = ReqScriptType::PostRequest;
+                // Load script content if a script is selected
+                if let Some(script_name) = script {
+                    let col_key = http_tab.collection_key();
+                    let col = state.common.collections.get(col_key);
+                    if let Some(col) = col
+                        && let Some(path) = col.get_script_path(&script_name)
+                    {
+                        return Task::perform(
+                            tokio::fs::read_to_string(path),
+                            |result| match result {
+                                Ok(content) => RequestPaneMsg::LoadScriptContent(content),
+                                Err(e) => {
+                                    log::error!("Failed to load script: {}", e);
+                                    RequestPaneMsg::LoadScriptContent(String::new())
+                                }
+                            },
+                        );
+                    }
+                } else {
+                    request.script_content = None;
+                    request.script_edited = false;
+                }
+            }
+            Self::ChangeScriptType(script_type) => {
+                request.script_type = script_type;
+                // Load the content for the selected script type
+                let script_name = match script_type {
+                    ReqScriptType::PreRequest => request.pre_request.clone(),
+                    ReqScriptType::PostRequest => request.post_request.clone(),
+                };
+                if let Some(script_name) = script_name {
+                    let col_key = http_tab.collection_key();
+                    let col = state.common.collections.get(col_key);
+                    if let Some(col) = col
+                        && let Some(path) = col.get_script_path(&script_name)
+                    {
+                        return Task::perform(
+                            tokio::fs::read_to_string(path),
+                            |result| match result {
+                                Ok(content) => RequestPaneMsg::LoadScriptContent(content),
+                                Err(e) => {
+                                    log::error!("Failed to load script: {}", e);
+                                    RequestPaneMsg::LoadScriptContent(String::new())
+                                }
+                            },
+                        );
+                    }
+                } else {
+                    request.script_content = None;
+                    request.script_edited = false;
+                }
+            }
+            Self::LoadScriptContent(content) => {
+                use crate::components::editor;
+                request.script_content = Some(editor::Content::with_text(&content));
+                request.script_edited = false;
+            }
+            Self::ScriptEditorAction(msg) => {
+                if let Some(content) = &mut request.script_content {
+                    msg.update(content);
+                    request.script_edited = true;
+                }
+            }
+            Self::SaveScript => {
+                let script_name = match request.script_type {
+                    ReqScriptType::PreRequest => request.pre_request.clone(),
+                    ReqScriptType::PostRequest => request.post_request.clone(),
+                };
+                if let Some(script_name) = script_name
+                    && let Some(content) = &request.script_content
+                {
+                    let text = content.text();
+                    let col_key = http_tab.collection_key();
+                    let col = state.common.collections.get(col_key);
+                    if let Some(col) = col
+                        && let Some(path) = col.get_script_path(&script_name)
+                    {
+                        return Task::perform(
+                            tokio::fs::write(path.clone(), text),
+                            move |result| match result {
+                                Ok(_) => {
+                                    log::info!("Script saved successfully");
+                                    RequestPaneMsg::ScriptSaved
+                                }
+                                Err(e) => {
+                                    log::error!("Failed to save script: {}", e);
+                                    RequestPaneMsg::ScriptSaved
+                                }
+                            },
+                        );
+                    }
+                }
+            }
+            Self::ScriptSaved => {
+                request.script_edited = false;
             }
             Self::BodyEditorAction(action) => match &mut request.body {
                 RawRequestBody::Json(content)
@@ -108,13 +260,6 @@ impl RequestPaneMsg {
                 return open_file_dialog("Select File").map(|path| {
                     RequestPaneMsg::ChangeBodyFile(path.map(|p| p.path().to_path_buf()))
                 });
-            }
-            Self::CreateScript(col) => {
-                Popup::popup_name(
-                    &mut state.common,
-                    String::new(),
-                    PopupNameAction::NewScript(col),
-                );
             }
         };
         Task::none()
@@ -185,54 +330,91 @@ fn headers_view(
         .into()
 }
 
-fn _script_view<'a>(
+fn script_view<'a>(
     col: Option<&'a Collection>,
     tab: &'a HttpTab,
 ) -> iced::Element<'a, RequestPaneMsg> {
+    use crate::components::{
+        button_tab, script_editor, script_placeholder, script_selector, vertical_button_tabs,
+    };
+    use iced::widget::container;
+
     let Some(col) = col else {
         return Column::new().into();
     };
 
     let scripts = &col.scripts;
-    let selected = tab.request().pre_request.as_ref();
+    let request = tab.request();
+    let script_type = request.script_type;
 
-    Column::new()
-        .push(text("Pre-Request Script"))
-        .push(
-            pick_list(
-                scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
-                selected,
-                |s| RequestPaneMsg::ChangePreRequestScript(Some(s)),
-            )
-            .placeholder("Select Script")
-            .width(Length::Fill)
-            .padding([2, 8])
-            .text_size(16),
-        )
-        .push(
-            Row::new()
-                .push(space::horizontal())
-                .push(tooltip(
-                    "New Script",
-                    icon_button(icons::Plus, Some(20), Some(12))
-                        .on_press(RequestPaneMsg::CreateScript(tab.collection_key()))
-                        .style(button::secondary),
-                ))
-                .push(tooltip(
-                    "Remove Script",
-                    icon_button(icons::Close, Some(20), Some(12))
-                        .on_press_maybe(
-                            selected.map(|_| RequestPaneMsg::ChangePreRequestScript(None)),
-                        )
-                        .style(button::secondary),
-                ))
-                .push(space::horizontal())
-                .width(Length::Fill)
-                .align_y(iced::Alignment::Center)
-                .spacing(4),
-        )
+    // Get the selected script based on current script type
+    let selected = match script_type {
+        ReqScriptType::PreRequest => request.pre_request.as_ref(),
+        ReqScriptType::PostRequest => request.post_request.as_ref(),
+    };
+
+    // Script type vertical tabs
+    let script_type_tabs = vertical_button_tabs(
+        script_type,
+        [
+            button_tab(ReqScriptType::PreRequest, || text("Pre-request").size(12)),
+            button_tab(ReqScriptType::PostRequest, || {
+                text("Post-response").size(12)
+            }),
+        ]
+        .into_iter(),
+        RequestPaneMsg::ChangeScriptType,
+    );
+
+    // Script selector with remove/save buttons (no create)
+    let selector = script_selector(
+        scripts,
+        selected,
+        move |s| match script_type {
+            ReqScriptType::PreRequest => RequestPaneMsg::ChangePreRequestScript(Some(s)),
+            ReqScriptType::PostRequest => RequestPaneMsg::ChangePostRequestScript(Some(s)),
+        },
+        Some(match script_type {
+            ReqScriptType::PreRequest => RequestPaneMsg::ChangePreRequestScript(None),
+            ReqScriptType::PostRequest => RequestPaneMsg::ChangePostRequestScript(None),
+        }),
+        None, // Remove create action
+        selected.and_then(|_| {
+            request
+                .script_content
+                .as_ref()
+                .map(|_| (request.script_edited, RequestPaneMsg::SaveScript))
+        }),
+    );
+
+    // Editor or placeholder
+    let editor_view: iced::Element<'a, RequestPaneMsg> = if selected.is_some() {
+        if let Some(script_content) = request.script_content.as_ref() {
+            script_editor(script_content, true, RequestPaneMsg::ScriptEditorAction)
+        } else {
+            script_placeholder("Loading script...")
+        }
+    } else {
+        script_placeholder("Select a script to edit")
+    };
+
+    let content_view = Column::new()
+        .push(selector)
+        .push(editor_view)
         .width(Length::Fill)
-        .spacing(8)
+        .height(Length::Fill)
+        .spacing(0);
+
+    Row::new()
+        .push(
+            container(script_type_tabs)
+                .padding(8)
+                .width(Length::Fixed(140.0))
+                .height(Length::Fill),
+        )
+        .push(content_view)
+        .width(Length::Fill)
+        .height(Length::Fill)
         .into()
 }
 
@@ -251,8 +433,7 @@ pub fn view<'a>(
             auth_view(request, Arc::clone(&vars)).map(RequestPaneMsg::AuthEditorAction)
         }
         ReqTabId::Body => body_tab(&request.body, vars),
-        // ReqTabId::PreRequest => script_view(col, tab),
-        ReqTabId::PreRequest => Column::new().into(), // TODO: Implement script
+        ReqTabId::PreRequest => script_view(col, tab),
     };
 
     let tabs = button_tabs(

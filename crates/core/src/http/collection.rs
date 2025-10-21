@@ -4,7 +4,7 @@ use crate::http::{CollectionKey, VarMap};
 use crate::new_id_type;
 use crate::{
     http::environment::Environments,
-    persistence::{REQUESTS, SCRIPTS, TOML_EXTENSION, TS_EXTENSION},
+    persistence::{JS_EXTENSION, REQUESTS, SCRIPTS, TOML_EXTENSION},
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -297,7 +297,7 @@ impl Collection {
     }
 
     pub(crate) fn create_script(&mut self, name: String) -> Option<PathBuf> {
-        let name = format!("{name}.{TS_EXTENSION}");
+        let name = format!("{name}.{JS_EXTENSION}");
         let path = self.path.join(SCRIPTS).join(&name);
 
         self.scripts.push(Script {
@@ -308,7 +308,36 @@ impl Collection {
         Some(path)
     }
 
-    pub(crate) fn get_script_path(&self, s: &str) -> Option<PathBuf> {
+    pub(crate) fn delete_script(&mut self, name: &str) {
+        let name = if name.ends_with(&format!(".{JS_EXTENSION}")) {
+            name.to_string()
+        } else {
+            format!("{name}.{JS_EXTENSION}")
+        };
+
+        self.scripts.retain(|s| s.name != name);
+    }
+
+    pub(crate) fn rename_script(&mut self, old_name: String, new_name: String) -> Option<PathBuf> {
+        let old_name = if old_name.ends_with(&format!(".{JS_EXTENSION}")) {
+            old_name
+        } else {
+            format!("{old_name}.{JS_EXTENSION}")
+        };
+
+        let new_name = format!("{new_name}.{JS_EXTENSION}");
+        let new_path = self.path.join(SCRIPTS).join(&new_name);
+
+        if let Some(script) = self.scripts.iter_mut().find(|s| s.name == old_name) {
+            script.name = new_name;
+            script.path = new_path.clone();
+            Some(new_path)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_script_path(&self, s: &str) -> Option<PathBuf> {
         self.scripts
             .iter()
             .find(|script| script.name == s)

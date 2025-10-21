@@ -44,6 +44,21 @@ impl KeyValList {
     pub fn extend(&mut self, vals: KeyValList) {
         self.0.extend(vals.0);
     }
+
+    pub fn push(&mut self, val: KeyValue) {
+        self.0.push(val);
+    }
+
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&KeyValue) -> bool,
+    {
+        self.0.retain(f);
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
 }
 
 impl IntoIterator for KeyValList {
@@ -232,6 +247,21 @@ impl Collections {
 
     pub fn create_script_in(&mut self, col: CollectionKey, name: String) -> Option<PathBuf> {
         self.get_mut(col)?.create_script(name)
+    }
+
+    pub fn delete_script_in(&mut self, col: CollectionKey, name: String) {
+        if let Some(collection) = self.get_mut(col) {
+            collection.delete_script(&name);
+        }
+    }
+
+    pub fn rename_script_in(
+        &mut self,
+        col: CollectionKey,
+        old_name: String,
+        new_name: String,
+    ) -> Option<PathBuf> {
+        self.get_mut(col)?.rename_script(old_name, new_name)
     }
 
     pub fn get_script_path(&self, col: CollectionKey, s: &str) -> Option<PathBuf> {

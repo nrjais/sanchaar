@@ -9,6 +9,7 @@ pub enum ContentType {
     Text,
     XML,
     HTML,
+    JS,
 }
 
 pub struct CodeEditor<'a> {
@@ -59,6 +60,7 @@ impl ContentType {
             ContentType::Text => "txt",
             ContentType::XML => "xml",
             ContentType::HTML => "html",
+            ContentType::JS => "js",
         }
     }
 }

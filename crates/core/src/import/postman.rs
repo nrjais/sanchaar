@@ -179,6 +179,7 @@ fn convert_request(request: Request, description: Option<&Description>) -> Resul
                 auth,
                 assertions: Default::default(),
                 pre_request: None,
+                post_request: None,
             })
         }
         Request::String(url) => Ok(SanchaarRequest {
@@ -192,6 +193,7 @@ fn convert_request(request: Request, description: Option<&Description>) -> Resul
             auth: SanchaarAuth::None,
             assertions: Default::default(),
             pre_request: None,
+            post_request: None,
         }),
     }
 }

@@ -12,6 +12,7 @@ mod lines;
 mod min_dimension;
 mod modal;
 mod multi_file_picker;
+mod script_view;
 
 pub mod colors;
 pub mod editor;
@@ -32,4 +33,7 @@ pub use min_dimension::{MinDimension, min_height, min_width};
 pub use modal::modal;
 pub use multi_file_picker::{
     FilePickerAction, FilePickerUpdateMsg, KeyFile, KeyFileList, multi_file_picker,
+};
+pub use script_view::{
+    ScriptViewConfig, script_editor, script_list_view, script_placeholder, script_selector,
 };

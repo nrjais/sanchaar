@@ -115,6 +115,7 @@ pub struct Request {
     pub auth: Auth,
     pub assertions: Assertions,
     pub pre_request: Option<String>,
+    pub post_request: Option<String>,
 }
 
 impl Request {
@@ -136,6 +137,7 @@ impl Default for Request {
             auth: Auth::None,
             assertions: Assertions::default(),
             pre_request: None,
+            post_request: None,
         }
     }
 }
