@@ -260,11 +260,12 @@ impl AppState {
         while let Some(key) = tab {
             if self.tabs.contains_key(&key) {
                 self.switch_tab(key);
-                break;
+                return;
             }
 
             tab = self.tab_history.pop();
         }
+        self.switch_tab(self.tabs.keys().next().copied().unwrap_or_default());
     }
 
     pub fn reorder_tab(&mut self, dragged_tab: TabKey, target_tab: TabKey) {
