@@ -1,16 +1,16 @@
-use iced::{
-    Alignment, Element, Length, Task,
-    widget::{
-        Column, container, progress_bar, row, scrollable,
-        space::{self, horizontal},
-        text,
-    },
-};
-
+use crate::components::scrollable;
 use crate::components::{colors, icon, icons};
 use crate::state::{
     AppState,
     tabs::perf_tab::{PerfState, PerfTab},
+};
+use iced::{
+    Alignment, Element, Length, Task,
+    widget::{
+        Column, container, progress_bar, row,
+        space::{self, horizontal},
+        text,
+    },
 };
 use lib::perf::PerfStats;
 

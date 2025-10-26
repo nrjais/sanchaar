@@ -16,6 +16,7 @@ mod script_view;
 
 pub mod colors;
 pub mod editor;
+mod scrollable;
 pub mod split;
 
 pub use bordered::{bordered_bottom, bordered_left, bordered_right, bordered_top};
@@ -37,3 +38,4 @@ pub use multi_file_picker::{
 pub use script_view::{
     ScriptViewConfig, script_editor, script_list_view, script_placeholder, script_selector,
 };
+pub use scrollable::{Direction, scrollable, scrollable_with};

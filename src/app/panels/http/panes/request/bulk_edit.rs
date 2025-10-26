@@ -1,6 +1,7 @@
 use std::{collections::HashSet, sync::Arc};
 
-use iced::widget::{container, scrollable};
+use crate::components::scrollable;
+use iced::widget::container;
 
 use crate::{
     components::{ContentType, code_editor, key_value_editor},

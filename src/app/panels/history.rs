@@ -1,10 +1,10 @@
 use crate::components::{
-    LineEditorMsg, bold, colors, icon, icon_button, icons, line_editor, tooltip,
+    LineEditorMsg, bold, colors, icon, icon_button, icons, line_editor, scrollable, tooltip,
 };
 use chrono::{DateTime, Local};
 use humansize::{BINARY, format_size};
 use iced::widget::text::Wrapping;
-use iced::widget::{button, column, container, row, scrollable, table, text};
+use iced::widget::{button, column, container, row, table, text};
 use iced::{Alignment, Element, Length, Task};
 use lib::persistence::history::{HistoryEntry, HistoryEntrySummary};
 use lib::utils::fmt_duration;

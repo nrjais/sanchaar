@@ -3,11 +3,11 @@ use iced::alignment::{Horizontal, Vertical};
 use iced::widget::button::Status;
 use iced::widget::space::horizontal;
 use iced::widget::text::Wrapping;
-use iced::widget::{Button, Column, Row, Scrollable, button, column, container, hover, row, text};
+use iced::widget::{Button, Column, Row, button, column, container, hover, row, text};
 use iced::{Element, Length, Point, Rectangle, Task, clipboard, padding};
 
 use crate::components::{
-    self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, tooltip,
+    self, NerdIcon, context_menu, horizontal_line, icon, icons, menu_item, scrollable, tooltip,
 };
 use crate::ids::PERF_REQUEST_DROP_ZONE;
 use crate::widgets::tooltip::Tooltip;
@@ -200,10 +200,10 @@ pub fn view(state: &AppState) -> Element<CollectionTreeMsg> {
         )
     });
 
-    let tree = Scrollable::new(
+    let tree = scrollable(
         column(tree)
             .spacing(4)
-            .padding(padding::right(12).bottom(12).left(4).top(4)),
+            .padding(padding::bottom(4).left(4).top(4)),
     );
 
     let create_col = icon_button(icons::Plus).on_press(CollectionTreeMsg::CreateCollection);

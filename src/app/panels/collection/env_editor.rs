@@ -1,9 +1,9 @@
-use iced::widget::scrollable::{Direction, Scrollbar};
-use iced::widget::{Column, Row, button, scrollable};
+use iced::widget::{Column, Row, button};
 use iced::{Element, Length, Task};
 
 use crate::app::panels::collection::env_table;
-use crate::components::LineEditorMsg;
+use crate::components::Direction;
+use crate::components::{LineEditorMsg, scrollable_with};
 use lib::http::collection::Collection;
 use lib::http::environment::EnvironmentKey;
 
@@ -90,12 +90,7 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
         )
         .spacing(8);
 
-    let editor = scrollable(env_table::view(tab, col))
-        .direction(Direction::Both {
-            vertical: Scrollbar::default(),
-            horizontal: Scrollbar::default(),
-        })
-        .width(Length::Fill);
+    let editor = scrollable_with(env_table::view(tab, col), Direction::Both).width(Length::Fill);
 
     Column::new()
         .push(actions)

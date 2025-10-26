@@ -3,20 +3,18 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use iced::padding;
-use iced::widget::{Column, Row, button, scrollable, space};
-use iced::{Length, Task, widget::text};
-
 use crate::commands::dialog::open_file_dialog;
+use crate::components::scrollable;
 use crate::components::{CodeEditorMsg, FilePickerUpdateMsg};
 use crate::components::{
     FilePickerAction, KeyValUpdateMsg, button_tab, button_tabs, icon_button, icons,
     key_value_editor,
 };
-
 use crate::state::request::{BulkEditMsg, ReqTabId, ScriptType as ReqScriptType};
 use crate::state::request::{RawRequestBody, RequestPane};
 use crate::state::{AppState, HttpTab, Tab};
+use iced::widget::{Column, Row, button, space};
+use iced::{Length, Task, widget::text};
 
 use self::auth_editor::{AuthEditorMsg, auth_view};
 use self::body_view::body_tab;
@@ -304,14 +302,7 @@ fn params_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> iced::Eleme
         .push(bulk_edit::view(&request.query_params, vars, false).map(RequestPaneMsg::Queries))
         .spacing(4);
 
-    scrollable(
-        Column::new()
-            .push(path)
-            .push(query)
-            .spacing(8)
-            .padding(padding::right(12)),
-    )
-    .into()
+    scrollable(Column::new().push(path).push(query).spacing(8)).into()
 }
 
 fn headers_view(

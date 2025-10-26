@@ -286,7 +286,7 @@ pub fn key_value_editor<'a>(
 ) -> KeyValEditor<'a> {
     KeyValEditor {
         values,
-        padding: padding::right(8),
+        padding: padding::all(0),
         vars: Arc::clone(vars),
     }
 }

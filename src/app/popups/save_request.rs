@@ -1,16 +1,16 @@
 use std::borrow::Cow;
 use std::ops::Not;
 
-use iced::widget::{Column, Row, button, container, scrollable, space, text, text_input};
+use iced::widget::{Column, Row, button, container, space, text, text_input};
 use iced::{Element, Length, Task};
 
-use lib::http::CollectionKey;
-use lib::http::collection::{Collection, Entry, Folder, FolderId};
-
 use crate::commands::builders::save_tab_request_cmd;
+use crate::components::scrollable;
 use crate::components::{icon, icons};
 use crate::state::AppState;
 use crate::state::popups::{Popup, SaveRequestState};
+use lib::http::CollectionKey;
+use lib::http::collection::{Collection, Entry, Folder, FolderId};
 
 #[derive(Debug, Clone)]
 pub enum Message {

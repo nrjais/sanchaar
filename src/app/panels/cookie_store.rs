@@ -1,7 +1,9 @@
-use crate::components::{LineEditorMsg, bold, icon, icon_button, icons, line_editor, tooltip};
+use crate::components::{
+    LineEditorMsg, bold, icon, icon_button, icons, line_editor, scrollable, tooltip,
+};
 use cookie_store::Cookie;
 use iced::widget::text::Wrapping;
-use iced::widget::{button, column, container, row, scrollable, table, text};
+use iced::widget::{button, column, container, row, table, text};
 use iced::{Alignment, Element, Length, Task};
 
 use crate::state::tabs::cookies_tab::CookiesTab;

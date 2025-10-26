@@ -1,10 +1,11 @@
 use lib::http::collection::Collection;
 use std::{collections::HashSet, sync::Arc, time::Duration};
 
+use crate::components::scrollable;
 use crate::components::{KeyValList, KeyValUpdateMsg, key_value_editor, text_input};
 use iced::{
     Alignment, Element, Length, Task, padding,
-    widget::{Column, Row, pick_list, rule, scrollable, space, toggler},
+    widget::{Column, Row, pick_list, rule, space, toggler},
 };
 
 use crate::{
@@ -73,11 +74,7 @@ pub fn headers_view<'a>(vals: &'a KeyValList, vars: Arc<HashSet<String>>) -> Ele
     Column::new()
         .push(rule::horizontal(2.))
         .push("Collection Headers")
-        .push(
-            key_value_editor(vals, &vars)
-                .padding(padding::all(0))
-                .on_change(Message::UpdateHeaders),
-        )
+        .push(key_value_editor(vals, &vars).on_change(Message::UpdateHeaders))
         .spacing(8)
         .width(Length::Fill)
         .into()

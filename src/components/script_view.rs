@@ -1,8 +1,9 @@
-use iced::widget::{Column, Row, button, container, pick_list, scrollable, text};
+use iced::widget::{Column, Row, button, container, pick_list, text};
 use iced::{Element, Length};
 use lib::http::collection::Script;
 
 use crate::components::editor::Content;
+use crate::components::scrollable;
 use crate::components::{ContentType, code_editor, icon_button, icons, tooltip};
 
 /// Configuration for script view behavior

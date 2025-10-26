@@ -114,9 +114,7 @@ pub fn view(state: &AppState) -> Element<MainPageMsg> {
 }
 
 fn side_bar(state: &AppState) -> Element<MainPageMsg> {
-    container(collection_tree::view(state).map(MainPageMsg::CollectionTree))
-        .padding(padding::right(4))
-        .into()
+    collection_tree::view(state).map(MainPageMsg::CollectionTree)
 }
 
 fn tab_panel(state: &AppState) -> Element<MainPageMsg> {
