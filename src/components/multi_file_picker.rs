@@ -149,7 +149,7 @@ pub fn multi_file_picker<'a>(values: &'a KeyFileList) -> Element<'a, FilePickerU
     use FilePickerUpdateMsg::*;
     let values = values.values().iter().enumerate().map(|(idx, kv)| {
         let border = Border::default();
-        let enabled = checkbox("", !kv.disabled)
+        let enabled = checkbox(!kv.disabled)
             .on_toggle(move |enabled| Action(FilePickerAction::Toggled(idx, enabled)))
             .size(size)
             .spacing(spacing);

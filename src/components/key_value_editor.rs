@@ -167,7 +167,7 @@ impl<'a> KeyValEditor<'a> {
         let last_idx = values.len() - 1;
         let values = values.iter().enumerate().map(|(idx, kv)| {
             let border = Border::default();
-            let enabled = checkbox("", !kv.disabled)
+            let enabled = checkbox(!kv.disabled)
                 .on_toggle(move |enabled| KeyValUpdateMsg::Toggled(idx, enabled))
                 .size(size)
                 .spacing(spacing);
