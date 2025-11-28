@@ -1,12 +1,11 @@
+use std::time::Duration;
+
 use iced::{
     Alignment, Border, Element, Font, Length, Size, Theme,
     font::Weight,
-    widget::{Container, TextInput, container, responsive, text, value},
-};
-
-use crate::widgets::{
-    self,
-    tooltip::{Position, Tooltip},
+    widget::{
+        self, Container, TextInput, Tooltip, container, responsive, text, tooltip::Position, value,
+    },
 };
 
 pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
@@ -14,7 +13,7 @@ pub fn expanded<'a, M>(base: impl Into<Element<'a, M>>) -> Container<'a, M> {
 }
 
 pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tooltip<'a, M> {
-    widgets::tooltip(
+    widget::tooltip(
         base,
         container(text(msg))
             .style(|theme: &Theme| {
@@ -33,6 +32,7 @@ pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tool
             .padding([2, 4]),
         Position::FollowCursor,
     )
+    .delay(Duration::from_millis(800))
 }
 
 pub fn text_input<'a, M: Clone + 'a>(
