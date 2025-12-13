@@ -1,7 +1,10 @@
-use iced::{Element, Font, Length, border, highlighter};
+use iced::{
+    Element, Font, Length, border, highlighter,
+    widget::text_editor::{self, Status},
+};
 use iced_core::text::Wrapping;
 
-use crate::components::editor::{self, ContentAction, Status, text_editor};
+use crate::components::editor::{Content, ContentAction, text_editor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ContentType {
@@ -13,7 +16,7 @@ pub enum ContentType {
 }
 
 pub struct CodeEditor<'a> {
-    pub code: &'a editor::Content,
+    pub code: &'a Content,
     pub content_type: ContentType,
     pub editable: bool,
 }
@@ -29,12 +32,18 @@ impl<'a> CodeEditor<'a> {
             .height(Length::Fill)
             .font(Font::MONOSPACE)
             .wrapping(Wrapping::WordOrGlyph)
-            .on_action(move |ac| CodeEditorMsg::EditorAction(ac, self.editable))
+            .on_action(move |ac| {
+                if !self.editable && ac.is_edit() {
+                    CodeEditorMsg::Ignored
+                } else {
+                    CodeEditorMsg::EditorAction(ContentAction::Action(ac))
+                }
+            })
             .highlight(
                 self.content_type.to_extension(),
                 highlighter::Theme::SolarizedDark,
             )
-            .style(|theme: &iced::Theme, status| editor::Style {
+            .style(|theme: &iced::Theme, status| text_editor::Style {
                 border: match status {
                     Status::Focused { .. } => border::width(1)
                         .rounded(2)
@@ -43,7 +52,7 @@ impl<'a> CodeEditor<'a> {
                         .rounded(2)
                         .color(theme.extended_palette().background.weak.color),
                 },
-                ..editor::default(theme, status)
+                ..text_editor::default(theme, status)
             })
             .into()
     }
@@ -67,22 +76,20 @@ impl ContentType {
 
 #[derive(Debug, Clone)]
 pub enum CodeEditorMsg {
-    EditorAction(ContentAction, bool),
+    EditorAction(ContentAction),
+    Ignored,
 }
 
 impl CodeEditorMsg {
-    pub fn update(self, state: &mut editor::Content) {
+    pub fn update(self, state: &mut Content) {
         match self {
-            Self::EditorAction(action, editable) => {
-                if editable || !action.is_edit() {
-                    state.perform(action);
-                }
-            }
+            Self::EditorAction(action) => state.perform(action),
+            Self::Ignored => {}
         }
     }
 }
 
-pub fn code_editor<'a>(code: &'a editor::Content, content_type: ContentType) -> CodeEditor<'a> {
+pub fn code_editor<'a>(code: &'a Content, content_type: ContentType) -> CodeEditor<'a> {
     CodeEditor {
         code,
         content_type,

@@ -2,15 +2,16 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use iced::advanced::widget;
+use iced::widget::text_editor::{self, Status, StyleFn};
 use iced::{Element, Length, Pixels, Theme};
 use iced_core::text::Wrapping;
 use iced_core::text::editor::{Action, Edit};
 
-use crate::components::editor::highlighters::{TemplHighlighter, TemplHighlighterSettings};
-use crate::components::editor::{self, ContentAction, Status, StyleFn, text_editor};
+use crate::components::editor::{Content, ContentAction, text_editor};
+use crate::components::highlighters::{TemplHighlighter, TemplHighlighterSettings};
 
 pub struct LineEditor<'a> {
-    pub code: &'a editor::Content,
+    pub code: &'a Content,
     pub editable: bool,
     pub placeholder: Option<&'a str>,
     pub var_set: Arc<HashSet<String>>,
@@ -37,7 +38,7 @@ impl<'a> LineEditor<'a> {
         self
     }
 
-    pub fn style(mut self, style: impl Fn(&Theme, Status) -> editor::Style + 'a) -> Self {
+    pub fn style(mut self, style: impl Fn(&Theme, Status) -> text_editor::Style + 'a) -> Self {
         self.style = Box::new(style);
         self
     }
@@ -66,7 +67,13 @@ impl<'a> LineEditor<'a> {
             .height(Length::Shrink)
             .wrapping(Wrapping::WordOrGlyph)
             .style(self.style)
-            .on_action(move |ac| LineEditorMsg::EditorAction(ac, self.editable));
+            .on_action(move |ac| {
+                if !self.editable && ac.is_edit() {
+                    LineEditorMsg::Ignored
+                } else {
+                    LineEditorMsg::EditorAction(ContentAction::Action(ac))
+                }
+            });
 
         let editor = if let Some(placeholder) = self.placeholder {
             editor.placeholder(placeholder)
@@ -99,29 +106,30 @@ impl<'a> LineEditor<'a> {
 
 #[derive(Debug, Clone)]
 pub enum LineEditorMsg {
-    EditorAction(ContentAction, bool),
+    EditorAction(ContentAction),
+    Ignored,
 }
 
 impl LineEditorMsg {
-    pub fn update(self, state: &mut editor::Content) {
+    pub fn update(self, state: &mut Content) {
         match self {
-            Self::EditorAction(action, editable) => {
+            Self::EditorAction(action) => {
                 let block = matches!(
                     action,
                     ContentAction::Action(Action::Edit(Edit::Enter))
                         | ContentAction::Action(Action::Scroll { .. })
                 );
-                let allowed = !action.is_edit() || editable;
 
-                if allowed && !block {
+                if !block {
                     state.perform(action);
                 }
             }
+            Self::Ignored => {}
         }
     }
 }
 
-pub fn line_editor<'a>(code: &'a editor::Content) -> LineEditor<'a> {
+pub fn line_editor<'a>(code: &'a Content) -> LineEditor<'a> {
     LineEditor {
         code,
         editable: true,
@@ -129,8 +137,10 @@ pub fn line_editor<'a>(code: &'a editor::Content) -> LineEditor<'a> {
         placeholder: None,
         text_size: None,
         style: Box::new(|theme: &iced::Theme, status| match status {
-            Status::Focused { .. } => editor::default(theme, Status::Focused { is_hovered: true }),
-            _ => editor::default(theme, Status::Active),
+            Status::Focused { .. } => {
+                text_editor::default(theme, Status::Focused { is_hovered: true })
+            }
+            _ => text_editor::default(theme, Status::Active),
         }),
         var_set: HashSet::new().into(),
         id: None,

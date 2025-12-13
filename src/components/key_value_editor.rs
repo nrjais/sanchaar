@@ -1,4 +1,4 @@
-use iced::widget::{column, text};
+use iced::widget::{column, text, text_editor};
 use iced::{Background, Length, Padding, border, padding};
 use iced::{
     Border, Element, Theme,
@@ -8,7 +8,7 @@ use std::collections::HashSet;
 use std::ops::Not;
 use std::sync::Arc;
 
-use crate::components::editor;
+use crate::components::editor::Content;
 use crate::components::{LineEditorMsg, line_editor, tooltip};
 
 use super::{icon, icons};
@@ -17,14 +17,14 @@ use super::{icon, icons};
 pub struct KeyValue {
     pub disabled: bool,
     name: String,
-    value: editor::Content,
+    value: Content,
 }
 
 impl KeyValue {
     pub fn new(name: &str, value: &str, disabled: bool) -> Self {
         Self {
             name: name.to_owned(),
-            value: editor::Content::with_text(value),
+            value: Content::with_text(value),
             disabled,
         }
     }
@@ -124,7 +124,7 @@ impl KeyValList {
         self.list.push(KeyValue {
             name: key,
             disabled: false,
-            value: editor::Content::default(),
+            value: Content::default(),
         });
     }
 
@@ -208,9 +208,9 @@ impl<'a> KeyValEditor<'a> {
             let value = container(
                 line_editor(&kv.value)
                     .placeholder("Value")
-                    .style(move |t, s| editor::Style {
+                    .style(move |t, s| text_editor::Style {
                         border,
-                        ..editor::default(t, s)
+                        ..text_editor::default(t, s)
                     })
                     .vars(Arc::clone(&self.vars))
                     .size(size)

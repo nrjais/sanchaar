@@ -18,6 +18,7 @@ pub mod colors;
 pub mod editor;
 mod scrollable;
 pub mod split;
+pub mod highlighters;
 
 pub use bordered::{bordered_bottom, bordered_left, bordered_right, bordered_top};
 pub use button_tabs::{ButtonTab, button_tab, button_tabs, vertical_button_tabs};
