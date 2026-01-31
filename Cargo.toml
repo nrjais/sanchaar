@@ -75,7 +75,7 @@ reqwest = { version = "0.13", default-features = false, features = [
   "stream",
 ] }
 reqwest_cookie_store = "0.10"
-rfd = { version = "0.17", default-features = false, features = ["xdg-portal"] }
+rfd = { version = "0.17" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = "3.9.0"
@@ -120,12 +120,7 @@ sqlx.workspace = true
 strum.workspace = true
 tokio.workspace = true
 uuid.workspace = true
-
-[target.'cfg(not(target_os = "linux"))'.dependencies]
-rfd = { workspace = true, default-features = false }
-
-[target.'cfg(target_os = "linux")'.dependencies]
-rfd = { workspace = true, default-features = false, features = ["xdg-portal"] }
+rfd.workspace = true
 
 [features]
 default = ["iced/debug", "iced/hot"]
