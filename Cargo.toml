@@ -73,6 +73,9 @@ rquickjs = { version = "0.11", features = [
 reqwest = { version = "0.13", default-features = false, features = [
   "multipart",
   "stream",
+  "query",
+  "rustls",
+  "form",
 ] }
 reqwest_cookie_store = "0.10"
 rfd = { version = "0.17" }
