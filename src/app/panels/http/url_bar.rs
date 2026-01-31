@@ -1,7 +1,6 @@
-use crate::components::editor::{self};
 use crate::state::request::RequestPane;
 use iced::Length::{Fill, Shrink};
-use iced::widget::{Button, Row, rule};
+use iced::widget::{Button, Row, rule, text_editor};
 use iced::{Alignment, Border, border, clipboard, mouse};
 use iced::{
     Element, Task,
@@ -152,9 +151,9 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
     let mut url = line_editor(&request.url_content)
         .placeholder("https://example.com")
         .id(request.url_id.clone())
-        .style(move |t: &iced::Theme, _| editor::Style {
+        .style(move |t: &iced::Theme, _| text_editor::Style {
             border,
-            ..editor::default(t, editor::Status::Active)
+            ..text_editor::default(t, text_editor::Status::Active)
         });
 
     if let Some(col) = col {
