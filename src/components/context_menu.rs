@@ -1,5 +1,5 @@
 use iced::advanced::widget::{Operation, tree};
-use iced::advanced::{Clipboard, Layout, Shell, Widget, layout, overlay, renderer, widget};
+use iced::advanced::{Layout, Shell, Widget, layout, overlay, renderer, widget};
 use iced::widget::{button, column, container, text};
 use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector, mouse};
 
@@ -168,7 +168,6 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) {
@@ -189,7 +188,6 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
             layout,
             cursor,
             renderer,
-            clipboard,
             shell,
             viewport,
         )
@@ -324,7 +322,6 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) {
         if let Event::Mouse(mouse::Event::ButtonPressed(_)) = &event
@@ -345,7 +342,6 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
             layout,
             cursor,
             renderer,
-            clipboard,
             shell,
             &layout.bounds(),
         );

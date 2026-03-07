@@ -1,6 +1,6 @@
 use iced_core::{
-    Animation, Clipboard, Color, Element, Event, Layout, Length, Point, Rectangle, Shell, Size,
-    Vector, Widget,
+    Animation, Color, Element, Event, Layout, Length, Point, Rectangle, Shell, Size, Vector,
+    Widget,
     border::{self, Radius},
     layout::{Limits, Node},
     mouse::{self, Click, Cursor, Interaction, click::Kind},
@@ -303,7 +303,6 @@ where
         layout: Layout<'_>,
         cursor: Cursor,
         renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) {
@@ -312,9 +311,9 @@ where
             .zip(&mut tree.children)
             .zip(layout.children())
             .for_each(|((child, tree), layout)| {
-                child.as_widget_mut().update(
-                    tree, event, layout, cursor, renderer, clipboard, shell, viewport,
-                );
+                child
+                    .as_widget_mut()
+                    .update(tree, event, layout, cursor, renderer, shell, viewport);
             });
 
         if shell.is_event_captured() {

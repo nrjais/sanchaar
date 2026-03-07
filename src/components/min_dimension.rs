@@ -3,7 +3,7 @@
 //! Layout from first pass is used to set the limits for the second pass
 
 use iced::advanced::widget::tree;
-use iced::advanced::{Clipboard, Layout, Shell, Widget, layout, overlay, renderer, widget};
+use iced::advanced::{Layout, Shell, Widget, layout, overlay, renderer, widget};
 use iced::{Element, Event, Length, Rectangle, Renderer, Size, Theme, Vector, mouse};
 use iced_core::widget::{Operation, Tree};
 
@@ -140,13 +140,12 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for MinDimension<'a, Message>
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) {
-        self.second_pass.as_widget_mut().update(
-            tree, event, layout, cursor, renderer, clipboard, shell, viewport,
-        )
+        self.second_pass
+            .as_widget_mut()
+            .update(tree, event, layout, cursor, renderer, shell, viewport)
     }
 
     fn mouse_interaction(

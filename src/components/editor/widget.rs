@@ -411,6 +411,7 @@ where
             self.text_size.unwrap_or_else(|| renderer.default_size()),
             self.line_height,
             self.wrapping,
+            None,
             state.highlighter.borrow_mut().deref_mut(),
         );
 
@@ -438,7 +439,6 @@ where
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         _renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
     ) {
@@ -532,7 +532,6 @@ where
                         content: &Content<R>,
                         state: &mut State<H>,
                         on_edit: &dyn Fn(ContentAction) -> Message,
-                        clipboard: &mut dyn Clipboard,
                         shell: &mut Shell<'_, Message>,
                     ) {
                         let mut publish_ca = |action| shell.publish(on_edit(action));
