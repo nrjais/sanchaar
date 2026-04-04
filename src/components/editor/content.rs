@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::sync::Arc;
 
-use iced_core::text::editor::{Edit, Editor as _, Line, LineEnding, Motion};
+use iced_core::text::editor::{Cursor, Edit, Editor as _, Line, LineEnding, Motion, Position};
 use iced_core::text::{self};
 pub use text::editor::Action;
 
@@ -26,18 +26,18 @@ where
 fn track_action<R: text::Renderer>(internal: &mut Internal<R>, edit: Edit) {
     let editor = &mut internal.editor;
 
-    let (line, col) = editor.cursor_position();
-    let pre_selection = editor.selection().map(Arc::new);
-    let pre_selection_c = editor.selection_cursor();
+    let cursor = editor.cursor();
+    let Position { line, column } = cursor.position;
+    let pre_selection = editor.copy().map(Arc::new);
 
     let (mut at, mut after) = editor
         .line(line)
         .map(|line| {
             let mut chars = line.text.chars();
-            (chars.nth(col.saturating_sub(1)), chars.next())
+            (chars.nth(column.saturating_sub(1)), chars.next())
         })
         .unwrap_or((None, None));
-    if col == 0 {
+    if column == 0 {
         at = (line > 0).then_some('\n');
     }
     if after.is_none() {
@@ -46,29 +46,31 @@ fn track_action<R: text::Renderer>(internal: &mut Internal<R>, edit: Edit) {
 
     editor.perform(Action::Edit(edit.clone()));
 
+    let post_cursor = editor.cursor();
     internal.undo_stack.push(EditorAction {
         edit,
         pre_selection_text: pre_selection,
-        pre_cursor: (line, col),
-        post_cursor: editor.cursor_position(),
+        pre_cursor: cursor,
+        post_cursor: post_cursor,
         char_at_cursor: at,
         char_after_cursor: after,
-        pre_selection: pre_selection_c,
-        post_selection: editor.selection_cursor(),
     });
 }
 
 fn delete_action<R: text::Renderer>(mov: Motion, internal: &mut Internal<R>) {
-    let selection = internal.editor.selection_cursor();
+    let selection = internal.editor.cursor().selection;
     if selection.is_some() {
         track_action(internal, Edit::Delete);
         return;
     };
 
     let editor = &mut internal.editor;
-    let cursor = editor.cursor_position();
+    let cursor = editor.cursor();
     editor.perform(Action::Move(mov));
-    editor.perform(Action::SelectTo(cursor.0, cursor.1));
+    let mut post_cursor = editor.cursor();
+    post_cursor.selection = Some(cursor.position);
+    editor.move_to(post_cursor);
+
     track_action(internal, Edit::Delete);
 }
 
@@ -131,6 +133,17 @@ where
         internal.is_dirty = true;
     }
 
+    /// Moves the current cursor to reflect the given one.
+    pub fn move_to(&mut self, cursor: Cursor) {
+        let internal = self.0.get_mut();
+        internal.editor.move_to(cursor);
+    }
+
+    /// Returns the current cursor position of the [`Content`].
+    pub fn cursor(&self) -> Cursor {
+        self.0.borrow().editor.cursor()
+    }
+
     /// Returns the amount of lines of the [`Content`].
     pub fn line_count(&self) -> usize {
         self.0.borrow().editor.line_count()
@@ -175,19 +188,19 @@ where
         contents
     }
 
+    /// Returns the selected text of the [`Content`].
+    pub fn selection(&self) -> Option<String> {
+        self.0.borrow().editor.copy()
+    }
+
     /// Returns the kind of [`LineEnding`] used for separating lines in the [`Content`].
     pub fn line_ending(&self) -> Option<LineEnding> {
         Some(self.line(0)?.ending)
     }
 
-    /// Returns the selected text of the [`Content`].
-    pub fn selection(&self) -> Option<String> {
-        self.0.borrow().editor.selection()
-    }
-
-    /// Returns the current cursor position of the [`Content`].
-    pub fn cursor_position(&self) -> (usize, usize) {
-        self.0.borrow().editor.cursor_position()
+    /// Returns whether or not the the [`Content`] is empty.
+    pub fn is_empty(&self) -> bool {
+        self.0.borrow().editor.is_empty()
     }
 }
 

@@ -158,7 +158,7 @@ fn handle_context_menu(
             .map(move |_| CollectionTreeMsg::ActionComplete),
         MenuAction::CopyPath(req) => {
             if let Some(request) = common.collections.get_ref(CollectionRequest(key, req)) {
-                clipboard::write(request.path.to_string_lossy().to_string())
+                clipboard::write(request.path.to_string_lossy().to_string()).discard()
             } else {
                 Task::none()
             }

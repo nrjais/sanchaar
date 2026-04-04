@@ -71,7 +71,7 @@ impl UrlBarMsg {
                 let req_ref = state.common.collections.get_ref(tab.collection_ref);
                 if let Some(req_res) = req_ref {
                     let path = req_res.path.clone();
-                    return save_request_cmd(tab, path).map(|_| Self::Done);
+                    return save_request_cmd(tab, path).discard();
                 } else {
                     Popup::save_request(&mut state.common, active_tab);
                 }
@@ -86,7 +86,7 @@ impl UrlBarMsg {
                 let collection = state.common.collections.get(tab.collection_ref.0);
                 let env = collection.map(|c| c.env_chain()).unwrap_or_default();
                 let curl = generate_curl_command(&tab.request().to_request(), env);
-                return clipboard::write(curl);
+                return clipboard::write(curl).discard();
             }
         }
         Task::none()
@@ -139,11 +139,10 @@ pub fn view<'a>(tab: &'a HttpTab, col: Option<&'a Collection>) -> Element<'a, Ur
 
     let border = Border::default();
 
-    let method = pick_list(
-        Method::VARIANTS,
-        Some(request.method),
-        UrlBarMsg::MethodChanged,
-    )
+    let method = pick_list(Some(request.method), Method::VARIANTS, |method| {
+        method.to_string()
+    })
+    .on_select(UrlBarMsg::MethodChanged)
     .style(move |theme, _| pick_list::Style {
         border: border.rounded(border::left(4)),
         ..pick_list::default(theme, pick_list::Status::Active)

@@ -30,10 +30,11 @@ pub fn body_tab(
         .push(text("Content Type"))
         .push(
             pick_list(
-                RawRequestBody::VARIANTS,
                 Some(body.as_str()),
-                RequestPaneMsg::ChangeBodyType,
+                RawRequestBody::VARIANTS,
+                |body| body.to_string(),
             )
+            .on_select(RequestPaneMsg::ChangeBodyType)
             .padding([2, 6]),
         )
         .push(actions)

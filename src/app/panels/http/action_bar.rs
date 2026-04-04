@@ -110,12 +110,11 @@ fn environment_view(col: &Collection, key: CollectionKey) -> Element<'_, ActionB
 
     let selected = col.get_active_environment().map(|env| &env.name);
 
-    let picker = pick_list(envs, selected, |name| {
-        ActionBarMsg::SelectEnvironment(name.to_owned())
-    })
-    .width(Length::Shrink)
-    .padding([2, 4])
-    .placeholder(env_placeholder);
+    let picker = pick_list(selected, envs, |name| name.to_string())
+        .on_select(|name| ActionBarMsg::SelectEnvironment(name.to_owned()))
+        .width(Length::Shrink)
+        .padding([2, 4])
+        .placeholder(env_placeholder);
 
     let settings = icon_button(icons::Gear).on_press(ActionBarMsg::OpenEnvironments(key));
 

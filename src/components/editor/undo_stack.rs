@@ -1,15 +1,11 @@
 use std::sync::Arc;
 
 use iced_core::text::Editor;
-use iced_core::text::editor::{Action, Edit};
-
-type Cursor = (usize, usize);
+use iced_core::text::editor::{Action, Cursor, Edit, Position};
 
 pub(crate) struct EditorAction {
     pub pre_cursor: Cursor,
     pub post_cursor: Cursor,
-    pub pre_selection: Option<Cursor>,
-    pub post_selection: Option<Cursor>,
     pub char_at_cursor: Option<char>,
     pub char_after_cursor: Option<char>,
     pub pre_selection_text: Option<Arc<String>>,
@@ -48,7 +44,7 @@ impl UndoStack {
             }
             self.current_index = index;
 
-            restore_selection(content, action.post_cursor, action.post_selection);
+            content.move_to(action.post_cursor);
             match &action.edit {
                 Edit::Insert(_) => {
                     insert = true;
@@ -57,13 +53,16 @@ impl UndoStack {
                     continue;
                 }
                 Edit::Paste(_) => {
-                    let cursor = if let Some(selection) = action.pre_selection {
-                        selection.min(action.pre_cursor)
+                    let cursor = if let Some(selection) = action.pre_cursor.selection {
+                        min_position(selection, action.pre_cursor.position)
                     } else {
-                        action.pre_cursor
+                        action.pre_cursor.position
                     };
-                    content.perform(Action::Cursor(cursor.0, cursor.1));
-                    content.perform(Action::SelectTo(action.post_cursor.0, action.post_cursor.1));
+                    let cursor = Cursor {
+                        position: cursor,
+                        selection: Some(action.post_cursor.position),
+                    };
+                    content.move_to(cursor);
                     content.perform(Action::Edit(Edit::Delete));
 
                     paste_prev_selection(action, content);
@@ -87,7 +86,7 @@ impl UndoStack {
                     }
                 }
             }
-            restore_selection(content, action.pre_cursor, action.pre_selection);
+            content.move_to(action.pre_cursor);
             break;
         }
     }
@@ -105,7 +104,7 @@ impl UndoStack {
             }
             self.current_index += 1;
 
-            restore_selection(content, action.pre_cursor, action.pre_selection);
+            content.move_to(action.pre_cursor);
             match &action.edit {
                 Edit::Insert(_) => {
                     insert = true;
@@ -123,19 +122,23 @@ impl UndoStack {
     }
 }
 
-fn restore_selection(content: &mut impl Editor, cursor: Cursor, selection: Option<Cursor>) {
-    if let Some((line, col)) = selection {
-        content.perform(Action::Cursor(line, col));
-        content.perform(Action::SelectTo(cursor.0, cursor.1));
+fn min_position(a: Position, b: Position) -> Position {
+    if a.line < b.line {
+        a
+    } else if a.line > b.line {
+        b
     } else {
-        content.perform(Action::Cursor(cursor.0, cursor.1));
+        Position {
+            line: a.line,
+            column: a.column.min(b.column),
+        }
     }
 }
 
 fn paste_prev_selection(action: &EditorAction, content: &mut impl Editor) -> bool {
     if let Some(selection) = &action.pre_selection_text {
         content.perform(Action::Edit(Edit::Paste(Arc::clone(selection))));
-        restore_selection(content, action.pre_cursor, action.pre_selection);
+        content.move_to(action.pre_cursor);
         true
     } else {
         false

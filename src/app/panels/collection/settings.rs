@@ -91,7 +91,8 @@ pub fn view<'a>(tab: &'a CollectionTab, col: &'a Collection) -> Element<'a, Mess
         .push("Default Environment")
         .push(space::horizontal().width(Length::FillPortion(4)))
         .push(
-            pick_list(envs, default_env_name, Message::UpdateDefaultEnv)
+            pick_list(default_env_name, envs, |env| env.to_string())
+                .on_select(Message::UpdateDefaultEnv)
                 .width(Length::FillPortion(1))
                 .placeholder("Default Environment"),
         )

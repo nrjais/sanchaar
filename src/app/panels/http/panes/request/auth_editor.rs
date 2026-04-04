@@ -104,11 +104,10 @@ pub fn auth_view(request: &RequestPane, vars: Arc<HashSet<String>>) -> Element<A
     let header = Row::new()
         .push(text("Auth Type"))
         .push(
-            pick_list(
-                RawAuthType::VARIANTS,
-                Some(auth.as_str()),
-                AuthEditorMsg::ChangeAuthType,
-            )
+            pick_list(Some(auth.as_str()), RawAuthType::VARIANTS, |auth| {
+                auth.to_string()
+            })
+            .on_select(AuthEditorMsg::ChangeAuthType)
             .padding([2, 6]),
         )
         .spacing(16)
@@ -180,11 +179,10 @@ fn api_key_view<'a>(
     Column::new()
         .push(field_row(
             "Add To",
-            pick_list(
-                AuthIn::VARIANTS,
-                Some(add_to.as_str()),
-                AuthEditorMsg::APIKeyAddTo,
-            ),
+            pick_list(Some(add_to.as_str()), AuthIn::VARIANTS, |add_to| {
+                add_to.to_string()
+            })
+            .on_select(AuthEditorMsg::APIKeyAddTo),
         ))
         .push(field_row(
             "Name",
@@ -210,19 +208,17 @@ fn jwt_bearer_view<'a>(
     Column::new()
         .push(field_row(
             "Algorithm",
-            pick_list(
-                JwtAlgo::VARIANTS,
-                Some(algorithm.as_str()),
-                AuthEditorMsg::JWTBearerAlgorithm,
-            ),
+            pick_list(Some(algorithm.as_str()), JwtAlgo::VARIANTS, |algorithm| {
+                algorithm.to_string()
+            })
+            .on_select(AuthEditorMsg::JWTBearerAlgorithm),
         ))
         .push(field_row(
             "Add To",
-            pick_list(
-                AuthIn::VARIANTS,
-                Some(add_to.as_str()),
-                AuthEditorMsg::JWTBearerAddTo,
-            ),
+            pick_list(Some(add_to.as_str()), AuthIn::VARIANTS, |add_to| {
+                add_to.to_string()
+            })
+            .on_select(AuthEditorMsg::JWTBearerAddTo),
         ))
         .push(field_row(
             "Secret",

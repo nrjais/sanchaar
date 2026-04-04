@@ -2001,6 +2001,7 @@ version = "0.2.2"
 source = "git+https://github.com/nrjais/iced_drop?branch=master#67d472143fdfe63c05308975abee95c76f6aad70"
 dependencies = [
  "iced_core",
+ "iced_runtime",
  "iced_widget",
 ]
 
