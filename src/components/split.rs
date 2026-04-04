@@ -1,4 +1,4 @@
-use iced::{Pixels, theme::palette::mix};
+use iced::Pixels;
 use iced_core::{
     Animation, Color, Element, Event, Layout, Length, Point, Rectangle, Shell, Size, Vector,
     Widget,
@@ -610,8 +610,7 @@ where
         let style = theme.style(&self.class);
         let state = tree.state.downcast_ref::<State>();
 
-        let color = mix(
-            style.unfocused.color,
+        let color = style.unfocused.color.mix(
             style.focused.color,
             state.mix.interpolate(0.0, 1.0, state.now),
         );
@@ -809,7 +808,7 @@ impl Catalog for iced_core::Theme {
 /// The default styling of a [`Split`].
 #[must_use]
 pub fn default(theme: &iced_core::Theme) -> Style {
-    let palette = theme.extended_palette();
+    let palette = theme.palette();
 
     Style {
         unfocused: StyleSheet {

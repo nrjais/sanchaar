@@ -85,7 +85,7 @@ rquickjs = { version = "0.11", features = [
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = "3.9.0"
-similar = "2.5"
+similar = "3"
 sqlx = { version = "0.8", features = [
   "chrono",
   "runtime-tokio",
@@ -94,7 +94,7 @@ sqlx = { version = "0.8", features = [
 ] }
 strum = { version = "0.28", features = ["derive"] }
 tokio = { version = "1.36", features = ["fs", "io-util", "macros"] }
-toml = "0.9"
+toml = "1"
 urlencoding = "2.1"
 uuid = { version = "1.22", features = ["serde", "v4"] }
 

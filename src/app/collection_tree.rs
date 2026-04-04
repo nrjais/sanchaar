@@ -177,7 +177,7 @@ fn icon_button<'a>(ico: NerdIcon) -> Button<'a, CollectionTreeMsg> {
     components::icon_button(ico, Some(22), Some(8)).style(move |theme, status| {
         if status == Status::Hovered || status == Status::Pressed {
             button::Style {
-                text_color: theme.extended_palette().primary.strong.color,
+                text_color: theme.palette().primary.strong.color,
                 ..button::text(theme, status)
             }
         } else {
@@ -298,7 +298,7 @@ fn action_button<'a>(
             .style(move |theme, status| {
                 if status == Status::Hovered || status == Status::Pressed {
                     button::Style {
-                        text_color: theme.extended_palette().primary.strong.color,
+                        text_color: theme.palette().primary.strong.color,
                         ..button::text(theme, status)
                     }
                 } else {
@@ -415,7 +415,7 @@ fn context_button_request(
         icon(icons::API)
             .size(16)
             .style(|t| text::Style {
-                color: Some(t.extended_palette().success.strong.color),
+                color: Some(t.palette().success.strong.color),
             })
             .align_x(iced::Alignment::Start)
             .into(),

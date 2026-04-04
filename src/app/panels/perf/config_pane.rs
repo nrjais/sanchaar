@@ -210,14 +210,14 @@ fn selected_request_view<'a>(
                 icon(icons::API)
                     .size(16)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().primary.strong.color),
+                        color: Some(theme.palette().primary.strong.color),
                     }),
             )
             .push(
                 text(&request.name)
                     .size(16)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.base.text),
+                        color: Some(theme.palette().background.base.text),
                     }),
             )
             .spacing(8)
@@ -226,11 +226,11 @@ fn selected_request_view<'a>(
     .padding([10, 14])
     .width(Length::Fill)
     .style(|theme: &iced::Theme| container::Style {
-        background: Some(theme.extended_palette().primary.weak.color.into()),
+        background: Some(theme.palette().primary.weak.color.into()),
         border: Border {
             radius: 6.0.into(),
             width: 1.0,
-            color: theme.extended_palette().primary.strong.color,
+            color: theme.palette().primary.strong.color,
         },
         ..Default::default()
     });
@@ -241,7 +241,7 @@ fn selected_request_view<'a>(
                 .width(Length::Fixed(24.0))
                 .align_x(Alignment::Center)
                 .style(|theme: &iced::Theme| container::Style {
-                    text_color: Some(theme.extended_palette().background.strong.text),
+                    text_color: Some(theme.palette().background.strong.text),
                     ..Default::default()
                 }),
         )
@@ -249,7 +249,7 @@ fn selected_request_view<'a>(
             text("Collection:")
                 .size(14)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.strong.text),
+                    color: Some(theme.palette().background.strong.text),
                 }),
         )
         .push(space::horizontal().width(8))
@@ -257,7 +257,7 @@ fn selected_request_view<'a>(
             text(&collection.name)
                 .size(14)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.base.text),
+                    color: Some(theme.palette().background.base.text),
                 }),
         )
         .spacing(8)
@@ -276,7 +276,7 @@ fn selected_request_view<'a>(
                 .width(Length::Fixed(24.0))
                 .align_x(Alignment::Center)
                 .style(|theme: &iced::Theme| container::Style {
-                    text_color: Some(theme.extended_palette().background.strong.text),
+                    text_color: Some(theme.palette().background.strong.text),
                     ..Default::default()
                 }),
         )
@@ -284,7 +284,7 @@ fn selected_request_view<'a>(
             text("Path:")
                 .size(14)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.strong.text),
+                    color: Some(theme.palette().background.strong.text),
                 }),
         )
         .push(space::horizontal().width(40))
@@ -292,7 +292,7 @@ fn selected_request_view<'a>(
             text(path_display)
                 .size(14)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.base.text),
+                    color: Some(theme.palette().background.base.text),
                 }),
         )
         .spacing(8)
@@ -311,7 +311,7 @@ fn selected_request_view<'a>(
         border: Border {
             radius: 4.0.into(),
             width: 1.0,
-            color: theme.extended_palette().background.weak.color,
+            color: theme.palette().background.weak.color,
         },
         ..Default::default()
     });
@@ -329,14 +329,14 @@ fn empty_drop_zone<'a>() -> Column<'a, ConfigMsg> {
             icon(icons::Import)
                 .size(48)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.weak.text),
+                    color: Some(theme.palette().background.weak.text),
                 }),
         )
         .push(
             text("Drag request here to select")
                 .size(16)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.strong.text),
+                    color: Some(theme.palette().background.strong.text),
                 }),
         )
         .spacing(12)

@@ -43,7 +43,7 @@ pub fn card_tabs<'a, T: Eq + Copy + std::fmt::Display + 'static, M: 'a + Clone>(
             .padding(4)
             .on_press(on_action(TabBarAction::CloseTab(id)))
             .style(move |theme: &iced::Theme, status| {
-                let palette = theme.extended_palette();
+                let palette = theme.palette();
                 let mut style = button::text(theme, Status::Active);
                 let text_color = match status {
                     Status::Pressed | Status::Hovered if is_active => palette.primary.strong.text,
@@ -71,7 +71,7 @@ pub fn card_tabs<'a, T: Eq + Copy + std::fmt::Display + 'static, M: 'a + Clone>(
             button(droppable)
                 .padding([2, 4])
                 .style(move |theme: &iced::Theme, status| {
-                    let palette = theme.extended_palette();
+                    let palette = theme.palette();
 
                     let (background, text_color) = match (is_active, status) {
                         (true, Status::Hovered | Status::Pressed) => {
@@ -137,7 +137,7 @@ pub fn card_tabs<'a, T: Eq + Copy + std::fmt::Display + 'static, M: 'a + Clone>(
                 .padding([2, 6])
                 .on_press(on_action(TabBarAction::NewTab))
                 .style(|theme: &iced::Theme, status| {
-                    let palette = theme.extended_palette();
+                    let palette = theme.palette();
                     let (background, text_color) = match status {
                         Status::Pressed | Status::Hovered => {
                             (palette.primary.strong.color, palette.primary.strong.text)

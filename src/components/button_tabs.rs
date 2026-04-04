@@ -67,7 +67,7 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
             if active {
                 Column::new()
                     .push(btn.style(|theme, _| {
-                        let palette = theme.extended_palette();
+                        let palette = theme.palette();
                         let mut style = button::text(theme, Status::Active);
                         style.background = None;
                         style.text_color = palette.background.strong.text;
@@ -78,7 +78,7 @@ fn tab_list<'a, T: Eq + Clone, M: 'a + Clone>(
                             .width(iced::Length::Fill)
                             .height(2.0)
                             .style(move |theme: &iced::Theme| {
-                                let palette = theme.extended_palette();
+                                let palette = theme.palette();
                                 container::Style {
                                     background: Some(Background::Color(
                                         palette.primary.strong.color,

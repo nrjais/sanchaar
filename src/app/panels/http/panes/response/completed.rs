@@ -199,7 +199,7 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
             text(fmt_duration(res.duration))
                 .size(status_size)
                 .style(|theme: &Theme| text::Style {
-                    color: Some(theme.palette().success),
+                    color: Some(theme.palette().success.base.color),
                 }),
         )
         .push(dot())
@@ -207,7 +207,7 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
             text(format_size(res.size_bytes, BINARY))
                 .size(status_size)
                 .style(|theme: &Theme| text::Style {
-                    color: Some(theme.palette().success),
+                    color: Some(theme.palette().success.base.color),
                 }),
         )
         .spacing(4)

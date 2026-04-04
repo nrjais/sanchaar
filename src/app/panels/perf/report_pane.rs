@@ -57,7 +57,7 @@ fn empty_view<'a>() -> Element<'a, ReportMsg> {
                 icon(icons::Speedometer)
                     .size(48)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.weak.text),
+                        color: Some(theme.palette().background.weak.text),
                     }),
             )
             .push(space::vertical().height(16))
@@ -65,7 +65,7 @@ fn empty_view<'a>() -> Element<'a, ReportMsg> {
                 text("Performance Report")
                     .size(24)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.base.text),
+                        color: Some(theme.palette().background.base.text),
                     }),
             )
             .push(space::vertical().height(8))
@@ -73,7 +73,7 @@ fn empty_view<'a>() -> Element<'a, ReportMsg> {
                 text("Configure and run a benchmark to see results here")
                     .size(14)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.weak.text),
+                        color: Some(theme.palette().background.weak.text),
                     }),
             )
             .spacing(4)
@@ -100,11 +100,11 @@ fn running_view<'a>(tab: &'a PerfTab) -> Element<'a, ReportMsg> {
     let progress = (elapsed_secs / test_duration_secs as f32).clamp(0.0, 1.0);
 
     let weak_text = |theme: &iced::Theme| text::Style {
-        color: Some(theme.extended_palette().background.weak.text),
+        color: Some(theme.palette().background.weak.text),
     };
 
     let base_text = |theme: &iced::Theme| text::Style {
-        color: Some(theme.extended_palette().background.base.text),
+        color: Some(theme.palette().background.base.text),
     };
 
     content = content
@@ -260,7 +260,7 @@ fn failed_view<'a>() -> Element<'a, ReportMsg> {
                 text("An error occurred while running the performance test")
                     .size(14)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.weak.text),
+                        color: Some(theme.palette().background.weak.text),
                     }),
             )
             .spacing(4)
@@ -290,7 +290,7 @@ fn cancelled_view<'a>() -> Element<'a, ReportMsg> {
                 text("The performance benchmark was cancelled before completion")
                     .size(14)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.weak.text),
+                        color: Some(theme.palette().background.weak.text),
                     }),
             )
             .spacing(4)
@@ -322,7 +322,7 @@ fn cancelled_with_stats_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
             text("Partial results from cancelled benchmark")
                 .size(12)
                 .style(|theme: &iced::Theme| text::Style {
-                    color: Some(theme.extended_palette().background.weak.text),
+                    color: Some(theme.palette().background.weak.text),
                 }),
         )
         .push(space::vertical().height(16));
@@ -467,7 +467,7 @@ fn cancelled_with_stats_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
                 text(format!("... and {} more error types", errors.len() - 10))
                     .size(12)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.weak.text),
+                        color: Some(theme.palette().background.weak.text),
                     }),
             );
         }
@@ -620,7 +620,7 @@ fn completed_view(stats: &PerfStats) -> Element<'static, ReportMsg> {
                 text(format!("... and {} more error types", errors.len() - 10))
                     .size(12)
                     .style(|theme: &iced::Theme| text::Style {
-                        color: Some(theme.extended_palette().background.weak.text),
+                        color: Some(theme.palette().background.weak.text),
                     }),
             );
         }
@@ -637,12 +637,12 @@ fn stat_row_owned(label: String, value: String) -> Element<'static, ReportMsg> {
         text(label)
             .width(Length::FillPortion(2))
             .style(|theme: &iced::Theme| text::Style {
-                color: Some(theme.extended_palette().background.base.text),
+                color: Some(theme.palette().background.base.text),
             }),
         text(value)
             .width(Length::FillPortion(1))
             .style(|theme: &iced::Theme| text::Style {
-                color: Some(theme.extended_palette().background.base.text),
+                color: Some(theme.palette().background.base.text),
             }),
     ]
     .padding(4)
