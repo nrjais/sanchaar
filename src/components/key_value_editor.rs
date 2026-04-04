@@ -253,9 +253,7 @@ impl<'a> KeyValEditor<'a> {
                 .padding([2, 4]),
         )
         .style(|t: &Theme| container::Style {
-            background: Some(Background::Color(
-                t.palette().background.weak.color,
-            )),
+            background: Some(Background::Color(t.palette().background.weak.color)),
             border: Border::default()
                 .width(1)
                 .color(t.palette().background.strong.color)
