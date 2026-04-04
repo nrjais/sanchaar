@@ -51,7 +51,7 @@ fn track_action<R: text::Renderer>(internal: &mut Internal<R>, edit: Edit) {
         edit,
         pre_selection_text: pre_selection,
         pre_cursor: cursor,
-        post_cursor: post_cursor,
+        post_cursor,
         char_at_cursor: at,
         char_after_cursor: after,
     });
