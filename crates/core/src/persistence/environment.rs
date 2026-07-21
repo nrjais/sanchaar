@@ -86,7 +86,7 @@ pub async fn save_environments(
     fs::create_dir_all(&env_path).await?;
 
     for environment in environments.iter() {
-        let path = env_path.join(format!("{}{}", &environment.name, TOML_EXTENSION));
+        let path = env_path.join(format!("{}{}", environment.name, TOML_EXTENSION));
         let content = toml::to_string_pretty(environment)?;
 
         fs::write(&path, content).await?;
