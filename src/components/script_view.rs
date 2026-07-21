@@ -24,10 +24,11 @@ pub fn script_selector<'a, Message: 'a + Clone>(
     on_save: Option<(bool, Message)>, // (is_edited, save_message)
 ) -> Element<'a, Message> {
     let picker = pick_list(
-        scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
         selected,
-        on_select,
+        scripts.iter().map(|s| s.name.clone()).collect::<Vec<_>>(),
+        |s| s.to_string(),
     )
+    .on_select(on_select)
     .placeholder("Select Script")
     .width(Length::Fill)
     .padding([2, 8])

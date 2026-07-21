@@ -207,7 +207,7 @@ pub fn create_new_request_cmd(
             let Some(folder) = collection.folder_mut(fol) else {
                 return Task::none();
             };
-            let path = folder.path.join(format!("{}{}", &name, TOML_EXTENSION));
+            let path = folder.path.join(format!("{}{}", name, TOML_EXTENSION));
             folder.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -219,7 +219,7 @@ pub fn create_new_request_cmd(
             let path = collection
                 .path
                 .join(REQUESTS)
-                .join(format!("{}{}", &name, TOML_EXTENSION));
+                .join(format!("{}{}", name, TOML_EXTENSION));
             collection.entries.push(Entry::Item(RequestRef {
                 name,
                 id: RequestId::new(),
@@ -293,7 +293,7 @@ pub fn open_request_cmd(
     Task::perform(fut, move |res| match res {
         Ok(req) => Some((req, name.clone())),
         Err(e) => {
-            log::error!("Error opening request: {:?}", &e);
+            log::error!("Error opening request: {:?}", e);
             None
         }
     })

@@ -38,10 +38,10 @@ impl<'a> CodeEditor<'a> {
                 border: match status {
                     Status::Focused { .. } => border::width(1)
                         .rounded(2)
-                        .color(theme.extended_palette().primary.strong.color),
+                        .color(theme.palette().primary.strong.color),
                     _ => border::width(1)
                         .rounded(2)
-                        .color(theme.extended_palette().background.weak.color),
+                        .color(theme.palette().background.weak.color),
                 },
                 ..editor::default(theme, status)
             })

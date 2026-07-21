@@ -17,7 +17,7 @@ pub fn tooltip<'a, M: 'a>(msg: &'a str, base: impl Into<Element<'a, M>>) -> Tool
         base,
         container(text(msg))
             .style(|theme: &Theme| {
-                let palette = theme.extended_palette();
+                let palette = theme.palette();
 
                 container::Style {
                     background: Some(palette.background.weak.color.into()),

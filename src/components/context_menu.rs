@@ -1,5 +1,5 @@
 use iced::advanced::widget::{Operation, tree};
-use iced::advanced::{Clipboard, Layout, Shell, Widget, layout, overlay, renderer, widget};
+use iced::advanced::{Layout, Shell, Widget, layout, overlay, renderer, widget};
 use iced::widget::{button, column, container, text};
 use iced::{Element, Event, Length, Point, Rectangle, Renderer, Size, Theme, Vector, mouse};
 
@@ -93,10 +93,6 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         self.base.as_widget().size()
     }
 
-    fn size_hint(&self) -> Size<Length> {
-        self.base.as_widget().size_hint()
-    }
-
     fn layout(
         &mut self,
         tree: &mut widget::Tree,
@@ -137,12 +133,8 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         tree::State::new(State::Closed)
     }
 
-    fn children(&self) -> Vec<widget::Tree> {
-        vec![widget::Tree::new(&self.base), widget::Tree::new(&self.menu)]
-    }
-
-    fn diff(&self, tree: &mut widget::Tree) {
-        tree.diff_children(&[self.base.as_widget(), self.menu.as_widget()]);
+    fn diff(&mut self, tree: &mut widget::Tree) {
+        tree.diff_children(&mut [self.base.as_widget_mut(), self.menu.as_widget_mut()]);
     }
 
     fn operate(
@@ -168,7 +160,6 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) {
@@ -189,7 +180,6 @@ impl<'a, Message> Widget<Message, Theme, Renderer> for ContextMenu<'a, Message> 
             layout,
             cursor,
             renderer,
-            clipboard,
             shell,
             viewport,
         )
@@ -324,7 +314,6 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
         layout: Layout<'_>,
         cursor: mouse::Cursor,
         renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
     ) {
         if let Event::Mouse(mouse::Event::ButtonPressed(_)) = &event
@@ -345,7 +334,6 @@ impl<'a, 'b, Message> overlay::Overlay<Message, Theme, Renderer> for Overlay<'a,
             layout,
             cursor,
             renderer,
-            clipboard,
             shell,
             &layout.bounds(),
         );

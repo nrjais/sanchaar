@@ -97,7 +97,7 @@ pub fn view<'a>(state: &'a AppState, popup: &'a Popup) -> Element<'a, PopupMsg> 
     )
     .padding(16)
     .style(|theme| Style {
-        background: Some(theme.extended_palette().background.weak.color.into()),
+        background: Some(theme.palette().background.weak.color.into()),
         border: border::rounded(6),
         ..Style::default()
     })

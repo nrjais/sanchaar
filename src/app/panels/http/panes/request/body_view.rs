@@ -29,11 +29,10 @@ pub fn body_tab(
     let header = Row::new()
         .push(text("Content Type"))
         .push(
-            pick_list(
-                RawRequestBody::VARIANTS,
-                Some(body.as_str()),
-                RequestPaneMsg::ChangeBodyType,
-            )
+            pick_list(Some(body.as_str()), RawRequestBody::VARIANTS, |body| {
+                body.to_string()
+            })
+            .on_select(RequestPaneMsg::ChangeBodyType)
             .padding([2, 6]),
         )
         .push(actions)

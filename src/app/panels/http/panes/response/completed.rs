@@ -46,7 +46,7 @@ impl CompletedMsg {
                 msg.update(res.selected_content_mut(mode));
             }
             CompletedMsg::CopyBodyToClipboard(mode) => {
-                return clipboard::write(res.selected_content(mode).text());
+                return clipboard::write(res.selected_content(mode).text()).discard();
             }
             CompletedMsg::SaveResponse => {
                 return create_file_dialog("Save response body").map(CompletedMsg::SaveToFile);
@@ -65,7 +65,7 @@ impl CompletedMsg {
                 res.apply_json_path_filter();
             }
             CompletedMsg::CopyHeadersToClipboard => {
-                return clipboard::write(headers_to_string(&res.result.headers));
+                return clipboard::write(headers_to_string(&res.result.headers)).discard();
             }
             CompletedMsg::ToggleJsonPathFilter => {
                 if res.json_path_filter.is_none() {
@@ -199,7 +199,7 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
             text(fmt_duration(res.duration))
                 .size(status_size)
                 .style(|theme: &Theme| text::Style {
-                    color: Some(theme.palette().success),
+                    color: Some(theme.palette().success.base.color),
                 }),
         )
         .push(dot())
@@ -207,7 +207,7 @@ pub fn view<'a>(tab: &'a HttpTab, cr: &'a CompletedResponse) -> Element<'a, Comp
             text(format_size(res.size_bytes, BINARY))
                 .size(status_size)
                 .style(|theme: &Theme| text::Style {
-                    color: Some(theme.palette().success),
+                    color: Some(theme.palette().success.base.color),
                 }),
         )
         .spacing(4)

@@ -14,7 +14,7 @@ pub fn key_value_viewer<'a, M: Clone + 'a>(
             .width(Length::FillPortion(3))
             .padding(0)
             .style(|t: &Theme, _s| {
-                let palette = t.extended_palette();
+                let palette = t.palette();
                 text_input::Style {
                     background: Background::Color(palette.background.base.color),
                     border: Border::default(),

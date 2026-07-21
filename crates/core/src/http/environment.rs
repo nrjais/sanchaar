@@ -137,7 +137,7 @@ impl EnvironmentChain {
     pub fn all_var_set(&self) -> Arc<HashSet<String>> {
         let mut set = HashSet::new();
         for vars in self.vars.iter().chain([&self.dotenv]) {
-            for (name, _) in vars.iter() {
+            for name in vars.keys() {
                 set.insert(name.clone());
             }
         }

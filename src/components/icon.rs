@@ -10,7 +10,7 @@ pub fn icon<'a>(icon: NerdIcon) -> Text<'a, Theme, Renderer> {
     text(icon.0)
         .align_x(Center)
         .align_y(Center)
-        .font(Font::with_name("Hack Nerd Font"))
+        .font(Font::with_family("Hack Nerd Font"))
 }
 
 pub fn icon_button<'a, M: 'a>(
